@@ -12,7 +12,9 @@ const HomePage = () => {
   return (
     <div>
         <Header activeHeading={1} />
+        <div className = "bg-[#151523] rounded-b-lg">
         <Hero />
+        </div>
         <Categories />
         <BestDeals />
         <Events />

@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { createProduct } from "../../redux/actions/product";
 import { categoriesData } from "../../static/data";
 import { toast } from "react-toastify";
+import Dashboard from '../dashboard2/Dashboard';
+
 
 const CreateProduct = () => {
   const { seller } = useSelector((state) => state.seller);
@@ -215,7 +217,25 @@ const CreateProduct = () => {
               ))}
           </div>
           <br />
+          <hr/>
+          <hr/>
+          <hr/>
+          <hr/>
+          <hr/>
+          <hr/>
+          <hr/>
+          <br />
+          <br />
+          <br />
+          <label className="pb-2">
+            design your product <span className="text-red-500">*</span>
+          </label>
+          <Dashboard/>
+          <br />
+          <br />
+          <br />
           <div>
+
             <input
               type="submit"
               value="Create"
