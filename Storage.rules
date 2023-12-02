@@ -1,0 +1,8 @@
+service firebase.storage {
+  match /b/mytshirtapp662.appspot.com/o {
+    match /{allPaths=**} {
+      // Allow access by all users
+      allow read, write;
+    }
+  }
+}

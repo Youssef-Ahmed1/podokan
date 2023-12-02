@@ -90,7 +90,7 @@ router.delete(
           product.images[i].public_id
         );
       }
-    
+ 
       await product.remove();
 
       res.status(201).json({

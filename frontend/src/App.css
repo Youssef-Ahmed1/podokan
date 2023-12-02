@@ -6,6 +6,41 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
+@layer components {
+  .card {
+    @apply max-w-xs mx-auto rounded-lg border border-gray-200 bg-white shadow-md dark:bg-gray-800 dark:border-gray-700;
+  }
+
+  .card-img {
+    @apply object-cover object-center w-full rounded-t-lg md:h-36;
+  }
+
+  .card-body {
+    @apply p-5;
+  }
+
+  .card-title {
+    @apply mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white;
+  }
+
+  .card-text {
+    @apply mb-3 font-normal text-gray-700 dark:text-gray-400;
+  }
+}
+
+/* Responsive Styles */
+@media (min-width: 640px) {
+  .card {
+    @apply max-w-lg;
+  }
+}
+
+@media (max-width: 380px) {
+  .card {
+    @apply max-w-xs;
+  }
+}
+
 *{
   scroll-behavior: smooth;
 }
@@ -31,6 +66,9 @@ input,select{
   top: -9%;
   cursor: pointer;
 }
+
+
+
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
@@ -41,4 +79,4 @@ input::-webkit-inner-spin-button {
 /* Firefox */
 input[type=number] {
   -moz-appearance: textfield;
-}
+}/* Tailwind CSS */

@@ -1,0 +1,15 @@
+.imgTshirt {
+    position: relative;
+    /* Additional styling for t-shirt image container */
+}
+
+.design-image {
+    position: relative;
+    width: 100%; /* Adjust size as needed */
+    height: 100%;
+    max-width: 400px;
+    max-height: 400px;
+    min-width: 150px;
+    min-height: 150px;
+    /* Additional styling as needed */
+}
