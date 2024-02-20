@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { AiOutlineArrowRight, AiOutlineSend } from "react-icons/ai";
 import { TfiGallery } from "react-icons/tfi";
 import styles from "../styles/styles";
-const ENDPOINT = "https://socket-ecommerce-tu68.onrender.com/";
+const ENDPOINT = "http://socket-ecommerce-tu68.onrender.com";
 const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
 
 const UserInbox = () => {
@@ -21,7 +21,7 @@ const UserInbox = () => {
   const [newMessage, setNewMessage] = useState("");
   const [userData, setUserData] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState([]);
-  const [images, setImages] = useState();
+  const [ images , setImages] = useState();
   const [activeStatus, setActiveStatus] = useState(false);
   const [open, setOpen] = useState(false);
   const scrollRef = useRef(null);

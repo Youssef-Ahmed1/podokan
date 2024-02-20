@@ -5,12 +5,12 @@ const cors = require("cors");
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
+app.use(cors());
 
 require("dotenv").config({
   path: "./.env",
 });
 
-app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {

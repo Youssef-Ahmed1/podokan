@@ -1,4 +1,5 @@
-const Conversation = require("../model/conversation");
+
+﻿const Conversation = require("../model/conversation");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const express = require("express");
@@ -32,7 +33,7 @@ router.post(
         });
       }
     } catch (error) {
-      return next(new ErrorHandler(error.response.message), 500);
+      return next(new ErrorHandler(error.message, 500));
     }
   })
 );
@@ -54,11 +55,10 @@ router.get(
         conversations,
       });
     } catch (error) {
-      return next(new ErrorHandler(error), 500);
+      return next(new ErrorHandler(error, 500));
     }
   })
 );
-
 
 // get user conversations
 router.get(
@@ -77,7 +77,7 @@ router.get(
         conversations,
       });
     } catch (error) {
-      return next(new ErrorHandler(error), 500);
+      return next(new ErrorHandler(error.message, 500));
     }
   })
 );
@@ -99,7 +99,7 @@ router.put(
         conversation,
       });
     } catch (error) {
-      return next(new ErrorHandler(error), 500);
+      return next(new ErrorHandler(error.message, 500));
     }
   })
 );

@@ -14,6 +14,7 @@ const ShopSettingsPage = () => {
         </div>
         <ShopSettings />
       </div>
+      <Footer/>
     </div>
   );
 };

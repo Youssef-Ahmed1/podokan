@@ -27,7 +27,7 @@ router.post(
         coupounCode,
       });
     } catch (error) {
-      return next(new ErrorHandler(error, 400));
+      return next(new ErrorHandler(error.message, 400));
     }
   })
 );
@@ -44,7 +44,7 @@ router.get(
         couponCodes,
       });
     } catch (error) {
-      return next(new ErrorHandler(error, 400));
+      return next(new ErrorHandler(error.message, 400));
     }
   })
 );
@@ -65,7 +65,7 @@ router.delete(
         message: "Coupon code deleted successfully!",
       });
     } catch (error) {
-      return next(new ErrorHandler(error, 400));
+      return next(new ErrorHandler(error.message, 400));
     }
   })
 );
@@ -82,9 +82,11 @@ router.get(
         couponCode,
       });
     } catch (error) {
-      return next(new ErrorHandler(error, 400));
+      return next(new ErrorHandler(error.message, 400));
     }
   })
 );
 
 module.exports = router;
+
+
