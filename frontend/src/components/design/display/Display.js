@@ -8,7 +8,7 @@ const Display = ({ tshirtColor, designImg, width, height, x, y, onDragStop, onRe
             <div className='imgTshirt text-center'>
                 <img 
                     className='img-responsive'
-                    src={`https://res.cloudinary.com/dkkgmzpqd/image/upload/v1545217305/T-shirt%20Images/${tshirtColor}.png`}
+                    src={`http://res.cloudinary.com/dkkgmzpqd/image/upload/v1545217305/T-shirt%20Images/${tshirtColor}.png`}
                     alt='T-shirt'
                 />
                   {designImg && 

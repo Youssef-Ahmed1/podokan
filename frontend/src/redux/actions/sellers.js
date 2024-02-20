@@ -18,7 +18,7 @@ export const getAllSellers = () => async (dispatch) => {
     });
   } catch (error) {
     dispatch({
-      type: "getAllSellerFailed",
+      type: "getAllSellersFailed",  // Fix the typo here
     //   payload: error.response.data.message,
     });
   }

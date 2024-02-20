@@ -10,6 +10,14 @@ const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
 const sendShopToken = require("../utils/shopToken");
 
+
+// create activation token
+const createActivationToken = (seller) => {
+  return jwt.sign(seller, process.env.ACTIVATION_SECRET, {
+    expiresIn: "5m",
+  });
+};
+
 // create shop
 router.post("/create-shop", catchAsyncErrors(async (req, res, next) => {
   try {
@@ -22,7 +30,6 @@ router.post("/create-shop", catchAsyncErrors(async (req, res, next) => {
     const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
       folder: "avatars",
     });
-
 
     const seller = {
       name: req.body.name,
@@ -37,10 +44,12 @@ router.post("/create-shop", catchAsyncErrors(async (req, res, next) => {
       zipCode: req.body.zipCode,
     };
 
-    const activationToken = createActivationToken(seller);
+    
+
+
+    const activationToken = createActivationToken(seller)
 
     const activationUrl = `http://localhost:3000/seller/activation/${activationToken}`;
-
     try {
       await sendMail({
         email: seller.email,
@@ -60,11 +69,6 @@ router.post("/create-shop", catchAsyncErrors(async (req, res, next) => {
 }));
 
 // create activation token
-const createActivationToken = (seller) => {
-  return jwt.sign(seller, process.env.ACTIVATION_SECRET, {
-    expiresIn: "5m",
-  });
-};
 
 // activate user
 router.post(
