@@ -27,6 +27,20 @@ const productSchema = new mongoose.Schema({
     type: Number,
     required: [true, "Please enter your product stock!"],
   },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
+  },
+  visibility: {
+    type: String,
+    enum: ['restricted', 'public', 'site_pick'],
+    default: 'restricted'
+  },
+  rejectionReason: {
+    type: String,
+    default: ''
+  },
   images: [
     {
       public_id: {
@@ -78,6 +92,7 @@ const productSchema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
+  
 });
 
 module.exports = mongoose.model("Product", productSchema);

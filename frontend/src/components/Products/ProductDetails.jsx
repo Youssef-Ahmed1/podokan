@@ -25,36 +25,36 @@ const ProductDetails = ({ data }) => {
   const { user, isAuthenticated } = useSelector((state) => state.user);
   const { products } = useSelector((state) => state.products);
   const [count, setCount] = useState(1);
-  const [click, setClick] = useState(false);
+const [click, setClick] = useState(false);
   const [select, setSelect] = useState(0);
+  const [selectedColor, setSelectedColor] = useState("black");
+  const [fit, setFit] = useState("Male fit");
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   useEffect(() => {
-    dispatch(getAllProductsShop(data && data?.shop._id));
-    if (wishlist && wishlist.find((i) => i._id === data?._id)) {
-      setClick(true);
-    } else {
-      setClick(false);
+    if (data?.shop?._id) {
+      dispatch(getAllProductsShop(data.shop._id));
     }
-  }, [data, wishlist]);
+
+    setClick(wishlist?.some((i) => i._id === data?._id));
+  }, [data, dispatch, wishlist]);
 
   const incrementCount = () => {
-    setCount(count + 1);
+    setCount((prevCount) => prevCount + 1);
   };
 
   const decrementCount = () => {
-    if (count > 1) {
-      setCount(count - 1);
-    }
+    setCount((prevCount) => (prevCount > 1 ? prevCount - 1 : 1));
   };
 
   const removeFromWishlistHandler = (data) => {
-    setClick(!click);
+    setClick(false);
     dispatch(removeFromWishlist(data));
   };
 
   const addToWishlistHandler = (data) => {
-    setClick(!click);
+    setClick(true);
     dispatch(addToWishlist(data));
   };
 
@@ -66,7 +66,12 @@ const ProductDetails = ({ data }) => {
       if (data.stock < 1) {
         toast.error("Product stock limited!");
       } else {
-        const cartData = { ...data, qty: count };
+        const cartData = {
+          ...data,
+          qty: count,
+          color: selectedColor,
+          fit,
+        };
         dispatch(addTocart(cartData));
         toast.success("Item added to cart successfully!");
       }
@@ -74,8 +79,7 @@ const ProductDetails = ({ data }) => {
   };
 
   const totalReviewsLength =
-    products &&
-    products.reduce((acc, product) => acc + product.reviews.length, 0);
+    products && products.reduce((acc, product) => acc + product.reviews.length, 0);
 
   const totalRatings =
     products &&
@@ -85,28 +89,25 @@ const ProductDetails = ({ data }) => {
       0
     );
 
-  const avg =  totalRatings / totalReviewsLength || 0;
-
-  const averageRating = avg.toFixed(2);
-
+  const averageRating = totalReviewsLength
+    ? (totalRatings / totalReviewsLength).toFixed(2)
+    : 0;
 
   const handleMessageSubmit = async () => {
     if (isAuthenticated) {
       const groupTitle = data._id + user._id;
       const userId = user._id;
       const sellerId = data.shop._id;
-      await axios
-        .post(`${server}/conversation/create-new-conversation`, {
+      try {
+        const res = await axios.post(`${server}/conversation/create-new-conversation`, {
           groupTitle,
           userId,
           sellerId,
-        })
-        .then((res) => {
-          navigate(`/inbox?${res.data.conversation._id}`);
-        })
-        .catch((error) => {
-          toast.error(error.response.data.message);
         });
+        navigate(`/inbox?${res.data.conversation._id}`);
+      } catch (error) {
+        toast.error(error.response.data.message);
+      }
     } else {
       toast.error("Please login to create a conversation");
     }
@@ -119,118 +120,157 @@ const ProductDetails = ({ data }) => {
           <div className="w-full py-5">
             <div className="block w-full 800px:flex">
               <div className="w-full 800px:w-[50%]">
-                <img
-                  src={`${data && data.images[select]?.url}`}
-                  alt=""
-                  className="w-[80%]"
-                />
-                <div className="w-full flex">
-                  {data &&
-                    data.images.map((i, index) => (
-                      <div
-                        className={`${
-                          select === 0 ? "border" : "null"
-                        } cursor-pointer`}
-                      >
-                        <img
-                          src={`${i?.url}`}
-                          alt=""
-                          className="h-[200px] overflow-hidden mr-3 mt-3"
+                {/* Image slider */}
+                <div className="relative">
+                  <img
+                    src={`${data && data.images[select]?.url}`}
+                    alt=""
+                    className="w-[80%]"
+                  />
+                  <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+                    {data &&
+                      data.images.map((img, index) => (
+                        <div
+                          key={index}
+                          className={`w-4 h-4 rounded-full mx-2 cursor-pointer ${
+                            select === index ? "bg-black" : "bg-gray-400"
+                          }`}
                           onClick={() => setSelect(index)}
-                        />
-                      </div>
-                    ))}
-                  <div
-                    className={`${
-                      select === 1 ? "border" : "null"
-                    } cursor-pointer`}
-                  ></div>
+                        ></div>
+                      ))}
+                  </div>
                 </div>
               </div>
               <div className="w-full 800px:w-[50%] pt-5">
-                <h1 className={`${styles.productTitle}`}>{data.name}</h1>
-                <p>{data.description}</p>
-                <div className="flex pt-3">
-                  <h4 className={`${styles.productDiscountPrice}`}>
-                    {data.discountPrice}$
-                  </h4>
-                  <h3 className={`${styles.price}`}>
-                    {data.originalPrice ? data.originalPrice + "$" : null}
-                  </h3>
+                <h1 className={`${styles.productTitle} text-2xl font-bold`}>
+                  {data.name}
+                </h1>
+                <p className="text-lg mt-2">{data.description}</p>
+                <div className="flex items-center mt-4">
+                  <div className="flex">
+                    {[
+                      "black",
+                      "white",
+                      "red",
+                      "blue",
+                      "gray",
+                      "purple",
+                      "yellow",
+                      "green",
+                      "orange",
+                      "brown",
+                      "indigo",
+                      "violet",
+                      "teal",
+                      "maroon",
+                      "pink",
+                    ].map((clr) => (
+                      <div
+                        key={clr}
+                        className={`border-none rounded-full w-5 h-5 mx-1 my-8 cursor-pointer ${
+                          selectedColor === clr ? "border-black" : ""
+                        }`}
+                        style={{ backgroundColor: clr }}
+                        onClick={() => setSelectedColor(clr)}
+                      >
+                        {selectedColor === clr && (
+                          <p className="text-black absolute top-[244px] my-3">
+                            {clr}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-
-                <div className="flex items-center mt-12 justify-between pr-3">
-                  <div>
+                <div className="flex items-center mt-4">
+                  <h4 className="text-lg font-bold mr-2">Fit:</h4>
+                  <div className="flex">
                     <button
-                      className="bg-gradient-to-r from-teal-400 to-teal-500 text-white font-bold rounded-l px-4 py-2 shadow-lg hover:opacity-75 transition duration-300 ease-in-out"
+                      className={`px-[75px] py-2 rounded-xl mr-2
+                       hover:bg-gray-400
+                       active:bg-gray-500 
+                        focus:outline-black focus:ring
+                         focus:ring-gray-300 ${
+                           fit === "Male fit"
+                             ? "bg-black text-white"
+                             : "bg-gray-200 text-black"
+                         }`}
+                      onClick={() => setFit("Male fit")}
+                    >
+                      Male fit
+                    </button>
+                    <button
+                      className={`px-[75px] py-2 rounded-xl mr-2
+                       hover:bg-gray-400
+                       active:bg-gray-500
+                         focus:outline-black 
+                         focus:ring
+                          focus:ring-gray-300 ${
+                            fit === "Female fit"
+                              ? "bg-black text-white"
+                              : "bg-gray-200 text-black"
+                          }`}
+                      onClick={() => setFit("Female fit")}
+                    >
+                      Female fit
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mt-8">
+                  <h4 className="text-2xl font-bold">${data.discountPrice}</h4>
+                  {data.originalPrice && (
+                    <h3 className="text-3xl line-through text-red-500 font-bold absolute left-[900px] top-[440px]">
+                      ${data.originalPrice}
+                    </h3>
+                  )}
+                </div>
+                <div className="flex items-center mt-8">
+                  <div className="flex items-center border border-gray-400 rounded-md px-4 py-2">
+                    <button
+                      className="text-xl font-bold mr-4"
                       onClick={decrementCount}
                     >
                       -
                     </button>
-                    <span className="bg-gray-200 text-gray-800 font-medium px-4 py-[11px]">
-                      {count}
-                    </span>
+                    <span className="text-lg">{count}</span>
                     <button
-                      className="bg-gradient-to-r from-teal-400 to-teal-500 text-white font-bold rounded-l px-4 py-2 shadow-lg hover:opacity-75 transition duration-300 ease-in-out"
+                      className="text-xl font-bold ml-4"
                       onClick={incrementCount}
                     >
                       +
                     </button>
                   </div>
-                  <div>
-                    {click ? (
-                      <AiFillHeart
-                        size={30}
-                        className="cursor-pointer"
-                        onClick={() => removeFromWishlistHandler(data)}
-                        color={click ? "red" : "#333"}
-                        title="Remove from wishlist"
-                      />
-                    ) : (
-                      <AiOutlineHeart
-                        size={30}
-                        className="cursor-pointer"
-                        onClick={() => addToWishlistHandler(data)}
-                        color={click ? "red" : "#333"}
-                        title="Add to wishlist"
-                      />
-                    )}
-                  </div>
+                  <button
+                    className={`${styles.button} ml-8 text-white`}
+                    onClick={() => addToCartHandler(data._id)}
+                  >
+                    Add to Cart <AiOutlineShoppingCart className="ml-2" />
+                  </button>
                 </div>
-                <div
-                  className={`${styles.button} !mt-6 !rounded !h-11 flex items-center`}
-                  onClick={() => addToCartHandler(data._id)}
-                >
-                  <span className="text-white flex items-center">
-                    Add to cart <AiOutlineShoppingCart className="ml-1" />
-                  </span>
-                </div>
-                <div className="flex items-center pt-8">
-                  <Link to={`/shop/preview/${data?.shop._id}`}>
-                    <img
-                      src={`${data?.shop?.avatar?.url}`}
-                      alt=""
-                      className="w-[50px] h-[50px] rounded-full mr-2"
+                <div className="flex items-center mt-8">
+                  {click ? (
+                    <AiFillHeart
+                      size={30}
+                      className="cursor-pointer"
+                      onClick={() => removeFromWishlistHandler(data)}
+                      color={click ? "red" : "#333"}
+                      title="Remove from wishlist"
                     />
-                  </Link>
-                  <div className="pr-8">
-                    <Link to={`/shop/preview/${data?.shop._id}`}>
-                      <h3 className={`${styles.shop_name} pb-1 pt-1`}>
-                        {data.shop.name}
-                      </h3>
-                    </Link>
-                    <h5 className="pb-3 text-[15px]">
-                      ({averageRating}/5) Ratings
-                    </h5>
-                  </div>
-                  <div
-                    className={`${styles.button} bg-[#6443d1] mt-4 !rounded !h-11`}
+                  ) : (
+                    <AiOutlineHeart
+                      size={30}
+                      className="cursor-pointer"
+                      onClick={() => addToWishlistHandler(data)}
+                      color={click ? "red" : "#333"}
+                      title="Add to wishlist"
+                    />
+                  )}
+                  <button
+                    className={`${styles.button} ml-4 text-gray-300`}
                     onClick={handleMessageSubmit}
                   >
-                    <span className="text-white flex items-center">
-                      Send Message <AiOutlineMessage className="ml-1" />
-                    </span>
-                  </div>
+                    Send Message <AiOutlineMessage className="ml-2" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -241,8 +281,6 @@ const ProductDetails = ({ data }) => {
             totalReviewsLength={totalReviewsLength}
             averageRating={averageRating}
           />
-          <br />
-          <br />
         </div>
       ) : null}
     </div>
@@ -312,16 +350,16 @@ const ProductDetailsInfo = ({
         <div className="w-full min-h-[40vh] flex flex-col items-center py-3 overflow-y-scroll">
           {data &&
             data.reviews.map((item, index) => (
-              <div className="w-full flex my-2">
+              <div key={index} className="w-full flex my-2">
                 <img
                   src={`${item.user.avatar?.url}`}
                   alt=""
                   className="w-[50px] h-[50px] rounded-full"
                 />
-                <div className="pl-2 ">
+                <div className="pl-2">
                   <div className="w-full flex items-center">
                     <h1 className="font-[500] mr-3">{item.user.name}</h1>
-                    <Ratings rating={data?.ratings} />
+                    <Ratings rating={item.rating} />
                   </div>
                   <p>{item.comment}</p>
                 </div>
@@ -330,7 +368,7 @@ const ProductDetailsInfo = ({
 
           <div className="w-full flex justify-center">
             {data && data.reviews.length === 0 && (
-              <h5>No Reviews have for this product!</h5>
+              <h5>No Reviews have been submitted for this product!</h5>
             )}
           </div>
         </div>
@@ -379,14 +417,14 @@ const ProductDetailsInfo = ({
                   className={`${styles.button} !rounded-[4px] !h-[39.5px] mt-3`}
                 >
                   <h4 className="text-white">Visit Shop</h4>
-                </div>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+</div>
+</Link>
+</div>
+</div>
+</div>
+)}
+</div>
+);
 };
 
 export default ProductDetails;

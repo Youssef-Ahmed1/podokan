@@ -1,28 +1,26 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import styles from "../../../styles/styles";
-import bannerImage from "../../../banner.png";
+import React from 'react';
+import homepageHero from '/home/user/podokan/frontend/src/Assests/homepageHero.webp';
 
 const Hero = () => {
   return (
-    <div
-    className={`relative  min-h-[84vh] 500px:min-h-[80vh] w-full bg-no-repeat rounded-3xl top-[120px] left-[200px] 
-     ${styles.noramlFlex}`} 
-    style={{
-
-      backgroundImage: `url(${bannerImage})`, 
-    }}
-  >
-      <div className= {`${styles.section} rounded-[12px] w-[40%] 800px:w-[60%] ` }>
-     
-     
-        <Link to="/products" className="inline-block">
-            <div className={`${styles.button} mt-5 relative rounded-3xl left-[338px] top-[-12px] bg-slate-50 text-black  hover:bg-[#4e64df] `}>
-                 <span className="text-[#000] font-[Poppins] text-[18px] font-[600]">
-                    Shop Now
-                 </span>
-            </div>
-        </Link>
+    <div className="bg-gray-100 p-4">
+      <div className="max-w-7xl mx-auto ">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 ">
+          <div className="md:col-span-4">
+            <img 
+              src={homepageHero} 
+              alt="T-shirt designs collage" 
+              className="w-full h-auto rounded-lg shadow-md relative left-64"
+            />
+          </div>
+          <div className="md:col-span-1 bg-purple-600 text-white rounded-lg shadow-md flex flex-col justify-center items-center p-4 relative right-[1040px]">
+            <h2 className="text-5xl font-bold mb-4">only for 72 hours</h2>
+            <h3 className="text-2xl font-semibold mb-4 text-center">NEW DESIGNS OUT NOW!</h3>
+            <button className="bg-orange-500 text-white px-6 py-2 rounded-full text-lg font-semibold hover:bg-orange-600 transition duration-300">
+              SHOP NOW
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

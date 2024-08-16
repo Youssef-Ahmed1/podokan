@@ -15,7 +15,7 @@ import { RxCross1 } from "react-icons/rx";
 import {
   deleteUserAddress,
   loadUser,
-  updatUserAddress,
+  updateUserAddress,
   updateUserInformation,
 } from "../../redux/actions/user";
 import { Country, State } from "country-state-city";
@@ -267,7 +267,7 @@ const AllOrders = () => {
       row.push({
         id: item._id,
         itemsQty: item.cart.length,
-        total: "US$ " + item.totalPrice,
+        total: "egp€ " + item.totalPrice,
         status: item.status,
       });
     });
@@ -355,7 +355,7 @@ const AllRefundOrders = () => {
       row.push({
         id: item._id,
         itemsQty: item.cart.length,
-        total: "US$ " + item.totalPrice,
+        total: "egp€ " + item.totalPrice,
         status: item.status,
       });
     });
@@ -440,7 +440,7 @@ const TrackOrder = () => {
       row.push({
         id: item._id,
         itemsQty: item.cart.length,
-        total: "US$ " + item.totalPrice,
+        total: "egp€ " + item.totalPrice,
         status: item.status,
       });
     });
@@ -565,7 +565,7 @@ const Address = () => {
       toast.error("Please fill all the fields!");
     } else {
       dispatch(
-        updatUserAddress(
+        updateUserAddress(
           country,
           city,
           address1,

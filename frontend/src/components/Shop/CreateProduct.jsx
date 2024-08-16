@@ -1,47 +1,30 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { AiOutlinePlusCircle } from "react-icons/ai";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { createProduct } from "../../redux/actions/product";
-import { categoriesData } from "../../static/data";
 import { toast } from "react-toastify";
-import Dashboard from '../dashboard2/Dashboard';
-
+import { categoriesData } from "../../static/data";
+import Dashboard from "../dashboard2/Dashboard";
 
 const CreateProduct = () => {
   const { seller } = useSelector((state) => state.seller);
-  const { success, error } = useSelector((state) => state.products);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
   const [images, setImages] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [tags, setTags] = useState("");
-  const [originalPrice, setOriginalPrice] = useState();
-  const [discountPrice, setDiscountPrice] = useState();
-  const [stock, setStock] = useState();
-
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-    if (success) {
-      toast.success("Product created successfully!");
-      navigate("/dashboard");
-      window.location.reload();
-    }
-  }, [dispatch, error, success]);
+  const [originalPrice, setOriginalPrice] = useState(0);
+  const [discountPrice, setDiscountPrice] = useState(0);
+  const [stock, setStock] = useState(0);
+  const [designData, setDesignData] = useState(null);
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-
     setImages([]);
-
     files.forEach((file) => {
       const reader = new FileReader();
-
       reader.onload = () => {
         if (reader.readyState === 2) {
           setImages((old) => [...old, reader.result]);
@@ -51,13 +34,23 @@ const CreateProduct = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSaveDesign = (data) => {
+    console.log("Design data saved:", data);
+    setDesignData(data);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!designData) {
+      toast.error("Design data is missing!");
+      return;
+    }
 
     const newForm = new FormData();
 
     images.forEach((image) => {
-      newForm.set("images", image);
+      newForm.append("images", image);
     });
     newForm.append("name", name);
     newForm.append("description", description);
@@ -67,25 +60,34 @@ const CreateProduct = () => {
     newForm.append("discountPrice", discountPrice);
     newForm.append("stock", stock);
     newForm.append("shopId", seller._id);
-    dispatch(
-      createProduct({
-        name,
-        description,
-        category,
-        tags,
-        originalPrice,
-        discountPrice,
-        stock,
-        shopId: seller._id,
-        images,
-      })
-    );
+    newForm.append("design", JSON.stringify(designData));
+
+    console.log("Submitting product data:", Object.fromEntries(newForm));
+
+    try {
+      const response = await fetch('http://localhost:8000/api/v2/product/create-product', {
+        method: 'POST',
+        body: newForm,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create product');
+      }
+
+      const data = await response.json();
+      console.log("Product submitted for approval:", data);
+      toast.success("Product submitted for approval!");
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error submitting product:", error);
+      toast.error(error.message || "Failed to submit product");
+    }
   };
 
+
   return (
-    <div className="w-[90%] 800px:w-[50%] bg-white  shadow h-[80vh] rounded-[4px] p-3 overflow-y-scroll">
-      <h5 className="text-[30px] font-Poppins text-center">Create Product</h5>
-      {/* create product form */}
+    <div className="w-[90%] 800px:w-[50%] bg-white shadow h-[80vh] rounded-[4px] p-3 overflow-y-scroll">
       <form onSubmit={handleSubmit}>
         <br />
         <div>
@@ -99,6 +101,7 @@ const CreateProduct = () => {
             className="mt-2 appearance-none block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             onChange={(e) => setName(e.target.value)}
             placeholder="Enter your product name..."
+            required
           />
         </div>
         <br />
@@ -127,8 +130,9 @@ const CreateProduct = () => {
             className="w-full mt-2 border h-[35px] rounded-[5px]"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
+            required
           >
-            <option value="Choose a category">Choose a category</option>
+            <option value="">Choose a category</option>
             {categoriesData &&
               categoriesData.map((i) => (
                 <option value={i.title} key={i.title}>
@@ -154,11 +158,12 @@ const CreateProduct = () => {
           <label className="pb-2">Original Price</label>
           <input
             type="number"
-            name="price"
+            name="originalPrice"
             value={originalPrice}
             className="mt-2 appearance-none block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            onChange={(e) => setOriginalPrice(e.target.value)}
+            onChange={(e) => setOriginalPrice(Number(e.target.value))}
             placeholder="Enter your product price..."
+            required
           />
         </div>
         <br />
@@ -168,11 +173,12 @@ const CreateProduct = () => {
           </label>
           <input
             type="number"
-            name="price"
+            name="discountPrice"
             value={discountPrice}
             className="mt-2 appearance-none block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            onChange={(e) => setDiscountPrice(e.target.value)}
+            onChange={(e) => setDiscountPrice(Number(e.target.value))}
             placeholder="Enter your product price with discount..."
+            required
           />
         </div>
         <br />
@@ -182,11 +188,12 @@ const CreateProduct = () => {
           </label>
           <input
             type="number"
-            name="price"
+            name="stock"
             value={stock}
             className="mt-2 appearance-none block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            onChange={(e) => setStock(e.target.value)}
+            onChange={(e) => setStock(Number(e.target.value))}
             placeholder="Enter your product stock..."
+            required
           />
         </div>
         <br />
@@ -216,34 +223,28 @@ const CreateProduct = () => {
                 />
               ))}
           </div>
-          <br />
-          <hr/>
-          <hr/>
-          <hr/>
-          <hr/>
-          <hr/>
-          <hr/>
-          <hr/>
-          <br />
-          <br />
-          <br />
-          <label className="pb-2">
-            design your product <span className="text-red-500">*</span>
-          </label>
-          <Dashboard/>
-          <br />
-          <br />
-          <br />
-          <div>
-
-            <input
-              type="submit"
-              value="Create"
-              className="mt-2 cursor-pointer appearance-none text-center block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            />
-          </div>
         </div>
+        <br />
+        <hr />
+        <br />
+        <button
+          type="submit"
+          className="mt-2 cursor-pointer appearance-none text-center block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+        >
+          Create
+        </button>
       </form>
+
+      <br />
+      <hr />
+      <br />
+
+      <div>
+        <label className="pb-2">
+          Design your product <span className="text-red-500">*</span>
+        </label>
+        <Dashboard onSave={handleSaveDesign} />
+      </div>
     </div>
   );
 };

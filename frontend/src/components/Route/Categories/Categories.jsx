@@ -1,34 +1,31 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { brandingData, categoriesData } from "../../../static/data";
+import { categoriesData } from "../../../static/data";
 import styles from "../../../styles/styles";
 
 const Categories = () => {
   const navigate = useNavigate();
   return (
     <>
-      <div className={`${styles.section} hidden sm:block`}>
-        <div
-          className={`branding my-12 flex justify-between w-full shadow-sm bg-white p-5 rounded-md`}
-        >
-          {brandingData &&
-            brandingData.map((i, index) => (
-              <div className="flex items-start" key={index}>
-                {i.icon}
-                <div className="px-3">
-                  <h3 className="font-bold text-sm md:text-base">{i.title}</h3>
-                  <p className="text-xs md:text-sm">{i.Description}</p>
-                </div>
-              </div>
-            ))}
+      <div className={`mb-2 relative bottom-[70px] h-12`} id="categories">
+        <div className="flex justify-between items-center mb-8">
+          <button className="bg-[#2b2b3b] text-white px-2 py-2 
+          rounded-md relative flex justify-center left-24 top-20 border-2
+           border-[#4e64df] transition duration-1000 ease-in-out 
+           hover:bg-[#4e64df]">Shop All Design
+           </button>
+          <button
+           className="bg-[#2b2b3b]
+           text-white px-2 py-2
+           rounded-md relative flex justify-center right-24 top-[75px]
+            border-2 border-[#4e64df] transition 
+            duration-1000 ease-in-out hover:bg-[#4e64df]"
+            
+            >
+              Shop All Product
+            </button>
         </div>
-      </div>
-
-      <div
-        className={`${styles.section} bg-white p-6 rounded-lg mb-12`}
-        id="categories"
-      >
-        <div className="grid grid-cols-1 gap-[5px] md:grid-cols-2 md:gap-[10px] lg:grid-cols-4 lg:gap-[20px] xl:grid-cols-5 xl:gap-[30px]">
+        <div className="flex justify-center align-middle md:grid-cols-2 md:gap-[2px] lg:grid-cols-4 lg:gap-[2px] xl: xl:m-0 p-0">
           {categoriesData &&
             categoriesData.map((i) => {
               const handleSubmit = (i) => {
@@ -36,16 +33,16 @@ const Categories = () => {
               };
               return (
                 <div
-                  className="w-full h-[100px] flex items-center justify-between cursor-pointer overflow-hidden"
+                  className="w-[80px] flex flex-col items-center justify-center cursor-pointer transition duration-1000 ease-in-out hover:bg-[#2b2b3b]"
                   key={i.id}
                   onClick={() => handleSubmit(i)}
                 >
-                  <h5 className={`text-[18px] leading-[1.3]`}>{i.title}</h5>
                   <img
-                    src={i.image_Url}
-                    className="w-[120px] object-cover"
+                    src={i.icon}
+                    className="w-[30px] h-[30px] box-border rounded-xl "
                     alt=""
                   />
+                  <span className={`text-[14px] leading-[1.3] text-center text-white`}>{i.title}</span>
                 </div>
               );
             })}
@@ -54,5 +51,4 @@ const Categories = () => {
     </>
   );
 };
-
 export default Categories;

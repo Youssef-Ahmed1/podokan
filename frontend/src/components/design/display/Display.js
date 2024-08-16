@@ -4,19 +4,22 @@ import { Rnd } from 'react-rnd';
 
 const Display = ({ tshirtColor, designImg, width, height, x, y, onDragStop, onResizeStop }) => {
     return (
-        <div className=''>
+        <div className='display-container'>
             <div className='imgTshirt text-center'>
                 <img 
                     className='img-responsive'
-                    src={`http://res.cloudinary.com/dkkgmzpqd/image/upload/v1545217305/T-shirt%20Images/${tshirtColor}.png`}
+                    src={`https://res.cloudinary.com/dkot9tyjm/image/upload/v1714163738/shirts/mockupshirt-${tshirtColor}.png`}
                     alt='T-shirt'
                 />
-                  {designImg && 
+                
+                <div className='tshirt-border'></div>
+                {designImg && 
                     <Rnd
                         size={{ width, height }}
                         position={{ x, y }}
                         onDragStop={onDragStop}
                         onResizeStop={onResizeStop}
+                        bounds='.tshirt-border'
                         enableResizing={{
                             top: true, right: true, bottom: true, left: true,
                             topRight: true, bottomRight: true, bottomLeft: true, topLeft: true
@@ -29,6 +32,5 @@ const Display = ({ tshirtColor, designImg, width, height, x, y, onDragStop, onRe
         </div>
     );
 };
-
 
 export default Display;
