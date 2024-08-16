@@ -131,7 +131,7 @@ const ProductCard = ({ data,isEvent }) => {
             size={25}
             className="cursor-pointer absolute right-2 top-24"
             onClick={() => addToCartHandler(data._id)}
-            color="#444"
+            color="black"
             title="Add to cart"
           />
           {open ? <ProductDetailsCard setOpen={setOpen} data={data} /> : null}

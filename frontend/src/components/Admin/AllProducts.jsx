@@ -1,24 +1,44 @@
 import { Button } from "@material-ui/core";
 import { DataGrid } from "@material-ui/data-grid";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEye } from "react-icons/ai";
-import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { getAllProductsShop } from "../../redux/actions/product";
-import { deleteProduct } from "../../redux/actions/product";
-import Loader from "../Layout/Loader";
 import axios from "axios";
 import { server } from "../../server";
-import { useState } from "react";
+import Loader from "../Layout/Loader";
 
 const AllProducts = () => {
   const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchProducts = () => {
+    setIsLoading(true);
+    axios.get(`${server}/product/admin-all-products`, {withCredentials: true})
+      .then((res) => {
+        setData(res.data.products);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setIsLoading(false);
+      });
+  };
 
   useEffect(() => {
-    axios.get(`${server}/product/admin-all-products`, {withCredentials: true}).then((res) => {
-        setData(res.data.products);
-    })
+    fetchProducts();
   }, []);
+
+  const handleDelete = (id) => {
+    axios.delete(`${server}/product/delete-product/${id}`, {withCredentials: true})
+      .then(() => {
+        fetchProducts(); // Refetch the products after successful deletion
+      })
+      .catch((err) => {
+        console.error("Error deleting product:", err);
+        // Optionally, show an error message to the user
+      });
+  };
 
   const columns = [
     { field: "id", headerName: "Product Id", minWidth: 150, flex: 0.7 },
@@ -41,7 +61,6 @@ const AllProducts = () => {
       minWidth: 80,
       flex: 0.5,
     },
-
     {
       field: "sold",
       headerName: "Sold out",
@@ -68,6 +87,23 @@ const AllProducts = () => {
         );
       },
     },
+    {
+      field: "Delete",
+      flex: 0.8,
+      minWidth: 120,
+      headerName: "",
+      type: "number",
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <>
+            <Button onClick={() => handleDelete(params.id)}>
+              <AiOutlineDelete size={20} />
+            </Button>
+          </>
+        );
+      },
+    },
   ];
 
   const row = [];
@@ -85,6 +121,11 @@ const AllProducts = () => {
 
   return (
     <>
+      {isLoading ? (
+        <Loader />
+      ) : error ? (
+        <div>Error: {error}</div>
+      ) : (
         <div className="w-full mx-8 pt-1 mt-10 bg-white">
           <DataGrid
             rows={row}
@@ -94,6 +135,7 @@ const AllProducts = () => {
             autoHeight
           />
         </div>
+      )}
     </>
   );
 };

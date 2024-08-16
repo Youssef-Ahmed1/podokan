@@ -2,16 +2,26 @@ import { Button } from "@material-ui/core";
 import { DataGrid } from "@material-ui/data-grid";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import {  AiOutlineEye } from "react-icons/ai";
+import { AiOutlineEye } from "react-icons/ai";
 import { Link } from "react-router-dom";
 import { server } from "../../server";
 
 const AllEvents = () => {
   const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
-   axios.get(`${server}/event/admin-all-events`, {withCredentials: true}).then((res) =>{
-    setEvents(res.data.events);
-   })
+    axios
+      .get(`${server}/event/admin-all-events`, { withCredentials: true })
+      .then((res) => {
+        setEvents(res.data.events || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
   }, []);
 
   const columns = [
@@ -35,7 +45,6 @@ const AllEvents = () => {
       minWidth: 80,
       flex: 0.5,
     },
-
     {
       field: "sold",
       headerName: "Sold out",
@@ -52,35 +61,31 @@ const AllEvents = () => {
       sortable: false,
       renderCell: (params) => {
         return (
-          <>
-            <Link to={`/product/${params.id}?isEvent=true`}>
-              <Button>
-                <AiOutlineEye size={20} />
-              </Button>
-            </Link>
-          </>
+          <Link to={`/product/${params.id}?isEvent=true`}>
+            <Button>
+              <AiOutlineEye size={20} />
+            </Button>
+          </Link>
         );
       },
     },
   ];
 
-  const row = [];
+  const rows = events.map((item) => ({
+    id: item._id,
+    name: item.name,
+    price: `egp€ ${item.discountPrice}`,
+    Stock: item.stock,
+    sold: item.sold_out,
+  }));
 
-  events &&
-    events.forEach((item) => {
-      row.push({
-        id: item._id,
-        name: item.name,
-        price: "US$ " + item.discountPrice,
-        Stock: item.stock,
-        sold: item.sold_out,
-      });
-    });
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="w-full mx-8 pt-1 mt-10 bg-white">
       <DataGrid
-        rows={row}
+        rows={rows}
         columns={columns}
         pageSize={10}
         disableSelectionOnClick

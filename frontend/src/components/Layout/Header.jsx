@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import styles from "../../styles/styles";
-
 import {
   AiOutlineHeart,
   AiOutlineSearch,
@@ -9,7 +8,6 @@ import {
 } from "react-icons/ai";
 import { FiArrowRight } from "react-icons/fi";
 import { BiMenuAltLeft } from "react-icons/bi";
-import { CgLogIn } from "react-icons/cg";
 import Navbar from "./Navbar";
 import { useSelector } from "react-redux";
 import Cart from "../cart/Cart";
@@ -28,6 +26,25 @@ const Header = ({ activeHeading }) => {
   const [openCart, setOpenCart] = useState(false);
   const [openWishlist, setOpenWishlist] = useState(false);
   const [open, setOpen] = useState(false);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+  const placeholders = [
+    "Search for t-shirts...",
+    "Find your style...",
+    "Discover unique designs...",
+    "Explore our collection...",
+    "searching for a trend maybe? "
+  ];
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setPlaceholderIndex((prevIndex) => 
+        (prevIndex + 1) % placeholders.length
+      );
+    }, 2000); // Change placeholder every 3 seconds
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   const handleSearchChange = (e) => {
     const term = e.target.value;
@@ -54,15 +71,12 @@ const Header = ({ activeHeading }) => {
     
       <div className="flex">
         <div className="  800px:my-[0px] 800px:flex items-center justify-between">
-         
-  
-
       
         </div>
       </div>
       <div
         className={`${
-          active === true ? "shadow-sm absolute top-0 left-0 z-10" : null
+          active === true ? "shadow-sm absolute top-0 left-0  z-10" : null
         } transition hidden 800px:flex items-center justify-between w-full  bg-[#151523] h-[146px]`}
       >
         <div
@@ -82,15 +96,13 @@ const Header = ({ activeHeading }) => {
                bg-white bg-gradient-to-r
                 from-[#551c2c] via-[#b131ea]  to-[#f2ad55]
                 bg-[length:400%_400%] p-[2.5px] rounded-md left-[370px] bottom-[27px]" >  
-            <input
-              type="text"
-              placeholder="Search Product..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="h-[50px] w-full rounded-md bg-[length:400%_400%] p-[2px] border-[1px]
-              "
-            />
-
+           <input
+            type="text"
+            placeholder={placeholders[placeholderIndex]}
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="h-[50px] w-full rounded-md bg-[length:400%_400%] p-[2px] border-[1px]"
+          />
             <div className=" absolute bg-black w-[51px] h-[51px] right-[3px] top-[2px] flex items-center justify-center rounded-r-md
             "     >
             <AiOutlineSearch
@@ -126,7 +138,7 @@ const Header = ({ activeHeading }) => {
             </div>
           </div>
 
-          <div className="flex  relative right-[90px] top-[-25px ]">
+          <div className="flex  relative right-[30px] top-[55px ]">
             <div className={`${styles.noramlFlex}`}>
               <div
                 className="relative cursor-pointer mr-[15px]"
@@ -165,23 +177,27 @@ const Header = ({ activeHeading }) => {
                     />
                   </Link>
                 ) : (
-                  <Link to="/login">
-                    <CgLogIn size={30} color="rgb(255 255 255 / 83%)" />
-                                 <div className="w-[30px] h-[30px] text-stone-100 left-40">Login</div>
+                  <Link to="/sign-up">
+                    <div className="
+                    w-[150px] h-[42px] 
+                     bg-[#4e64df] rounded-xl 
+                     font-semibold left-[1px] 
+                     bottom-[45px] relative
+                      z-10 flex items-center
+                      justify-center top-[8px]
+                      
+                      "
+                      >
+
+                                 <div className=" text-stone-100 ">create Account</div>
+                                 </div>
 
                   </Link>
                    
                 )}
               </div>
             </div>
-            <div className="w-[140px] h-[40px]  bg-[#4e64df] rounded-xl font-bold  left-[9px] relative z-10">
-            <Link to={`${isSeller ? "/dashboard" : "/shop-create"}`}>
-              <h1 className="relative text-[#fff] flex items-center justify-center top-2   ">
-                {isSeller ? "Go Dashboard" : " Artist SignUp"}{" "}
-                <FiArrowRight className="ml-1" />
-              </h1>
-            </Link>
-          </div>
+           
             {/* cart popup */}
             {openCart ? <Cart setOpenCart={setOpenCart} /> : null}
 
@@ -192,6 +208,7 @@ const Header = ({ activeHeading }) => {
           </div>
         </div>
       </div>
+        
 
       {/* mobile header */}
       <div
