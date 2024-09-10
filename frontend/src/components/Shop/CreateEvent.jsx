@@ -14,7 +14,7 @@ const CreateEvent = () => {
 
   const [images, setImages] = useState([]);
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [Description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [tags, setTags] = useState("");
   const [originalPrice, setOriginalPrice] = useState();
@@ -85,7 +85,7 @@ const CreateEvent = () => {
     });
     const data = {
       name,
-      description,
+      Description,
       category,
       tags,
       originalPrice,
@@ -128,11 +128,11 @@ const CreateEvent = () => {
             required
             rows="8"
             type="text"
-            name="description"
-            value={description}
+            name="Description"
+            value={Description}
             className="mt-2 appearance-none block w-full pt-2 px-3 border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter your event product description..."
+            placeholder="Enter your event product Description..."
           ></textarea>
         </div>
         <br />

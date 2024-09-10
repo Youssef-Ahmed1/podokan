@@ -18,7 +18,6 @@ const HomePage = () => {
         <Categories />
           <ArtistSign/>
         <Hero />
-
         </div>
         <BestDeals />
         <Events />

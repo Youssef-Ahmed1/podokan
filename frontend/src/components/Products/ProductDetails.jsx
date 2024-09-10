@@ -145,7 +145,7 @@ const [click, setClick] = useState(false);
                 <h1 className={`${styles.productTitle} text-2xl font-bold`}>
                   {data.name}
                 </h1>
-                <p className="text-lg mt-2">{data.description}</p>
+                <p className="text-lg mt-2">{data.Description}</p>
                 <div className="flex items-center mt-4">
                   <div className="flex">
                     {[
@@ -341,7 +341,7 @@ const ProductDetailsInfo = ({
       {active === 1 ? (
         <>
           <p className="py-2 text-[18px] leading-8 pb-10 whitespace-pre-line">
-            {data.description}
+            {data.Description}
           </p>
         </>
       ) : null}
@@ -392,7 +392,7 @@ const ProductDetailsInfo = ({
                 </div>
               </div>
             </Link>
-            <p className="pt-2">{data.shop.description}</p>
+            <p className="pt-2">{data.shop.Description}</p>
           </div>
           <div className="w-full 800px:w-[50%] mt-5 800px:mt-0 800px:flex flex-col items-end">
             <div className="text-left">

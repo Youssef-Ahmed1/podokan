@@ -1,9 +1,8 @@
 import React from "react";
-
 import { FiShoppingBag } from "react-icons/fi";
 import { GrWorkshop } from "react-icons/gr";
 import { RxDashboard } from "react-icons/rx";
-import { CiMoneyBill, CiSettings } from "react-icons/ci";
+import { CiMoneyBill } from "react-icons/ci";
 import { Link } from "react-router-dom";
 import { HiOutlineUserGroup } from "react-icons/hi";
 import { BsHandbag } from "react-icons/bs";
@@ -12,30 +11,26 @@ import { AiOutlineSetting } from "react-icons/ai";
 import { FaClipboardCheck } from "react-icons/fa";
 
 const AdminSideBar = ({ active, setActive }) => {
-    return (
-    
-      <div className="w-full h-[90vh] bg-white shadow-sm overflow-y-scroll sticky top-0 left-0 z-10">
-
-          <div className="w-full flex items-center p-4">
-            
-          <Link to="admin-approval" className="w-full flex items-center">
-
-        <div
-          className="w-full flex items-center cursor-pointer"
-          onClick={() => setActive(9)}
-        >
-          <FaClipboardCheck
-            size={30}
-            color={`${active === 9 ? "crimson" : "#555"}`}
-          />
-          <h5
-            className={`hidden 800px:block pl-2 text-[18px] font-[400] ${
-              active === 9 ? "text-[crimson]" : "text-[#555]"
-            }`}
+  return (
+    <div className="w-full h-[90vh] bg-white shadow-sm overflow-y-scroll sticky top-0 left-0 z-10">
+             <div className="w-full flex items-center p-4">
+        <Link to="/admin-approval" className="w-full flex items-center">
+          <div
+            className="w-full flex items-center cursor-pointer"
+            onClick={() => setActive(9)}
           >
-            Product Approval
-          </h5>
-        </div>
+            <FaClipboardCheck
+              size={30}
+              color={`${active === 9 ? 'crimson' : '#555'}`}
+            />
+            <h5
+              className={`hidden 800px:block pl-2 text-[18px] font-[400] ${
+                active === 9 ? 'text-[crimson]' : 'text-[#555]'
+              }`}
+            >
+              Product Approval
+            </h5>
+          </div>
         </Link>
       </div>
       {/* single item */}
@@ -135,8 +130,6 @@ const AdminSideBar = ({ active, setActive }) => {
         </Link>
       </div>
 
-
-
       <div className="w-full flex items-center p-4">
         <Link
           to="/admin-withdraw-request"
@@ -157,10 +150,7 @@ const AdminSideBar = ({ active, setActive }) => {
       </div>
 
       <div className="w-full flex items-center p-4">
-        <Link
-          to="/profile"
-          className="w-full flex items-center"
-        >
+        <Link to="/profile" className="w-full flex items-center">
           <AiOutlineSetting
             size={30}
             color={`${active === 8 ? "crimson" : "#555"}`}
@@ -174,7 +164,6 @@ const AdminSideBar = ({ active, setActive }) => {
           </h5>
         </Link>
       </div>
-
     </div>
   );
 };

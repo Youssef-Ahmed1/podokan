@@ -2,39 +2,16 @@ import axios from "axios";
 import { server } from "../../server";
 
 // create product
-export const createProduct = (
-  name,
-  description,
-  category,
-  tags,
-  originalPrice,
-  discountPrice,
-  stock,
-  shopId,
-  images
-) => async (dispatch) => {
+export const createProduct = (formData) => async (dispatch) => {
   try {
-    dispatch({
-      type: "productCreateRequest",
+    dispatch({ type: "productCreateRequest" });
+
+    const { data } = await axios.post(`${server}/product/create-product`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      withCredentials: true
     });
 
-    const { data } = await axios.post(`${server}/product/create-product`, {
-      name,
-      description,
-      category,
-      tags,
-      originalPrice,
-      discountPrice,
-      stock,
-      shopId,
-      images,
-      status: 'pending',
-    });
-
-    dispatch({
-      type: "productCreateSuccess",
-      payload: data.product,
-    });
+    dispatch({ type: "productCreateSuccess", payload: data.product });
   } catch (error) {
     dispatch({
       type: "productCreateFail",
@@ -42,21 +19,17 @@ export const createProduct = (
     });
   }
 };
+
 // fetch pending products (for admin)
 export const fetchPendingProducts = () => async (dispatch) => {
   try {
-    dispatch({
-      type: "fetchPendingProductsRequest",
-    });
+    dispatch({ type: "fetchPendingProductsRequest" });
 
     const { data } = await axios.get(`${server}/admin/pending-products`, {
       withCredentials: true,
     });
 
-    dispatch({
-      type: "fetchPendingProductsSuccess",
-      payload: data.products,
-    });
+    dispatch({ type: "fetchPendingProductsSuccess", payload: data.products });
   } catch (error) {
     dispatch({
       type: "fetchPendingProductsFail",
@@ -66,11 +39,9 @@ export const fetchPendingProducts = () => async (dispatch) => {
 };
 
 // approve or reject product (for admin)
-export const approveRejectProduct = (productId, status, rejectionReason) => async (dispatch) => {
+export const approveRejectProduct = (productId, status, rejectionReason = "") => async (dispatch) => {
   try {
-    dispatch({
-      type: "approveRejectProductRequest",
-    });
+    dispatch({ type: "approveRejectProductRequest" });
 
     const { data } = await axios.put(
       `${server}/admin/product/${productId}/approve`,
@@ -78,11 +49,7 @@ export const approveRejectProduct = (productId, status, rejectionReason) => asyn
       { withCredentials: true }
     );
 
-    dispatch({
-      type: "approveRejectProductSuccess",
-      payload: data.message,
-    });
-
+    dispatch({ type: "approveRejectProductSuccess", payload: data.message });
     dispatch(fetchPendingProducts());
   } catch (error) {
     dispatch({
@@ -92,21 +59,14 @@ export const approveRejectProduct = (productId, status, rejectionReason) => asyn
   }
 };
 
+// get all products of a shop
 export const getAllProductsShop = (id) => async (dispatch) => {
   try {
     dispatch({ type: "getAllProductsShopRequest" });
 
     const { data } = await axios.get(`${server}/product/get-all-products-shop/${id}`);
-    
-    const productsWithStatus = data.products.map(product => ({
-      ...product,
-      statusInfo: getStatusInfo(product.status),
-    }));
 
-    dispatch({
-      type: "getAllProductsShopSuccess",
-      payload: productsWithStatus,
-    });
+    dispatch({ type: "getAllProductsShopSuccess", payload: data.products });
   } catch (error) {
     dispatch({
       type: "getAllProductsShopFailed",
@@ -115,39 +75,36 @@ export const getAllProductsShop = (id) => async (dispatch) => {
   }
 };
 
-// Helper function to get status information
-const getStatusInfo = (status) => {
-  switch (status) {
-    case 'pending':
-      return 'Awaiting admin approval';
-    case 'restricted':
-      return 'Approved but only visible via direct link';
-    case 'public':
-      return 'Approved and publicly visible';
-    case 'sitePick':
-      return 'Approved and promoted by the site';
-    case 'rejected':
-      return 'Rejected by admin';
-    default:
-      return 'Unknown status';
+// update product design
+export const updateProductDesign = (productId, newDesignImage) => async (dispatch) => {
+  try {
+    dispatch({ type: "updateProductDesignRequest" });
+
+    const { data } = await axios.put(
+      `${server}/product/update-product-design/${productId}`,
+      { newDesignImage },
+      { withCredentials: true }
+    );
+
+    dispatch({ type: "updateProductDesignSuccess", payload: data.message });
+  } catch (error) {
+    dispatch({
+      type: "updateProductDesignFail",
+      payload: error.response?.data?.message || error.message,
+    });
   }
 };
 
 // delete product of a shop
 export const deleteProduct = (id) => async (dispatch) => {
   try {
-    dispatch({
-      type: "deleteProductRequest",
-    });
+    dispatch({ type: "deleteProductRequest" });
 
     const { data } = await axios.delete(`${server}/product/delete-shop-product/${id}`, {
       withCredentials: true,
     });
 
-    dispatch({
-      type: "deleteProductSuccess",
-      payload: data.message,
-    });
+    dispatch({ type: "deleteProductSuccess", payload: data.message });
   } catch (error) {
     dispatch({
       type: "deleteProductFailed",
@@ -159,21 +116,15 @@ export const deleteProduct = (id) => async (dispatch) => {
 // get all products (only approved ones)
 export const getAllProducts = () => async (dispatch) => {
   try {
-    dispatch({
-      type: "getAllProductsRequest",
-    });
+    dispatch({ type: "getAllProductsRequest" });
 
     const { data } = await axios.get(`${server}/product/get-all-products`);
-    
-    // Filter out products that are not approved
+
     const approvedProducts = data.products.filter(
       product => ['public', 'restricted', 'sitePick'].includes(product.status)
     );
 
-    dispatch({
-      type: "getAllProductsSuccess",
-      payload: approvedProducts,
-    });
+    dispatch({ type: "getAllProductsSuccess", payload: approvedProducts });
   } catch (error) {
     dispatch({
       type: "getAllProductsFailed",
