@@ -26,6 +26,8 @@ import {
   OrderDetailsPage,
   TrackOrderPage,
   UserInbox,
+
+  
   
 } from "./routes/Routes.js";
 import {
@@ -51,7 +53,7 @@ import {
   AdminDashboardProducts,
   AdminDashboardEvents,
   AdminDashboardWithdraw,
-  AdminProductApproval,
+  AdminApprovalProducts,
 } from "./routes/AdminRoutes";
 import { ShopHomePage } from "./ShopRoutes.js";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -275,7 +277,7 @@ const App = () => {
           path="/admin-approval"
           element={
             <ProtectedAdminRoute>
-              <AdminProductApproval/>
+              <AdminApprovalProducts/>
               </ProtectedAdminRoute>
           }
         />

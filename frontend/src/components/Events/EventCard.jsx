@@ -16,7 +16,7 @@ const EventCard = ({ active, data }) => {
   const dispatch = useDispatch();
   const [images, setImages] = useState([]);
 const [name, setName] = useState("");
-const [description, setDescription] = useState("");
+const [Description, setDescription] = useState("");
 const [stock, setStock] = useState();
 const newForm = new FormData();
 
@@ -37,11 +37,11 @@ const newForm = new FormData();
   images.forEach((image) => {
     newForm.set("images", image);
   });
-  newForm.append("description", description);
+  newForm.append("Description", Description);
   newForm.append("stock", stock);
   dispatch(
     ({
-      description,
+      Description,
       stock,
       images,
     })
@@ -59,7 +59,7 @@ const newForm = new FormData();
       </div>
       <div className="w-full lg:[w-50%] flex flex-col justify-center">
         <h2 className={`${styles.productTitle}`}>{data.name}</h2>
-        <p>{data.description}</p>
+        <p>{data.Description}</p>
         <div className="flex py-2 justify-between">
           <div className="flex">
             <h5 className="font-[500] text-[18px] text-[#d55b45] pr-3 line-through">

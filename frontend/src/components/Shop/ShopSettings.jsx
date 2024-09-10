@@ -11,8 +11,8 @@ const ShopSettings = () => {
   const { seller } = useSelector((state) => state.seller);
   const [avatar, setAvatar] = useState();
   const [name, setName] = useState(seller && seller.name);
-  const [description, setDescription] = useState(
-    seller && seller.description ? seller.description : ""
+  const [Description, setDescription] = useState(
+    seller && seller.Description ? seller.Description : ""
   );
   const [address, setAddress] = useState(seller && seller.address);
   const [phoneNumber, setPhoneNumber] = useState(seller && seller.phoneNumber);
@@ -58,7 +58,7 @@ const ShopSettings = () => {
           address,
           zipCode,
           phoneNumber,
-          description,
+          Description,
         },
         { withCredentials: true }
       )
@@ -116,16 +116,16 @@ const ShopSettings = () => {
           </div>
           <div className="w-[100%] flex items-center flex-col 800px:w-[50%] mt-5">
             <div className="w-full pl-[3%]">
-              <label className="block pb-2">Shop description</label>
+              <label className="block pb-2">Shop Description</label>
             </div>
             <input
               type="name"
               placeholder={`${
-                seller?.description
-                  ? seller.description
-                  : "Enter your shop description"
+                seller?.Description
+                  ? seller.Description
+                  : "Enter your shop Description"
               }`}
-              value={description}
+              value={Description}
               onChange={(e) => setDescription(e.target.value)}
               className={`${styles.input} !w-[95%] mb-4 800px:mb-0`}
             />

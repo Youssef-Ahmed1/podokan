@@ -17,7 +17,6 @@ import ShopLoginPage from "../pages/ShopLoginPage";
 import OrderDetailsPage from "../pages/OrderDetailsPage";
 import TrackOrderPage from "../pages/TrackOrderPage";
 import UserInbox from "../pages/UserInbox.jsx";
-import AdminProductApproval from "../pages/AdminProductApproval.jsx";
 
 
 export { 
@@ -40,5 +39,5 @@ export {
     OrderDetailsPage,
     TrackOrderPage,
     UserInbox,
-    AdminProductApproval
+    
 };

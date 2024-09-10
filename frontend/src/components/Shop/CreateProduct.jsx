@@ -1,250 +1,359 @@
-import React, { useState } from "react";
-import { AiOutlinePlusCircle } from "react-icons/ai";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { categoriesData } from "../../static/data";
-import Dashboard from "../dashboard2/Dashboard";
+import { server } from "../../server";
 
 const CreateProduct = () => {
-  const { seller } = useSelector((state) => state.seller);
   const navigate = useNavigate();
-
-  const [images, setImages] = useState([]);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [tags, setTags] = useState("");
-  const [originalPrice, setOriginalPrice] = useState(0);
-  const [discountPrice, setDiscountPrice] = useState(0);
-  const [stock, setStock] = useState(0);
+  const { seller } = useSelector((state) => state.seller);
+  const [formState, setFormState] = useState({
+    DesignTitle: "",
+    Description: "",
+    Maintag: "",
+    Designtags: "",
+    MatureContent: false,
+    ProductType: "t-shirt",
+    ProductColor: "white",
+    ProductView: "front",
+    DesignScale: 1,
+  });
+  const [designPreview, setDesignPreview] = useState(null);
   const [designData, setDesignData] = useState(null);
+  const [shopId, setShopId] = useState(null);
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    setImages([]);
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (reader.readyState === 2) {
-          setImages((old) => [...old, reader.result]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+  useEffect(() => {
+    if (seller && seller._id) {
+      setShopId(seller._id);
+    } else {
+      toast.error("Seller information is missing. Please make sure you are logged in.");
+      console.error("Seller or shopId is undefined:", { seller });
+    }
+  }, [seller]);
+
+  const handleChange = (e) => {
+    setFormState({ ...formState, [e.target.id]: e.target.value });
   };
 
-  const handleSaveDesign = (data) => {
-    console.log("Design data saved:", data);
-    setDesignData(data);
+  const handleDesignUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setDesignPreview(event.target.result);
+        setDesignData(file);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!designData) {
-      toast.error("Design data is missing!");
+    if (!shopId) {
+      toast.error("Seller information is missing. Please make sure you are logged in.");
       return;
     }
 
-    const newForm = new FormData();
+    if (!formState.DesignTitle || !formState.Maintag || !formState.Description || !designData) {
+      toast.error("Please fill in all required fields and upload a design.");
+      return;
+    }
 
-    images.forEach((image) => {
-      newForm.append("images", image);
-    });
-    newForm.append("name", name);
-    newForm.append("description", description);
-    newForm.append("category", category);
-    newForm.append("tags", tags);
-    newForm.append("originalPrice", originalPrice);
-    newForm.append("discountPrice", discountPrice);
-    newForm.append("stock", stock);
-    newForm.append("shopId", seller._id);
-    newForm.append("design", JSON.stringify(designData));
-
-    console.log("Submitting product data:", Object.fromEntries(newForm));
-
+    const formData = new FormData();
+    Object.keys(formState).forEach(key => formData.append(key, formState[key]));
+    formData.append("shopId", shopId);
+    if (designData) {
+      formData.append("designImage", designData);
+    }
+    
     try {
-      const response = await fetch('http://localhost:8000/api/v2/product/create-product', {
-        method: 'POST',
-        body: newForm,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create product');
+      const response = await axios.post(`${server}/product/create-product`, formData, { withCredentials: true });
+      
+      if (response.data.success) {
+        navigate("/dashboard");
+        toast.success("Product created successfully!");
+      } else {
+        toast.error(response.data.message || "An error occurred while creating the product.");
       }
-
-      const data = await response.json();
-      console.log("Product submitted for approval:", data);
-      toast.success("Product submitted for approval!");
-      navigate("/dashboard");
     } catch (error) {
-      console.error("Error submitting product:", error);
-      toast.error(error.message || "Failed to submit product");
+      console.error("Error details:", error);
+      toast.error(error.response?.data?.message || "An error occurred while creating the product.");
     }
   };
+  const getMockupUrl = () => {
+    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
+    const version =
+      formState.ProductType === "hoodie"
+        ? "v1724798769"
+        : formState.ProductType === "t-shirt"
+        ? "v1724807956"
+        : "v1725243203";
+    const folder = formState.ProductType === "hoodie" ? "hoodies" : "shirts";
+    const filename = `${formState.ProductType === "hoodie" ? "hoodie" : "t-shirt"}-${formState.ProductColor}-${formState.ProductView}`;
+    const extension = formState.ProductType === "hoodie" ? "jpg" : "webp";
 
+    return `${baseUrl}${version}/${folder}/${filename}.${extension}`;
+  };
+
+  if (!seller || !shopId) {
+    return (
+      <div className="flex items-center justify-center h-[80vh]">
+        <div className="text-center">
+          <svg
+            className="animate-spin h-10 w-10 text-blue-500 mx-auto mb-4"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          <p className="text-blue-500 font-semibold">Loading seller data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-[90%] 800px:w-[50%] bg-white shadow h-[80vh] rounded-[4px] p-3 overflow-y-scroll">
-      <form onSubmit={handleSubmit}>
-        <br />
-        <div>
-          <label className="pb-2">
-            Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="name"
-            value={name}
-            className="mt-2 appearance-none block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Enter your product name..."
-            required
-          />
-        </div>
-        <br />
-        <div>
-          <label className="pb-2">
-            Description <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            cols="30"
-            required
-            rows="8"
-            type="text"
-            name="description"
-            value={description}
-            className="mt-2 appearance-none block w-full pt-2 px-3 border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter your product description..."
-          ></textarea>
-        </div>
-        <br />
-        <div>
-          <label className="pb-2">
-            Category <span className="text-red-500">*</span>
-          </label>
-          <select
-            className="w-full mt-2 border h-[35px] rounded-[5px]"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            required
+    <div className="w-[90%] 800px:w-[90%] bg-white shadow h-[80vh] rounded-[4px] p-3 overflow-y-scroll">
+      <h2 className="text-3xl font-bold mb-4 text-center text-green-600">Design Product</h2>
+      <p className="text-center text-blue-500 mb-4">
+        <a href="#" className="underline">Need help uploading?</a>
+      </p>
+
+      <div className="design-upload-area mb-8">
+        {!designPreview ? (
+          <div
+            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer w-[400px] h-[400px] mx-auto flex items-center justify-center"
+            onClick={() => document.getElementById("design-upload").click()}
           >
-            <option value="">Choose a category</option>
-            {categoriesData &&
-              categoriesData.map((i) => (
-                <option value={i.title} key={i.title}>
-                  {i.title}
-                </option>
-              ))}
-          </select>
-        </div>
-        <br />
-        <div>
-          <label className="pb-2">Tags</label>
-          <input
-            type="text"
-            name="tags"
-            value={tags}
-            className="mt-2 appearance-none block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            onChange={(e) => setTags(e.target.value)}
-            placeholder="Enter your product tags..."
-          />
-        </div>
-        <br />
-        <div>
-          <label className="pb-2">Original Price</label>
-          <input
-            type="number"
-            name="originalPrice"
-            value={originalPrice}
-            className="mt-2 appearance-none block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            onChange={(e) => setOriginalPrice(Number(e.target.value))}
-            placeholder="Enter your product price..."
-            required
-          />
-        </div>
-        <br />
-        <div>
-          <label className="pb-2">
-            Price (With Discount) <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="number"
-            name="discountPrice"
-            value={discountPrice}
-            className="mt-2 appearance-none block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            onChange={(e) => setDiscountPrice(Number(e.target.value))}
-            placeholder="Enter your product price with discount..."
-            required
-          />
-        </div>
-        <br />
-        <div>
-          <label className="pb-2">
-            Product Stock <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="number"
-            name="stock"
-            value={stock}
-            className="mt-2 appearance-none block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            onChange={(e) => setStock(Number(e.target.value))}
-            placeholder="Enter your product stock..."
-            required
-          />
-        </div>
-        <br />
-        <div>
-          <label className="pb-2">
-            Upload Images <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="file"
-            name=""
-            id="upload"
-            className="hidden"
-            multiple
-            onChange={handleImageChange}
-          />
-          <div className="w-full flex items-center flex-wrap">
-            <label htmlFor="upload">
-              <AiOutlinePlusCircle size={30} className="mt-3" color="#555" />
-            </label>
-            {images &&
-              images.map((i) => (
-                <img
-                  src={i}
-                  key={i}
-                  alt=""
-                  className="h-[120px] w-[120px] object-cover m-2"
-                />
-              ))}
+            <div>
+              <svg
+                className="w-12 h-12 mx-auto mb-4 text-gray-400"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <p className="text-sm text-gray-600">Drop one file here or click to upload</p>
+            </div>
           </div>
-        </div>
-        <br />
-        <hr />
-        <br />
-        <button
-          type="submit"
-          className="mt-2 cursor-pointer appearance-none text-center block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-        >
-          Create
-        </button>
-      </form>
-
-      <br />
-      <hr />
-      <br />
-
-      <div>
-        <label className="pb-2">
-          Design your product <span className="text-red-500">*</span>
-        </label>
-        <Dashboard onSave={handleSaveDesign} />
+        ) : (
+          <div className="relative w-[400px] h-[400px] mx-auto">
+            <img src={designPreview} alt="Design Preview" className="w-full h-full object-contain" />
+          </div>
+        )}
+        <input
+          type="file"
+          id="design-upload"
+          accept="image/png"
+          onChange={handleDesignUpload}
+          className="hidden"
+        />
       </div>
+
+      {designPreview && (
+        <>
+          <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-8">
+            <p className="font-bold mb-2">File Requirements:</p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>A high-resolution <strong>transparent .PNG</strong> at <strong>150dpi.</strong></li>
+              <li>Minimum dimensions of at least <strong>1500px by 1995px</strong> (not including outer transparent pixels).</li>
+              <li>To enable <strong>all</strong> products, your file must be at least <strong>5000px by 5500px.</strong></li>
+            </ul>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div className="mb-6">
+              <label htmlFor="DesignTitle" className="block mb-1 font-medium">Design Title:</label>
+              <input
+                type="text"
+                id="DesignTitle"
+                value={formState.DesignTitle}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Give your design a name"
+              />
+            </div>
+
+            <div className="mb-6">
+              <label htmlFor="Maintag" className="block mb-1 font-medium">Main Tag:</label>
+              <input
+                type="text"
+                id="Maintag"
+                value={formState.Maintag}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="What do people search to find your design?"
+              />
+            </div>
+
+            <div className="mb-6">
+              <label htmlFor="Designtags" className="block mb-1 font-medium">Design Tags:</label>
+              <input
+                type="text"
+                id="Designtags"
+                value={formState.Designtags}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Any other relevant tags to categorize your design"
+              />
+            </div>
+
+            <div className="mb-6">
+              <label htmlFor="Description" className="block mb-1 font-medium">Description:</label>
+              <textarea
+                id="Description"
+                value={formState.Description}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Describe your design in a short sentence or two!"
+                rows="3"
+              ></textarea>
+            </div>
+
+            <div className="mb-6">
+              <p className="mb-2">Does this design contain Mature Content, such as nudity or other adult themes?</p>
+              <p className="mb-4">If you are not sure, check out our <a href="#" className="text-blue-500 underline">FAQ.</a></p>
+              <div className="flex items-center">
+                <label className="mr-6">
+                  <input
+                    type="radio"
+                    name="MatureContent"
+                    value="yes"
+                    checked={formState.MatureContent}
+                    onChange={() => setFormState({ ...formState, MatureContent: true })}
+                    className="mr-2"
+                  />
+                  Yes
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="MatureContent"
+                    value="no"
+                    checked={!formState.MatureContent}
+                    onChange={() => setFormState({ ...formState, MatureContent: false })}
+                    className="mr-2"
+                  />
+                  No
+                </label>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label htmlFor="ProductType" className="block mb-1 font-medium">Product Type:</label>
+              <select
+                id="ProductType"
+                value={formState.ProductType}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="t-shirt">T-shirt</option>
+                <option value="hoodie">Hoodie</option>
+                <option value="long-sleeve-shirt">Long Sleeve Shirt</option>
+                <option value="kids-shirt">Kids Shirt</option>
+                <option value="kids-hoodie">Kids Hoodie</option>
+              </select>
+            </div>
+
+            <div className="mb-8">
+              <h3 className="text-xl font-bold mb-4">Product Mockup</h3>
+              <div className="relative w-full h-[500px] bg-gray-100">
+                <img
+                  src={getMockupUrl()}
+                  alt="Product Mockup"
+                  className="w-full h-full object-contain"
+                />
+                <div
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                  style={{ transform: `translate(-50%, -50%) scale(${formState.DesignScale})` }}
+                >
+                  {designPreview && (
+                    <img
+                      src={designPreview}
+                      alt="Design Preview"
+                      className="w-[200px] h-[200px] object-contain"
+                    />
+                  )}
+                </div>
+              </div>
+              <div className="mt-4 flex justify-center space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setFormState({ ...formState, ProductView: formState.ProductView === "front" ? "back" : "front" })}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Switch to {formState.ProductView === "front" ? "Back" : "Front"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormState({ ...formState, DesignScale: Math.min(formState.DesignScale + 0.1, 2) })}
+                  className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                >
+                  Zoom In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormState({ ...formState, DesignScale: Math.max(formState.DesignScale - 0.1, 0.5) })}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                >
+                  Zoom Out
+                </button>
+              </div>
+            </div>
+
+            <div className="mb-8">
+              <label htmlFor="ProductColor" className="block mb-1 font-medium">Product Color:</label>
+              <div className="grid grid-cols-4 gap-4">
+                {['white', 'black', 'yellow', 'green', 'pink', 'blue', 'gray', 'red', 'purple'].map((color) => (
+                  <div
+                    key={color}
+                    className={`p-4 rounded-md cursor-pointer ${
+                      formState.ProductColor === color ? 'ring-2 ring-blue-500' : 'bg-gray-100'
+                    }`}
+                    onClick={() => setFormState({ ...formState, ProductColor: color })}
+                    aria-label={`Select color ${color}`}
+                  >
+                    <div
+                      className="w-12 h-12 mx-auto rounded-full"
+                      style={{ backgroundColor: color }}
+                    ></div>
+                    <p className="mt-2 text-center text-sm capitalize">{color}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full px-4 py-2 text-lg font-bold text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Create Product
+            </button>
+          </form>
+        </>
+      )}
     </div>
   );
 };

@@ -16,7 +16,7 @@ router.post(
 
     const shop = await Shop.findById(shopId);
     if (!shop) {
-      return next(new ErrorHandler("Shop Id is invalid!", 400));
+      return next(new ErrorHandler("shop Id is invalid!", 400));
     }
 
     let imageArr = typeof images === "string" ? [images] : images;

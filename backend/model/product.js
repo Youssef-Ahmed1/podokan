@@ -1,31 +1,41 @@
 const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema({
-  name: {
+  DesignTitle: {
     type: String,
     required: [true, "Please enter your product name!"],
   },
-  description: {
+  Description: {
     type: String,
-    required: [true, "Please enter your product description!"],
+    required: [true, "Please enter your product Description!"],
   },
-  category: {
+  ProductType: {
     type: String,
-    required: [true, "Please enter your product category!"],
+    required: [true, "Please enter your product type!"],
   },
-  tags: {
+  Maintag: {
+    type: String,
+    required: [true, "Please enter a main tag!"],
+  },
+  Designtags: {
     type: String,
   },
-  originalPrice: {
-    type: Number,
+  ProductColor: {
+    type: String,
+    required: [true, "Please select a product color!"],
   },
-  discountPrice: {
-    type: Number,
-    required: [true, "Please enter your product price!"],
+  MatureContent: {
+    type: Boolean,
+    default: false,
   },
-  stock: {
+  ProductView: {
+    type: String,
+    enum: ['front', 'back'],
+    default: 'front',
+  },
+  DesignScale: {
     type: Number,
-    required: [true, "Please enter your product stock!"],
+    default: 1,
   },
   status: {
     type: String,
@@ -41,18 +51,26 @@ const productSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
-  images: [
-    {
-      public_id: {
-        type: String,
-        required: true,
-      },
-      url: {
-        type: String,
-        required: true,
-      },
+  designImage: {
+    public_id: {
+      type: String,
+      required: true,
     },
-  ],
+    url: {
+      type: String,
+      required: true,
+    },
+  },
+  tshirtImage: {
+    public_id: {
+      type: String,
+      required: true,
+    },
+    url: {
+      type: String,
+      required: true,
+    },
+  },
   reviews: [
     {
       user: {
@@ -64,24 +82,19 @@ const productSchema = new mongoose.Schema({
       comment: {
         type: String,
       },
-      productId: {
-        type: String,
-      },
-      createdAt:{
+      createdAt: {
         type: Date,
-        default: Date.now(),
+        default: Date.now,
       }
     },
   ],
   ratings: {
     type: Number,
+    default: 0,
   },
   shopId: {
-    type: String,
-    required: true,
-  },
-  shop: {
-    type: Object,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Shop',
     required: true,
   },
   sold_out: {
@@ -90,9 +103,8 @@ const productSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
-  
 });
 
 module.exports = mongoose.model("Product", productSchema);

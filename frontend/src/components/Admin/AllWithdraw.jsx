@@ -37,7 +37,7 @@ const AllWithdraw = () => {
     },
     {
       field: "shopId",
-      headerName: "Shop Id",
+      headerName: "shop Id",
       minWidth: 180,
       flex: 1.4,
     },
