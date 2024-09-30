@@ -1,39 +1,45 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { useSelector } from "react-redux";
+import React, { useState, useEffect, useCallback } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { server } from "../../server";
+import { createProduct } from "../../redux/actions/product";
 
 const CreateProduct = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { seller } = useSelector((state) => state.seller);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formState, setFormState] = useState({
     DesignTitle: "",
     Description: "",
     Maintag: "",
     Designtags: "",
-    MatureContent: false,
     ProductType: "t-shirt",
-    ProductColor: "white",
+    ProductColor: "red",
     ProductView: "front",
     DesignScale: 1,
+    shopId: "",
   });
   const [designPreview, setDesignPreview] = useState(null);
   const [designData, setDesignData] = useState(null);
-  const [shopId, setShopId] = useState(null);
 
   useEffect(() => {
     if (seller && seller._id) {
-      setShopId(seller._id);
-    } else {
-      toast.error("Seller information is missing. Please make sure you are logged in.");
-      console.error("Seller or shopId is undefined:", { seller });
+      setFormState(prevState => ({ ...prevState, shopId: seller._id }));
+      setIsLoading(false);
+    } else if (seller === null) {
+      toast.error("No seller logged in. Please log in to create a product.");
+      setIsLoading(false);
     }
   }, [seller]);
 
   const handleChange = (e) => {
-    setFormState({ ...formState, [e.target.id]: e.target.value });
+    const { id, type, checked, value } = e.target;
+    setFormState(prevState => ({
+      ...prevState,
+      [id]: type === 'checkbox' ? checked : value
+    }));
   };
 
   const handleDesignUpload = (e) => {
@@ -48,40 +54,48 @@ const CreateProduct = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!shopId) {
-      toast.error("Seller information is missing. Please make sure you are logged in.");
-      return;
-    }
-
-    if (!formState.DesignTitle || !formState.Maintag || !formState.Description || !designData) {
-      toast.error("Please fill in all required fields and upload a design.");
-      return;
-    }
-
-    const formData = new FormData();
-    Object.keys(formState).forEach(key => formData.append(key, formState[key]));
-    formData.append("shopId", shopId);
-    if (designData) {
-      formData.append("designImage", designData);
-    }
-    
-    try {
-      const response = await axios.post(`${server}/product/create-product`, formData, { withCredentials: true });
-      
-      if (response.data.success) {
-        navigate("/dashboard");
-        toast.success("Product created successfully!");
-      } else {
-        toast.error(response.data.message || "An error occurred while creating the product.");
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      if (isSubmitting) return;
+      setIsSubmitting(true);
+  
+      if (!formState.shopId) {
+        toast.error("Seller information is missing. Please make sure you are logged in.");
+        setIsSubmitting(false);
+        return;
       }
-    } catch (error) {
-      console.error("Error details:", error);
-      toast.error(error.response?.data?.message || "An error occurred while creating the product.");
-    }
-  };
+  
+      if (!formState.DesignTitle || !formState.Maintag || !formState.Description || !designData) {
+        toast.error("Please fill in all required fields and upload a design");
+        setIsSubmitting(false);
+        return;
+      }
+  
+      const formData = new FormData();
+      Object.keys(formState).forEach(key => formData.append(key, formState[key]));
+      if (designData) {
+        formData.append("designImage", designData);
+      }
+  
+      try {
+        const response = await dispatch(createProduct(formData));
+        if (response && response.success) {
+          toast.success("Product created successfully and is awaiting inspection!");
+          navigate("/dashboard");
+        } else {
+          toast.error(response?.message || "An error occurred while creating the product.");
+        }
+      } catch (error) {
+        console.error("Error details:", error);
+        toast.error(error.response?.data?.message || "An error occurred while creating the product.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [formState, designData, navigate, dispatch, isSubmitting]
+  );
+
   const getMockupUrl = () => {
     const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
     const version =
@@ -97,7 +111,16 @@ const CreateProduct = () => {
     return `${baseUrl}${version}/${folder}/${filename}.${extension}`;
   };
 
-  if (!seller || !shopId) {
+  const handleZoom = (direction) => {
+    setFormState(prevState => ({
+      ...prevState,
+      DesignScale: direction === 'in' 
+        ? Math.min(prevState.DesignScale + 0.1, 2) 
+        : Math.max(prevState.DesignScale - 0.1, 0.5)
+    }));
+  };
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[80vh]">
         <div className="text-center">
@@ -122,6 +145,16 @@ const CreateProduct = () => {
             ></path>
           </svg>
           <p className="text-blue-500 font-semibold">Loading seller data...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!seller || !formState.shopId) {
+    return (
+      <div className="flex items-center justify-center h-[80vh]">
+        <div className="text-center">
+          <p className="text-red-500 font-semibold">No seller data available. Please log in.</p>
         </div>
       </div>
     );
@@ -173,186 +206,155 @@ const CreateProduct = () => {
       </div>
 
       {designPreview && (
-        <>
-          <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-8">
-            <p className="font-bold mb-2">File Requirements:</p>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>A high-resolution <strong>transparent .PNG</strong> at <strong>150dpi.</strong></li>
-              <li>Minimum dimensions of at least <strong>1500px by 1995px</strong> (not including outer transparent pixels).</li>
-              <li>To enable <strong>all</strong> products, your file must be at least <strong>5000px by 5500px.</strong></li>
-            </ul>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-6">
+            <label htmlFor="DesignTitle" className="block mb-1 font-medium">Design Title:</label>
+            <input
+              type="text"
+              id="DesignTitle"
+              value={formState.DesignTitle}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Give your design a name"
+            />
           </div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="mb-6">
-              <label htmlFor="DesignTitle" className="block mb-1 font-medium">Design Title:</label>
-              <input
-                type="text"
-                id="DesignTitle"
-                value={formState.DesignTitle}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Give your design a name"
-              />
-            </div>
+          <div className="mb-6">
+            <label htmlFor="Maintag" className="block mb-1 font-medium">Main Tag:</label>
+            <input
+              type="text"
+              id="Maintag"
+              value={formState.Maintag}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="What do people search to find your design?"
+            />
+          </div>
 
-            <div className="mb-6">
-              <label htmlFor="Maintag" className="block mb-1 font-medium">Main Tag:</label>
-              <input
-                type="text"
-                id="Maintag"
-                value={formState.Maintag}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="What do people search to find your design?"
-              />
-            </div>
+          <div className="mb-6">
+            <label htmlFor="Designtags" className="block mb-1 font-medium">Design Tags:</label>
+            <input
+              type="text"
+              id="Designtags"
+              value={formState.Designtags}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Any other relevant tags to categorize your design"
+            />
+          </div>
 
-            <div className="mb-6">
-              <label htmlFor="Designtags" className="block mb-1 font-medium">Design Tags:</label>
-              <input
-                type="text"
-                id="Designtags"
-                value={formState.Designtags}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Any other relevant tags to categorize your design"
-              />
-            </div>
+          <div className="mb-6">
+            <label htmlFor="Description" className="block mb-1 font-medium">Description:</label>
+            <textarea
+              id="Description"
+              value={formState.Description}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Describe your design in a short sentence or two!"
+              rows="3"
+            ></textarea>
+          </div>
 
-            <div className="mb-6">
-              <label htmlFor="Description" className="block mb-1 font-medium">Description:</label>
-              <textarea
-                id="Description"
-                value={formState.Description}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Describe your design in a short sentence or two!"
-                rows="3"
-              ></textarea>
-            </div>
-
-            <div className="mb-6">
-              <p className="mb-2">Does this design contain Mature Content, such as nudity or other adult themes?</p>
-              <p className="mb-4">If you are not sure, check out our <a href="#" className="text-blue-500 underline">FAQ.</a></p>
-              <div className="flex items-center">
-                <label className="mr-6">
-                  <input
-                    type="radio"
-                    name="MatureContent"
-                    value="yes"
-                    checked={formState.MatureContent}
-                    onChange={() => setFormState({ ...formState, MatureContent: true })}
-                    className="mr-2"
-                  />
-                  Yes
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="MatureContent"
-                    value="no"
-                    checked={!formState.MatureContent}
-                    onChange={() => setFormState({ ...formState, MatureContent: false })}
-                    className="mr-2"
-                  />
-                  No
-                </label>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <label htmlFor="ProductType" className="block mb-1 font-medium">Product Type:</label>
-              <select
-                id="ProductType"
-                value={formState.ProductType}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="t-shirt">T-shirt</option>
-                <option value="hoodie">Hoodie</option>
-                <option value="long-sleeve-shirt">Long Sleeve Shirt</option>
-                <option value="kids-shirt">Kids Shirt</option>
-                <option value="kids-hoodie">Kids Hoodie</option>
-              </select>
-            </div>
-
-            <div className="mb-8">
-              <h3 className="text-xl font-bold mb-4">Product Mockup</h3>
-              <div className="relative w-full h-[500px] bg-gray-100">
-                <img
-                  src={getMockupUrl()}
-                  alt="Product Mockup"
-                  className="w-full h-full object-contain"
-                />
-                <div
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                  style={{ transform: `translate(-50%, -50%) scale(${formState.DesignScale})` }}
-                >
-                  {designPreview && (
-                    <img
-                      src={designPreview}
-                      alt="Design Preview"
-                      className="w-[200px] h-[200px] object-contain"
-                    />
-                  )}
-                </div>
-              </div>
-              <div className="mt-4 flex justify-center space-x-4">
-                <button
-                  type="button"
-                  onClick={() => setFormState({ ...formState, ProductView: formState.ProductView === "front" ? "back" : "front" })}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  Switch to {formState.ProductView === "front" ? "Back" : "Front"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormState({ ...formState, DesignScale: Math.min(formState.DesignScale + 0.1, 2) })}
-                  className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                >
-                  Zoom In
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormState({ ...formState, DesignScale: Math.max(formState.DesignScale - 0.1, 0.5) })}
-                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                >
-                  Zoom Out
-                </button>
-              </div>
-            </div>
-
-            <div className="mb-8">
-              <label htmlFor="ProductColor" className="block mb-1 font-medium">Product Color:</label>
-              <div className="grid grid-cols-4 gap-4">
-                {['white', 'black', 'yellow', 'green', 'pink', 'blue', 'gray', 'red', 'purple'].map((color) => (
-                  <div
-                    key={color}
-                    className={`p-4 rounded-md cursor-pointer ${
-                      formState.ProductColor === color ? 'ring-2 ring-blue-500' : 'bg-gray-100'
-                    }`}
-                    onClick={() => setFormState({ ...formState, ProductColor: color })}
-                    aria-label={`Select color ${color}`}
-                  >
-                    <div
-                      className="w-12 h-12 mx-auto rounded-full"
-                      style={{ backgroundColor: color }}
-                    ></div>
-                    <p className="mt-2 text-center text-sm capitalize">{color}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full px-4 py-2 text-lg font-bold text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          <div className="mb-6">
+            <label htmlFor="ProductType" className="block mb-1 font-medium">Product Type:</label>
+            <select
+              id="ProductType"
+              value={formState.ProductType}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              Create Product
-            </button>
-          </form>
-        </>
+              <option value="t-shirt">T-shirt</option>
+              <option value="hoodie">Hoodie</option>
+              <option value="long-sleeve-shirt">Long Sleeve Shirt</option>
+              <option value="kids-shirt">Kids Shirt</option>
+              <option value="kids-hoodie">Kids Hoodie</option>
+            </select>
+          </div>
+
+          <div className="mb-8">
+            <h3 className="text-xl font-bold mb-4">Product Mockup</h3>
+            <div className="relative w-full h-[500px] bg-gray-100">
+              <img
+                src={getMockupUrl()}
+                alt="Product Mockup"
+                className="w-full h-full object-contain"
+              />
+              <div
+                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                style={{ 
+                  transform: `translate(-50%, -50%) scale(${formState.DesignScale})`,
+                  width: '200px',
+                  height: '200px'
+                }}
+              >
+                {designPreview && (
+                  <img
+                    src={designPreview}
+                    alt="Design Preview"
+                    className="w-full h-full object-contain"
+                  />
+                )}
+              </div>
+            </div>
+            <div className="mt-4 flex justify-center space-x-4">
+              <button
+                type="button"
+                onClick={() => setFormState(prev => ({ 
+                  ...prev, 
+                  ProductView: prev.ProductView === "front" ? "back" : "front" 
+                }))}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                Switch to {formState.ProductView === "front" ? "Back" : "Front"}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleZoom('in')}
+                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              >
+                Zoom In
+              </button>
+              <button
+                type="button"
+                onClick={() => handleZoom('out')}
+                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              >
+                Zoom Out
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <label htmlFor="ProductColor" className="block mb-1 font-medium">Product Color:</label>
+            <div className="grid grid-cols-4 gap-4">
+              {['yellow', 'green', 'pink', 'blue', 'gray', 'red', 'purple'].map((color) => (
+                <div
+                  key={color}
+                  className={`p-4 rounded-md cursor-pointer ${
+                    formState.ProductColor === color ? 'ring-2 ring-blue-500' : 'bg-gray-100'
+                  }`}
+                  onClick={() => setFormState(prev => ({ ...prev, ProductColor: color }))}
+                  aria-label={`Select color ${color}`}
+                >
+                  <div
+                    className="w-12 h-12 mx-auto rounded-full"
+                    style={{ backgroundColor: color }}
+                  ></div>
+                  <p className="mt-2 text-center text-sm capitalize">{color}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <button
+            type="submit"
+            className={`w-full px-4 py-2 text-lg font-bold text-white ${
+              isSubmitting ? 'bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+            } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Creating Product...' : 'Create Product'}
+          </button>
+        </form>
       )}
     </div>
   );

@@ -1,39 +1,31 @@
-import React, { useState } from "react";
-import {
-  AiFillHeart,
-  AiFillStar,
-  AiOutlineEye,
-  AiOutlineHeart,
-  AiOutlineShoppingCart,
-  AiOutlineStar,
-} from "react-icons/ai";
+import React, { useState, useEffect } from "react";
+import { AiFillHeart, AiOutlineEye, AiOutlineHeart, AiOutlineShoppingCart } from "react-icons/ai";
 import { Link } from "react-router-dom";
 import styles from "../../../styles/styles";
 import { useDispatch, useSelector } from "react-redux";
 import ProductDetailsCard from "../ProductDetailsCard/ProductDetailsCard";
-import {
-  addToWishlist,
-  removeFromWishlist,
-} from "../../../redux/actions/wishlist";
-import { useEffect } from "react";
+import { addToWishlist, removeFromWishlist } from "../../../redux/actions/wishlist";
 import { addTocart } from "../../../redux/actions/cart";
 import { toast } from "react-toastify";
 import Ratings from "../../Products/Ratings";
 
-const ProductCard = ({ data,isEvent }) => {
+const ProductCard = ({ data, isEvent }) => {
   const { wishlist } = useSelector((state) => state.wishlist);
   const { cart } = useSelector((state) => state.cart);
   const [click, setClick] = useState(false);
   const [open, setOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const dispatch = useDispatch();
-
+  console.log("Product data:", data);
+  console.log("Original price:", data.originalPrice);
+  console.log("Discount price:", data.discountPrice);
   useEffect(() => {
-    if (wishlist && wishlist.find((i) => i._id === data._id)) {
+    if (wishlist && data && wishlist.find((i) => i._id === data._id)) {
       setClick(true);
     } else {
       setClick(false);
     }
-  }, [wishlist]);
+  }, [wishlist, data]);
 
   const removeFromWishlistHandler = (data) => {
     setClick(!click);
@@ -59,85 +51,105 @@ const ProductCard = ({ data,isEvent }) => {
       }
     }
   };
+  const formatPrice = (price) => {
+    return parseFloat(price).toFixed(2);
+  };
+
+  const getMockupUrl = () => {
+    if (!data) return '';
+    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
+    const version = data.ProductType === "hoodie" ? "v1724798769"  : "v1724807956"
+    const folder = data.ProductType === "hoodie" ? "hoodies" : "shirts";
+    const filename = `${data.ProductType}-${data.ProductColor}-front`;
+    const extension = data.ProductType === "hoodie" ? "jpg" : "webp";
+  
+    return `${baseUrl}${version}/${folder}/${filename}.${extension}`;
+  };
+
+  const getDesignImage = () => {
+    if (data && data.designImage) {
+      if (typeof data.designImage === 'string') {
+        return data.designImage;
+      } else if (data.designImage.url) {
+        return data.designImage.url;
+      }
+    }
+    return '';
+  };
+
 
   return (
-    <>
-      <div className="w-full h-[350px] bg-white rounded-lg shadow-sm p-3 relative cursor-pointer">
-        <div className="flex justify-end"></div>
-        <Link to={`${isEvent === true ? `/product/${data._id}?isEvent=true` : `/product/${data._id}`}`}>
+    <div 
+      className="w-full h-[370px] bg-[#333] rounded-lg shadow-md relative cursor-pointer overflow-hidden"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {data.isBestSeller && (
+        <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded-full text-sm z-10">
+          Best Seller
+        </div>
+      )}
+      <Link to={`${isEvent === true ? `/product/${data._id}?isEvent=true` : `/product/${data._id}`}`}>
+        <div className="relative w-full h-[280px] flex items-center justify-center">
           <img
-            src={`${data.images && data.images[0]?.url}`}
-            alt=""
-            className="w-full h-[170px] object-contain"
+            src={getDesignImage()}
+            alt={data.DesignTitle || "Product Design"}
+            className="w-3/4 h-3/4 object-contain transition-opacity duration-700"
+            style={{ opacity: isHovered ? 0 : 1 }}
           />
-        </Link>
-        <Link to={`/shop/preview/${data?.shop._id}`}>
-          <h5 className={`${styles.shop_name}`}>{data.shop.name}</h5>
-        </Link>
-        <Link to={`${isEvent === true ? `/product/${data._id}?isEvent=true` : `/product/${data._id}`}`}>
-          <h4 className="pb-3 font-[500]">
-            {data.name.length > 40 ? data.name.slice(0, 40) + "..." : data.name}
-          </h4>
-
-          <div className="flex">
-          <Ratings rating={data?.ratings} />
-          </div>
-
-          <div className="py-2 flex items-center justify-between">
-            <div className="flex">
-              <h5 className={`${styles.productDiscountPrice}`}>
-                {data.originalPrice === 0
-                  ? data.originalPrice
-                  : data.discountPrice}
-                $
-              </h5>
-              <h4 className={`${styles.price}`}>
-                {data.originalPrice ? data.originalPrice + " $" : null}
-              </h4>
-            </div>
-            <span className="font-[400] text-[17px] text-[#68d284]">
-              {data?.sold_out} sold
-            </span>
-          </div>
-        </Link>
-
-        {/* side options */}
-        <div>
-          {click ? (
-            <AiFillHeart
-              size={22}
-              className="cursor-pointer absolute right-2 top-5"
-              onClick={() => removeFromWishlistHandler(data)}
-              color={click ? "red" : "#333"}
-              title="Remove from wishlist"
+          <div
+            className="absolute inset-0 flex items-center justify-center transition-opacity duration-700"
+            style={{ opacity: isHovered ? 1 : 0 }}
+          >
+            <img
+              src={getMockupUrl()}
+              alt={data.DesignTitle || "Product Mockup"}
+              className="w-full h-full object-cover"
             />
-          ) : (
-            <AiOutlineHeart
-              size={22}
-              className="cursor-pointer absolute right-2 top-5"
-              onClick={() => addToWishlistHandler(data)}
-              color={click ? "red" : "#333"}
-              title="Add to wishlist"
+            <img
+              src={getDesignImage()}
+              alt={data.DesignTitle || "Product Design"}
+              className="absolute w-1/2 h-1/2 object-contain"
+              style={{ 
+                transform: `scale(${data.DesignScale || 1})`,
+              }}
             />
+          </div>
+        </div>
+      </Link>
+      <div className="absolute bottom-0 left-0 right-0 bg-[#222] p-4">
+        <h4 className="text-white font-semibold truncate">
+          {data.DesignTitle || "Unnamed Product"}
+        </h4>
+        <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center mt-2">
+          <p className="text-orange-500 font-bold text-xl">
+          £{formatPrice(data.discountPrice || data.originalPrice)}
+          </p>
+          {data.discountPrice && data.originalPrice && data.discountPrice < data.originalPrice && (
+            <p className="text-gray-400 line-through ml-2">
+              £{formatPrice(data.originalPrice)}
+            </p>
           )}
-          <AiOutlineEye
-            size={22}
-            className="cursor-pointer absolute right-2 top-14"
-            onClick={() => setOpen(!open)}
-            color="#333"
-            title="Quick view"
-          />
-          <AiOutlineShoppingCart
-            size={25}
-            className="cursor-pointer absolute right-2 top-24"
-            onClick={() => addToCartHandler(data._id)}
-            color="black"
-            title="Add to cart"
-          />
-          {open ? <ProductDetailsCard setOpen={setOpen} data={data} /> : null}
+        </div>
+         
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => addToCartHandler(data._id)}
+              className="bg-white text-black p-2 rounded-full hover:bg-gray-200 transition-colors duration-300"
+            >
+              <AiOutlineShoppingCart size={20} />
+            </button>
+            <button
+              onClick={() => click ? removeFromWishlistHandler(data) : addToWishlistHandler(data)}
+              className="bg-white text-black p-2 rounded-full hover:bg-gray-200 transition-colors duration-300"
+            >
+              {click ? <AiFillHeart size={20} color="red" /> : <AiOutlineHeart size={20} />}
+            </button>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

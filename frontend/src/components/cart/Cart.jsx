@@ -130,14 +130,14 @@ const CartSingle = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
           </div>
         </div>
         <img
-          src={`${data?.images[0]?.url}`}
+          src={data.designImage?.url || data.designImage}
           alt=""
           className="w-[130px] h-min ml-2 mr-2 rounded-[5px]"
         />
         <div className="pl-[5px]">
-          <h1>{data.name}</h1>
+          <h1>{data.DesignTitle}</h1>
           <h4 className="font-[400] text-[15px] text-[#00000082]">
-            ${data.discountPrice} * {value}
+          €{data.discountPrice} * {value}
           </h4>
           <h4 className="font-[600] text-[17px] pt-[3px] text-[#d02222] font-Roboto">
             egp€{totalPrice}
@@ -151,5 +151,4 @@ const CartSingle = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
     </div>
   );
 };
-
 export default Cart;

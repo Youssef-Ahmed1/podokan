@@ -13,6 +13,7 @@ const Store = configureStore({
     user: userReducer,
     seller: sellerReducer,
     products: productReducer,
+    product: productReducer,
     events: eventReducer,
     cart: cartReducer,
     wishlist: wishlistReducer,

@@ -100,6 +100,8 @@ export const loadSeller = () => async (dispatch) => {
     });
     dispatch({ type: "LoadSellerSuccess", payload: data.seller });
   } catch (error) {
+    console.error("Error in loadSeller:", error);
+    console.error("Error response:", error.response);
     dispatch({
       type: "LoadSellerFail",
       payload: error.response?.data?.message || error.message,
