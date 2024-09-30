@@ -1,6 +1,6 @@
 import axios from "axios";
 import { server } from "../../server";
-
+import { toast } from "react-toastify";
 // create product
 export const createProduct = (formData) => async (dispatch) => {
   try {
@@ -12,25 +12,40 @@ export const createProduct = (formData) => async (dispatch) => {
     });
 
     dispatch({ type: "productCreateSuccess", payload: data.product });
+    return { success: true, message: "Product created successfully!" };
   } catch (error) {
+    console.error("Error details:", error);
     dispatch({
       type: "productCreateFail",
       payload: error.response?.data?.message || error.message,
     });
+    return { success: false, message: error.response?.data?.message || "An error occurred while creating the product." };
   }
 };
-
 // fetch pending products (for admin)
 export const fetchPendingProducts = () => async (dispatch) => {
   try {
     dispatch({ type: "fetchPendingProductsRequest" });
-
-    const { data } = await axios.get(`${server}/admin/pending-products`, {
+    const { data } = await axios.get(`${server}/product/admin/pending-products`, {
       withCredentials: true,
     });
+    
+    const products = data.products.map(product => ({
+      ...product,
+      designImage: product.designImage 
+        ? (typeof product.designImage === 'string' 
+            ? product.designImage 
+            : product.designImage.url)
+        : null,
+      DesignScale: product.DesignScale || 1,
+      originalPrice: product.originalPrice || 0,
+      discountPrice: product.discountPrice || product.originalPrice || 0
+    }));
 
-    dispatch({ type: "fetchPendingProductsSuccess", payload: data.products });
+    console.log("Fetched and processed pending products:", products);
+    dispatch({ type: "fetchPendingProductsSuccess", payload: products });
   } catch (error) {
+    console.error("Error fetching pending products:", error);
     dispatch({
       type: "fetchPendingProductsFail",
       payload: error.response?.data?.message || error.message,
@@ -38,27 +53,47 @@ export const fetchPendingProducts = () => async (dispatch) => {
   }
 };
 
+
 // approve or reject product (for admin)
-export const approveRejectProduct = (productId, status, rejectionReason = "") => async (dispatch) => {
+
+export const approveRejectProduct = (productId, status, rejectionReason, updates) => async (dispatch) => {
   try {
     dispatch({ type: "approveRejectProductRequest" });
 
-    const { data } = await axios.put(
-      `${server}/admin/product/${productId}/approve`,
-      { status, rejectionReason },
-      { withCredentials: true }
+    console.log("Sending request to approve/reject product");
+    console.log("Product ID:", productId);
+    console.log("Status:", status);
+    console.log("Rejection Reason:", rejectionReason);
+    console.log("Updates:", updates);
+
+    const response = await axios.put(
+      `${server}/product/approve-reject-product/${productId}`,
+      { status, rejectionReason, ...updates },
+      {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }
     );
 
-    dispatch({ type: "approveRejectProductSuccess", payload: data.message });
-    dispatch(fetchPendingProducts());
+    console.log("Server response:", response.data);
+
+    if (response.data.success) {
+      dispatch({ type: "approveRejectProductSuccess", payload: response.data.message });
+      return { success: true, message: `Product status updated to ${status} successfully` };
+    } else {
+      throw new Error(response.data.message || 'Failed to update product status');
+    }
   } catch (error) {
+    console.error("Error in approveRejectProduct:", error);
     dispatch({
       type: "approveRejectProductFail",
       payload: error.response?.data?.message || error.message,
     });
+    throw error;
   }
 };
-
 // get all products of a shop
 export const getAllProductsShop = (id) => async (dispatch) => {
   try {
@@ -76,13 +111,12 @@ export const getAllProductsShop = (id) => async (dispatch) => {
 };
 
 // update product design
-export const updateProductDesign = (productId, newDesignImage) => async (dispatch) => {
+export const updateProductDesign = (productId) => async (dispatch) => {
   try {
     dispatch({ type: "updateProductDesignRequest" });
 
     const { data } = await axios.put(
       `${server}/product/update-product-design/${productId}`,
-      { newDesignImage },
       { withCredentials: true }
     );
 
@@ -120,11 +154,16 @@ export const getAllProducts = () => async (dispatch) => {
 
     const { data } = await axios.get(`${server}/product/get-all-products`);
 
-    const approvedProducts = data.products.filter(
-      product => ['public', 'restricted', 'sitePick'].includes(product.status)
-    );
-
-    dispatch({ type: "getAllProductsSuccess", payload: approvedProducts });
+    const approvedProducts = data.products
+    .filter(product => product.status === 'public' || product.status === 'restricted')
+    .map(product => ({
+      ...product,
+      DesignScale: product.DesignScale || 1,
+      originalPrice: product.originalPrice || 0,
+      discountPrice: product.discountPrice || product.originalPrice || 0
+    }));
+  console.log("Approved products:", approvedProducts);
+  dispatch({ type: "getAllProductsSuccess", payload: approvedProducts });
   } catch (error) {
     dispatch({
       type: "getAllProductsFailed",

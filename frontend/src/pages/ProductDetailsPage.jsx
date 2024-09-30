@@ -22,19 +22,14 @@ const ProductDetailsPage = () => {
       const data = allProducts && allProducts.find((i) => i._id === id);
       setData(data);
     }
-  }, [allProducts, allEvents]);
+    console.log("Product/Event data:", data); // Add this log
+  }, [allProducts, allEvents, id, eventData]);
 
   return (
     <div>
       <Header />
       <ProductDetails data={data} />
-        {
-          !eventData && (
-            <>
-            {data && <SuggestedProduct data={data} />}
-            </>
-          )
-        }
+      {!eventData && data && <SuggestedProduct data={data} />}
       <Footer />
     </div>
   );

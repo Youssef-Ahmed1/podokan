@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
 import axios from "axios";
 import { server } from "./server";
 import Store from "./redux/store";
@@ -26,9 +24,6 @@ import {
   OrderDetailsPage,
   TrackOrderPage,
   UserInbox,
-
-  
-  
 } from "./routes/Routes.js";
 import {
   ShopDashboardPage,
@@ -66,24 +61,24 @@ import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
 const App = () => {
-  const [stripeApikey, setStripeApiKey] = useState("");
+  // const [stripeApikey, setStripeApiKey] = useState("");
 
-  async function getStripeApikey() {
-    const { data } = await axios.get(`${server}/payment/stripeapikey`);
-    setStripeApiKey(data.stripeApikey);
-  }
+  // async function getStripeApikey() {
+  //   const { data } = await axios.get(`${server}/payment/stripeapikey`);
+  //   setStripeApiKey(data.stripeApikey);
+  // }
 
   useEffect(() => {
     Store.dispatch(loadUser());
     Store.dispatch(loadSeller());
     Store.dispatch(getAllProducts());
     Store.dispatch(getAllEvents());
-    getStripeApikey();
+    // getStripeApikey();
   }, []);
 
   return (
     <BrowserRouter>
-      {stripeApikey && (
+      {/* {stripeApikey && (
         <Elements stripe={loadStripe(stripeApikey)}>
           <Routes>
             <Route
@@ -96,7 +91,7 @@ const App = () => {
             />
           </Routes>
         </Elements>
-      )}
+      )} */}
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -207,7 +202,6 @@ const App = () => {
             </SellerProtectedRoute>
           }
         />
-
         <Route
           path="/order/:id"
           element={
@@ -273,12 +267,12 @@ const App = () => {
             </ProtectedAdminRoute>
           }
         />
-          <Route
+        <Route
           path="/admin-approval"
           element={
             <ProtectedAdminRoute>
               <AdminApprovalProducts/>
-              </ProtectedAdminRoute>
+            </ProtectedAdminRoute>
           }
         />
         <Route

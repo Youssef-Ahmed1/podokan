@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { RxCross1 } from "react-icons/rx";
 import { BsCartPlus } from "react-icons/bs";
 import styles from "../../styles/styles";
@@ -53,12 +53,12 @@ const Wishlist = ({ setOpenWishlist }) => {
                 </h5>
               </div>
 
-              {/* cart Single Items */}
+              {/* wishlist Single Items */}
               <br />
               <div className="w-full border-t">
                 {wishlist &&
                   wishlist.map((i, index) => (
-                    <CartSingle key={index} data={i} removeFromWishlistHandler={removeFromWishlistHandler} addToCartHandler={addToCartHandler} />
+                    <WishlistSingle key={index} data={i} removeFromWishlistHandler={removeFromWishlistHandler} addToCartHandler={addToCartHandler} />
                   ))}
               </div>
             </div>
@@ -69,30 +69,28 @@ const Wishlist = ({ setOpenWishlist }) => {
   );
 };
 
-const CartSingle = ({ data,removeFromWishlistHandler,addToCartHandler }) => {
-  const [value, setValue] = useState(1);
-  const totalPrice = data.discountPrice * value;
-
+const WishlistSingle = ({ data, removeFromWishlistHandler, addToCartHandler }) => {
   return (
     <div className="border-b p-4">
       <div className="w-full 800px:flex items-center">
-        <RxCross1 className="cursor-pointer 800px:mb-['unset'] 800px:ml-['unset'] mb-2 ml-2"
-        onClick={() => removeFromWishlistHandler(data)}
+        <RxCross1 
+          className="cursor-pointer 800px:mb-['unset'] 800px:ml-['unset'] mb-2 ml-2"
+          onClick={() => removeFromWishlistHandler(data)}
         />
         <img
-          src={`${data?.images[0]?.url}`}
+          src={data.designImage?.url || data.designImage}
           alt=""
           className="w-[130px] h-min ml-2 mr-2 rounded-[5px]"
         />
 
         <div className="pl-[5px]">
-          <h1>{data.name}</h1>
+          <h1>{data.DesignTitle}</h1>
           <h4 className="font-[600] pt-3 800px:pt-[3px] text-[17px] text-[#d02222] font-Roboto">
-            egp€{totalPrice}
+            egp€{data.discountPrice || data.originalPrice}
           </h4>
         </div>
         <div>
-          <BsCartPlus size={20} className="cursor-pointer" tile="Add to cart"
+          <BsCartPlus size={20} className="cursor-pointer" title="Add to cart"
            onClick={() => addToCartHandler(data)}
           />
         </div>

@@ -4,6 +4,8 @@ import {
   AiOutlineHeart,
   AiOutlineMessage,
   AiOutlineShoppingCart,
+  AiOutlineLeft,
+  AiOutlineRight,
 } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
@@ -20,25 +22,44 @@ import Ratings from "./Ratings";
 import axios from "axios";
 
 const ProductDetails = ({ data }) => {
+  const [count, setCount] = useState(1);
+  const [click, setClick] = useState(false);
+  const [selectedColor, setSelectedColor] = useState(data?.ProductColor || "red");
+  const [fit, setFit] = useState("Male fit");
+  const [size, setSize] = useState("M");
+  const [material, setMaterial] = useState("standard");
+  const [activeTab, setActiveTab] = useState("product");
+  const [productType, setProductType] = useState(data?.ProductType || "t-shirt");
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { wishlist } = useSelector((state) => state.wishlist);
   const { cart } = useSelector((state) => state.cart);
   const { user, isAuthenticated } = useSelector((state) => state.user);
   const { products } = useSelector((state) => state.products);
-  const [count, setCount] = useState(1);
-const [click, setClick] = useState(false);
-  const [select, setSelect] = useState(0);
-  const [selectedColor, setSelectedColor] = useState("black");
-  const [fit, setFit] = useState("Male fit");
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (data) {
+      setSelectedColor(data.ProductColor || "red");
+      setProductType(data.ProductType || "t-shirt");
+    }
+  }, [data]);
 
   useEffect(() => {
     if (data?.shop?._id) {
       dispatch(getAllProductsShop(data.shop._id));
     }
-
-    setClick(wishlist?.some((i) => i._id === data?._id));
+    if (wishlist && data) {
+      setClick(wishlist.some((i) => i._id === data._id));
+    }
   }, [data, dispatch, wishlist]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTab((prevTab) => (prevTab === "product" ? "design" : "product"));
+    }, 5000); // Change every 5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   const incrementCount = () => {
     setCount((prevCount) => prevCount + 1);
@@ -71,27 +92,15 @@ const [click, setClick] = useState(false);
           qty: count,
           color: selectedColor,
           fit,
+          size,
+          material,
+          productType,
         };
         dispatch(addTocart(cartData));
         toast.success("Item added to cart successfully!");
       }
     }
   };
-
-  const totalReviewsLength =
-    products && products.reduce((acc, product) => acc + product.reviews.length, 0);
-
-  const totalRatings =
-    products &&
-    products.reduce(
-      (acc, product) =>
-        acc + product.reviews.reduce((sum, review) => sum + review.rating, 0),
-      0
-    );
-
-  const averageRating = totalReviewsLength
-    ? (totalRatings / totalReviewsLength).toFixed(2)
-    : 0;
 
   const handleMessageSubmit = async () => {
     if (isAuthenticated) {
@@ -106,124 +115,238 @@ const [click, setClick] = useState(false);
         });
         navigate(`/inbox?${res.data.conversation._id}`);
       } catch (error) {
-        toast.error(error.response.data.message);
+        toast.error(error.response?.data?.message || "An error occurred");
       }
     } else {
       toast.error("Please login to create a conversation");
     }
   };
 
+  const isProductVisible = (product) => {
+    if (!product) return false;
+    if (product.status === 'public') return true;
+    if (product.status === 'restricted' && (user?._id === product.shop._id || user?.role === 'admin')) return true;
+    return false;
+  };
+
+  const getMockupUrl = () => {
+    if (!data) return '';
+    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
+    const version = productType === "hoodie" ? "v1724798769" : "v1724807956"
+   
+    const folder = productType === "hoodie" ? "hoodies" : "shirts";
+    const filename = `${productType}-${selectedColor}-front`;
+    const extension = productType === "hoodie" ? "jpg" : "webp";
+  
+    return `${baseUrl}${version}/${folder}/${filename}.${extension}`;
+  };
+
+  const getDesignImage = () => {
+    if (data && data.designImage) {
+      if (typeof data.designImage === 'string') {
+        return data.designImage;
+      } else if (data.designImage.url) {
+        return data.designImage.url;
+      }
+    }
+    return '';
+  };
+
+  const colorOptions = [
+   "red", "blue", "gray", "purple", "yellow", "green","pink"
+  ];
+
+  const sizeOptions = ["S", "M", "L", "XL"];
+
+  if (!data) {
+    return <div className="w-full min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+  const formatPrice = (price) => {
+    return parseFloat(price).toFixed(0);  // Removing decimal places
+  };
   return (
     <div className="bg-white">
-      {data ? (
-        <div className={`${styles.section} w-[90%] 800px:w-[80%]`}>
+      {isProductVisible(data) ? (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="w-full py-5">
-            <div className="block w-full 800px:flex">
-              <div className="w-full 800px:w-[50%]">
-                {/* Image slider */}
-                <div className="relative">
+            <div className="block w-full lg:flex lg:space-x-8">
+              <div className="w-full lg:w-1/2">
+                <div className="relative w-full h-[500px] bg-gray-100 rounded-lg shadow-md z-10">
                   <img
-                    src={`${data && data.images[select]?.url}`}
-                    alt=""
-                    className="w-[80%]"
+                    src={activeTab === "product" ? getMockupUrl() : getDesignImage()}
+                    alt={data.DesignTitle || "Product Image"}
+                    className="w-full h-full object-contain"
                   />
-                  <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-                    {data &&
-                      data.images.map((img, index) => (
-                        <div
-                          key={index}
-                          className={`w-4 h-4 rounded-full mx-2 cursor-pointer ${
-                            select === index ? "bg-black" : "bg-gray-400"
-                          }`}
-                          onClick={() => setSelect(index)}
-                        ></div>
-                      ))}
+                  {activeTab === "product" && (
+                    <div
+                      className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                      style={{ 
+                        transform: `translate(-50%, -50%) scale(${data.DesignScale || 1})`,
+                        width: '200px',
+                        height: '200px'
+                      }}
+                    >
+                      <img
+                        src={getDesignImage()}
+                        alt="Design Preview"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
+                  <div className="absolute top-1/2 left-2 transform -translate-y-1/2">
+                    <button
+                      className="bg-gray-200 p-2 rounded-full"
+                      onClick={() => setActiveTab(activeTab === "product" ? "design" : "product")}
+                    >
+                      <AiOutlineLeft size={24} />
+                    </button>
+                  </div>
+                  <div className="absolute top-1/2 right-2 transform -translate-y-1/2">
+                    <button
+                      className="bg-gray-200 p-2 rounded-full"
+                      onClick={() => setActiveTab(activeTab === "product" ? "design" : "product")}
+                    >
+                      <AiOutlineRight size={24} />
+                    </button>
+                  </div>
+                  <div className="absolute top-2 right-2">
+                    {click ? (
+                      <AiFillHeart
+                        size={30}
+                        className="cursor-pointer"
+                        onClick={() => removeFromWishlistHandler(data)}
+                        color="red"
+                        title="Remove from wishlist"
+                      />
+                    ) : (
+                      <AiOutlineHeart
+                        size={30}
+                        className="cursor-pointer"
+                        onClick={() => addToWishlistHandler(data)}
+                        color="#333"
+                        title="Add to wishlist"
+                      />
+                    )}
                   </div>
                 </div>
+                <div className="flex justify-center mt-4">
+                  <button
+                    className={`px-4 py-2 mx-2 rounded-xl ${productType === 't-shirt' ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
+                    onClick={() => setProductType('t-shirt')}
+                  >
+                    T-Shirt
+                  </button>
+                  <button
+                    className={`px-4 py-2 mx-2 rounded-xl ${productType === 'hoodie' ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
+                    onClick={() => setProductType('hoodie')}
+                  >
+                    Hoodie
+                  </button>
+                </div>
               </div>
-              <div className="w-full 800px:w-[50%] pt-5">
-                <h1 className={`${styles.productTitle} text-2xl font-bold`}>
-                  {data.name}
-                </h1>
-                <p className="text-lg mt-2">{data.Description}</p>
+              <div className="w-full lg:w-1/2 pt-5">
+                <h1 className="text-2xl text-center mb-4 font-serif">{data.DesignTitle}</h1>
+             
+                {/* Color selection */}
                 <div className="flex items-center mt-4">
-                  <div className="flex">
-                    {[
-                      "black",
-                      "white",
-                      "red",
-                      "blue",
-                      "gray",
-                      "purple",
-                      "yellow",
-                      "green",
-                      "orange",
-                      "brown",
-                      "indigo",
-                      "violet",
-                      "teal",
-                      "maroon",
-                      "pink",
-                    ].map((clr) => (
+                  <h4 className="text-lg font-bold mr-2">Color:</h4>
+                  <div className="flex flex-wrap">
+                    {colorOptions.map((color) => (
                       <div
-                        key={clr}
-                        className={`border-none rounded-full w-5 h-5 mx-1 my-8 cursor-pointer ${
-                          selectedColor === clr ? "border-black" : ""
+                        key={color}
+                        className={`border-2 rounded-full w-8 h-8 mx-1 my-1 cursor-pointer ${
+                          selectedColor === color ? "border-black" : "border-transparent"
                         }`}
-                        style={{ backgroundColor: clr }}
-                        onClick={() => setSelectedColor(clr)}
-                      >
-                        {selectedColor === clr && (
-                          <p className="text-black absolute top-[244px] my-3">
-                            {clr}
-                          </p>
-                        )}
-                      </div>
+                        style={{ backgroundColor: color }}
+                        onClick={() => setSelectedColor(color)}
+                        title={color}
+                      />
                     ))}
                   </div>
                 </div>
+                {/* Fit selection */}
                 <div className="flex items-center mt-4">
                   <h4 className="text-lg font-bold mr-2">Fit:</h4>
                   <div className="flex">
                     <button
-                      className={`px-[75px] py-2 rounded-xl mr-2
-                       hover:bg-gray-400
-                       active:bg-gray-500 
-                        focus:outline-black focus:ring
-                         focus:ring-gray-300 ${
-                           fit === "Male fit"
-                             ? "bg-black text-white"
-                             : "bg-gray-200 text-black"
-                         }`}
+                      className={`px-4 py-2 rounded-xl mr-2 ${
+                        fit === "Male fit"
+                          ? "bg-black text-white"
+                          : "bg-gray-200 text-black"
+                      }`}
                       onClick={() => setFit("Male fit")}
                     >
                       Male fit
                     </button>
                     <button
-                      className={`px-[75px] py-2 rounded-xl mr-2
-                       hover:bg-gray-400
-                       active:bg-gray-500
-                         focus:outline-black 
-                         focus:ring
-                          focus:ring-gray-300 ${
-                            fit === "Female fit"
-                              ? "bg-black text-white"
-                              : "bg-gray-200 text-black"
-                          }`}
+                      className={`px-4 py-2 rounded-xl mr-2 ${
+                        fit === "Female fit"
+                          ? "bg-black text-white"
+                          : "bg-gray-200 text-black"
+                      }`}
                       onClick={() => setFit("Female fit")}
                     >
                       Female fit
                     </button>
                   </div>
                 </div>
-                <div className="flex items-center justify-between mt-8">
-                  <h4 className="text-2xl font-bold">${data.discountPrice}</h4>
-                  {data.originalPrice && (
-                    <h3 className="text-3xl line-through text-red-500 font-bold absolute left-[900px] top-[440px]">
-                      ${data.originalPrice}
-                    </h3>
-                  )}
+                {/* Material selection */}
+                <div className="flex items-center mt-4">
+                  <h4 className="text-lg font-bold mr-2">Material:</h4>
+                  <div className="flex">
+                    <button
+                      className={`px-4 py-2 rounded-xl mr-2 ${
+                        material === "standard"
+                          ? "bg-black text-white"
+                          : "bg-gray-200 text-black"
+                      }`}
+                      onClick={() => setMaterial("standard")}
+                    >
+                      Standard
+                    </button>
+                    <button
+                      className={`px-4 py-2 rounded-xl mr-2 ${
+                        material === "premium"
+                          ? "bg-black text-white"
+                          : "bg-gray-200 text-black"
+                      }`}
+                      onClick={() => setMaterial("premium")}
+                    >
+                      Premium
+                    </button>
+                  </div>
                 </div>
+                {/* Size selection */}
+                <div className="mt-4">
+                  <h4 className="text-lg font-bold mb-2">Size:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {sizeOptions.map((sizeOption) => (
+                      <button
+                        key={sizeOption}
+                        className={`px-4 py-2 rounded-xl ${
+                          size === sizeOption
+                            ? "bg-black text-white"
+                            : "bg-gray-200 text-black"
+                        }`}
+                        onClick={() => setSize(sizeOption)}
+                      >
+                        {sizeOption}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Price */}
+                <div className="flex items-baseline mt-8">
+              <h4 className="text-3xl font-bold text-black">
+              £{formatPrice(data.discountPrice || data.originalPrice)}
+              </h4>
+              {data.discountPrice && data.originalPrice && data.discountPrice < data.originalPrice && (
+                <h3 className="text-xl line-through text-gray-400 ml-2">
+                  £{formatPrice(data.originalPrice)}
+                </h3>
+              )}
+            </div>
+                {/* Add to cart */}
                 <div className="flex items-center mt-8">
                   <div className="flex items-center border border-gray-400 rounded-md px-4 py-2">
                     <button
@@ -247,26 +370,10 @@ const [click, setClick] = useState(false);
                     Add to Cart <AiOutlineShoppingCart className="ml-2" />
                   </button>
                 </div>
+                {/* Message */}
                 <div className="flex items-center mt-8">
-                  {click ? (
-                    <AiFillHeart
-                      size={30}
-                      className="cursor-pointer"
-                      onClick={() => removeFromWishlistHandler(data)}
-                      color={click ? "red" : "#333"}
-                      title="Remove from wishlist"
-                    />
-                  ) : (
-                    <AiOutlineHeart
-                      size={30}
-                      className="cursor-pointer"
-                      onClick={() => addToWishlistHandler(data)}
-                      color={click ? "red" : "#333"}
-                      title="Add to wishlist"
-                    />
-                  )}
                   <button
-                    className={`${styles.button} ml-4 text-gray-300`}
+                    className={`${styles.button} w-full text-gray-300`}
                     onClick={handleMessageSubmit}
                   >
                     Send Message <AiOutlineMessage className="ml-2" />
@@ -278,11 +385,20 @@ const [click, setClick] = useState(false);
           <ProductDetailsInfo
             data={data}
             products={products}
-            totalReviewsLength={totalReviewsLength}
-            averageRating={averageRating}
+            totalReviewsLength={products ? products.reduce((acc, product) => acc + (product.reviews?.length || 0), 0) : 0}
+            averageRating={
+              products && products.length > 0
+                ? (products.reduce((acc, product) => acc + (product.reviews?.reduce((sum, review) => sum + review.rating, 0) || 0), 0) / 
+                   products.reduce((acc, product) => acc + (product.reviews?.length || 0), 0)).toFixed(2)
+                : 0
+            }
           />
         </div>
-      ) : null}
+      ) : (
+        <div className="text-center py-10">
+          <h2 className="text-2xl font-bold">This product is not available.</h2>
+        </div>
+      )}
     </div>
   );
 };
@@ -417,14 +533,14 @@ const ProductDetailsInfo = ({
                   className={`${styles.button} !rounded-[4px] !h-[39.5px] mt-3`}
                 >
                   <h4 className="text-white">Visit Shop</h4>
-</div>
-</Link>
-</div>
-</div>
-</div>
-)}
-</div>
-);
+                </div>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default ProductDetails;

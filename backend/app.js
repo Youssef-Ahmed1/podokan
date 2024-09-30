@@ -8,18 +8,18 @@ const multer = require('multer');
 const path = require('path');
 const appConfig = require('../backend/server');
 
-
-
-
+// Move CORS configuration to the top
 app.use(cors({
   origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }));
 
+// Rest of your middleware
 app.use(express.json());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
-
 
 // config
 if (process.env.NODE_ENV !== "PRODUCTION") {
@@ -78,8 +78,6 @@ app.use("/api/v2/event", event);
 app.use("/api/v2/coupon", coupon);
 app.use("/api/v2/payment", payment);
 app.use("/api/v2/withdraw", withdraw);
-app.use("/api/v2/product", upload.fields([{ name: 'designImage' }, { name: 'tshirtImage' }]), product);
-
 // it's for ErrorHandling
 app.use((err, req, res, next) => {
   err.statusCode = err.statusCode || 500;

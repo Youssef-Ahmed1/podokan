@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AiOutlineArrowRight,
   AiOutlineCamera,
@@ -19,7 +19,6 @@ import {
   updateUserInformation,
 } from "../../redux/actions/user";
 import { Country, State } from "country-state-city";
-import { useEffect } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { getAllOrdersOfUser } from "../../redux/actions/order";
@@ -537,50 +536,53 @@ const ChangePassword = () => {
 
 const Address = () => {
   const [open, setOpen] = useState(false);
-  const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
-  const [zipCode, setZipCode] = useState();
+  const [zipCode, setZipCode] = useState("");
   const [address1, setAddress1] = useState("");
   const [address2, setAddress2] = useState("");
   const [addressType, setAddressType] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   const addressTypeData = [
-    {
-      name: "Default",
-    },
-    {
-      name: "Home",
-    },
-    {
-      name: "Office",
-    },
+    { name: "Default" },
+    { name: "Home" },
+    { name: "Office" },
   ];
+
+  const cities = ["Cairo", "Alexandria", "Giza", "New Cairo", "6th of October"];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (addressType === "" || country === "" || city === "") {
-      toast.error("Please fill all the fields!");
+    if (addressType === "" || city === "" || phoneNumber === "" || fullName === "" || email === "") {
+      toast.error("Please fill all the required fields!");
     } else {
       dispatch(
         updateUserAddress(
-          country,
+          "Egypt",
           city,
           address1,
           address2,
           zipCode,
-          addressType
+          addressType,
+          phoneNumber,
+          fullName,
+          email
         )
       );
       setOpen(false);
-      setCountry("");
       setCity("");
       setAddress1("");
       setAddress2("");
-      setZipCode(null);
+      setZipCode("");
       setAddressType("");
+      setPhoneNumber("");
+      setFullName("");
+      setEmail("");
     }
   };
 
@@ -608,59 +610,58 @@ const Address = () => {
               <form aria-required onSubmit={handleSubmit} className="w-full">
                 <div className="w-full block p-4">
                   <div className="w-full pb-2">
-                    <label className="block pb-2">Country</label>
-                    <select
-                      name=""
-                      id=""
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                      className="w-[95%] border h-[40px] rounded-[5px]"
-                    >
-                      <option value="" className="block border pb-2">
-                        choose your country
-                      </option>
-                      {Country &&
-                        Country.getAllCountries().map((item) => (
-                          <option
-                            className="block pb-2"
-                            key={item.isoCode}
-                            value={item.isoCode}
-                          >
-                            {item.name}
-                          </option>
-                        ))}
-                    </select>
+                    <label className="block pb-2">Full Name</label>
+                    <input
+                      type="text"
+                      className={`${styles.input}`}
+                      required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                    />
+                  </div>
+                  
+                  <div className="w-full pb-2">
+                    <label className="block pb-2">Email Address</label>
+                    <input
+                      type="email"
+                      className={`${styles.input}`}
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="w-full pb-2">
+                    <label className="block pb-2">Phone Number</label>
+                    <input
+                      type="tel"
+                      className={`${styles.input}`}
+                      required
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                    />
                   </div>
 
                   <div className="w-full pb-2">
                     <label className="block pb-2">Choose your City</label>
                     <select
-                      name=""
-                      id=""
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
                       className="w-[95%] border h-[40px] rounded-[5px]"
                     >
-                      <option value="" className="block border pb-2">
-                        choose your city
-                      </option>
-                      {State &&
-                        State.getStatesOfCountry(country).map((item) => (
-                          <option
-                            className="block pb-2"
-                            key={item.isoCode}
-                            value={item.isoCode}
-                          >
-                            {item.name}
-                          </option>
-                        ))}
+                      <option value="">Choose your city</option>
+                      {cities.map((city) => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
                   <div className="w-full pb-2">
                     <label className="block pb-2">Address 1</label>
                     <input
-                      type="address"
+                      type="text"
                       className={`${styles.input}`}
                       required
                       value={address1}
@@ -670,9 +671,8 @@ const Address = () => {
                   <div className="w-full pb-2">
                     <label className="block pb-2">Address 2</label>
                     <input
-                      type="address"
+                      type="text"
                       className={`${styles.input}`}
-                      required
                       value={address2}
                       onChange={(e) => setAddress2(e.target.value)}
                     />
@@ -681,9 +681,8 @@ const Address = () => {
                   <div className="w-full pb-2">
                     <label className="block pb-2">Zip Code</label>
                     <input
-                      type="number"
+                      type="text"
                       className={`${styles.input}`}
-                      required
                       value={zipCode}
                       onChange={(e) => setZipCode(e.target.value)}
                     />
@@ -692,29 +691,20 @@ const Address = () => {
                   <div className="w-full pb-2">
                     <label className="block pb-2">Address Type</label>
                     <select
-                      name=""
-                      id=""
                       value={addressType}
                       onChange={(e) => setAddressType(e.target.value)}
                       className="w-[95%] border h-[40px] rounded-[5px]"
                     >
-                      <option value="" className="block border pb-2">
-                        Choose your Address Type
-                      </option>
-                      {addressTypeData &&
-                        addressTypeData.map((item) => (
-                          <option
-                            className="block pb-2"
-                            key={item.name}
-                            value={item.name}
-                          >
-                            {item.name}
-                          </option>
-                        ))}
+                      <option value="">Choose your Address Type</option>
+                      {addressTypeData.map((item) => (
+                        <option key={item.name} value={item.name}>
+                          {item.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
-                  <div className=" w-full pb-2">
+                  <div className="w-full pb-2">
                     <input
                       type="submit"
                       className={`${styles.input} mt-5 cursor-pointer`}
@@ -756,7 +746,7 @@ const Address = () => {
             </div>
             <div className="pl-8 flex items-center">
               <h6 className="text-[12px] 800px:text-[unset]">
-                {user && user.phoneNumber}
+                {item.phoneNumber}
               </h6>
             </div>
             <div className="min-w-[10%] flex items-center justify-between pl-8">
@@ -771,10 +761,11 @@ const Address = () => {
 
       {user && user.addresses.length === 0 && (
         <h5 className="text-center pt-8 text-[18px]">
-          You not have any saved address!
+          You do not have any saved address!
         </h5>
       )}
     </div>
   );
 };
+
 export default ProfileContent;

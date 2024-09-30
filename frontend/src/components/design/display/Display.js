@@ -1,36 +1,38 @@
 import React from 'react';
 import './Display.css';
-import { Rnd } from 'react-rnd';
 
-const Display = ({ tshirtColor, designImg, width, height, x, y, onDragStop, onResizeStop }) => {
-    return (
-        <div className='display-container'>
-            <div className='imgTshirt text-center'>
-                <img 
-                    className='img-responsive'
-                    src={`https://res.cloudinary.com/dkot9tyjm/image/upload/v1714163738/shirts/mockupshirt-${tshirtColor}.png`}
-                    alt='T-shirt'
-                />
-                
-                <div className='tshirt-border'></div>
-                {designImg && 
-                    <Rnd
-                        size={{ width, height }}
-                        position={{ x, y }}
-                        onDragStop={onDragStop}
-                        onResizeStop={onResizeStop}
-                        bounds='.tshirt-border'
-                        enableResizing={{
-                            top: true, right: true, bottom: true, left: true,
-                            topRight: true, bottomRight: true, bottomLeft: true, topLeft: true
-                        }}
-                    >
-                        <img src={designImg} alt='Design' className='design-image' />
-                    </Rnd>
-                }
-            </div>
-        </div>
-    );
+const Display = ({ tshirtColor, designImg, productType, productView, designScale }) => {
+  const tshirtImageUrl = `https://res.cloudinary.com/dkot9tyjm/image/upload/v1714163748/shirts/${productType}-${tshirtColor}-${productView}.png`;
+
+  return (
+    <div className='display-container'>
+      <div className='imgTshirt text-center'>
+        <img 
+          className='img-responsive'
+          src={tshirtImageUrl}
+          alt='Product'
+        />
+        {designImg && (
+          <div 
+            className='design-overlay'
+            style={{
+              backgroundImage: `url(${designImg})`,
+              backgroundSize: 'contain',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
+              transform: `scale(${designScale})`,
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              width: '50%',
+              height: '50%',
+              transformOrigin: 'center',
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default Display;
