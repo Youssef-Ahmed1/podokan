@@ -26,13 +26,15 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 })
-const PORT = process.env.PORT || 8000;
 
 // create server
+const PORT = process.env.PORT || 4000;
+
 console.log('About to start the server...');
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on http://0.0.0.0:${PORT}`);
 });
+
 
 // unhandled promise rejection
 process.on("unhandledRejection", (err) => {
