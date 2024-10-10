@@ -1,7 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import axios from "axios";
+// import { Elements } from "@stripe/react-stripe-js";
+// import { loadStripe } from "@stripe/stripe-js";
 import { server } from "./server";
 import Store from "./redux/store";
 import {
@@ -64,8 +66,12 @@ const App = () => {
   // const [stripeApikey, setStripeApiKey] = useState("");
 
   // async function getStripeApikey() {
-  //   const { data } = await axios.get(`${server}/payment/stripeapikey`);
-  //   setStripeApiKey(data.stripeApikey);
+  //   try {
+  //     const { data } = await axios.get(`${server}/payment/stripeapikey`);
+  //     setStripeApiKey(data.stripeApikey);
+  //   } catch (error) {
+  //     // console.error("Error fetching Stripe API key:", error);
+  //   }
   // }
 
   useEffect(() => {
@@ -78,9 +84,7 @@ const App = () => {
 
   return (
     <BrowserRouter>
-      {/* {stripeApikey && (
-        <Elements stripe={loadStripe(stripeApikey)}>
-          <Routes>
+       <Routes>
             <Route
               path="/payment"
               element={
@@ -90,8 +94,7 @@ const App = () => {
               }
             />
           </Routes>
-        </Elements>
-      )} */}
+      
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -104,6 +107,7 @@ const App = () => {
           path="/seller/activation/:activation_token"
           element={<SellerActivationPage />}
         />
+        
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/product/:id" element={<ProductDetailsPage />} />
         <Route path="/best-selling" element={<BestSellingPage />} />
@@ -178,6 +182,7 @@ const App = () => {
             </SellerProtectedRoute>
           }
         />
+        
         <Route
           path="/dashboard-create-product"
           element={

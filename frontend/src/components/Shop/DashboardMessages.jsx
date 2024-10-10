@@ -7,10 +7,16 @@ import { useNavigate } from "react-router-dom";
 import { AiOutlineArrowRight, AiOutlineSend } from "react-icons/ai";
 import styles from "../../styles/styles";
 import { TfiGallery } from "react-icons/tfi";
-import socketIO from "socket.io-client";
+// import socketIO from "socket.io-client";
 import { format } from "timeago.js";
-const ENDPOINT = "http://socket-ecommerce-tu68.onrender.com";
-const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
+// const ENDPOINT = "http://localhost:3000";
+// const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
+
+// Placeholder for socket functionality
+const socketId = {
+  on: () => {},
+  emit: () => {},
+};
 
 const DashboardMessages = () => {
   const { seller,isLoading } = useSelector((state) => state.seller);
@@ -26,21 +32,21 @@ const DashboardMessages = () => {
   const [open, setOpen] = useState(false);
   const scrollRef = useRef(null);
 
-  useEffect(() => {
-    socketId.on("getMessage", (data) => {
-      setArrivalMessage({
-        sender: data.senderId,
-        text: data.text,
-        createdAt: Date.now(),
-      });
-    });
-  }, []);
+  // useEffect(() => {
+  //   socketId.on("getMessage", (data) => {
+  //     setArrivalMessage({
+  //       sender: data.senderId,
+  //       text: data.text,
+  //       createdAt: Date.now(),
+  //     });
+  //   });
+  // }, []);
 
-  useEffect(() => {
-    arrivalMessage &&
-      currentChat?.members.includes(arrivalMessage.sender) &&
-      setMessages((prev) => [...prev, arrivalMessage]);
-  }, [arrivalMessage, currentChat]);
+  // useEffect(() => {
+  //   arrivalMessage &&
+  //     currentChat?.members.includes(arrivalMessage.sender) &&
+  //     setMessages((prev) => [...prev, arrivalMessage]);
+  // }, [arrivalMessage, currentChat]);
 
   useEffect(() => {
     const getConversation = async () => {
@@ -60,15 +66,15 @@ const DashboardMessages = () => {
     getConversation();
   }, [seller, messages]);
 
-  useEffect(() => {
-    if (seller) {
-      const sellerId = seller?._id;
-      socketId.emit("addUser", sellerId);
-      socketId.on("getUsers", (data) => {
-        setOnlineUsers(data);
-      });
-    }
-  }, [seller]);
+  // useEffect(() => {
+  //   if (seller) {
+  //     const sellerId = seller?._id;
+  //     socketId.emit("addUser", sellerId);
+  //     socketId.on("getUsers", (data) => {
+  //       setOnlineUsers(data);
+  //     });
+  //   }
+  // }, [seller]);
 
   const onlineCheck = (chat) => {
     const chatMembers = chat.members.find((member) => member !== seller?._id);
@@ -106,11 +112,11 @@ const DashboardMessages = () => {
       (member) => member.id !== seller._id
     );
 
-    socketId.emit("sendMessage", {
-      senderId: seller._id,
-      receiverId,
-      text: newMessage,
-    });
+    // socketId.emit("sendMessage", {
+    //   senderId: seller._id,
+    //   receiverId,
+    //   text: newMessage,
+    // });
 
     try {
       if (newMessage !== "") {
@@ -130,10 +136,10 @@ const DashboardMessages = () => {
   };
 
   const updateLastMessage = async () => {
-    socketId.emit("updateLastMessage", {
-      lastMessage: newMessage,
-      lastMessageId: seller._id,
-    });
+    // socketId.emit("updateLastMessage", {
+    //   lastMessage: newMessage,
+    //   lastMessageId: seller._id,
+    // });
 
     await axios
       .put(`${server}/conversation/update-last-message/${currentChat._id}`, {
@@ -141,7 +147,7 @@ const DashboardMessages = () => {
         lastMessageId: seller._id,
       })
       .then((res) => {
-        console.log(res.data.conversation);
+        // console.log(res.data.conversation);
         setNewMessage("");
       })
       .catch((error) => {
@@ -167,11 +173,11 @@ const DashboardMessages = () => {
       (member) => member !== seller._id
     );
 
-    socketId.emit("sendMessage", {
-      senderId: seller._id,
-      receiverId,
-      images: e,
-    });
+    // socketId.emit("sendMessage", {
+    //   senderId: seller._id,
+    //   receiverId,
+    //   images: e,
+    // });
 
     try {
       await axios
@@ -262,7 +268,7 @@ const MessageList = ({
   setActiveStatus,
   isLoading
 }) => {
-  console.log(data);
+  // console.log(data);
   const [user, setUser] = useState([]);
   const navigate = useNavigate();
   const handleClick = (id) => {

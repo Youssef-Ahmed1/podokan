@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Header from "../components/Layout/Header";
 import { useSelector } from "react-redux";
-import socketIO from "socket.io-client";
+// import socketIO from "socket.io-client";
 import { format } from "timeago.js";
 import { server } from "../server";
 import axios from "axios";
@@ -9,11 +9,12 @@ import { useNavigate } from "react-router-dom";
 import { AiOutlineArrowRight, AiOutlineSend } from "react-icons/ai";
 import { TfiGallery } from "react-icons/tfi";
 import styles from "../styles/styles";
-const ENDPOINT = "http://socket-ecommerce-tu68.onrender.com";
-const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
+
+// const ENDPOINT = "http://localhost:4000";
+// const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
 
 const UserInbox = () => {
-  const { user,loading } = useSelector((state) => state.user);
+  const { user } = useSelector((state) => state.user);
   const [conversations, setConversations] = useState([]);
   const [arrivalMessage, setArrivalMessage] = useState(null);
   const [currentChat, setCurrentChat] = useState();
@@ -21,19 +22,44 @@ const UserInbox = () => {
   const [newMessage, setNewMessage] = useState("");
   const [userData, setUserData] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState([]);
-  const [ images , setImages] = useState();
+  const [images, setImages] = useState();
   const [activeStatus, setActiveStatus] = useState(false);
   const [open, setOpen] = useState(false);
   const scrollRef = useRef(null);
 
   useEffect(() => {
-    socketId.on("getMessage", (data) => {
-      setArrivalMessage({
-        sender: data.senderId,
-        text: data.text,
-        createdAt: Date.now(),
-      });
-    });
+    if (user) {
+      const userId = user._id;
+      // socketId.emit("addUser", userId);
+      // socketId.on("getUsers", (data) => {
+      //   setOnlineUsers(data);
+      // });
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const getConversation = async () => {
+      try {
+        const response = await axios.get(
+          `${server}/conversation/get-all-conversation-user/${user?._id}`,
+          { withCredentials: true }
+        );
+        setConversations(response.data.conversations);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getConversation();
+  }, [user]);
+
+  useEffect(() => {
+    // socketId.on("getMessage", (data) => {
+    //   setArrivalMessage({
+    //     sender: data.senderId,
+    //     text: data.text,
+    //     createdAt: Date.now(),
+    //   });
+    // });
   }, []);
 
   useEffect(() => {
@@ -42,42 +68,6 @@ const UserInbox = () => {
       setMessages((prev) => [...prev, arrivalMessage]);
   }, [arrivalMessage, currentChat]);
 
-  useEffect(() => {
-    const getConversation = async () => {
-      try {
-        const resonse = await axios.get(
-          `${server}/conversation/get-all-conversation-user/${user?._id}`,
-          {
-            withCredentials: true,
-          }
-        );
-
-        setConversations(resonse.data.conversations);
-      } catch (error) {
-        // console.log(error);
-      }
-    };
-    getConversation();
-  }, [user, messages]);
-
-  useEffect(() => {
-    if (user) {
-      const sellerId = user?._id;
-      socketId.emit("addUser", sellerId);
-      socketId.on("getUsers", (data) => {
-        setOnlineUsers(data);
-      });
-    }
-  }, [user]);
-
-  const onlineCheck = (chat) => {
-    const chatMembers = chat.members.find((member) => member !== user?._id);
-    const online = onlineUsers.find((user) => user.userId === chatMembers);
-
-    return online ? true : false;
-  };
-
-  // get messages
   useEffect(() => {
     const getMessage = async () => {
       try {
@@ -92,7 +82,6 @@ const UserInbox = () => {
     getMessage();
   }, [currentChat]);
 
-  // create new message
   const sendMessageHandler = async (e) => {
     e.preventDefault();
 
@@ -101,27 +90,25 @@ const UserInbox = () => {
       text: newMessage,
       conversationId: currentChat._id,
     };
+
     const receiverId = currentChat.members.find(
-      (member) => member !== user?._id
+      (member) => member !== user._id
     );
 
-    socketId.emit("sendMessage", {
-      senderId: user?._id,
-      receiverId,
-      text: newMessage,
-    });
+    // socketId.emit("sendMessage", {
+    //   senderId: user._id,
+    //   receiverId,
+    //   text: newMessage,
+    // });
 
     try {
       if (newMessage !== "") {
-        await axios
-          .post(`${server}/message/create-new-message`, message)
-          .then((res) => {
-            setMessages([...messages, res.data.message]);
-            updateLastMessage();
-          })
-          .catch((error) => {
-            console.log(error);
-          });
+        const res = await axios.post(
+          `${server}/message/create-new-message`,
+          message
+        );
+        setMessages([...messages, res.data.message]);
+        updateLastMessage();
       }
     } catch (error) {
       console.log(error);
@@ -129,82 +116,64 @@ const UserInbox = () => {
   };
 
   const updateLastMessage = async () => {
-    socketId.emit("updateLastMessage", {
+    // socketId.emit("updateLastMessage", {
+    //   lastMessage: newMessage,
+    //   lastMessageId: user._id,
+    // });
+
+    await axios.put(`${server}/conversation/update-last-message/${currentChat._id}`, {
       lastMessage: newMessage,
       lastMessageId: user._id,
     });
-
-    await axios
-      .put(`${server}/conversation/update-last-message/${currentChat._id}`, {
-        lastMessage: newMessage,
-        lastMessageId: user._id,
-      })
-      .then((res) => {
-        setNewMessage("");
-      })
-      .catch((error) => {
-        console.log(error);
-      });
   };
 
   const handleImageUpload = async (e) => {
-    const reader = new FileReader();
+    const file = e.target.files[0];
+    setImages(file);
 
-    reader.onload = () => {
-      if (reader.readyState === 2) {
-        setImages(reader.result);
-        imageSendingHandler(reader.result);
-      }
-    };
-
-    reader.readAsDataURL(e.target.files[0]);
+    imageSendingHandler(file);
   };
 
-  const imageSendingHandler = async (e) => {
-
+  const imageSendingHandler = async (file) => {
     const receiverId = currentChat.members.find(
       (member) => member !== user._id
     );
 
-    socketId.emit("sendMessage", {
-      senderId: user._id,
-      receiverId,
-      images: e,
-    });
+    const formData = new FormData();
+
+    formData.append("images", file);
+    formData.append("sender", user._id);
+    formData.append("text", newMessage);
+    formData.append("conversationId", currentChat._id);
+
+    // socketId.emit("sendMessage", {
+    //   senderId: user._id,
+    //   receiverId,
+    //   images: imageURL,
+    // });
 
     try {
-      await axios
-        .post(
-          `${server}/message/create-new-message`,
-          {
-            images: e,
-            sender: user._id,
-            text: newMessage,
-            conversationId: currentChat._id,
-          }
-        )
-        .then((res) => {
-          setImages();
-          setMessages([...messages, res.data.message]);
-          updateLastMessageForImage();
-        });
+      const res = await axios.post(
+        `${server}/message/create-new-message`,
+        formData
+      );
+      setImages();
+      setMessages([...messages, res.data.message]);
+      updateLastMessageForImage();
     } catch (error) {
       console.log(error);
     }
   };
 
   const updateLastMessageForImage = async () => {
-    await axios.put(
-      `${server}/conversation/update-last-message/${currentChat._id}`,
-      {
-        lastMessage: "Photo",
-        lastMessageId: user._id,
-      }
-    );
+    await axios.put(`${server}/conversation/update-last-message/${currentChat._id}`, {
+      lastMessage: "Photo",
+      lastMessageId: user._id,
+    });
   };
 
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ beahaviour: "smooth" });
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   return (
@@ -229,7 +198,6 @@ const UserInbox = () => {
                 userData={userData}
                 online={onlineCheck(item)}
                 setActiveStatus={setActiveStatus}
-                loading={loading}
               />
             ))}
         </>
@@ -263,11 +231,11 @@ const MessageList = ({
   userData,
   online,
   setActiveStatus,
-  loading
 }) => {
   const [active, setActive] = useState(0);
   const [user, setUser] = useState([]);
   const navigate = useNavigate();
+  
   const handleClick = (id) => {
     navigate(`/inbox?${id}`);
     setOpen(true);
@@ -315,7 +283,7 @@ const MessageList = ({
       <div className="pl-3">
         <h1 className="text-[18px]">{user?.name}</h1>
         <p className="text-[16px] text-[#000c]">
-          {!loading && data?.lastMessageId !== userData?._id
+          {data?.lastMessageId !== userData?._id
             ? "You:"
             : userData?.name.split(" ")[0] + ": "}{" "}
           {data?.lastMessage}
@@ -403,7 +371,6 @@ const SellerInbox = ({
 
       {/* send message input */}
       <form
-        aria-required={true}
         className="p-3 relative w-full flex justify-between items-center"
         onSubmit={sendMessageHandler}
       >
@@ -439,6 +406,12 @@ const SellerInbox = ({
       </form>
     </div>
   );
+};
+
+const onlineCheck = (chat) => {
+  // This function should be implemented to check if a user is online
+  // For now, it returns false as the socket functionality is commented out
+  return false;
 };
 
 export default UserInbox;

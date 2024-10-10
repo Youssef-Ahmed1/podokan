@@ -6,15 +6,30 @@ export const createProduct = (formData) => async (dispatch) => {
   try {
     dispatch({ type: "productCreateRequest" });
 
+    // console.log("Sending formData:", formData);
+    for (let pair of formData.entries()) {
+      // console.log(pair[0] + ': ' + pair[1]);
+    }
+
     const { data } = await axios.post(`${server}/product/create-product`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       withCredentials: true
     });
 
+    // console.log("Server response:", data);
+
     dispatch({ type: "productCreateSuccess", payload: data.product });
     return { success: true, message: "Product created successfully!" };
-  } catch (error) {
-    console.error("Error details:", error);
+  }  catch (error) {
+    console.error("Error creating product:", error);
+    if (error.response) {
+      // console.error("Error response:", error.response.data);
+      console.error("Error status:", error.response.status);
+    } else if (error.request) {
+      // console.error("No response received:", error.request);
+    } else {
+      console.error("Error setting up request:", error.message);
+    }
     dispatch({
       type: "productCreateFail",
       payload: error.response?.data?.message || error.message,
@@ -42,7 +57,7 @@ export const fetchPendingProducts = () => async (dispatch) => {
       discountPrice: product.discountPrice || product.originalPrice || 0
     }));
 
-    console.log("Fetched and processed pending products:", products);
+    // console.log("Fetched and processed pending products:", products);
     dispatch({ type: "fetchPendingProductsSuccess", payload: products });
   } catch (error) {
     console.error("Error fetching pending products:", error);
@@ -60,11 +75,11 @@ export const approveRejectProduct = (productId, status, rejectionReason, updates
   try {
     dispatch({ type: "approveRejectProductRequest" });
 
-    console.log("Sending request to approve/reject product");
-    console.log("Product ID:", productId);
-    console.log("Status:", status);
-    console.log("Rejection Reason:", rejectionReason);
-    console.log("Updates:", updates);
+    // console.log("Sending request to approve/reject product");
+    // console.log("Product ID:", productId);
+    // console.log("Status:", status);
+    // console.log("Rejection Reason:", rejectionReason);
+    // console.log("Updates:", updates);
 
     const response = await axios.put(
       `${server}/product/approve-reject-product/${productId}`,
@@ -77,7 +92,7 @@ export const approveRejectProduct = (productId, status, rejectionReason, updates
       }
     );
 
-    console.log("Server response:", response.data);
+    // console.log("Server response:", response.data);
 
     if (response.data.success) {
       dispatch({ type: "approveRejectProductSuccess", payload: response.data.message });
@@ -87,11 +102,26 @@ export const approveRejectProduct = (productId, status, rejectionReason, updates
     }
   } catch (error) {
     console.error("Error in approveRejectProduct:", error);
+    let errorMessage = "An unknown error occurred";
+    if (error.response) {
+      console.error("Error response:", error.response.data);
+      console.error("Error status:", error.response.status);
+      errorMessage = error.response.data.message || `Server error: ${error.response.status}`;
+      if (error.response.data.stack) {
+        console.error("Error stack:", error.response.data.stack);
+      }
+    } else if (error.request) {
+      console.error("No response received:", error.request);
+      errorMessage = "No response received from server";
+    } else {
+      console.error("Error setting up request:", error.message);
+      errorMessage = error.message;
+    }
     dispatch({
       type: "approveRejectProductFail",
-      payload: error.response?.data?.message || error.message,
+      payload: errorMessage,
     });
-    throw error;
+    throw new Error(errorMessage);
   }
 };
 // get all products of a shop
@@ -162,7 +192,7 @@ export const getAllProducts = () => async (dispatch) => {
       originalPrice: product.originalPrice || 0,
       discountPrice: product.discountPrice || product.originalPrice || 0
     }));
-  console.log("Approved products:", approvedProducts);
+  // console.log("Approved products:", approvedProducts);
   dispatch({ type: "getAllProductsSuccess", payload: approvedProducts });
   } catch (error) {
     dispatch({

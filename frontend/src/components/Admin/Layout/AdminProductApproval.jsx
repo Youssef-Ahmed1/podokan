@@ -9,10 +9,11 @@ const statusOptions = [
 ];
 
 const productTypes = [
-  't-shirt', 'hoodie'
+  't-shirt', 'hoodie', 'long-sleeve'
 ];
+
 const colorOptions = [
-  'red', 'blue', 'green', 'yellow', 'purple', 'pink','gray'
+  'white', 'black', 'red', 'blue', 'gray'
 ];
 
 const AdminProductApproval = () => {
@@ -34,7 +35,7 @@ const AdminProductApproval = () => {
   }, [error]);
 
   const handleProductSelect = (product) => {
-    console.log("Selected product:", product);
+    // console.log("Selected product:", product);
     setSelectedProduct(product);
     setEditedProduct({ ...product });
     setRejectionReason('');
@@ -50,7 +51,7 @@ const AdminProductApproval = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     const parsedValue = name === 'originalPrice' || name === 'discountPrice' ? parseFloat(value) : value;
-    console.log(`Updating ${name} to:`, parsedValue);
+    // console.log(`Updating ${name} to:`, parsedValue);
     setEditedProduct(prev => ({ ...prev, [name]: parsedValue }));
   };
 
@@ -59,9 +60,9 @@ const AdminProductApproval = () => {
   };
 
   const handleApprove = async () => {
-    console.log("handleApprove called");
-    console.log("editedProduct:", editedProduct);
-    console.log("rejectionReason:", rejectionReason);
+    // console.log("handleApprove called");
+    // console.log("editedProduct:", editedProduct);
+    // console.log("rejectionReason:", rejectionReason);
     if (!editedProduct) {
       toast.error('No product selected');
       return;
@@ -126,27 +127,45 @@ const AdminProductApproval = () => {
         return product.designImage.url;
       }
     }
-    console.log("No design image available for product:", product);
+    // console.log("No design image available for product:", product);
     return '';
   };
 
   const getMockupUrl = (product) => {
     if (!product) return '';
   
-    console.log("Product data for mockup:", product);
+    // console.log("Product data for mockup:", product);
     const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-    const version =
-      product.ProductType === "hoodie"
-        ? "v1724798769"
-        : product.ProductType === "t-shirt"
-        ? "v1724807956"
-        : "v1725243203"; 
-    const folder = product.ProductType === "hoodie" ? "hoodies" : "shirts";
-    const filename = `${product.ProductType === "hoodie" ? "hoodie" : "t-shirt"}-${product.ProductColor}-${product.ProductView}`;
-    const extension = product.ProductType === "hoodie" ? "jpg" : "webp";
-  
-    const url = `${baseUrl}${version}/${folder}/${filename}.${extension}`;
-    console.log("Generated mockup URL:", url);
+    let version, folder, filename;
+    
+    switch (product.ProductType) {
+      case "hoodie":
+        version = "v1728392918";
+        folder = "hoodies";
+        filename = `hoodie-${product.ProductColor}-${product.ProductView}`;
+        break;
+      case "t-shirt":
+        version = "v1728393898";
+        folder = "t-shirts";
+        filename = `t-shirt-${product.ProductColor}-${product.ProductView}`;
+        break;
+      case "long-sleeve":
+        version = "v1728394665";
+        folder = "long-sleeves";
+        if (product.ProductColor === "white" || product.ProductColor === "black") {
+          filename = `longseleves-${product.ProductColor}-${product.ProductView}`;
+        } else if (product.ProductColor === "gray") {
+          filename = `longsleeves-${product.ProductColor}-${product.ProductView}`;
+        } else {
+          filename = `t-shirt-${product.ProductColor}-${product.ProductView}`;
+        }
+        break;
+      default:
+        return "";
+    }
+
+    const url = `${baseUrl}${version}/${folder}/${filename}.png`;
+    // console.log("Generated mockup URL:", url);
     return url;
   };
   

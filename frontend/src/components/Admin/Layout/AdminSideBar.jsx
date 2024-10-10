@@ -13,7 +13,24 @@ import { FaClipboardCheck } from "react-icons/fa";
 const AdminSideBar = ({ active, setActive }) => {
   return (
     <div className="w-full h-[90vh] bg-white shadow-sm overflow-y-scroll sticky top-0 left-0 z-10">
-             <div className="w-full flex items-center p-4">
+       
+      {/* single item */}
+      <div className="w-full flex items-center p-4">
+        <Link to="/admin/dashboard" className="w-full flex items-center">
+          <RxDashboard
+            size={30}
+            color={`${active === 1 ? "crimson" : "#555"}`}
+          />
+          <h5
+            className={`hidden 800px:block pl-2 text-[18px] font-[400] ${
+              active === 1 ? "text-[crimson]" : "text-[#555]"
+            }`}
+          >
+            Dashboard
+          </h5>
+        </Link>
+      </div>
+      <div className="w-full flex items-center p-4">
         <Link to="/admin-approval" className="w-full flex items-center">
           <div
             className="w-full flex items-center cursor-pointer"
@@ -33,23 +50,6 @@ const AdminSideBar = ({ active, setActive }) => {
           </div>
         </Link>
       </div>
-      {/* single item */}
-      <div className="w-full flex items-center p-4">
-        <Link to="/admin/dashboard" className="w-full flex items-center">
-          <RxDashboard
-            size={30}
-            color={`${active === 1 ? "crimson" : "#555"}`}
-          />
-          <h5
-            className={`hidden 800px:block pl-2 text-[18px] font-[400] ${
-              active === 1 ? "text-[crimson]" : "text-[#555]"
-            }`}
-          >
-            Dashboard
-          </h5>
-        </Link>
-      </div>
-
       <div className="w-full flex items-center p-4">
         <Link to="/admin-orders" className="w-full flex items-center">
           <FiShoppingBag
@@ -113,7 +113,7 @@ const AdminSideBar = ({ active, setActive }) => {
           </h5>
         </Link>
       </div>
-
+{/* 
       <div className="w-full flex items-center p-4">
         <Link to="/admin-events" className="w-full flex items-center">
           <MdOutlineLocalOffer
@@ -128,7 +128,7 @@ const AdminSideBar = ({ active, setActive }) => {
             All Events
           </h5>
         </Link>
-      </div>
+      </div> */}
 
       <div className="w-full flex items-center p-4">
         <Link

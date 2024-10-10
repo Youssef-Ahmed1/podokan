@@ -36,7 +36,7 @@ const ShopProfileData = ({ isOwner }) => {
               Shop Products
             </h5>
           </div>
-          <div className="flex items-center" onClick={() => setActive(2)}>
+          {/* <div className="flex items-center" onClick={() => setActive(2)}>
             <h5
               className={`font-[600] text-[20px] ${
                 active === 2 ? "text-red-500" : "text-[#333]"
@@ -44,7 +44,7 @@ const ShopProfileData = ({ isOwner }) => {
             >
               Running Events
             </h5>
-          </div>
+          </div> */}
 
           <div className="flex items-center" onClick={() => setActive(3)}>
             <h5

@@ -16,9 +16,7 @@ const ProductCard = ({ data, isEvent }) => {
   const [open, setOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const dispatch = useDispatch();
-  console.log("Product data:", data);
-  console.log("Original price:", data.originalPrice);
-  console.log("Discount price:", data.discountPrice);
+
   useEffect(() => {
     if (wishlist && data && wishlist.find((i) => i._id === data._id)) {
       setClick(true);
@@ -51,6 +49,7 @@ const ProductCard = ({ data, isEvent }) => {
       }
     }
   };
+
   const formatPrice = (price) => {
     return parseFloat(price).toFixed(2);
   };
@@ -58,12 +57,33 @@ const ProductCard = ({ data, isEvent }) => {
   const getMockupUrl = () => {
     if (!data) return '';
     const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-    const version = data.ProductType === "hoodie" ? "v1724798769"  : "v1724807956"
-    const folder = data.ProductType === "hoodie" ? "hoodies" : "shirts";
-    const filename = `${data.ProductType}-${data.ProductColor}-front`;
-    const extension = data.ProductType === "hoodie" ? "jpg" : "webp";
-  
-    return `${baseUrl}${version}/${folder}/${filename}.${extension}`;
+    let version, folder, filename;
+    
+    switch (data.ProductType) {
+      case "hoodie":
+        version = "v1728392918";
+        folder = "hoodies";
+        filename = `hoodie-${data.ProductColor}-front`;
+        break;
+      case "t-shirt":
+        version = "v1728393898";
+        folder = "t-shirts";
+        filename = `t-shirt-${data.ProductColor}-front`;
+        break;
+      case "long-sleeve":
+        version = "v1728394669";
+        folder = "long-sleeves";
+        if (data.ProductColor === "gray") {
+          filename = `longsleeves-${data.ProductColor}-front`;
+        } else {
+          filename = `t-shirt-${data.ProductColor}-front`;
+        }
+        break;
+      default:
+        return "";
+    }
+
+    return `${baseUrl}${version}/${folder}/${filename}.png`;
   };
 
   const getDesignImage = () => {
@@ -76,7 +96,6 @@ const ProductCard = ({ data, isEvent }) => {
     }
     return '';
   };
-
 
   return (
     <div 
@@ -122,17 +141,16 @@ const ProductCard = ({ data, isEvent }) => {
           {data.DesignTitle || "Unnamed Product"}
         </h4>
         <div className="flex items-center justify-between mt-2">
-        <div className="flex items-center mt-2">
-          <p className="text-orange-500 font-bold text-xl">
-          £{formatPrice(data.discountPrice || data.originalPrice)}
-          </p>
-          {data.discountPrice && data.originalPrice && data.discountPrice < data.originalPrice && (
-            <p className="text-gray-400 line-through ml-2">
-              £{formatPrice(data.originalPrice)}
+          <div className="flex items-center mt-2">
+            <p className="text-orange-500 font-bold text-xl">
+              £{formatPrice(data.discountPrice || data.originalPrice)}
             </p>
-          )}
-        </div>
-         
+            {data.discountPrice && data.originalPrice && data.discountPrice < data.originalPrice && (
+              <p className="text-gray-400 line-through ml-2">
+                £{formatPrice(data.originalPrice)}
+              </p>
+            )}
+          </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={() => addToCartHandler(data._id)}

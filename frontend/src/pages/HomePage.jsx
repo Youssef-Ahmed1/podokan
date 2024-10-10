@@ -17,8 +17,9 @@ const HomePage = () => {
         <div className = "bg-[#151523] rounded-b-lg">
         <Categories />
           <ArtistSign/>
-        <Hero />
         </div>
+        <Hero />
+
         <BestDeals />
         {/* <Events /> */}
         <FeaturedProduct />
