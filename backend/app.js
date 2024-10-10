@@ -8,8 +8,6 @@ const multer = require('multer');
 const path = require('path');
 const appConfig = require('../backend/server');
 
-// Move CORS configuration to the top
-
 app.use(cors({
   origin: 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -44,6 +42,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB limit
+ // Set file size limit
   fileFilter: function (req, file, cb) {
     // You can add file type validation here
     const filetypes = /jpeg|jpg|png|gif/;
