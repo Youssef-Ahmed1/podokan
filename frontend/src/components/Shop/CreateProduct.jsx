@@ -16,14 +16,14 @@ const CreateProduct = () => {
     Maintag: "",
     Designtags: "",
     ProductType: "t-shirt",
-    ProductColor: "red",
+    ProductColor: "white",
     ProductView: "front",
     DesignScale: 1,
     shopId: "",
   });
   const [designPreview, setDesignPreview] = useState(null);
   const [designData, setDesignData] = useState(null);
-
+  
   useEffect(() => {
     if (seller && seller._id) {
       setFormState(prevState => ({ ...prevState, shopId: seller._id }));
@@ -33,7 +33,7 @@ const CreateProduct = () => {
       setIsLoading(false);
     }
   }, [seller]);
-
+  
   const handleChange = (e) => {
     const { id, type, checked, value } = e.target;
     setFormState(prevState => ({
@@ -41,7 +41,7 @@ const CreateProduct = () => {
       [id]: type === 'checkbox' ? checked : value
     }));
   };
-
+  
   const handleDesignUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -95,54 +95,56 @@ const CreateProduct = () => {
     },
     [formState, designData, navigate, dispatch, isSubmitting]
   );
-
+  
   const getMockupUrl = () => {
     const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-    const version =
-      formState.ProductType === "hoodie"
-        ? "v1724798769"
-        : formState.ProductType === "t-shirt"
-        ? "v1724807956"
-        : "v1725243203";
-    const folder = formState.ProductType === "hoodie" ? "hoodies" : "shirts";
-    const filename = `${formState.ProductType === "hoodie" ? "hoodie" : "t-shirt"}-${formState.ProductColor}-${formState.ProductView}`;
-    const extension = formState.ProductType === "hoodie" ? "jpg" : "webp";
-
-    return `${baseUrl}${version}/${folder}/${filename}.${extension}`;
+    let version, folder, filename;
+    
+    switch (formState.ProductType) {
+      case "hoodie":
+        version = "v1728392918";
+        folder = "hoodies";
+        filename = `hoodie-${formState.ProductColor}-${formState.ProductView}`;
+        break;
+      case "t-shirt":
+        version = "v1728393898";
+        folder = "t-shirts";
+        filename = `t-shirt-${formState.ProductColor}-${formState.ProductView}`;
+        break;
+      case "long-sleeve":
+        version = "v1728394665";
+        folder = "long-sleeves";
+        if (formState.ProductColor === "white" || formState.ProductColor === "black") {
+          filename = `longseleves-${formState.ProductColor}-${formState.ProductView}`;
+        } else if (formState.ProductColor === "gray") {
+          filename = `longsleeves-${formState.ProductColor}-${formState.ProductView}`;
+        } else {
+          filename = `t-shirt-${formState.ProductColor}-${formState.ProductView}`;
+        }
+        break;
+      default:
+        return "";
+    }
+  
+    return `${baseUrl}${version}/${folder}/${filename}.png`;
   };
-
+  
   const handleZoom = (direction) => {
     setFormState(prevState => ({
       ...prevState,
-      DesignScale: direction === 'in' 
-        ? Math.min(prevState.DesignScale + 0.1, 2) 
+      DesignScale: direction === 'in'
+        ? Math.min(prevState.DesignScale + 0.1, 2)
         : Math.max(prevState.DesignScale - 0.1, 0.5)
     }));
   };
-
+  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[80vh]">
         <div className="text-center">
-          <svg
-            className="animate-spin h-10 w-10 text-blue-500 mx-auto mb-4"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
+          <svg className="animate-spin h-10 w-10 text-blue-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
           <p className="text-blue-500 font-semibold">Loading seller data...</p>
         </div>
@@ -159,14 +161,14 @@ const CreateProduct = () => {
       </div>
     );
   }
-
+  
   return (
     <div className="w-[90%] 800px:w-[90%] bg-white shadow h-[80vh] rounded-[4px] p-3 overflow-y-scroll">
       <h2 className="text-3xl font-bold mb-4 text-center text-green-600">Design Product</h2>
       <p className="text-center text-blue-500 mb-4">
         <a href="#" className="underline">Need help uploading?</a>
       </p>
-
+  
       <div className="design-upload-area mb-8">
         {!designPreview ? (
           <div
@@ -204,7 +206,7 @@ const CreateProduct = () => {
           className="hidden"
         />
       </div>
-
+  
       {designPreview && (
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
@@ -218,7 +220,7 @@ const CreateProduct = () => {
               placeholder="Give your design a name"
             />
           </div>
-
+  
           <div className="mb-6">
             <label htmlFor="Maintag" className="block mb-1 font-medium">Main Tag:</label>
             <input
@@ -230,7 +232,7 @@ const CreateProduct = () => {
               placeholder="What do people search to find your design?"
             />
           </div>
-
+  
           <div className="mb-6">
             <label htmlFor="Designtags" className="block mb-1 font-medium">Design Tags:</label>
             <input
@@ -242,7 +244,7 @@ const CreateProduct = () => {
               placeholder="Any other relevant tags to categorize your design"
             />
           </div>
-
+  
           <div className="mb-6">
             <label htmlFor="Description" className="block mb-1 font-medium">Description:</label>
             <textarea
@@ -254,7 +256,7 @@ const CreateProduct = () => {
               rows="3"
             ></textarea>
           </div>
-
+  
           <div className="mb-6">
             <label htmlFor="ProductType" className="block mb-1 font-medium">Product Type:</label>
             <select
@@ -265,12 +267,10 @@ const CreateProduct = () => {
             >
               <option value="t-shirt">T-shirt</option>
               <option value="hoodie">Hoodie</option>
-              <option value="long-sleeve-shirt">Long Sleeve Shirt</option>
-              <option value="kids-shirt">Kids Shirt</option>
-              <option value="kids-hoodie">Kids Hoodie</option>
+              <option value="long-sleeve">Long Sleeve</option>
             </select>
           </div>
-
+  
           <div className="mb-8">
             <h3 className="text-xl font-bold mb-4">Product Mockup</h3>
             <div className="relative w-full h-[500px] bg-gray-100">
@@ -299,10 +299,7 @@ const CreateProduct = () => {
             <div className="mt-4 flex justify-center space-x-4">
               <button
                 type="button"
-                onClick={() => setFormState(prev => ({ 
-                  ...prev, 
-                  ProductView: prev.ProductView === "front" ? "back" : "front" 
-                }))}
+                onClick={() => setFormState({ ...formState, ProductView: formState.ProductView === "front" ? "back" : "front" })}
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 Switch to {formState.ProductView === "front" ? "Back" : "Front"}
@@ -323,17 +320,17 @@ const CreateProduct = () => {
               </button>
             </div>
           </div>
-
+  
           <div className="mb-8">
             <label htmlFor="ProductColor" className="block mb-1 font-medium">Product Color:</label>
             <div className="grid grid-cols-4 gap-4">
-              {['yellow', 'green', 'pink', 'blue', 'gray', 'red', 'purple'].map((color) => (
+              {['white', 'black', 'red', 'blue', 'gray'].map((color) => (
                 <div
                   key={color}
                   className={`p-4 rounded-md cursor-pointer ${
                     formState.ProductColor === color ? 'ring-2 ring-blue-500' : 'bg-gray-100'
                   }`}
-                  onClick={() => setFormState(prev => ({ ...prev, ProductColor: color }))}
+                  onClick={() => setFormState({ ...formState, ProductColor: color })}
                   aria-label={`Select color ${color}`}
                 >
                   <div
@@ -359,5 +356,5 @@ const CreateProduct = () => {
     </div>
   );
 };
-
+  
 export default CreateProduct;

@@ -4,23 +4,26 @@ const jwt = require("jsonwebtoken");
 const User = require("../model/user");
 const Shop = require("../model/shop");
 
-exports.isAuthenticated = catchAsyncErrors(async(req,res,next) => {
-    const {token} = req.cookies;
-    console.log("Token from cookies:", token); // Add this log
-    if(!token){
-        return next(new ErrorHandler("Please login to continue", 401));
-    }
+exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
+  const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+  // console.log("Token:", token);
+  
+  if (!token) {
+    return next(new ErrorHandler("Please login to continue", 401));
+  }
 
+  try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-
     req.user = await User.findById(decoded.id);
-
     next();
+  } catch (error) {
+    return next(new ErrorHandler("Invalid or expired token", 401));
+  }
 });
 
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
     const { seller_token } = req.cookies;
-    console.log("Seller Token:", seller_token);
+    // console.log("Seller Token:", seller_token);
     
     if (!seller_token) {
       return next(new ErrorHandler("Please login to continue", 401));
@@ -28,10 +31,10 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   
     try {
       const decoded = jwt.verify(seller_token, process.env.JWT_SECRET_KEY);
-      console.log("Decoded Seller:", decoded);
+      // console.log("Decoded Seller:", decoded);
       
       req.seller = await Shop.findById(decoded.id);
-      console.log("Seller:", req.seller);
+      // console.log("Seller:", req.seller);
   
       if (!req.seller) {
         return next(new ErrorHandler("Seller not found", 404));
@@ -45,9 +48,9 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   });
 exports.isAdmin = (...roles) => {
     return (req, res, next) => {
-        console.log("isAdmin middleware called");
-        console.log("User:", req.user);
-        console.log("Required roles:", roles);
+        // console.log("isAdmin middleware called");
+        // console.log("User:", req.user);
+        // console.log("Required roles:", roles);
 
         if (!req.user) {
             return next(new ErrorHandler("User not authenticated", 401));

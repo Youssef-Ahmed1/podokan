@@ -10,25 +10,20 @@ const mongoose = require("mongoose");
 const ErrorHandler = require("../utils/ErrorHandler");
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
-const sharp = require('sharp');
-const path = require('path');
-const fs = require('fs').promises;
-
-
-
 
 router.options('/approve-reject-product/:id', (req, res) => {
   res.header('Access-Control-Allow-Methods', 'PUT');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.sendStatus(204);
 });
+
 router.post(
   "/create-product",
   upload.single('designImage'),
   catchAsyncErrors(async (req, res, next) => {
     try {
-      console.log("Received request body:", req.body);
-      console.log("Received file:", req.file);
+      // console.log("Received request body:", req.body);
+      // console.log("Received file:", req.file);
 
       const { 
         shopId, 
@@ -55,50 +50,18 @@ router.post(
         return next(new ErrorHandler("Shop not found", 404));
       }
 
-      if (!req.file) {
+      let designImage = null;
+      if (req.file) {
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "products",
+        });
+        designImage = {
+          public_id: result.public_id,
+          url: result.secure_url,
+        };
+      } else {
         return next(new ErrorHandler("Design image is required", 400));
       }
-
-      // Get the base image URL from Cloudinary
-      const baseImageUrl = `https://res.cloudinary.com/dkot9tyjm/image/upload/v1724807956/shirts/${ProductType}-${ProductColor}-${ProductView}.png`;
-
-      // Download the base image
-      const baseImageResponse = await fetch(baseImageUrl);
-      const baseImageBuffer = await baseImageResponse.buffer();
-
-      // Load the base image with Sharp
-      const baseImage = sharp(baseImageBuffer);
-      const baseMetadata = await baseImage.metadata();
-
-      // Resize and position the design
-      const designBuffer = await sharp(req.file.buffer)
-        .resize({ 
-          width: Math.round(baseMetadata.width * 0.5 * DesignScale),
-          height: Math.round(baseMetadata.height * 0.5 * DesignScale),
-          fit: 'inside',
-          background: { r: 0, g: 0, b: 0, alpha: 0 }
-        })
-        .toBuffer();
-
-      // Calculate position to place the design
-      const left = Math.round((baseMetadata.width - (baseMetadata.width * 0.5 * DesignScale)) / 2);
-      const top = Math.round((baseMetadata.height - (baseMetadata.height * 0.5 * DesignScale)) / 2);
-
-      // Composite the images
-      const outputBuffer = await baseImage
-        .composite([
-          { 
-            input: designBuffer,
-            top: top,
-            left: left
-          }
-        ])
-        .toBuffer();
-
-      // Upload the combined image to Cloudinary
-      const result = await cloudinary.uploader.upload(`data:image/png;base64,${outputBuffer.toString('base64')}`, {
-        folder: "products",
-      });
 
       const productData = {
         DesignTitle,
@@ -109,10 +72,7 @@ router.post(
         ProductColor,
         ProductView,
         DesignScale: parseFloat(DesignScale),
-        designImage: {
-          public_id: result.public_id,
-          url: result.secure_url,
-        },
+        designImage,
         shopId,
         status: 'pending',
       };
@@ -125,55 +85,53 @@ router.post(
         product,
       });
     } catch (error) {
-      console.error("Error in create-product route:", error);
+      // console.error("Error in create-product route:", error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
-  console.log("PUT request received for product approval/rejection");
 
+router.put('/approve-reject-product/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, rejectionReason, ...updates } = req.body;
 
+    // console.log("Received request to update product:", id);
+    // console.log("Status:", status);
+    // console.log("Rejection Reason:", rejectionReason);
+    // console.log("Updates:", updates);
 
-  router.put('/approve-reject-product/:id', async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { status, rejectionReason, ...updates } = req.body;
-  
-      console.log("Received request to update product:", id);
-      console.log("Status:", status);
-      console.log("Rejection Reason:", rejectionReason);
-      console.log("Updates:", updates);
-  
-      // Ensure originalPrice is a number
-      const parsedOriginalPrice = parseFloat(updates.originalPrice);
-      if (isNaN(parsedOriginalPrice) || parsedOriginalPrice <= 0) {
-        return res.status(400).json({ success: false, message: "Invalid original price" });
-      }
-  
-      const updatedProduct = await Product.findByIdAndUpdate(
-        id,
-        { 
-          status, 
-          rejectionReason, 
-          originalPrice: parsedOriginalPrice,
-          discountPrice: parseFloat(updates.discountPrice) || parsedOriginalPrice,
-          ...updates
-        },
-        { new: true, runValidators: true }
-      );
-  
-      if (!updatedProduct) {
-        return res.status(404).json({ success: false, message: "Product not found" });
-      }
-  
-      console.log("Updated product:", updatedProduct);
-  
-      res.status(200).json({ success: true, message: "Product updated successfully", product: updatedProduct });
-    } catch (error) {
-      console.error("Error updating product:", error);
-      res.status(500).json({ success: false, message: error.message });
+    // Ensure originalPrice is a number
+    const parsedOriginalPrice = parseFloat(updates.originalPrice);
+    if (isNaN(parsedOriginalPrice) || parsedOriginalPrice <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid original price" });
     }
-  });
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      { 
+        status, 
+        rejectionReason, 
+        originalPrice: parsedOriginalPrice,
+        discountPrice: parseFloat(updates.discountPrice) || parsedOriginalPrice,
+        ...updates
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    // console.log("Updated product:", updatedProduct);
+
+    res.status(200).json({ success: true, message: "Product updated successfully", product: updatedProduct });
+  } catch (error) {
+    // console.error("Error updating product:", error);
+    res.status(500).json({ success: false, message: error.message, stack: error.stack });
+  }
+});
+
 router.put(
   "/update-product-design/:id",
   isSeller,
@@ -190,8 +148,6 @@ router.put(
       return next(new ErrorHandler("Product not found", 404));
     }
 
-  
-
     await product.save();
 
     res.status(200).json({
@@ -204,7 +160,7 @@ router.put(
 router.get(
   "/get-all-products-shop/:id",
   catchAsyncErrors(async (req, res, next) => {
-    const products = await Product.find({ 
+    const products = await Product.find({
       shopId: req.params.id,
       status: { $in: [ 'public', 'restricted'] }
     });
@@ -222,18 +178,16 @@ router.get(
   isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
     const pendingProducts = await Product.find({ status: 'pending' })
-      .select('DesignTitle Description Maintag Designtags  ProductType ProductColor ProductView DesignScale designImage status');
-    
-    console.log("Pending products:", pendingProducts);
-    
+      .select('DesignTitle Description Maintag Designtags ProductType ProductColor ProductView DesignScale designImage status');
+
+    // console.log("Pending products:", pendingProducts);
+
     res.status(200).json({
       success: true,
       products: pendingProducts,
     });
   })
 );
-
-
 
 router.delete(
   "/delete-shop-product/:id",
@@ -275,6 +229,7 @@ router.get("/get-all-products", async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
 router.put(
   "/create-new-review",
   isAuthenticated,

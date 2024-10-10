@@ -1,6 +1,6 @@
 import React from "react";
-import { AiOutlineGift } from "react-icons/ai";
-import { MdOutlineLocalOffer } from "react-icons/md";
+// import { AiOutlineGift } from "react-icons/ai";
+// import { MdOutlineLocalOffer } from "react-icons/md";
 import { FiPackage, FiShoppingBag } from "react-icons/fi";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -19,7 +19,8 @@ const DashboardHeader = () => {
         </Link>
       </div>
       <div className="flex items-center">
-        <div className="flex items-center mr-4">
+     <div className="flex items-center mr-4">
+         {/*<
           <Link to="/dashboard/cupouns" className="800px:block hidden">
             <AiOutlineGift
               color="#555"
@@ -32,8 +33,9 @@ const DashboardHeader = () => {
               color="#555"
               size={30}
               className="mx-5 cursor-pointer"
-            />
+            
           </Link>
+          /> */}
           <Link to="/dashboard-products" className="800px:block hidden">
             <FiShoppingBag
               color="#555"

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import AdminDashboardMain from './AdminDashboardMain';
+import AdminDashboardMain from '../AdminDashboardMain';
 import AdminSideBar from './AdminSideBar';
 
 const AdminDashboard = () => {

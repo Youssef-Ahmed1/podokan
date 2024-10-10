@@ -24,7 +24,7 @@ import axios from "axios";
 const ProductDetails = ({ data }) => {
   const [count, setCount] = useState(1);
   const [click, setClick] = useState(false);
-  const [selectedColor, setSelectedColor] = useState(data?.ProductColor || "red");
+  const [selectedColor, setSelectedColor] = useState(data?.ProductColor || "white");
   const [fit, setFit] = useState("Male fit");
   const [size, setSize] = useState("M");
   const [material, setMaterial] = useState("standard");
@@ -39,7 +39,7 @@ const ProductDetails = ({ data }) => {
 
   useEffect(() => {
     if (data) {
-      setSelectedColor(data.ProductColor || "red");
+      setSelectedColor(data.ProductColor || "white");
       setProductType(data.ProductType || "t-shirt");
     }
   }, [data]);
@@ -132,13 +132,35 @@ const ProductDetails = ({ data }) => {
   const getMockupUrl = () => {
     if (!data) return '';
     const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-    const version = productType === "hoodie" ? "v1724798769" : "v1724807956"
-   
-    const folder = productType === "hoodie" ? "hoodies" : "shirts";
-    const filename = `${productType}-${selectedColor}-front`;
-    const extension = productType === "hoodie" ? "jpg" : "webp";
-  
-    return `${baseUrl}${version}/${folder}/${filename}.${extension}`;
+    let version, folder, filename;
+    
+    switch (productType) {
+      case "hoodie":
+        version = "v1728392918";
+        folder = "hoodies";
+        filename = `hoodie-${selectedColor}-front`;
+        break;
+      case "t-shirt":
+        version = "v1728393898";
+        folder = "t-shirts";
+        filename = `t-shirt-${selectedColor}-front`;
+        break;
+      case "long-sleeve":
+        version = "v1728394665";
+        folder = "long-sleeves";
+        if (selectedColor === "white" || selectedColor === "black") {
+          filename = `longseleves-${selectedColor}-front`;
+        } else if (selectedColor === "gray") {
+          filename = `longsleeves-${selectedColor}-front`;
+        } else {
+          filename = `t-shirt-${selectedColor}-front`;
+        }
+        break;
+      default:
+        return "";
+    }
+
+    return `${baseUrl}${version}/${folder}/${filename}.png`;
   };
 
   const getDesignImage = () => {
@@ -152,9 +174,7 @@ const ProductDetails = ({ data }) => {
     return '';
   };
 
-  const colorOptions = [
-   "red", "blue", "gray", "purple", "yellow", "green","pink"
-  ];
+  const colorOptions = ["white", "black", "red", "blue", "gray"];
 
   const sizeOptions = ["S", "M", "L", "XL"];
 
@@ -241,6 +261,12 @@ const ProductDetails = ({ data }) => {
                     onClick={() => setProductType('hoodie')}
                   >
                     Hoodie
+                  </button>
+                  <button
+                    className={`px-4 py-2 mx-2 rounded-xl ${productType === 'long-sleeve' ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
+                    onClick={() => setProductType('long-sleeve')}
+                  >
+                    Long Sleeve
                   </button>
                 </div>
               </div>

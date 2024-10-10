@@ -22,7 +22,7 @@ const ProductDetailsPage = () => {
       const data = allProducts && allProducts.find((i) => i._id === id);
       setData(data);
     }
-    console.log("Product/Event data:", data); // Add this log
+    // console.log("Product/Event data:", data); // Add this log
   }, [allProducts, allEvents, id, eventData]);
 
   return (
