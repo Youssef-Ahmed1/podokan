@@ -6,10 +6,10 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const multer = require('multer');
 const path = require('path');
-const appConfig = require('../backend/server');
+const appConfig = require('./server');
 
 app.use(cors({
-  origin: '*',  // Allow all origins
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -28,23 +28,31 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
   });
 }
 
+// Debugging middleware
+app.use((req, res, next) => {
+  console.log(`Received request: ${req.method} ${req.url}`);
+  next();
+});
+
+// Root route
+app.get('/', (req, res) => {
+  res.send('Podokan Backend is running!');
+});
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(appConfig.fileUploadPath)); // Set the destination directory for uploaded files
+    cb(null, path.join(appConfig.fileUploadPath));
   },
   filename: function (req, file, cb) {
-    // You can use the original file name or generate a unique name
-    cb(null, Date.now() + '-' +file.originalname);
+    cb(null, Date.now() + '-' + file.originalname);
   },
 });
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB limit
- // Set file size limit
+  limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: function (req, file, cb) {
-    // You can add file type validation here
     const filetypes = /jpeg|jpg|png|gif/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = filetypes.test(file.mimetype);
@@ -55,8 +63,7 @@ const upload = multer({
   },
 });
 
-// Use the upload middleware for the /create-product route
-// import routes
+// Import routes
 const user = require("./controller/user");
 const shop = require("./controller/shop");
 const product = require("./controller/product");
@@ -67,7 +74,8 @@ const order = require("./controller/order");
 const conversation = require("./controller/conversation");
 const message = require("./controller/message");
 const withdraw = require("./controller/withdraw");
-const productRouter = require("./controller/product");
+
+// API routes
 app.use("/api/v2/user", user);
 app.use("/api/v2/conversation", conversation);
 app.use("/api/v2/message", message);
@@ -78,9 +86,16 @@ app.use("/api/v2/event", event);
 app.use("/api/v2/coupon", coupon);
 app.use("/api/v2/payment", payment);
 app.use("/api/v2/withdraw", withdraw);
-// it's for ErrorHandling
+
+// 404 handler
+app.use((req, res, next) => {
+  res.status(404).send('Sorry, that route does not exist.');
+});
+
+// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  console.error('Error details:', err);
+  console.error('Error stack:', err.stack);
 
   if (err.name === 'PayloadTooLargeError') {
     return res.status(413).json({
@@ -88,9 +103,6 @@ app.use((err, req, res, next) => {
       message: 'Request entity too large'
     });
   }
-  app.get('/', (req, res) => {
-    res.send('Podokan Backend is running!');
-  });
 
   err.statusCode = err.statusCode || 500;
   err.message = err.message || "Internal Server Error";

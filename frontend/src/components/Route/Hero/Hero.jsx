@@ -1,5 +1,5 @@
 import React from 'react';
-import homepageHero from '/home/user/podokan/frontend/src/Assests/homepageHero.webp';
+import homepageHero from '../../../Assests/homepageHero.webp';
 
 const Hero = () => {
   return (
