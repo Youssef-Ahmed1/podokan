@@ -88,6 +88,9 @@ app.use((err, req, res, next) => {
       message: 'Request entity too large'
     });
   }
+  app.get('/', (req, res) => {
+    res.send('Podokan Backend is running!');
+  });
 
   err.statusCode = err.statusCode || 500;
   err.message = err.message || "Internal Server Error";
