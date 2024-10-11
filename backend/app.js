@@ -54,7 +54,9 @@ const upload = multer({
     cb("Error: Images Only!");
   },
 });
-
+app.get('/', (req, res) => {
+  res.send('Podokan Backend is running!');
+});
 // Use the upload middleware for the /create-product route
 // import routes
 const user = require("./controller/user");
@@ -88,9 +90,7 @@ app.use((err, req, res, next) => {
       message: 'Request entity too large'
     });
   }
-  app.get('/', (req, res) => {
-    res.send('Podokan Backend is running!');
-  });
+
 
   err.statusCode = err.statusCode || 500;
   err.message = err.message || "Internal Server Error";
