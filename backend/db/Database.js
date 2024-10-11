@@ -14,4 +14,5 @@ const connectDatabase = () => {
       console.error("Error stack:", error.stack);
     });
 };
+
 module.exports = connectDatabase;
