@@ -7,7 +7,7 @@ const cors = require("cors");
 const multer = require('multer');
 const path = require('path');
 const appConfig = require('../backend/server');
-
+const router = express.Router();
 app.use(cors({
   origin: '*',  // Allow all origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -54,10 +54,10 @@ const upload = multer({
     cb("Error: Images Only!");
   },
 });
+
 app.get('/', (req, res) => {
   res.send('Podokan Backend is running!');
 });
-// Use the upload middleware for the /create-product route
 // import routes
 const user = require("./controller/user");
 const shop = require("./controller/shop");
@@ -70,6 +70,7 @@ const conversation = require("./controller/conversation");
 const message = require("./controller/message");
 const withdraw = require("./controller/withdraw");
 const productRouter = require("./controller/product");
+
 app.use("/api/v2/user", user);
 app.use("/api/v2/conversation", conversation);
 app.use("/api/v2/message", message);
@@ -81,8 +82,13 @@ app.use("/api/v2/coupon", coupon);
 app.use("/api/v2/payment", payment);
 app.use("/api/v2/withdraw", withdraw);
 // it's for ErrorHandling
+app.use((req, res, next) => {
+  console.log(`Received request: ${req.method} ${req.url}`);
+  next();
+});
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  console.error('Error details:', err);
+  console.error('Error stack:', err.stack);
 
   if (err.name === 'PayloadTooLargeError') {
     return res.status(413).json({
@@ -90,7 +96,6 @@ app.use((err, req, res, next) => {
       message: 'Request entity too large'
     });
   }
-
 
   err.statusCode = err.statusCode || 500;
   err.message = err.message || "Internal Server Error";
