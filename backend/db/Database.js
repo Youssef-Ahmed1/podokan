@@ -11,7 +11,7 @@ const connectDatabase = () => {
     })
     .catch((error) => {
       console.error("Database connection error:", error);
+      console.error("Error stack:", error.stack);
     });
 };
-
 module.exports = connectDatabase;
