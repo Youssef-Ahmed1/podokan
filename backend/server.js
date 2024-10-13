@@ -28,7 +28,7 @@ cloudinary.config({
 
 // Create server
 const server = app.listen(process.env.PORT || 8000, '0.0.0.0', () => {
-  console.log(`Server is running on http://0.0.0.0:${process.env.PORT || 8000}`);
+  console.log(`Server is running on https://0.0.0.0:${process.env.PORT || 8000}`);
 });
 // Unhandled promise rejection
 process.on("unhandledRejection", (err) => {
