@@ -35,8 +35,7 @@ router.post("/create-user", async (req, res, next) => {
 
     const activationToken = createActivationToken(user);
 
-    const activationUrl = `http://localhost:3000/activation/${activationToken}`;
-
+    const activationUrl = `https://testpodokan.store/activation/${activationToken}`;
     try {
       await sendMail({
         email: user.email,
