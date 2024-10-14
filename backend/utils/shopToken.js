@@ -1,4 +1,3 @@
-// create token and saving that in cookies
 const sendShopToken = (user, statusCode, res) => {
   const token = user.getJwtToken();
 

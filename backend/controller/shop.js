@@ -167,21 +167,18 @@ router.get(
   "/logout",
   catchAsyncErrors(async (req, res, next) => {
     try {
-      // Clear the "seller_token" cookie by setting its value to an empty string
       res.cookie("seller_token", "", {
-        expires: new Date(0), // Set expiration date to a past date
+        expires: new Date(0),
         httpOnly: true,
-        sameSite: "none", // Ensure proper configuration for cross-site requests
-        secure: process.env.NODE_ENV === "production", // Use secure flag in production (only over HTTPS)
+        sameSite: "none",
+        secure: true,
       });
 
-      // Respond with an appropriate status code and message
       res.status(200).json({
         success: true,
         message: "Logout successful!",
       });
     } catch (error) {
-      // Handle any errors that may occur during the logout process
       return next(new ErrorHandler(error.message, 500));
     }
   })
