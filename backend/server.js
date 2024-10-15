@@ -29,16 +29,16 @@ cloudinary.config({
 
 if (process.env.NODE_ENV === "PRODUCTION") {
   const options = {
-    key: fs.readFileSync('/etc/letsencrypt/live/testpodokan.store/fullchain.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/testpodokan.store/privkey.pem')
+    key: fs.readFileSync('/etc/letsencrypt/live/testpodokan.store/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/testpodokan.store/fullchain.pem')
   };
   const server = https.createServer(options, app);
-  server.listen(process.env.PORT || 443, '0.0.0.0', () => {
-    console.log(`HTTPS Server is running on port ${process.env.PORT || 443}`);
+  server.listen(8000, '127.0.0.1', () => {
+    console.log(`HTTPS Server is running on port 8000`);
   });
 } else {
-  const server = app.listen(process.env.PORT || 8000, '0.0.0.0', () => {
-    console.log(`HTTP Server is running on port ${process.env.PORT || 8000}`);
+  const server = app.listen(8000, '127.0.0.1', () => {
+    console.log(`HTTP Server is running on port 8000`);
   });
 }
 // Unhandled promise rejection
