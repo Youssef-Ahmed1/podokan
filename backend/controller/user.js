@@ -40,11 +40,11 @@ router.post("/create-user", async (req, res, next) => {
       await sendMail({
         email: user.email,
         subject: "Activate your account",
-        message: `Hello ${user.name}, please click on the link to activate your account: ${activationUrl}`,
+        message: `Hello ${user.name}, please click on the link to activate your account:${activationUrl}`,
       });
       res.status(201).json({
         success: true,
-        message: `please check your email:- ${user.email} to activate your account!`,
+        message: `please check your email:-${user.email} to activate your account!`,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
