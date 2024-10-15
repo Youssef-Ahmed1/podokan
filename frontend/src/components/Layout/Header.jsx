@@ -78,46 +78,30 @@ const Header = ({ activeHeading }) => {
 
   return (
     <>
-      <div className="flex">
-        <div className="800px:my-[0px] 800px:flex items-center justify-between">
-        </div>
-      </div>
-      <div
-        className={`${
-          active === true ? "shadow-sm fixed top-0 left-0  z-10" : null
-        } transition hidden 800px:flex items-center justify-between w-full  bg-[#151523] h-[146px]`}
-      >
-        <div
-          className={`${styles.section} relative ${styles.noramlFlex} justify-between`}
-        >
-           <div>
+      <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} transition hidden 800px:flex items-center justify-between w-full bg-[#151523] h-[146px]`}>
+        <div className={`${styles.section} relative ${styles.noramlFlex} justify-between`}>
+          <div>
             <Link to="/">
               <img
                 src="https://shopo.quomodothemes.website/assets/images/logo.svg"
-                alt="" className="relative left-[363px]  bottom-[27px] "
+                alt=""
+                className="relative left-[363px] bottom-[27px]"
               />
             </Link>
           </div>
-                  {/* search box */}
-                  <div className="
-                  w-[40%] relative animate-border inline-block
-               bg-white bg-gradient-to-r
-                from-[#551c2c] via-[#b131ea]  to-[#f2ad55]
-                bg-[length:400%_400%] p-[2.5px] rounded-md left-[370px] bottom-[27px]" >  
-           <input
-            type="text"
-            placeholder={placeholders[placeholderIndex]}
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="h-[50px] w-full rounded-md bg-[length:400%_400%] p-[2px] border-[1px]"
-          />
-            <div className=" absolute bg-black w-[51px] h-[51px] right-[3px] top-[2px] flex items-center justify-center rounded-r-md
-            "     >
-            <AiOutlineSearch
-              size={20}
-              className="relative  cursor-pointer  text-[white] "  
-              
+          <div className="w-[40%] relative animate-border inline-block bg-white bg-gradient-to-r from-[#551c2c] via-[#b131ea] to-[#f2ad55] bg-[length:400%_400%] p-[2.5px] rounded-md left-[370px] bottom-[27px]">  
+            <input
+              type="text"
+              placeholder={placeholders[placeholderIndex]}
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="h-[50px] w-full rounded-md bg-[length:400%_400%] p-[2px] border-[1px]"
             />
+            <div className="absolute bg-black w-[51px] h-[51px] right-[3px] top-[2px] flex items-center justify-center rounded-r-md">
+              <AiOutlineSearch
+                size={20}
+                className="relative cursor-pointer text-[white]"  
+              />
             </div>
             {searchData && searchData.length !== 0 ? (
               <div className="absolute min-h-[30vh] bg-slate-50 shadow-sm-2 z-[9] p-4">
@@ -139,14 +123,13 @@ const Header = ({ activeHeading }) => {
               </div>
             ) : null}
           </div>
-          {/* navitems */}
-          <div className=" flex relative left-[-383px] bottom-[-30px] ">
+          <div className="flex relative left-[-383px] bottom-[-30px]">
             <div>
-            <Navbar active={activeHeading}   />
+              <Navbar active={activeHeading} />
             </div>
           </div>
 
-          <div className="flex  relative right-[30px] top-[55px ]">
+          <div className="flex relative right-[30px] top-[55px]">
             <div className={`${styles.noramlFlex}`}>
               <div
                 className="relative cursor-pointer mr-[15px]"
@@ -186,44 +169,22 @@ const Header = ({ activeHeading }) => {
                   </Link>
                 ) : (
                   <Link to="/sign-up">
-                    <div className="
-                    w-[150px] h-[42px] 
-                     bg-[#4e64df] rounded-xl 
-                     font-semibold left-[1px] 
-                     bottom-[45px] relative
-                      z-10 flex items-center
-                      justify-center top-[8px]
-                      
-                      "
-                      >
-
-                                 <div className=" text-stone-100 ">create Account</div>
-                                 </div>
-
+                    <div className="w-[150px] h-[42px] bg-[#4e64df] rounded-xl font-semibold left-[1px] bottom-[45px] relative z-10 flex items-center justify-center top-[8px]">
+                      <div className="text-stone-100">Create Account</div>
+                    </div>
                   </Link>
-                   
                 )}
               </div>
             </div>
-           
-            {/* cart popup */}
-            {openCart ? <Cart setOpenCart={setOpenCart} /> : null}
-
-            {/* wishlist popup */}
-            {openWishlist ? (
-              <Wishlist setOpenWishlist={setOpenWishlist} />
-            ) : null}
           </div>
         </div>
       </div>
-        
 
       {/* mobile header */}
       <div
         className={`${
           active === true ? "shadow-sm fixed top-0 left-0 z-10" : null
-        }
-      w-full bg-[#121212] z-50 top-0 left-0 shadow-sm 800px:hidden`}
+        } w-full bg-[#121212] z-50 top-0 left-0 shadow-sm 800px:hidden`}
       >
         <div className="w-full flex items-center justify-between p-4">
           <div>
@@ -388,12 +349,8 @@ const Header = ({ activeHeading }) => {
           </div>
         </div>
       ) : null}
-
-    
     </>
   );
 };
-
-
 
 export default Header;
