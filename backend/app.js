@@ -6,10 +6,9 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const multer = require('multer');
 const path = require('path');
-const appConfig = require('./server');
 
 app.use(cors({
-  origin: 'https://testpodokan.store',
+  origin: ['https://testpodokan.store', 'http://localhost:3000'],
   credentials: true,
 }));
 
@@ -18,9 +17,6 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
-// Load environment variables
-
 
 // Debugging middleware
 app.use((req, res, next) => {
@@ -36,7 +32,7 @@ app.get('/', (req, res) => {
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(appConfig.fileUploadPath));
+    cb(null, path.join(__dirname, 'uploads'));
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname);
