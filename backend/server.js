@@ -2,6 +2,7 @@ const app = require("./app");
 const connectDatabase = require("./db/Database");
 const cloudinary = require("cloudinary").v2;
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 
 // Handling uncaught Exception
@@ -36,12 +37,18 @@ if (process.env.NODE_ENV === "PRODUCTION") {
     cert: fs.readFileSync('/etc/letsencrypt/live/testpodokan.store/fullchain.pem')
   };
   server = https.createServer(options, app);
-  server.listen(process.env.PORT, '127.0.0.1', () => {
-    console.log(`HTTPS Server is running on port ${process.env.PORT}`);
+  server.listen(process.env.PORT || 443, '0.0.0.0', () => {
+    console.log(`HTTPS Server is running on port ${process.env.PORT || 443}`);
   });
+
+  // Redirect HTTP to HTTPS
+  http.createServer((req, res) => {
+    res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+    res.end();
+  }).listen(80);
 } else {
-  server = app.listen(process.env.PORT, '127.0.0.1', () => {
-    console.log(`HTTP Server is running on port ${process.env.PORT}`);
+  server = app.listen(process.env.PORT || 8000, '0.0.0.0', () => {
+    console.log(`HTTP Server is running on port ${process.env.PORT || 8000}`);
   });
 }
 
