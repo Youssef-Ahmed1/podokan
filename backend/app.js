@@ -8,7 +8,7 @@ const multer = require('multer');
 const path = require('path');
 
 app.use(cors({
-  origin: ['https://testpodokan.store', 'https://www.testpodokan.store', 'http://localhost:3000'],
+  origin: ['https://testpodokan.store', 'https://www.testpodokan.store'],
   credentials: true,
 }));
 
