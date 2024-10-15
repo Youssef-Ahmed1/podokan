@@ -45,7 +45,9 @@ if (process.env.NODE_ENV === "PRODUCTION") {
   http.createServer((req, res) => {
     res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
     res.end();
-  }).listen(80);
+  }).listen(80, () => {
+    console.log('HTTP to HTTPS redirect server running on port 80');
+  });
 } else {
   server = app.listen(process.env.PORT || 8000, '0.0.0.0', () => {
     console.log(`HTTP Server is running on port ${process.env.PORT || 8000}`);
