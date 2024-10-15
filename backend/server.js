@@ -2,7 +2,9 @@ const app = require("./app");
 const connectDatabase = require("./db/Database");
 const cloudinary = require("cloudinary").v2;
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
+
 // Handling uncaught Exception
 process.on("uncaughtException", (err) => {
   console.log(`Error: ${err.message}`);
@@ -27,20 +29,29 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+let server;
+
 if (process.env.NODE_ENV === "PRODUCTION") {
   const options = {
     key: fs.readFileSync('/etc/letsencrypt/live/testpodokan.store/privkey.pem'),
     cert: fs.readFileSync('/etc/letsencrypt/live/testpodokan.store/fullchain.pem')
   };
-  const server = https.createServer(options, app);
-  server.listen(8000, '127.0.0.1', () => {
-    console.log(`HTTPS Server is running on port 8000`);
+  server = https.createServer(options, app);
+  server.listen(process.env.PORT || 443, '0.0.0.0', () => {
+    console.log(`HTTPS Server is running on port ${process.env.PORT || 443}`);
   });
+
+  // Redirect HTTP to HTTPS
+  http.createServer((req, res) => {
+    res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+    res.end();
+  }).listen(80);
 } else {
-  const server = app.listen(8000, '127.0.0.1', () => {
-    console.log(`HTTP Server is running on port 8000`);
+  server = app.listen(process.env.PORT || 8000, '0.0.0.0', () => {
+    console.log(`HTTP Server is running on port ${process.env.PORT || 8000}`);
   });
 }
+
 // Unhandled promise rejection
 process.on("unhandledRejection", (err) => {
   console.log(`Shutting down the server due to ${err.message}`);
