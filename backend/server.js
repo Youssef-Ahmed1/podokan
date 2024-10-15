@@ -37,20 +37,14 @@ if (process.env.NODE_ENV === "PRODUCTION") {
     cert: fs.readFileSync('/etc/letsencrypt/live/testpodokan.store/fullchain.pem')
   };
   server = https.createServer(options, app);
-  server.listen(process.env.PORT || 443, '0.0.0.0', () => {
-    console.log(`HTTPS Server is running on port ${process.env.PORT || 443}`);
+  server.listen(8000, '0.0.0.0', () => {
+    console.log(`HTTPS Server is running on port 8000`);
   });
 
-  // Redirect HTTP to HTTPS
-  http.createServer((req, res) => {
-    res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
-    res.end();
-  }).listen(80, () => {
-    console.log('HTTP to HTTPS redirect server running on port 80');
-  });
+  // We'll let Nginx handle the HTTP to HTTPS redirect
 } else {
-  server = app.listen(process.env.PORT || 8000, '0.0.0.0', () => {
-    console.log(`HTTP Server is running on port ${process.env.PORT || 8000}`);
+  server = app.listen(8000, '0.0.0.0', () => {
+    console.log(`HTTP Server is running on port 8000`);
   });
 }
 
