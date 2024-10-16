@@ -6,13 +6,15 @@ import {
   AiOutlineSearch,
   AiOutlineShoppingCart,
 } from "react-icons/ai";
-import { FiArrowRight } from "react-icons/fi";
+import { FiUpload, FiArrowRight } from "react-icons/fi";
 import { BiMenuAltLeft } from "react-icons/bi";
 import Navbar from "./Navbar";
 import { useSelector } from "react-redux";
 import Cart from "../cart/Cart";
 import Wishlist from "../Wishlist/Wishlist";
 import { RxCross1 } from "react-icons/rx";
+import { categoriesData, navItems } from "../../static/data";
+import ArtistSign from "./ArtistSign";
 
 const Header = ({ activeHeading }) => {
   const { isAuthenticated, user } = useSelector((state) => state.user);
@@ -62,33 +64,52 @@ const Header = ({ activeHeading }) => {
     }
   };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 70) {
+        setActive(true);
+      } else {
+        setActive(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <>
-      <div className="bg-[#151523] w-full h-[146px]">
+      <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} transition-all duration-300 ease-in-out bg-[#1a1a2e] text-white`}>
         <div className={`${styles.section} relative ${styles.noramlFlex} justify-between`}>
-          <div className="mt-5">
+          <div className="flex items-center">
+            <BiMenuAltLeft
+              size={30}
+              className="cursor-pointer 800px:hidden"
+              onClick={() => setOpen(true)}
+            />
             <Link to="/">
               <img
                 src="https://shopo.quomodothemes.website/assets/images/logo.svg"
                 alt=""
-                className="h-[50px]"
+                className="h-[50px] ml-2 800px:ml-0"
               />
             </Link>
           </div>
-          <div className="w-[50%] relative mt-5">
+          <div className="w-[50%] relative hidden 800px:block">
             <input
               type="text"
               placeholder={placeholders[placeholderIndex]}
               value={searchTerm}
               onChange={handleSearchChange}
-              className="h-[50px] w-full px-4 rounded-md border-[1px] border-[#3957db] focus:outline-none focus:border-[#3957db] focus:border-[2px]"
+              className="h-[40px] w-full px-2 border-[#3957db] border-[2px] rounded-full text-black"
             />
             <AiOutlineSearch
               size={30}
-              className="absolute right-4 top-3 cursor-pointer text-[#3957db]"
+              className="absolute right-2 top-1.5 cursor-pointer text-[#3957db]"
             />
             {searchData && searchData.length !== 0 ? (
-              <div className="absolute min-h-[30vh] bg-slate-50 shadow-sm-2 z-[9] p-4 w-full">
+              <div className="absolute min-h-[30vh] bg-slate-50 shadow-sm-2 z-[9] p-4 w-full text-black">
                 {searchData.map((i, index) => (
                   <Link key={index} to={`/product/${i._id}`}>
                     <div className="w-full flex items-start py-3">
@@ -104,20 +125,20 @@ const Header = ({ activeHeading }) => {
               </div>
             ) : null}
           </div>
-          <div className="flex mt-5">
-            <div className={`${styles.noramlFlex}`}>
+          <div className="flex items-center">
+            <div className="flex">
               <div
                 className="relative cursor-pointer mr-[15px]"
                 onClick={() => setOpenWishlist(true)}
               >
                 <AiOutlineHeart size={30} color="rgb(255 255 255 / 83%)" />
-                <span className="absolute -right-2 -top-2 rounded-full bg-[#3bc177] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
+                <span className="absolute -right-2 -top-2 rounded-full bg-[#3bc177] w-4 h-4 top right p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
                   {wishlist && wishlist.length}
                 </span>
               </div>
             </div>
 
-            <div className={`${styles.noramlFlex}`}>
+            <div className="flex">
               <div
                 className="relative cursor-pointer mr-[15px]"
                 onClick={() => setOpenCart(true)}
@@ -126,13 +147,13 @@ const Header = ({ activeHeading }) => {
                   size={30}
                   color="rgb(255 255 255 / 83%)"
                 />
-                <span className="absolute -right-2 -top-2 rounded-full bg-[#3bc177] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
+                <span className="absolute -right-2 -top-2 rounded-full bg-[#3bc177] w-4 h-4 top right p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
                   {cart && cart.length}
                 </span>
               </div>
             </div>
 
-            <div className={`${styles.noramlFlex}`}>
+            <div className="flex">
               <div className="relative cursor-pointer mr-[15px]">
                 {isAuthenticated ? (
                   <Link to="/profile">
@@ -143,17 +164,27 @@ const Header = ({ activeHeading }) => {
                     />
                   </Link>
                 ) : (
-                  <Link to="/sign-up">
-                    <button className="bg-[#4e64df] text-white px-4 py-2 rounded-md hover:bg-[#3957db] transition-all duration-300 ease-in-out">
-                      Create Account
-                    </button>
+                  <Link to="/login" className="text-white">
+                    Login
                   </Link>
                 )}
               </div>
             </div>
+
+            <div className="hidden 800px:block">
+              <Link to={isSeller ? "/dashboard" : "/shop-create"}>
+                <button className="bg-[#4e64df] text-white px-4 py-2 rounded-full text-sm flex items-center">
+                  <FiUpload className="mr-2" />
+                  {isSeller ? "Dashboard" : "Upload Art"}
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
-        <div className="mt-5">
+      </div>
+      
+      <div className="bg-[#2a2a40] py-2 hidden 800px:block">
+        <div className={`${styles.section} relative`}>
           <Navbar active={activeHeading} />
         </div>
       </div>
@@ -327,6 +358,8 @@ const Header = ({ activeHeading }) => {
           </div>
         </div>
       ) : null}
+
+      <ArtistSign />
     </>
   );
 };

@@ -1,24 +1,29 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { navItems } from '../../static/data'
-import styles from '../../styles/styles'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { categoriesData } from '../../static/data';
 
-const Navbar = ({active}) => {
+const Navbar = ({ active }) => {
   return (
-    <div className={`block 800px:${styles.noramlFlex}`}>
-         {
-            navItems && navItems.map((i,index) => (
-                <div className="flex" key={index}>
-                    <Link to={i.url}
-                    className={`${active === index + 1 ? "text-[#17dd1f]" : "text-black 800px:text-[#fff]"} t ext-lg pb-[30px] 800px:pb-0 font-bold px-6 cursor-pointer}`}
-                    >
-                    {i.title}
-                    </Link>
-                </div>
-            ))
-         }
+    <div className="flex items-center justify-between">
+      <div className="flex items-center">
+        <Link to="/all-designs" className="text-white hover:text-gray-300 mr-4">Shop All Designs</Link>
+        {categoriesData.slice(0, 8).map((category) => (
+          <Link key={category.id} to={`/category/${category.title.toLowerCase()}`} className="flex items-center text-white hover:text-gray-300 mr-4">
+            <img src={category.icon} alt={category.title} className="w-5 h-5 mr-1" />
+            {category.title}
+          </Link>
+        ))}
+      </div>
+      <div className="flex items-center">
+        {categoriesData.slice(8).map((category) => (
+          <Link key={category.id} to={`/category/${category.title.toLowerCase()}`} className="flex items-center text-white hover:text-gray-300 ml-4">
+            <img src={category.icon} alt={category.title} className="w-5 h-5 mr-1" />
+            {category.title}
+          </Link>
+        ))}
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;
