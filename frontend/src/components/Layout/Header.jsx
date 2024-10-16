@@ -33,7 +33,7 @@ const Header = ({ activeHeading }) => {
     "Find your style...",
     "Discover unique designs...",
     "Explore our collection...",
-    "searching for a trend maybe? "
+    "Searching for a trend maybe? "
   ];
 
   useEffect(() => {
@@ -78,7 +78,7 @@ const Header = ({ activeHeading }) => {
 
   return (
     <>
-      <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} transition hidden 800px:flex items-center justify-between w-full bg-[#151523] h-[146px]`}>
+      <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} transition-all duration-300 ease-in-out hidden 800px:flex items-center justify-between w-full bg-[#151523] h-[146px]`}>
         <div className={`${styles.section} relative ${styles.noramlFlex} justify-between`}>
           <div>
             <Link to="/">
