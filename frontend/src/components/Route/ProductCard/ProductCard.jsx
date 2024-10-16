@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { AiFillHeart, AiOutlineEye, AiOutlineHeart, AiOutlineShoppingCart } from "react-icons/ai";
 import { Link } from "react-router-dom";
 import styles from "../../../styles/styles";
+import { AiFillHeart, AiOutlineEye, AiOutlineHeart, AiOutlineShoppingCart } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import ProductDetailsCard from "../ProductDetailsCard/ProductDetailsCard";
 import { addToWishlist, removeFromWishlist } from "../../../redux/actions/wishlist";
@@ -99,7 +99,7 @@ const ProductCard = ({ data, isEvent }) => {
 
   return (
     <div 
-      className="w-full h-[370px] bg-[#333] rounded-lg shadow-md relative cursor-pointer overflow-hidden"
+      className="w-full h-[370px] bg-[#333] rounded-lg shadow-md relative cursor-pointer overflow-hidden transform transition-all duration-300 hover:scale-105"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -154,13 +154,13 @@ const ProductCard = ({ data, isEvent }) => {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => addToCartHandler(data._id)}
-              className="bg-white text-black p-2 rounded-full hover:bg-gray-200 transition-colors duration-300"
+              className="bg-white text-black p-2 rounded-full hover:bg-gray-200 transition-all duration-300 transform hover:scale-110"
             >
               <AiOutlineShoppingCart size={20} />
             </button>
             <button
               onClick={() => click ? removeFromWishlistHandler(data) : addToWishlistHandler(data)}
-              className="bg-white text-black p-2 rounded-full hover:bg-gray-200 transition-colors duration-300"
+              className="bg-white text-black p-2 rounded-full hover:bg-gray-200 transition-all duration-300 transform hover:scale-110"
             >
               {click ? <AiFillHeart size={20} color="red" /> : <AiOutlineHeart size={20} />}
             </button>
