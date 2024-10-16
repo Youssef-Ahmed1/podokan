@@ -80,28 +80,24 @@ const Header = ({ activeHeading }) => {
     <>
       <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} transition hidden 800px:flex items-center justify-between w-full bg-[#151523] h-[70px]`}>
         <div className={`${styles.section} relative ${styles.noramlFlex} justify-between`}>
-          <div>
-            <Link to="/">
-              <img
-                src="https://shopo.quomodothemes.website/assets/images/logo.svg"
-                alt=""
-                className="h-[50px]"
-              />
+          <div className="flex items-center">
+            <BiMenuAltLeft size={30} className="cursor-pointer text-white mr-2" onClick={() => setOpen(true)} />
+            <Link to="/" className="text-white text-3xl font-bold">
+              TEEPUBLIC
             </Link>
           </div>
           <div className="w-[50%] relative">
-            <input
-              type="text"
-              placeholder={placeholders[placeholderIndex]}
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="h-[50px] w-full px-4 rounded-md bg-[length:400%_400%] p-[2px] border-[1px]"
-            />
-            <div className="absolute bg-black w-[51px] h-[51px] right-[3px] top-[2px] flex items-center justify-center rounded-r-md">
-              <AiOutlineSearch
-                size={20}
-                className="cursor-pointer text-white"
+            <div className="w-full relative animate-border inline-block bg-white bg-gradient-to-r from-[#551c2c] via-[#b131ea] to-[#f2ad55] bg-[length:400%_400%] p-[2.5px] rounded-md">
+              <input
+                type="text"
+                placeholder={placeholders[placeholderIndex]}
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="h-[50px] w-full px-4 rounded-md bg-[#151523] text-white"
               />
+              <div className="absolute bg-black w-[51px] h-[51px] right-[3px] top-[2px] flex items-center justify-center rounded-r-md">
+                <AiOutlineSearch size={20} className="cursor-pointer text-white" />
+              </div>
             </div>
             {searchData && searchData.length !== 0 ? (
               <div className="absolute min-h-[30vh] bg-slate-50 shadow-sm-2 z-[9] p-4 w-full">
@@ -120,16 +116,16 @@ const Header = ({ activeHeading }) => {
               </div>
             ) : null}
           </div>
-          <div className="flex">
+          <div className="flex items-center">
             <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenWishlist(true)}>
               <AiOutlineHeart size={30} color="rgb(255 255 255 / 83%)" />
-              <span className="absolute -right-2 -top-2 rounded-full bg-[#3bc177] w-4 h-4 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
+              <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
                 {wishlist && wishlist.length}
               </span>
             </div>
             <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenCart(true)}>
               <AiOutlineShoppingCart size={30} color="rgb(255 255 255 / 83%)" />
-              <span className="absolute -right-2 -top-2 rounded-full bg-[#3bc177] w-4 h-4 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
+              <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
                 {cart && cart.length}
               </span>
             </div>
@@ -155,18 +151,14 @@ const Header = ({ activeHeading }) => {
       </div>
       
       {/* navitems */}
-      <div className={`${
-        active === true ? "shadow-sm fixed top-[70px] left-0 z-10" : null
-      } transition hidden 800px:flex items-center justify-between w-full bg-[#232332] h-[60px]`}>
+      <div className={`${active === true ? "shadow-sm fixed top-[70px] left-0 z-10" : null} transition hidden 800px:flex items-center justify-between w-full bg-[#232332] h-[60px]`}>
         <div className={`${styles.section} relative ${styles.noramlFlex}`}>
           <Navbar active={activeHeading} />
         </div>
       </div>
 
       {/* mobile header */}
-      <div className={`${
-        active === true ? "shadow-sm fixed top-0 left-0 z-10" : null
-      } w-full bg-[#151523] z-50 top-0 left-0 shadow-sm 800px:hidden`}>
+      <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} w-full bg-[#151523] z-50 top-0 left-0 shadow-sm 800px:hidden`}>
         <div className="w-full flex items-center justify-between p-4">
           <div>
             <BiMenuAltLeft
@@ -202,64 +194,100 @@ const Header = ({ activeHeading }) => {
 
         {/* mobile search bar */}
         <div className="w-full px-4 pb-4">
-          <div className="w-full relative">
+          <div className="w-full relative animate-border inline-block bg-white bg-gradient-to-r from-[#551c2c] via-[#b131ea] to-[#f2ad55] bg-[length:400%_400%] p-[2.5px] rounded-md">
             <input
               type="text"
               placeholder="Search Product..."
               value={searchTerm}
               onChange={handleSearchChange}
-              className="h-[40px] w-full px-2 border-[#3957db] border-[2px] rounded-md"
+              className="h-[40px] w-full px-2 rounded-md bg-[#151523] text-white"
             />
-            <AiOutlineSearch
-              size={30}
-              className="absolute right-2 top-1.5 cursor-pointer text-[#3957db]"
-            />
-            {searchData && searchData.length !== 0 ? (
-              <div className="absolute min-h-[30vh] bg-slate-50 shadow-sm-2 z-[9] p-4 w-full">
-                {searchData.map((i, index) => (
-                  <Link key={index} to={`/product/${i._id}`}>
-                    <div className="w-full flex items-start py-3">
-                      <img
-                        src={`${i.designImage?.url}`}
-                        alt=""
-                        className="w-[40px] h-[40px] mr-[10px]"
-                      />
-                      <h1>{i.DesignTitle}</h1>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : null}
+            <div className="absolute bg-black w-[41px] h-[41px] right-[3px] top-[2px] flex items-center justify-center rounded-r-md">
+              <AiOutlineSearch size={20} className="cursor-pointer text-white" />
+            </div>
           </div>
+          {searchData && searchData.length !== 0 ? (
+            <div className="absolute min-h-[30vh] bg-slate-50 shadow-sm-2 z-[9] p-4 w-full">
+              {searchData.map((i, index) => (
+                <Link key={index} to={`/product/${i._id}`}>
+                  <div className="w-full flex items-start py-3">
+                    <img
+                      src={`${i.designImage?.url}`}
+                      alt=""
+                      className="w-[40px] h-[40px] mr-[10px]"
+                    />
+                    <h1>{i.DesignTitle}</h1>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         {/* mobile sidebar */}
         {open && (
           <div className="fixed w-full bg-[#0000005f] z-20 h-full top-0 left-0">
-            <div className="fixed w-[70%] bg-[#fff] h-screen top-0 left-0 z-10 overflow-y-scroll">
+            <div className="fixed w-[70%] bg-[#151523] h-screen top-0 left-0 z-10 overflow-y-scroll">
               <div className="w-full justify-between flex pr-3">
                 <div>
                   <div
                     className="relative mr-[15px]"
                     onClick={() => setOpenWishlist(true) || setOpen(false)}
                   >
-                    <AiOutlineHeart size={30} className="mt-5 ml-3" />
-                    <span className="absolute right-0 top-0 rounded-full bg-[#3bc177] w-4 h-4 top right p-0 m-0 text-white font-mono text-[12px]  leading-tight text-center">
+                    <AiOutlineHeart size={30} className="mt-5 ml-3 text-white" />
+                    <span className="absolute right-0 top-0 rounded-full bg-[#3bc177] w-4 h-4 top right p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
                       {wishlist && wishlist.length}
                     </span>
                   </div>
                 </div>
                 <RxCross1
                   size={30}
-                  className="ml-4 mt-5"
+                  className="ml-4 mt-5 text-white"
                   onClick={() => setOpen(false)}
                 />
               </div>
 
               <div className="my-8 w-full h-[40px relative]">
-                <Link to="/dashboard-create-product" className="text-[16px] text-[#000000b7] pl-[36px] flex items-center">
+                <Link to="/dashboard-create-product" className="text-[16px] text-[#fff] pl-[36px] flex items-center">
                   <FiUpload className="mr-2" />
                   Upload Your Art
+                </Link>
+              </div>
+
+              <div className="mb-4">
+                <Link to="/shop-designs" className="block text-white text-xl font-bold mb-2 px-4">
+                  Shop Designs
+                  <span className="text-sm block text-gray-400">Discover a classic design or new favorite artist</span>
+                </Link>
+                <Link to="/apparel" className="block text-white text-xl font-bold mb-2 px-4">
+                  Apparel
+                  <span className="text-sm block text-gray-400">Shop for Adults & Kids</span>
+                </Link>
+                <Link to="/accessories" className="block text-white text-xl font-bold mb-2 px-4">
+                  Accessories
+                  <span className="text-sm block text-gray-400">Express yourself with stickers and more</span>
+                </Link>
+                <Link to="/home-goods" className="block text-white text-xl font-bold mb-4 px-4">
+                  Home Goods
+                  <span className="text-sm block text-gray-400">Decorate with pillows, tapestries, and more</span>
+                </Link>
+              </div>
+
+              <div className="px-4">
+                <h2 className="text-white text-xl font-bold mb-2">Popular Products</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  {['T-Shirts', 'Hats', 'Stickers', 'Mugs', 'Kids T-Shirts', 'Hoodies', 'Tank Tops', 'Long Sleeve T-Shirts'].map((product) => (
+                    <Link key={product} to={`/${product.toLowerCase().replace(' ', '-')}`} className="bg-[#232332] rounded-lg p-2 flex items-center">
+                      <div className="w-8 h-8 bg-[#3a3a4c] rounded-full mr-2"></div>
+                      <span className="text-white">{product}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <div className="px-4 mt-4">
+                <Link to="/shop-all-designs" className="block w-full bg-[#4e64df] text-white text-center py-3 rounded-full">
+                  Shop All Designs
                 </Link>
               </div>
 
@@ -282,13 +310,13 @@ const Header = ({ activeHeading }) => {
                   <>
                     <Link
                       to="/login"
-                      className="text-[18px] pr-[10px] text-[#000000b7]"
+                      className="text-[18px] pr-[10px] text-[#fff]"
                     >
                       Login /
                     </Link>
                     <Link
                       to="/sign-up"
-                      className="text-[18px] text-[#000000b7]"
+                      className="text-[18px] text-[#fff]"
                     >
                       Sign up
                     </Link>
