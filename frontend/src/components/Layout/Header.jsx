@@ -78,7 +78,7 @@ const Header = ({ activeHeading }) => {
 
   return (
     <>
-      <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} transition-all duration-300 ease-in-out hidden 800px:flex items-center justify-between w-full bg-[#151523] h-[146px]`}>
+      <div className={`${active ? "shadow-sm fixed top-0 left-0 z-10" : ""} transition-all duration-300 ease-in-out hidden 800px:flex items-center justify-between w-full bg-[#151523] h-[146px]`}>
         <div className={`${styles.section} relative ${styles.noramlFlex} justify-between`}>
           <div>
             <Link to="/">
@@ -183,8 +183,8 @@ const Header = ({ activeHeading }) => {
       {/* mobile header */}
       <div
         className={`${
-          active === true ? "shadow-sm fixed top-0 left-0 z-10" : null
-        } w-full bg-[#121212] z-50 top-0 left-0 shadow-sm 800px:hidden`}
+          active ? "shadow-sm fixed top-0 left-0 z-10" : ""
+        } w-full bg-[#121212] z-50 top-0 left-0 shadow-sm 800px:hidden transition-all duration-300 ease-in-out`}
       >
         <div className="w-full flex items-center justify-between p-4">
           <div>
@@ -265,8 +265,8 @@ const Header = ({ activeHeading }) => {
 
         {/* mobile sidebar */}
         {open && (
-          <div className={`fixed w-full bg-[#0000005f] z-20 h-full top-0 left-0`}>
-            <div className="fixed w-[70%] bg-[#fff] h-screen top-0 left-0 z-10 overflow-y-scroll">
+          <div className="fixed w-full bg-[#0000005f] z-20 h-full top-0 left-0">
+            <div className="fixed w-[70%] bg-[#fff] h-screen top-0 left-0 z-10 overflow-y-scroll transform transition-transform duration-300 ease-in-out translate-x-0">
               <div className="w-full justify-between flex pr-3">
                 <div>
                   <div
@@ -330,6 +330,22 @@ const Header = ({ activeHeading }) => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Artist Sign Up */}
+      <div className="hidden 800px:block fixed bottom-0 left-0 right-0 z-20">
+        <div className="bg-[#2b2b3b] w-full h-[80px] bg-opacity-75 rounded-t-xl text-[#fff] flex items-center justify-between px-10">   
+          <span className='font-semibold'>Turn your passion into profit.</span>
+          <span>Sell your art on podokan today!</span>
+          <div className="w-[150px] h-[42px] bg-[#4e64df] rounded-xl font-medium">
+            <Link to={`${isSeller ? "/dashboard" : "/shop-create"}`}>
+              <h1 className="relative text-[#fff] flex items-center justify-center h-full">
+                {isSeller ? "Go Dashboard" : "Artist SignUp"}{" "}
+                <FiArrowRight className="ml-1" />
+              </h1>
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* cart popup */}
