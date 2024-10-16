@@ -6,7 +6,7 @@ import {
   AiOutlineSearch,
   AiOutlineShoppingCart,
 } from "react-icons/ai";
-import { FiArrowRight } from "react-icons/fi";
+import { FiArrowRight, FiUpload } from "react-icons/fi";
 import { BiMenuAltLeft } from "react-icons/bi";
 import Navbar from "./Navbar";
 import { useSelector } from "react-redux";
@@ -26,6 +26,25 @@ const Header = ({ activeHeading }) => {
   const [openCart, setOpenCart] = useState(false);
   const [openWishlist, setOpenWishlist] = useState(false);
   const [open, setOpen] = useState(false);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+  const placeholders = [
+    "Search for t-shirts...",
+    "Find your style...",
+    "Discover unique designs...",
+    "Explore our collection...",
+    "searching for a trend maybe? "
+  ];
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setPlaceholderIndex((prevIndex) => 
+        (prevIndex + 1) % placeholders.length
+      );
+    }, 2000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   const handleSearchChange = (e) => {
     const term = e.target.value;
@@ -73,7 +92,7 @@ const Header = ({ activeHeading }) => {
           <div className="w-[50%] relative">
             <input
               type="text"
-              placeholder="searching for a trend maybe?"
+              placeholder={placeholders[placeholderIndex]}
               value={searchTerm}
               onChange={handleSearchChange}
               className="h-[50px] w-full px-4 rounded-md bg-[length:400%_400%] p-[2px] border-[1px]"
@@ -114,22 +133,40 @@ const Header = ({ activeHeading }) => {
                 {cart && cart.length}
               </span>
             </div>
-            <Link to="/dashboard-create-product" className="bg-[#4e64df] text-white px-4 py-2 rounded-full">
-              Dashboard
+            {isAuthenticated ? (
+              <Link to="/profile">
+                <img
+                  src={`${user?.avatar?.url}`}
+                  className="w-[35px] h-[35px] rounded-full mr-[15px]"
+                  alt=""
+                />
+              </Link>
+            ) : (
+              <Link to="/login" className="text-white mr-[15px]">
+                Login
+              </Link>
+            )}
+            <Link to="/dashboard-create-product" className="bg-[#4e64df] text-white px-4 py-2 rounded-full flex items-center">
+              <FiUpload className="mr-2" />
+              Upload Your Art
             </Link>
           </div>
         </div>
       </div>
       
       {/* navitems */}
-      <div className={`${active === true ? "shadow-sm fixed top-[70px] left-0 z-10" : null} transition hidden 800px:flex items-center justify-between w-full bg-[#232332] h-[60px]`}>
+      <div className={`${
+        active === true ? "shadow-sm fixed top-[70px] left-0 z-10" : null
+      } transition hidden 800px:flex items-center justify-between w-full bg-[#232332] h-[60px]`}>
         <div className={`${styles.section} relative ${styles.noramlFlex}`}>
           <Navbar active={activeHeading} />
         </div>
       </div>
 
       {/* mobile header */}
-      <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} w-full bg-[#151523] z-50 top-0 left-0 shadow-sm 800px:hidden`}>
+      <div className={`${
+        active === true ? "shadow-sm fixed top-0 left-0 z-10" : null
+      } w-full bg-[#151523] z-50 top-0 left-0 shadow-sm 800px:hidden`}>
         <div className="w-full flex items-center justify-between p-4">
           <div>
             <BiMenuAltLeft
@@ -220,12 +257,12 @@ const Header = ({ activeHeading }) => {
               </div>
 
               <div className="my-8 w-full h-[40px relative]">
-                <Link to="/dashboard-create-product" className="text-[16px] text-[#000000b7] pl-[36px]">
-                  Dashboard
+                <Link to="/dashboard-create-product" className="text-[16px] text-[#000000b7] pl-[36px] flex items-center">
+                  <FiUpload className="mr-2" />
+                  Upload Your Art
                 </Link>
               </div>
 
-              <Navbar active={activeHeading} />
               <br />
               <br />
               <br />
