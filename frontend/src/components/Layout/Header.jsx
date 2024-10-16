@@ -6,7 +6,7 @@ import {
   AiOutlineSearch,
   AiOutlineShoppingCart,
 } from "react-icons/ai";
-import { FiUpload, FiArrowRight } from "react-icons/fi";
+import { FiUpload } from "react-icons/fi";
 import { BiMenuAltLeft } from "react-icons/bi";
 import Navbar from "./Navbar";
 import { useSelector } from "react-redux";
@@ -14,7 +14,6 @@ import Cart from "../cart/Cart";
 import Wishlist from "../Wishlist/Wishlist";
 import { RxCross1 } from "react-icons/rx";
 import { categoriesData, navItems } from "../../static/data";
-import ArtistSign from "./ArtistSign";
 
 const Header = ({ activeHeading }) => {
   const { isAuthenticated, user } = useSelector((state) => state.user);
@@ -300,7 +299,7 @@ const Header = ({ activeHeading }) => {
                 <Link to={`${isSeller ? "/dashboard" : "/shop-create"}`}>
                   <div className="w-full h-[40px] bg-[#4e64df] rounded-xl flex items-center justify-center text-white font-semibold">
                     {isSeller ? "Go Dashboard" : "Artist SignUp"}{" "}
-                    <FiArrowRight className="ml-1" />
+                    <FiUpload className="ml-1" />
                   </div>
                 </Link>
               </div>
@@ -358,8 +357,6 @@ const Header = ({ activeHeading }) => {
           </div>
         </div>
       ) : null}
-
-      <ArtistSign />
     </>
   );
 };
