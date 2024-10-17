@@ -4,7 +4,7 @@ import { categoriesData } from '../../static/data';
 
 const Navbar = ({ active }) => {
   return (
-    <div className="flex items-center justify-center 800px:gap-8">
+    <div className="flex items-center justify-between w-full">
       <Link 
         to="/all-designs" 
         className={`text-white hover:text-[#f6b92e] transition-colors duration-300 ${
