@@ -119,7 +119,15 @@ const Header = ({ activeHeading }) => {
                 </div>
               ) : null}
             </div>
-            <div className="flex items-center ml-4">
+          </div>
+          <div className="flex items-center">
+            <div className="relative z-20">
+              <Link to="/dashboard-create-product" className="bg-[#4e64df] text-white px-4 py-2 rounded-full flex items-center whitespace-nowrap">
+                <FiUpload className="mr-2" />
+                Go Dashboard
+              </Link>
+            </div>
+            <div className="flex items-center ml-4 z-10">
               <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenWishlist(true)}>
                 <AiOutlineHeart size={30} color="rgb(255 255 255 / 83%)" />
                 <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
@@ -146,12 +154,6 @@ const Header = ({ activeHeading }) => {
                 </Link>
               )}
             </div>
-          </div>
-          <div className="flex items-center">
-            <Link to="/dashboard-create-product" className="bg-[#4e64df] text-white px-4 py-2 rounded-full flex items-center whitespace-nowrap">
-              <FiUpload className="mr-2" />
-              Go Dashboard
-            </Link>
           </div>
         </div>
         
@@ -333,12 +335,16 @@ const Header = ({ activeHeading }) => {
 
       {/* cart popup */}
       {openCart ? (
-        <Cart setOpenCart={setOpenCart} />
+        <div className="fixed top-0 left-0 w-full h-screen bg-[#0000004b] z-50">
+          <Cart setOpenCart={setOpenCart} />
+        </div>
       ) : null}
 
       {/* wishlist popup */}
       {openWishlist ? (
-        <Wishlist setOpenWishlist={setOpenWishlist} />
+        <div className="fixed top-0 left-0 w-full h-screen bg-[#0000004b] z-50">
+          <Wishlist setOpenWishlist={setOpenWishlist} />
+        </div>
       ) : null}
     </>
   );
