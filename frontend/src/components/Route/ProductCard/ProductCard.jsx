@@ -127,7 +127,7 @@ const ProductCard = ({ data, isEvent }) => {
                 alt={data.DesignTitle || "Product Design"}
                 className="absolute w-1/2 h-1/2 object-contain"
                 style={{ 
-                  transform: `scale(${data.DesignScale || 0.6})`,
+                  transform: `scale(${data.DesignScale})`,
                 }}
               />
             </div>
