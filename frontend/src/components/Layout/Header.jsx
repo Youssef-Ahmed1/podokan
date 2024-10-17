@@ -13,7 +13,7 @@ import { useSelector } from "react-redux";
 import Cart from "../cart/Cart";
 import Wishlist from "../Wishlist/Wishlist";
 import { RxCross1 } from "react-icons/rx";
-import siteLogo from "../../Assests/siteLogo.png";
+import siteLogo from "../../assets/siteLogo.svg";
 
 const Header = ({ activeHeading }) => {
   const { isAuthenticated, user } = useSelector((state) => state.user);
@@ -84,7 +84,7 @@ const Header = ({ activeHeading }) => {
           <div className="flex items-center">
             <BiMenuAltLeft size={30} className="cursor-pointer text-white mr-2" onClick={() => setOpen(true)} />
             <Link to="/" className="text-white">
-              <img src={siteLogo} alt="Site Logo" className="h-[50px]" />
+              <img src={siteLogo} alt="Site Logo" className="h-[60px]" />
             </Link>
           </div>
           <div className="flex items-center justify-center flex-grow">
@@ -118,37 +118,37 @@ const Header = ({ activeHeading }) => {
                 </div>
               ) : null}
             </div>
-            <div className="flex items-center ml-4">
-              <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenWishlist(true)}>
-                <AiOutlineHeart size={30} color="rgb(255 255 255 / 83%)" />
-                <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
-                  {wishlist && wishlist.length}
-                </span>
-              </div>
-              <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenCart(true)}>
-                <AiOutlineShoppingCart size={30} color="rgb(255 255 255 / 83%)" />
-                <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
-                  {cart && cart.length}
-                </span>
-              </div>
-              {isAuthenticated ? (
-                <Link to="/profile">
-                  <img
-                    src={`${user?.avatar?.url}`}
-                    className="w-[35px] h-[35px] rounded-full mr-[15px]"
-                    alt=""
-                  />
-                </Link>
-              ) : (
-                <Link to="/login" className="text-white mr-[15px]">
-                  Login
-                </Link>
-              )}
-              <Link to="/dashboard-create-product" className="bg-[#4e64df] text-white px-4 py-2 rounded-full flex items-center">
-                <FiUpload className="mr-2" />
-                Upload Your Art
-              </Link>
+          </div>
+          <div className="flex items-center">
+            <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenWishlist(true)}>
+              <AiOutlineHeart size={30} color="rgb(255 255 255 / 83%)" />
+              <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
+                {wishlist && wishlist.length}
+              </span>
             </div>
+            <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenCart(true)}>
+              <AiOutlineShoppingCart size={30} color="rgb(255 255 255 / 83%)" />
+              <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
+                {cart && cart.length}
+              </span>
+            </div>
+            {isAuthenticated ? (
+              <Link to="/profile">
+                <img
+                  src={`${user?.avatar?.url}`}
+                  className="w-[35px] h-[35px] rounded-full mr-[15px]"
+                  alt=""
+                />
+              </Link>
+            ) : (
+              <Link to="/login" className="text-white mr-[15px]">
+                Login
+              </Link>
+            )}
+            <Link to="/dashboard-create-product" className="bg-[#4e64df] text-white px-4 py-2 rounded-full flex items-center whitespace-nowrap">
+              <FiUpload className="mr-2" />
+              Upload Your Art
+            </Link>
           </div>
         </div>
         
