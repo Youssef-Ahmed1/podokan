@@ -13,7 +13,7 @@ import { useSelector } from "react-redux";
 import Cart from "../cart/Cart";
 import Wishlist from "../Wishlist/Wishlist";
 import { RxCross1 } from "react-icons/rx";
-import siteLogo from "../../Assests/siteLogo.svg";
+import siteLogo from "../../assets/siteLogo.svg";
 
 const Header = ({ activeHeading }) => {
   const { isAuthenticated, user } = useSelector((state) => state.user);
@@ -89,17 +89,18 @@ const Header = ({ activeHeading }) => {
           </div>
           <div className="flex items-center justify-center flex-grow">
             <div className="w-[60%] relative">
-              <input
-                type="text"
-                placeholder={placeholders[placeholderIndex]}
-                value={searchTerm}
-                onChange={handleSearchChange}
-                className="h-[40px] w-full px-4 rounded-md bg-[#232332] text-white"
-              />
-              <AiOutlineSearch
-                size={20}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer text-white"
-              />
+              <div className="w-full relative animate-border inline-block bg-white bg-gradient-to-r from-[#551c2c] via-[#b131ea] to-[#f2ad55] bg-[length:400%_400%] p-[2.5px] rounded-md">
+                <input
+                  type="text"
+                  placeholder={placeholders[placeholderIndex]}
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  className="h-[50px] w-full px-4 rounded-md bg-[#151523] text-white"
+                />
+                <div className="absolute bg-black w-[51px] h-[51px] right-[3px] top-[2px] flex items-center justify-center rounded-r-md">
+                  <AiOutlineSearch size={20} className="cursor-pointer text-white" />
+                </div>
+              </div>
               {searchData && searchData.length !== 0 ? (
                 <div className="absolute min-h-[30vh] bg-slate-50 shadow-sm-2 z-[9] p-4 w-full">
                   {searchData.map((i, index) => (
@@ -192,35 +193,34 @@ const Header = ({ activeHeading }) => {
 
         {/* mobile search bar */}
         <div className="w-full px-4 pb-4">
-          <div className="w-full relative">
+          <div className="w-full relative animate-border inline-block bg-white bg-gradient-to-r from-[#551c2c] via-[#b131ea] to-[#f2ad55] bg-[length:400%_400%] p-[2.5px] rounded-md">
             <input
               type="text"
               placeholder="Search Product..."
               value={searchTerm}
               onChange={handleSearchChange}
-              className="h-[40px] w-full px-2 border-[#3957db] border-[2px] rounded-md"
+              className="h-[40px] w-full px-2 rounded-md bg-[#151523] text-white"
             />
-            <AiOutlineSearch
-              size={30}
-              className="absolute right-2 top-1.5 cursor-pointer text-[#3957db]"
-            />
-            {searchData && searchData.length !== 0 ? (
-              <div className="absolute min-h-[30vh] bg-slate-50 shadow-sm-2 z-[9] p-4 w-full">
-                {searchData.map((i, index) => (
-                  <Link key={index} to={`/product/${i._id}`}>
-                    <div className="w-full flex items-start py-3">
-                      <img
-                        src={`${i.designImage?.url}`}
-                        alt=""
-                        className="w-[40px] h-[40px] mr-[10px]"
-                      />
-                      <h1>{i.DesignTitle}</h1>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : null}
+            <div className="absolute bg-black w-[41px] h-[41px] right-[3px] top-[2px] flex items-center justify-center rounded-r-md">
+              <AiOutlineSearch size={20} className="cursor-pointer text-white" />
+            </div>
           </div>
+          {searchData && searchData.length !== 0 ? (
+            <div className="absolute min-h-[30vh] bg-slate-50 shadow-sm-2 z-[9] p-4 w-full">
+              {searchData.map((i, index) => (
+                <Link key={index} to={`/product/${i._id}`}>
+                  <div className="w-full flex items-start py-3">
+                    <img
+                      src={`${i.designImage?.url}`}
+                      alt=""
+                      className="w-[40px] h-[40px] mr-[10px]"
+                    />
+                    <h1>{i.DesignTitle}</h1>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         {/* mobile sidebar */}
