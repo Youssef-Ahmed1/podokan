@@ -13,6 +13,7 @@ import { useSelector } from "react-redux";
 import Cart from "../cart/Cart";
 import Wishlist from "../Wishlist/Wishlist";
 import { RxCross1 } from "react-icons/rx";
+import siteLogo from "../../assets/siteLogo.svg";
 
 const Header = ({ activeHeading }) => {
   const { isAuthenticated, user } = useSelector((state) => state.user);
@@ -78,12 +79,12 @@ const Header = ({ activeHeading }) => {
 
   return (
     <>
-      <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} transition hidden 800px:flex items-center justify-between w-full bg-[#151523] h-[70px]`}>
-        <div className={`${styles.section} relative ${styles.noramlFlex} justify-between`}>
+      <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} transition hidden 800px:flex flex-col items-center justify-between w-full bg-[#151523]`}>
+        <div className={`${styles.section} relative ${styles.noramlFlex} justify-between w-full h-[70px]`}>
           <div className="flex items-center">
             <BiMenuAltLeft size={30} className="cursor-pointer text-white mr-2" onClick={() => setOpen(true)} />
             <Link to="/" className="text-white text-3xl font-bold">
-              TEEPUBLIC
+              <img src={siteLogo} alt="Site Logo" className="h-[50px]" />
             </Link>
           </div>
           <div className="w-[50%] relative">
@@ -148,12 +149,12 @@ const Header = ({ activeHeading }) => {
             </Link>
           </div>
         </div>
-      </div>
-      
-      {/* navitems */}
-      <div className={`${active === true ? "shadow-sm fixed top-[70px] left-0 z-10" : null} transition hidden 800px:flex items-center justify-between w-full bg-[#232332] h-[60px]`}>
-        <div className={`${styles.section} relative ${styles.noramlFlex}`}>
-          <Navbar active={activeHeading} />
+        
+        {/* navitems */}
+        <div className="w-full bg-[#151523] h-[60px] flex items-center justify-center">
+          <div className={`${styles.section} relative ${styles.noramlFlex}`}>
+            <Navbar active={activeHeading} />
+          </div>
         </div>
       </div>
 
@@ -169,11 +170,7 @@ const Header = ({ activeHeading }) => {
           </div>
           <div>
             <Link to="/">
-              <img
-                src="https://shopo.quomodothemes.website/assets/images/logo.svg"
-                alt=""
-                className="w-[100px]"
-              />
+              <img src={siteLogo} alt="Site Logo" className="h-[50px]" />
             </Link>
           </div>
           <div className="flex">
