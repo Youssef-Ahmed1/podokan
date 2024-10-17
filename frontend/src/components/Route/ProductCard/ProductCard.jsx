@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { AiFillHeart, AiOutlineHeart, AiOutlineShoppingCart } from "react-icons/ai";
+import styles from "../../../styles/styles";
+import { AiFillHeart, AiOutlineEye, AiOutlineHeart, AiOutlineShoppingCart } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
+import ProductDetailsCard from "../ProductDetailsCard/ProductDetailsCard";
 import { addToWishlist, removeFromWishlist } from "../../../redux/actions/wishlist";
 import { addTocart } from "../../../redux/actions/cart";
 import { toast } from "react-toastify";
+import Ratings from "../../Products/Ratings";
 
 const ProductCard = ({ data, isEvent }) => {
   const { wishlist } = useSelector((state) => state.wishlist);
   const { cart } = useSelector((state) => state.cart);
   const [click, setClick] = useState(false);
+  const [open, setOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const dispatch = useDispatch();
 
@@ -112,18 +116,18 @@ const ProductCard = ({ data, isEvent }) => {
             style={{ opacity: isHovered ? 0 : 1 }}
           />
           {isHovered && (
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
               <img
                 src={getMockupUrl()}
                 alt={data.DesignTitle || "Product Mockup"}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-700 transform scale-110"
               />
               <img
                 src={getDesignImage()}
                 alt={data.DesignTitle || "Product Design"}
-                className="absolute w-1/2 h-1/2 object-contain"
+                className="absolute w-1/3 h-1/3 object-contain"
                 style={{ 
-                  transform: `scale(${data.DesignScale || 0.5})`,
+                  transform: `scale(${data.DesignScale || 0.3})`,
                 }}
               />
             </div>
