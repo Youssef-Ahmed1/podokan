@@ -58,7 +58,8 @@ const ProductCard = ({ data, isEvent }) => {
     if (!data) return '';
     const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
     let version, folder, filename;
-    
+    console.log(baseUrl)
+
     switch (data.ProductType) {
       case "hoodie":
         version = "v1728392918";
@@ -102,7 +103,7 @@ const ProductCard = ({ data, isEvent }) => {
     : 0;
 
   return (
-    <div className="w-full bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="w-full bg-black rounded-lg shadow-md overflow-hidden">
       <div 
         className="relative w-full h-[280px]"
         onMouseEnter={() => setIsHovered(true)}
