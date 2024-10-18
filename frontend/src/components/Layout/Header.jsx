@@ -13,7 +13,7 @@ import { useSelector } from "react-redux";
 import Cart from "../cart/Cart";
 import Wishlist from "../Wishlist/Wishlist";
 import { RxCross1 } from "react-icons/rx";
-import siteLogo from "../../Assests/siteLogo.png";
+import siteLogo from "../../assets/siteLogo.svg";
 
 const Header = ({ activeHeading }) => {
   const { isAuthenticated, user } = useSelector((state) => state.user);
@@ -144,13 +144,11 @@ const Header = ({ activeHeading }) => {
                   Login
                 </Link>
               )}
+              <Link to="/dashboard-create-product" className="bg-[#4e64df] text-white px-4 py-2 rounded-full flex items-center whitespace-nowrap">
+                <FiUpload className="mr-2" />
+                Upload Your Art
+              </Link>
             </div>
-          </div>
-          <div className="flex items-center">
-            <Link to="/dashboard-create-product" className="bg-[#4e64df] text-white px-4 py-2 rounded-full flex items-center whitespace-nowrap">
-              <FiUpload className="mr-2" />
-              Upload Your Art
-            </Link>
           </div>
         </div>
         
