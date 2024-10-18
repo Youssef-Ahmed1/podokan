@@ -102,7 +102,7 @@ const ProductCard = ({ data, isEvent }) => {
     : 0;
 
   return (
-    <div className="w-full bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="w-full bg-black rounded-lg shadow-md overflow-hidden">
       <div 
         className="relative w-full h-[280px]"
         onMouseEnter={() => setIsHovered(true)}
