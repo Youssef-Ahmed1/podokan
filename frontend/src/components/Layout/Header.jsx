@@ -79,6 +79,9 @@ const Header = ({ activeHeading }) => {
 
   return (
     <>
+     {/* Add this comment with a unique identifier */}
+      {/* HEADER_VERSION: 2023-06-15-001 */}
+      <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} transition hidden 800px:flex flex-col items-center justify-between w-full bg-[#151523]`}></div>
       <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} transition hidden 800px:flex flex-col items-center justify-between w-full bg-[#151523]`}>
         <div className={`${styles.section} relative ${styles.noramlFlex} justify-between w-full h-[70px]`}>
           <div className="flex items-center">
