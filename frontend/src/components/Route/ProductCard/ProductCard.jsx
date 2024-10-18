@@ -58,7 +58,8 @@ const ProductCard = ({ data, isEvent }) => {
     if (!data) return '';
     const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
     let version, folder, filename;
-    
+    console.log(baseUrl)
+
     switch (data.ProductType) {
       case "hoodie":
         version = "v1728392918";
@@ -85,7 +86,6 @@ const ProductCard = ({ data, isEvent }) => {
 
     return `${baseUrl}${version}/${folder}/${filename}.png`;
   };
-  console.log(baseUrl)
 
   const getDesignImage = () => {
     if (data && data.designImage) {
