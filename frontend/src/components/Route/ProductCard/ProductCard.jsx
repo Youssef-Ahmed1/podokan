@@ -85,6 +85,7 @@ const ProductCard = ({ data, isEvent }) => {
 
     return `${baseUrl}${version}/${folder}/${filename}.png`;
   };
+  console.log(baseUrl)
 
   const getDesignImage = () => {
     if (data && data.designImage) {
