@@ -83,12 +83,12 @@ const Header = ({ activeHeading }) => {
         <div className={`${styles.section} relative ${styles.noramlFlex} justify-between w-full h-[70px]`}>
           <div className="flex items-center">
             <BiMenuAltLeft size={30} className="cursor-pointer text-white mr-2" onClick={() => setOpen(true)} />
-            <Link to="/" className="text-white ml-4">
+          </div>
+          <div className="flex items-center justify-center">
+            <Link to="/" className="text-white mr-4">
               <img src={siteLogo} alt="Site Logo" className="h-[154px]" />
             </Link>
-          </div>
-          <div className="flex items-center justify-center flex-grow mx-4">
-            <div className="w-full relative">
+            <div className="w-[60%] relative">
               <div className="w-full relative animate-border inline-block bg-white bg-gradient-to-r from-[#551c2c] via-[#b131ea] to-[#f2ad55] bg-[length:400%_400%] p-[2.5px] rounded-md">
                 <input
                   type="text"
@@ -118,9 +118,7 @@ const Header = ({ activeHeading }) => {
                 </div>
               ) : null}
             </div>
-          </div>
-          <div className="flex items-center">
-            <div className="flex items-center mr-4">
+            <div className="flex items-center ml-4">
               <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenWishlist(true)}>
                 <AiOutlineHeart size={30} color="rgb(255 255 255 / 83%)" />
                 <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
@@ -147,6 +145,8 @@ const Header = ({ activeHeading }) => {
                 </Link>
               )}
             </div>
+          </div>
+          <div className="flex items-center">
             <Link to="/dashboard-create-product" className="bg-[#4e64df] text-white px-4 py-2 rounded-full flex items-center whitespace-nowrap">
               <FiUpload className="mr-2" />
               Upload Your Art
@@ -277,7 +277,7 @@ const Header = ({ activeHeading }) => {
           </div>
           <div>
             <Link to="/">
-              <img src={siteLogo} alt="Site Logo" className="h-[80px]" />
+              <img src={siteLogo} alt="Site Logo" className="h-[100px]" />
             </Link>
           </div>
           <div className="flex">
