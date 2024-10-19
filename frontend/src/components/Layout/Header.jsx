@@ -6,14 +6,14 @@ import {
   AiOutlineSearch,
   AiOutlineShoppingCart,
 } from "react-icons/ai";
-import { FiUpload } from "react-icons/fi";
+import { FiUpload, FiArrowRight } from "react-icons/fi";
 import { BiMenuAltLeft } from "react-icons/bi";
 import Navbar from "./Navbar";
 import { useSelector } from "react-redux";
 import Cart from "../cart/Cart";
 import Wishlist from "../Wishlist/Wishlist";
 import { RxCross1 } from "react-icons/rx";
-import siteLogo from "../../Assests/siteLogo.png";
+import siteLogo from "../../assets/siteLogo.svg";
 
 const Header = ({ activeHeading }) => {
   const { isAuthenticated, user } = useSelector((state) => state.user);
@@ -63,24 +63,25 @@ const Header = ({ activeHeading }) => {
       <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} transition hidden 800px:flex items-center justify-between w-full bg-[#151523] h-[70px]`}>
         <div className="flex items-center">
           <BiMenuAltLeft size={30} className="cursor-pointer text-white ml-4" onClick={() => setOpen(true)} />
-          <Link to="/" className="ml-4">
+          <Link to="/" className="ml-2">
             <img src={siteLogo} alt="Site Logo" className="h-[60px]" />
           </Link>
         </div>
         <div className="w-[50%] relative">
-          <input
-            type="text"
-            placeholder="Search Product..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="h-[40px] w-full px-2 border-[#3957db] border-[2px] rounded-md"
-          />
-          <AiOutlineSearch
-            size={30}
-            className="absolute right-2 top-1.5 cursor-pointer"
-          />
+          <div className="w-full relative animate-border inline-block bg-white bg-gradient-to-r from-[#551c2c] via-[#b131ea] to-[#f2ad55] bg-[length:400%_400%] p-[2.5px] rounded-md">
+            <input
+              type="text"
+              placeholder="Search Product..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="h-[50px] w-full px-4 rounded-md bg-[#151523] text-white"
+            />
+            <div className="absolute bg-black w-[51px] h-[51px] right-[3px] top-[2px] flex items-center justify-center rounded-r-md">
+              <AiOutlineSearch size={20} className="cursor-pointer text-white" />
+            </div>
+          </div>
           {searchData && searchData.length !== 0 ? (
-            <div className="absolute min-h-[30vh] bg-slate-50 shadow-sm-2 z-[9] p-4">
+            <div className="absolute min-h-[30vh] bg-slate-50 shadow-sm-2 z-[9] p-4 w-full">
               {searchData.map((i, index) => (
                 <Link key={index} to={`/product/${i._id}`}>
                   <div className="w-full flex items-start py-3">
@@ -104,6 +105,12 @@ const Header = ({ activeHeading }) => {
                 {wishlist && wishlist.length}
               </span>
             </div>
+            <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenCart(true)}>
+              <AiOutlineShoppingCart size={30} color="rgb(255 255 255 / 83%)" />
+              <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
+                {cart && cart.length}
+              </span>
+            </div>
             {isAuthenticated ? (
               <Link to="/profile">
                 <img
@@ -117,14 +124,8 @@ const Header = ({ activeHeading }) => {
                 Login
               </Link>
             )}
-            <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenCart(true)}>
-              <AiOutlineShoppingCart size={30} color="rgb(255 255 255 / 83%)" />
-              <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
-                {cart && cart.length}
-              </span>
-            </div>
           </div>
-          <Link to="/dashboard-create-product" className="bg-[#4e64df] text-white px-4 py-2 rounded-full flex items-center">
+          <Link to="/dashboard-create-product" className="bg-[#4e64df] text-white px-4 py-2 rounded-full flex items-center hover:bg-[#3a4fc7] transition-all duration-300">
             <FiUpload className="mr-2" />
             Upload Your Art
           </Link>
@@ -205,21 +206,25 @@ const Header = ({ activeHeading }) => {
             </div>
 
             <div className="mb-4">
-              <Link to="/shop-designs" className="block text-white text-xl font-bold mb-2 px-4">
+              <Link to="/shop-designs" className="block text-white text-xl font-bold mb-2 px-4 hover:bg-[#232332] transition-all duration-300">
                 Shop Designs
                 <span className="text-sm block text-gray-400">Discover a classic design or new favorite artist</span>
+                <FiArrowRight className="inline-block ml-2" />
               </Link>
-              <Link to="/apparel" className="block text-white text-xl font-bold mb-2 px-4">
+              <Link to="/apparel" className="block text-white text-xl font-bold mb-2 px-4 hover:bg-[#232332] transition-all duration-300">
                 Apparel
                 <span className="text-sm block text-gray-400">Shop for Adults & Kids</span>
+                <FiArrowRight className="inline-block ml-2" />
               </Link>
-              <Link to="/accessories" className="block text-white text-xl font-bold mb-2 px-4">
+              <Link to="/accessories" className="block text-white text-xl font-bold mb-2 px-4 hover:bg-[#232332] transition-all duration-300">
                 Accessories
                 <span className="text-sm block text-gray-400">Express yourself with stickers and more</span>
+                <FiArrowRight className="inline-block ml-2" />
               </Link>
-              <Link to="/home-goods" className="block text-white text-xl font-bold mb-4 px-4">
+              <Link to="/home-goods" className="block text-white text-xl font-bold mb-4 px-4 hover:bg-[#232332] transition-all duration-300">
                 Home Goods
                 <span className="text-sm block text-gray-400">Decorate with pillows, tapestries, and more</span>
+                <FiArrowRight className="inline-block ml-2" />
               </Link>
             </div>
 
@@ -227,7 +232,7 @@ const Header = ({ activeHeading }) => {
               <h2 className="text-white text-xl font-bold mb-2">Popular Products</h2>
               <div className="grid grid-cols-2 gap-4">
                 {['T-Shirts', 'Hats', 'Stickers', 'Mugs', 'Kids T-Shirts', 'Hoodies', 'Tank Tops', 'Long Sleeve T-Shirts'].map((product) => (
-                  <Link key={product} to={`/${product.toLowerCase().replace(' ', '-')}`} className="bg-[#232332] rounded-lg p-2 flex items-center">
+                  <Link key={product} to={`/${product.toLowerCase().replace(' ', '-')}`} className="bg-[#232332] rounded-lg p-2 flex items-center hover:bg-[#2e2e3e] transition-all duration-300">
                     <div className="w-8 h-8 bg-[#3a3a4c] rounded-full mr-2"></div>
                     <span className="text-white">{product}</span>
                   </Link>
@@ -236,7 +241,7 @@ const Header = ({ activeHeading }) => {
             </div>
 
             <div className="px-4 mt-4">
-              <Link to="/shop-all-designs" className="block w-full bg-[#4e64df] text-white text-center py-3 rounded-full">
+              <Link to="/shop-all-designs" className="block w-full bg-[#4e64df] text-white text-center py-3 rounded-full hover:bg-[#3a4fc7] transition-all duration-300">
                 Shop All Designs
               </Link>
             </div>
