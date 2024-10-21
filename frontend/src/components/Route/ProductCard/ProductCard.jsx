@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import styles from "../../../styles/styles";
-import { AiFillHeart, AiOutlineEye, AiOutlineHeart, AiOutlineShoppingCart } from "react-icons/ai";
+import { AiFillHeart, AiOutlineHeart, AiOutlineShoppingCart } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
-import ProductDetailsCard from "../ProductDetailsCard/ProductDetailsCard";
 import { addToWishlist, removeFromWishlist } from "../../../redux/actions/wishlist";
 import { addTocart } from "../../../redux/actions/cart";
 import { toast } from "react-toastify";
-import Ratings from "../../Products/Ratings";
 
 const ProductCard = ({ data, isEvent }) => {
   const { wishlist } = useSelector((state) => state.wishlist);
   const { cart } = useSelector((state) => state.cart);
   const [click, setClick] = useState(false);
-  const [open, setOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const dispatch = useDispatch();
 
@@ -54,39 +50,6 @@ const ProductCard = ({ data, isEvent }) => {
     return parseFloat(price).toFixed(2);
   };
 
-  const getMockupUrl = () => {
-    if (!data) return '';
-    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-    let version, folder, filename;
-    console.log(baseUrl)
-
-    switch (data.ProductType) {
-      case "hoodie":
-        version = "v1728392918";
-        folder = "hoodies";
-        filename = `hoodie-${data.ProductColor}-front`;
-        break;
-      case "t-shirt":
-        version = "v1728393898";
-        folder = "t-shirts";
-        filename = `t-shirt-${data.ProductColor}-front`;
-        break;
-      case "long-sleeve":
-        version = "v1728394669";
-        folder = "long-sleeves";
-        if (data.ProductColor === "gray") {
-          filename = `longsleeves-${data.ProductColor}-front`;
-        } else {
-          filename = `t-shirt-${data.ProductColor}-front`;
-        }
-        break;
-      default:
-        return "";
-    }
-
-    return `${baseUrl}${version}/${folder}/${filename}.png`;
-  };
-
   const getDesignImage = () => {
     if (data && data.designImage) {
       if (typeof data.designImage === 'string') {
@@ -103,66 +66,52 @@ const ProductCard = ({ data, isEvent }) => {
     : 0;
 
   return (
-    <div className="w-full bg-black rounded-lg shadow-md overflow-hidden">
-      <div 
-        className="relative w-full h-[280px]"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <Link to={`${isEvent === true ? `/product/${data._id}?isEvent=true` : `/product/${data._id}`}`}>
+    <div className="relative group">
+      <Link to={`${isEvent === true ? `/product/${data._id}?isEvent=true` : `/product/${data._id}`}`}>
+        <div 
+          className="relative w-full aspect-square overflow-hidden bg-gray-100"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
           <img
             src={getDesignImage()}
             alt={data.DesignTitle || "Product Design"}
-            className="w-full h-full object-contain transition-opacity duration-700"
-            style={{ opacity: isHovered ? 0 : 1 }}
+            className="w-full h-full object-contain transition-all duration-300 group-hover:scale-110"
+            style={{ 
+              transform: `scale(${data.DesignScale || 1})`,
+            }}
           />
-          {isHovered && (
-            <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
-              <img
-                src={getMockupUrl()}
-                alt={data.DesignTitle || "Product Mockup"}
-                className="w-full h-full object-cover transition-transform duration-700 transform scale-110"
-              />
-              <img
-                src={getDesignImage()}
-                alt={data.DesignTitle || "Product Design"}
-                className="absolute w-1/2 h-1/2 object-contain"
-                style={{ 
-                  transform: `scale(${data.DesignScale})`,
-                }}
-              />
-            </div>
-          )}
-        </Link>
-        {discountPercentage > 0 && (
-          <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-sm">
-            {discountPercentage}% OFF
-          </div>
-        )}
-      </div>
-      <div className="p-4">
-        <h4 className="font-semibold truncate">{data.DesignTitle || "Unnamed Product"}</h4>
+        </div>
+      </Link>
+      
+      {discountPercentage > 0 && (
+        <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs">
+          {discountPercentage}% OFF
+        </div>
+      )}
+      
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <h4 className="text-white font-semibold truncate">{data.DesignTitle || "Unnamed Product"}</h4>
         <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center">
-            <p className="text-orange-500 font-bold text-xl">
-              £{formatPrice(data.discountPrice || data.originalPrice)}
-            </p>
-            {data.discountPrice && data.originalPrice && data.discountPrice < data.originalPrice && (
-              <p className="text-gray-400 line-through ml-2">
-                £{formatPrice(data.originalPrice)}
-              </p>
-            )}
-          </div>
+          <p className="text-white font-bold">
+            £{formatPrice(data.discountPrice || data.originalPrice)}
+          </p>
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => addToCartHandler(data._id)}
-              className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-all duration-300"
+              onClick={(e) => {
+                e.preventDefault();
+                addToCartHandler(data._id);
+              }}
+              className="bg-white text-black p-2 rounded-full hover:bg-gray-200 transition-all duration-300"
             >
               <AiOutlineShoppingCart size={20} />
             </button>
             <button
-              onClick={() => click ? removeFromWishlistHandler(data) : addToWishlistHandler(data)}
-              className="bg-gray-200 text-gray-800 p-2 rounded-full hover:bg-gray-300 transition-all duration-300"
+              onClick={(e) => {
+                e.preventDefault();
+                click ? removeFromWishlistHandler(data) : addToWishlistHandler(data);
+              }}
+              className="bg-white text-black p-2 rounded-full hover:bg-gray-200 transition-all duration-300"
             >
               {click ? <AiFillHeart size={20} color="red" /> : <AiOutlineHeart size={20} />}
             </button>
