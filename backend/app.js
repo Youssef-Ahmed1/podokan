@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 100 * 2048 * 2048 }, // 50MB limit
+  limits: { fileSize: 100 * 2048 * 2048 }, // 100MB limit
   fileFilter: function (req, file, cb) {
     const filetypes = /jpeg|jpg|png|gif/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
