@@ -13,10 +13,9 @@ app.use(cors({
 }));
 
 // Middleware
-app.use(express.json());
-app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(cookieParser());
 
 // Debugging middleware
 app.use((req, res, next) => {
@@ -30,18 +29,10 @@ app.get('/', (req, res) => {
 });
 
 // Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, 'uploads'));
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
-  },
-});
-
+const storage = multer.memoryStorage();
 const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 },
+  storage: storage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
   fileFilter: function (req, file, cb) {
     const filetypes = /jpeg|jpg|png|gif/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
@@ -90,7 +81,7 @@ app.use((err, req, res, next) => {
   if (err.name === 'PayloadTooLargeError') {
     return res.status(413).json({
       success: false,
-      message: 'Request entity too large'
+      message: 'File size exceeds the limit (50MB). Please choose a smaller file.'
     });
   }
 
