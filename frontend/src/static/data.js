@@ -51,37 +51,37 @@ export const brandingData = [
 export const categoriesData = [
   {
     id: 1,
-    title: "Funny",
+    title: "funny",
     icon: `${funnyIcon}`,
   },
   {
     id: 2,
-    title: "Music",
+    title: "music",
     icon: `${musicIcon}`,
   },
   {
     id: 3,
-    title: "Anime",
+    title: "anime",
     icon: `${animeIcon}`,
   },
   {
     id: 4,
-    title: "Movies",
+    title: "movies",
     icon: `${movieIcon}`,
   },
   {
     id: 5,
-    title: "Television",
+    title: "television",
     icon:`${televisonIcon}`
   },
   {
     id: 6,
-    title: "Sports",
+    title: "sports",
     icon: `${sportsIcon}`
   },
   {
     id: 7,
-    title: "Sci-Fi",
+    title: "sci-fi",
     icon:`${scifisIcon}`
   },
  //{
@@ -91,12 +91,12 @@ export const categoriesData = [
  // },
   {
     id: 9,
-    title: "T-shirts",
+    title: "Hoodies",
     icon: `${hoodieIcon}`,
   },
   {
     id: 10,
-    title: "Hoodies",
+    title: "t-shirts",
     icon: `${shirtIcon}`,
 
   },

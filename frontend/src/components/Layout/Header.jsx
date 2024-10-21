@@ -7,7 +7,7 @@ import {
   AiOutlineShoppingCart,
 } from "react-icons/ai";
 import { FiArrowRight, FiUpload } from "react-icons/fi";
-import { BiMenuAltLeft } from "react-icons/bi";
+import { GiHamburgerMenu } from 'react-icons/gi';
 import Navbar from "./Navbar";
 import { useSelector } from "react-redux";
 import Cart from "../cart/Cart";
@@ -80,16 +80,17 @@ const Header = ({ activeHeading }) => {
   return (
     <>
       {/* HEADER_VERSION: 2023-06-15-001 */}
-      <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} transition hidden 800px:flex flex-col items-center justify-between w-full bg-[#151523]`}>
-        <div className={`${styles.section} relative ${styles.noramlFlex} justify-between w-full h-[70px]`}>
+      <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} transition hidden 800px:flex items-center justify-between w-full bg-[#151523] h-[70px]`}>
+        <div className={`${styles.section} relative ${styles.noramlFlex} justify-between w-full`}>
           <div className="flex items-center">
-            <BiMenuAltLeft size={30} className="cursor-pointer text-[#4e64df] mr-2" onClick={() => setOpen(true)} />
-            <Link to="/" className="text-white mr-2">
-              <img src={siteLogo} alt="Site Logo" className="h-[200px] object-contain" />
-            </Link>
+            <GiHamburgerMenu size={40} className="cursor-pointer text-[#4e64df] mr-4" onClick={() => setOpen(true)} />
           </div>
-          <div className="flex items-center justify-center flex-1">
-            <div className="w-[60%] relative mr-2">
+          
+          <div className="flex items-center flex-grow justify-center">
+            <Link to="/" className="mr-4">
+              <img src={siteLogo} alt="Site Logo" className="h-[60px] object-contain" />
+            </Link>
+            <div className="w-[50%] relative">
               <div className="w-full relative animate-border inline-block bg-white bg-gradient-to-r from-[#551c2c] via-[#b131ea] to-[#f2ad55] bg-[length:400%_400%] p-[2.5px] rounded-md">
                 <input
                   type="text"
@@ -119,44 +120,38 @@ const Header = ({ activeHeading }) => {
                 </div>
               ) : null}
             </div>
-            <div className="flex items-center">
-              <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenWishlist(true)}>
-                <AiOutlineHeart size={30} color="rgb(255 255 255 / 83%)" />
-                <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
-                  {wishlist && wishlist.length}
-                </span>
-              </div>
-              <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenCart(true)}>
-                <AiOutlineShoppingCart size={30} color="rgb(255 255 255 / 83%)" />
-                <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
-                  {cart && cart.length}
-                </span>
-              </div>
-              {isAuthenticated ? (
-                <Link to="/profile">
-                  <img
-                    src={`${user?.avatar?.url}`}
-                    className="w-[35px] h-[35px] rounded-full mr-[15px]"
-                    alt=""
-                  />
-                </Link>
-              ) : (
-                <Link to="/login" className="text-white mr-[15px]">
-                  Login
-                </Link>
-              )}
-              <Link to="/dashboard-create-product" className="bg-[#4e64df] text-white px-4 py-2 rounded-full flex items-center whitespace-nowrap">
-                <FiUpload className="mr-2" />
-                Upload Your Art
-              </Link>
-            </div>
           </div>
-        </div>
-        
-        {/* navitems */}
-        <div className="w-full bg-[#151523] h-[60px] flex items-center justify-center border-t border-gray-600">
-          <div className={`${styles.section} relative ${styles.noramlFlex}`}>
-            <Navbar active={activeHeading} />
+
+          <div className="flex items-center">
+            <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenWishlist(true)}>
+              <AiOutlineHeart size={30} color="rgb(255 255 255 / 83%)" />
+              <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
+                {wishlist && wishlist.length}
+              </span>
+            </div>
+            <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenCart(true)}>
+              <AiOutlineShoppingCart size={30} color="rgb(255 255 255 / 83%)" />
+              <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
+                {cart && cart.length}
+              </span>
+            </div>
+            {isAuthenticated ? (
+              <Link to="/profile">
+                <img
+                  src={`${user?.avatar?.url}`}
+                  className="w-[35px] h-[35px] rounded-full mr-[15px]"
+                  alt=""
+                />
+              </Link>
+            ) : (
+              <Link to="/login" className="text-white mr-[15px]">
+                Login
+              </Link>
+            )}
+            <Link to="/dashboard-create-product" className="bg-[#4e64df] text-white px-4 py-2 rounded-full flex items-center whitespace-nowrap">
+              <FiUpload className="mr-2" />
+              Upload Your Art
+            </Link>
           </div>
         </div>
       </div>
@@ -268,15 +263,15 @@ const Header = ({ activeHeading }) => {
       <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} w-full bg-[#151523] z-50 top-0 left-0 shadow-sm 800px:hidden`}>
         <div className="w-full flex items-center justify-between p-4">
           <div>
-            <BiMenuAltLeft
+            <GiHamburgerMenu
               size={40}
-              className="ml-1 text-white"
+              className="ml-1 text-[#4e64df]"
               onClick={() => setOpen(true)}
             />
           </div>
           <div>
             <Link to="/">
-              <img src={siteLogo} alt="Site Logo" className="h-[150px]" />
+              <img src={siteLogo} alt="Site Logo" className="h-[60px]" />
             </Link>
           </div>
           <div className="flex">
