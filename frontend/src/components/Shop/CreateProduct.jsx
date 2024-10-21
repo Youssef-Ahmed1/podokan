@@ -45,8 +45,8 @@ const CreateProduct = () => {
   const handleDesignUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 50 * 1024 * 1024) { // 50MB limit
-        toast.error("File size exceeds 50MB limit. Please choose a smaller file.");
+      if (file.size > 100 * 2048 * 2048) { // 50MB limit
+        toast.error("File size exceeds 100MB limit. Please choose a smaller file.");
         return;
       }
       const reader = new FileReader();
