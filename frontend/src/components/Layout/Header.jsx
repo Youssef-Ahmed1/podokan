@@ -61,14 +61,14 @@ const Header = ({ activeHeading }) => {
   return (
     <>
       <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} transition hidden 800px:flex items-center justify-between w-full bg-[#151523] h-[70px]`}>
-        <div className="flex items-center flex-1">
-          <BiMenuAltLeft size={30} className="cursor-pointer text-[#4e64df] ml-4" onClick={() => setOpen(true)} />
-          <Link to="/" className="ml-2">
+        <div className="flex items-center ml-2">
+          <BiMenuAltLeft size={30} className="cursor-pointer text-[#4e64df] mr-2" onClick={() => setOpen(true)} />
+          <Link to="/">
             <img src={siteLogo} alt="Site Logo" className="h-[200px] object-contain" />
           </Link>
         </div>
-        <div className="flex items-center justify-center flex-1">
-          <div className="w-[60%] relative">
+        <div className="flex items-center justify-center flex-grow">
+          <div className="w-[50%] relative">
             <div className="w-full relative animate-border inline-block bg-white bg-gradient-to-r from-[#551c2c] via-[#b131ea] to-[#f2ad55] bg-[length:400%_400%] p-[2.5px] rounded-md">
               <input
                 type="text"
@@ -99,8 +99,8 @@ const Header = ({ activeHeading }) => {
             ) : null}
           </div>
         </div>
-        <div className="flex items-center justify-end flex-1">
-          <div className="flex mr-4">
+        <div className="flex items-center mr-2">
+          <div className="flex items-center mr-4">
             <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenWishlist(true)}>
               <AiOutlineHeart size={30} color="rgb(255 255 255 / 83%)" />
               <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
