@@ -1,42 +1,42 @@
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
+
 // create product
 export const createProduct = (formData) => async (dispatch) => {
   try {
     dispatch({ type: "productCreateRequest" });
-
-    // console.log("Sending formData:", formData);
-    for (let pair of formData.entries()) {
-      // console.log(pair[0] + ': ' + pair[1]);
-    }
 
     const { data } = await axios.post(`${server}/product/create-product`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       withCredentials: true
     });
 
-    // console.log("Server response:", data);
-
     dispatch({ type: "productCreateSuccess", payload: data.product });
     return { success: true, message: "Product created successfully!" };
-  }  catch (error) {
+  } catch (error) {
     console.error("Error creating product:", error);
+    let errorMessage = "An error occurred while creating the product.";
     if (error.response) {
-      // console.error("Error response:", error.response.data);
+      if (error.response.status === 413) {
+        errorMessage = "File size exceeds the limit (50MB). Please choose a smaller file.";
+      } else {
+        errorMessage = error.response.data.message || errorMessage;
+      }
       console.error("Error status:", error.response.status);
     } else if (error.request) {
-      // console.error("No response received:", error.request);
+      console.error("No response received:", error.request);
     } else {
       console.error("Error setting up request:", error.message);
     }
     dispatch({
       type: "productCreateFail",
-      payload: error.response?.data?.message || error.message,
+      payload: errorMessage,
     });
-    return { success: false, message: error.response?.data?.message || "An error occurred while creating the product." };
+    return { success: false, message: errorMessage };
   }
 };
+
 // fetch pending products (for admin)
 export const fetchPendingProducts = () => async (dispatch) => {
   try {
@@ -57,7 +57,6 @@ export const fetchPendingProducts = () => async (dispatch) => {
       discountPrice: product.discountPrice || product.originalPrice || 0
     }));
 
-    // console.log("Fetched and processed pending products:", products);
     dispatch({ type: "fetchPendingProductsSuccess", payload: products });
   } catch (error) {
     console.error("Error fetching pending products:", error);
@@ -68,18 +67,10 @@ export const fetchPendingProducts = () => async (dispatch) => {
   }
 };
 
-
 // approve or reject product (for admin)
-
 export const approveRejectProduct = (productId, status, rejectionReason, updates) => async (dispatch) => {
   try {
     dispatch({ type: "approveRejectProductRequest" });
-
-    // console.log("Sending request to approve/reject product");
-    // console.log("Product ID:", productId);
-    // console.log("Status:", status);
-    // console.log("Rejection Reason:", rejectionReason);
-    // console.log("Updates:", updates);
 
     const response = await axios.put(
       `${server}/product/approve-reject-product/${productId}`,
@@ -91,8 +82,6 @@ export const approveRejectProduct = (productId, status, rejectionReason, updates
         }
       }
     );
-
-    // console.log("Server response:", response.data);
 
     if (response.data.success) {
       dispatch({ type: "approveRejectProductSuccess", payload: response.data.message });
@@ -124,6 +113,7 @@ export const approveRejectProduct = (productId, status, rejectionReason, updates
     throw new Error(errorMessage);
   }
 };
+
 // get all products of a shop
 export const getAllProductsShop = (id) => async (dispatch) => {
   try {
@@ -192,8 +182,7 @@ export const getAllProducts = () => async (dispatch) => {
       originalPrice: product.originalPrice || 0,
       discountPrice: product.discountPrice || product.originalPrice || 0
     }));
-  // console.log("Approved products:", approvedProducts);
-  dispatch({ type: "getAllProductsSuccess", payload: approvedProducts });
+    dispatch({ type: "getAllProductsSuccess", payload: approvedProducts });
   } catch (error) {
     dispatch({
       type: "getAllProductsFailed",
