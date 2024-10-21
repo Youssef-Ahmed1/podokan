@@ -82,7 +82,7 @@ const Header = ({ activeHeading }) => {
       {/* HEADER_VERSION: 2023-06-15-001 */}
       <div className={`${active === true ? "shadow-sm fixed top-0 left-0 z-10" : null} transition hidden 800px:flex items-center justify-between w-full bg-[#151523] h-[70px]`}>
         <div className={`${styles.section} relative ${styles.noramlFlex} justify-between w-full`}>
-          <div className="flex items-center relative left-56">
+          <div className="flex items-center relative left-52">
             <GiHamburgerMenu size={40} className="cursor-pointer text-[#4e64df] mr-4" onClick={() => setOpen(true)} />
           </div>
           
