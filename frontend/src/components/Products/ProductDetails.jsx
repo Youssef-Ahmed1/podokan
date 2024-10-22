@@ -53,14 +53,6 @@ const ProductDetails = ({ data }) => {
     }
   }, [data, dispatch, wishlist]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTab((prevTab) => (prevTab === "product" ? "design" : "product"));
-    }, 5000); // Change every 5 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
   const incrementCount = () => {
     setCount((prevCount) => prevCount + 1);
   };
@@ -363,15 +355,15 @@ const ProductDetails = ({ data }) => {
                 </div>
                 {/* Price */}
                 <div className="flex items-baseline mt-8">
-              <h4 className="text-3xl font-bold text-black">
-              £{formatPrice(data.discountPrice || data.originalPrice)}
-              </h4>
-              {data.discountPrice && data.originalPrice && data.discountPrice < data.originalPrice && (
-                <h3 className="text-xl line-through text-gray-400 ml-2">
-                  £{formatPrice(data.originalPrice)}
-                </h3>
-              )}
-            </div>
+                  <h4 className="text-3xl font-bold text-black">
+                    £{formatPrice(data.discountPrice || data.originalPrice)}
+                  </h4>
+                  {data.discountPrice && data.originalPrice && data.discountPrice < data.originalPrice && (
+                    <h3 className="text-xl line-through text-gray-400 ml-2">
+                      £{formatPrice(data.originalPrice)}
+                    </h3>
+                  )}
+                </div>
                 {/* Add to cart */}
                 <div className="flex items-center mt-8">
                   <div className="flex items-center border border-gray-400 rounded-md px-4 py-2">
