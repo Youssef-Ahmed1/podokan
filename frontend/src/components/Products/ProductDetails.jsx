@@ -262,8 +262,19 @@ const ProductDetails = ({ data }) => {
                   </button>
                 </div>
               </div>
-              <div className="w-full lg:w-1/2 pt-5">
-                <h1 className="text-2xl text-center mb-4 font-serif">{data.DesignTitle}</h1>
+              <div className="w-full lg:w-1/2 pt-5 relative left-24">
+                <h1 className="text-2xl mb-4 font-Poppins font-bold">{data.DesignTitle}</h1>
+                
+                <div className="flex items-baseline mt-8">
+                  <h4 className="text-3xl font-bold text-black">
+                    £{formatPrice(data.discountPrice || data.originalPrice)}
+                  </h4>
+                  {data.discountPrice && data.originalPrice && data.discountPrice < data.originalPrice && (
+                    <h3 className="text-xl line-through text-gray-400 ml-2">
+                      £{formatPrice(data.originalPrice)}
+                    </h3>
+                  )}
+                </div>
              
                 {/* Color selection */}
                 <div className="flex items-center mt-4">
@@ -354,16 +365,7 @@ const ProductDetails = ({ data }) => {
                   </div>
                 </div>
                 {/* Price */}
-                <div className="flex items-baseline mt-8">
-                  <h4 className="text-3xl font-bold text-black">
-                    £{formatPrice(data.discountPrice || data.originalPrice)}
-                  </h4>
-                  {data.discountPrice && data.originalPrice && data.discountPrice < data.originalPrice && (
-                    <h3 className="text-xl line-through text-gray-400 ml-2">
-                      £{formatPrice(data.originalPrice)}
-                    </h3>
-                  )}
-                </div>
+                
                 {/* Add to cart */}
                 <div className="flex items-center mt-8">
                   <div className="flex items-center border border-gray-400 rounded-md px-4 py-2">
