@@ -12,6 +12,15 @@ import { addToWishlist, removeFromWishlist } from "../../redux/actions/wishlist"
 import { addTocart } from "../../redux/actions/cart";
 import Ratings from "./Ratings";
 
+// Constants
+const COLOR_OPTIONS = {
+  white: { value: 'white', label: 'White', hex: '#ffffff', textColor: 'text-gray-800' },
+  black: { value: 'black', label: 'Black', hex: '#000000', textColor: 'text-white' },
+  red: { value: 'red', label: 'Red', hex: '#ff0000', textColor: 'text-white' },
+  blue: { value: 'blue', label: 'Blue', hex: '#0000ff', textColor: 'text-white' },
+  gray: { value: 'gray', label: 'Gray', hex: '#808080', textColor: 'text-white' }
+};
+
 const PRODUCT_TYPES = {
   't-shirt': { 
     value: 't-shirt', 
@@ -46,6 +55,57 @@ const MATERIAL_OPTIONS = [
   { value: 'standard', label: 'Standard Material', multiplier: 1 },
   { value: 'premium', label: 'Premium Material', multiplier: 2 },
 ];
+
+// SizeGuide Component
+const SizeGuide = memo(({ onClose }) => (
+  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold">Size Guide</h3>
+          <button 
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            ×
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="p-3 text-left">Size</th>
+                <th className="p-3">Chest (inches)</th>
+                <th className="p-3">Length (inches)</th>
+                <th className="p-3">Sleeve (inches)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { size: 'S', chest: '36-38', length: '27', sleeve: '8.5' },
+                { size: 'M', chest: '39-41', length: '28', sleeve: '9' },
+                { size: 'L', chest: '42-44', length: '29', sleeve: '9.5' },
+                { size: 'XL', chest: '45-47', length: '30', sleeve: '10' },
+              ].map((row) => (
+                <tr key={row.size} className="border-b">
+                  <td className="p-3 font-medium">{row.size}</td>
+                  <td className="p-3 text-center">{row.chest}</td>
+                  <td className="p-3 text-center">{row.length}</td>
+                  <td className="p-3 text-center">{row.sleeve}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="mt-4 text-sm text-gray-600">
+            <p>Measurements are approximate and may vary slightly by style.</p>
+            <p className="mt-2">For best results, measure yourself and compare to the size chart above.</p>
+            <p className="mt-2">If you're between sizes, order the larger size for a more comfortable fit.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+));
 
 // ProductPreview Component
 const ProductPreview = memo(({ 
@@ -190,9 +250,7 @@ const ProductPreview = memo(({
       )}
     </div>
   );
-});
-
-// Price Calculator Component
+});// PriceDisplay Component
 const PriceDisplay = memo(({ 
   product, 
   selectedMaterial 
@@ -286,7 +344,9 @@ const PriceDisplay = memo(({
       </div>
     </div>
   );
-});// Main ProductDetails Component
+});
+
+// Main ProductDetails Component
 const ProductDetails = memo(({ data }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -304,7 +364,6 @@ const ProductDetails = memo(({ data }) => {
 
   const isInWishlist = wishlist?.find((item) => item._id === data?._id);
 
-  // Handlers
   const handleMessageSeller = () => {
     if (!isAuthenticated) {
       toast.error("Please login to contact seller");
