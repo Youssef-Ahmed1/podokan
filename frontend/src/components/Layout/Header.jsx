@@ -121,7 +121,7 @@ const Header = ({ activeHeading }) => {
                   </div>
                 ) : null}
               </div>
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 <div className="relative cursor-pointer mr-[15px]" onClick={() => setOpenWishlist(true)}>
                   <AiOutlineHeart size={30} color="rgb(255 255 255 / 83%)" />
                   <span className="absolute -right-2 -top-2 rounded-full bg-[#f6b92e] w-5 h-5 p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
