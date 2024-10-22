@@ -202,24 +202,7 @@ const Header = ({ activeHeading }) => {
         </div>
       </div>
 
-      {/* ArtistSign - Only show on homepage */}
-      {location.pathname === '/' && (
-        <div className="hidden 800px:block relative z-40">
-          <div className="bg-[#2b2b3b] left-[280px] bottom-[-26px] w-[1200px] h-[80px] bg-opacity-75 relative rounded-xl text-[#fff] flex items-center justify-left">   
-            <span className='font-semibold relative left-48'>Turn your passion into profit.</span>
-            <span className='relative left-56'>Sell your art on podokan today!</span>
-          </div>
-
-          <div className="w-[150px] h-[42px] bg-[#4e64df] rounded-xl font-medium left-[1070px] bottom-[35px] relative z-10">
-            <Link to={`${isSeller ? "/dashboard" : "/shop-create"}`}>
-              <h1 className="relative text-[#fff] flex items-center justify-center top-[8px]">
-                {isSeller ? "Go Dashboard" : " Artist SignUp"}{" "}
-                <FiArrowRight className="ml-1" />
-              </h1>
-            </Link>
-          </div>  
-        </div>
-      )} {/* Mobile Header */}
+       {/* Mobile Header */}
       <div className={`
         ${active ? "shadow-sm fixed top-0 left-0 z-50" : "relative z-50"}
         w-full bg-[#151523] lg:hidden
