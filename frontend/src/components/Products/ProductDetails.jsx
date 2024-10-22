@@ -90,6 +90,151 @@ const ZoomModal = memo(({ image, onClose }) => (
   </div>
 ));
 
+// Product Details Info component
+const ProductDetailsInfo = memo(({
+  data,
+  products,
+  totalReviewsLength,
+  averageRating,
+}) => {
+  const [active, setActive] = useState(1);
+
+  const tabs = [
+    { id: 1, label: "Product Details" },
+    { id: 2, label: "Product Reviews" },
+    { id: 3, label: "Seller Information" },
+  ];
+
+  return (
+    <div className="bg-[#f5f6fb] rounded-lg overflow-hidden shadow-sm">
+      {/* Tabs Navigation */}
+      <div className="border-b border-gray-200">
+        <div className="flex justify-between px-4 sm:px-8">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className="relative py-4 px-1 focus:outline-none"
+              onClick={() => setActive(tab.id)}
+            >
+              <h5
+                className={`
+                  text-[16px] xs:text-[18px] font-semibold
+                  transition-colors duration-200
+                  ${active === tab.id ? 'text-black' : 'text-gray-600 hover:text-gray-800'}
+                `}
+              >
+                {tab.label}
+              </h5>
+              {active === tab.id && (
+                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black" />
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tabs Content */}
+      <div className="p-4 sm:p-8">
+        {/* Product Details Tab */}
+        {active === 1 && (
+          <div className="prose max-w-none">
+            <p className="text-[16px] xs:text-[18px] leading-7 whitespace-pre-line text-gray-600">
+              {data.Description}
+            </p>
+          </div>
+        )}
+
+        {/* Reviews Tab */}
+        {active === 2 && (
+          <div className="min-h-[40vh] space-y-4">
+            {data.reviews?.length > 0 ? (
+              data.reviews.map((item, index) => (
+                <div key={index} className="flex space-x-4 bg-white p-4 rounded-lg shadow-sm">
+                  <img
+                    src={item.user.avatar?.url}
+                    alt={item.user.name}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h1 className="font-semibold">{item.user.name}</h1>
+                      <Ratings rating={item.rating} />
+                    </div>
+                    <p className="mt-2 text-gray-600">{item.comment}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex justify-center items-center h-[40vh]">
+                <h5 className="text-center text-gray-500">
+                  No Reviews have been submitted for this product!
+                </h5>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Seller Information Tab */}
+        {active === 3 && (
+          <div className="grid grid-cols-1 800px:grid-cols-2 gap-6 p-5">
+            <div>
+              <Link to={`/shop/preview/${data.shop._id}`}>
+                <div className="flex items-center gap-4">
+                  <img
+                    src={data?.shop?.avatar?.url}
+                    className="w-[50px] h-[50px] rounded-full object-cover"
+                    alt={data.shop.name}
+                  />
+                  <div>
+                    <h3 className="text-[20px] font-semibold">
+                      {data.shop.name}
+                    </h3>
+                    <h5 className="text-[16px] text-gray-600">
+                      ({averageRating}/5) Ratings
+                    </h5>
+                  </div>
+                </div>
+              </Link>
+              <p className="pt-2 text-gray-500 leading-7">{data.shop.Description}</p>
+            </div>
+
+            <div className="flex flex-col items-end">
+              <div className="text-left w-full 800px:w-[80%] space-y-4">
+                <div className="space-y-1">
+                  <h5 className="font-semibold">Joined On:</h5>
+                  <span className="text-gray-500">
+                    {new Date(data.shop?.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <h5 className="font-semibold">Total Products:</h5>
+                  <span className="text-gray-500">
+                    {products?.length || 0}
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <h5 className="font-semibold">Total Reviews:</h5>
+                  <span className="text-gray-500">{totalReviewsLength}</span>
+                </div>
+
+                <Link 
+                  to={`/shop/preview/${data.shop._id}`}
+                  className="inline-block w-full"
+                >
+                  <button className={`${styles.button} w-full !rounded-md !h-[40px]`}>
+                    <span className="text-white">Visit Shop</span>
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});// Main ProductDetails component
 const ProductDetails = memo(({ data }) => {
   // States
   const [count, setCount] = useState(1);
@@ -187,7 +332,8 @@ const ProductDetails = memo(({ data }) => {
     setClick(newState);
     dispatch(newState ? addToWishlist(data) : removeFromWishlist(data));
     toast.success(newState ? "Added to wishlist" : "Removed from wishlist");
-  }, [click, dispatch, data, isAuthenticated]);// Cart handler
+  }, [click, dispatch, data, isAuthenticated]);
+
   const handleAddToCart = useCallback(() => {
     if (!isAuthenticated) {
       toast.error("Please login to add items to cart");
@@ -222,7 +368,6 @@ const ProductDetails = memo(({ data }) => {
     toast.success("Added to cart successfully!");
   }, [cart, count, selectedColor, fit, size, material, productType, dispatch, data, isAuthenticated, calculatePrice]);
 
-  // Message handler
   const handleMessageSubmit = useCallback(async () => {
     if (!isAuthenticated) {
       toast.error("Please login to send messages");
