@@ -13,8 +13,15 @@ module.exports = {
         "1100px": "1110px",
         "800px": "800px",
         "1300px": "1300px",
-        "400px":"400px"
-        
+        "400px":"400px",
+      
+          'xs': '475px',
+          'sm': '640px',
+          'md': '768px',
+          'lg': '1024px',
+          'xl': '1280px',
+          '2xl': '1536px',
+      
         
       },
       gridTemplateColumns: {
@@ -25,7 +32,7 @@ module.exports = {
         'footer': '200px minmax(900px, 1fr) 100px',
       },
       animation: {
-        border: 'border 3s ease infinite',
+        border: 'border 4s ease infinite',
       },
       keyframes: {
         border: {

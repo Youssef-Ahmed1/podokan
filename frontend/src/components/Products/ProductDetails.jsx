@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, memo } from "react";
 import {
   AiFillHeart,
   AiOutlineHeart,
@@ -21,7 +21,151 @@ import { toast } from "react-toastify";
 import Ratings from "./Ratings";
 import axios from "axios";
 
-const ProductDetails = ({ data }) => {
+// Memoized ProductDetailsInfo component for better performance
+const ProductDetailsInfo = memo(({
+  data,
+  products,
+  totalReviewsLength,
+  averageRating,
+}) => {
+  const [active, setActive] = useState(1);
+
+  const tabs = [
+    { id: 1, label: "Product Details" },
+    { id: 2, label: "Product Reviews" },
+    { id: 3, label: "Seller Information" },
+  ];
+
+  return (
+    <div className="bg-[#f5f6fb] rounded-lg overflow-hidden shadow-sm">
+      {/* Tabs Navigation */}
+      <div className="border-b border-gray-200">
+        <div className="flex justify-between px-4 sm:px-8">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className="relative py-4 px-1 focus:outline-none"
+              onClick={() => setActive(tab.id)}
+            >
+              <h5
+                className={`
+                  text-[16px] xs:text-[18px] font-semibold
+                  transition-colors duration-200
+                  ${active === tab.id ? 'text-black' : 'text-gray-600 hover:text-gray-800'}
+                `}
+              >
+                {tab.label}
+              </h5>
+              {active === tab.id && (
+                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black" />
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tabs Content */}
+      <div className="p-4 sm:p-8">
+        {/* Product Details Tab */}
+        {active === 1 && (
+          <div className="prose max-w-none">
+            <p className="text-[16px] xs:text-[18px] leading-7 whitespace-pre-line text-gray-600">
+              {data.Description}
+            </p>
+          </div>
+        )}
+
+        {/* Reviews Tab */}
+        {active === 2 && (
+          <div className="min-h-[40vh] space-y-4">
+            {data.reviews?.length > 0 ? (
+              data.reviews.map((item, index) => (
+                <div key={index} className="flex space-x-4 bg-white p-4 rounded-lg shadow-sm">
+                  <img
+                    src={item.user.avatar?.url}
+                    alt={item.user.name}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h1 className="font-semibold">{item.user.name}</h1>
+                      <Ratings rating={item.rating} />
+                    </div>
+                    <p className="mt-2 text-gray-600">{item.comment}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex justify-center items-center h-[40vh]">
+                <h5 className="text-center text-gray-500">
+                  No Reviews have been submitted for this product!
+                </h5>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Seller Information Tab */}
+        {active === 3 && (
+          <div className="grid grid-cols-1 800px:grid-cols-2 gap-6 p-5">
+            <div>
+              <Link to={`/shop/preview/${data.shop._id}`}>
+                <div className="flex items-center gap-4">
+                  <img
+                    src={data?.shop?.avatar?.url}
+                    className="w-[50px] h-[50px] rounded-full object-cover"
+                    alt={data.shop.name}
+                  />
+                  <div>
+                    <h3 className="text-[20px] font-semibold">
+                      {data.shop.name}
+                    </h3>
+                    <h5 className="text-[16px] text-gray-600">
+                      ({averageRating}/5) Ratings
+                    </h5>
+                  </div>
+                </div>
+              </Link>
+              <p className="pt-2 text-gray-500 leading-7">{data.shop.Description}</p>
+            </div>
+
+            <div className="flex flex-col items-end">
+              <div className="text-left w-full 800px:w-[80%] space-y-4">
+                <div className="space-y-1">
+                  <h5 className="font-semibold">Joined On:</h5>
+                  <span className="text-gray-500">
+                    {new Date(data.shop?.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <h5 className="font-semibold">Total Products:</h5>
+                  <span className="text-gray-500">
+                    {products?.length || 0}
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <h5 className="font-semibold">Total Reviews:</h5>
+                  <span className="text-gray-500">{totalReviewsLength}</span>
+                </div>
+
+                <Link 
+                  to={`/shop/preview/${data.shop._id}`}
+                  className="inline-block w-full"
+                >
+                  <button className={`${styles.button} w-full !rounded-md !h-[40px]`}>
+                    <span className="text-white">Visit Shop</span>
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});const ProductDetails = memo(({ data }) => {
   const [count, setCount] = useState(1);
   const [click, setClick] = useState(false);
   const [selectedColor, setSelectedColor] = useState(data?.ProductColor || "white");
@@ -30,13 +174,25 @@ const ProductDetails = ({ data }) => {
   const [material, setMaterial] = useState("standard");
   const [activeTab, setActiveTab] = useState("product");
   const [productType, setProductType] = useState(data?.ProductType || "t-shirt");
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  
   const { wishlist } = useSelector((state) => state.wishlist);
   const { cart } = useSelector((state) => state.cart);
   const { user, isAuthenticated } = useSelector((state) => state.user);
   const { products } = useSelector((state) => state.products);
 
+  // Constants
+  const colorOptions = ["white", "black", "red", "blue", "gray"];
+  const sizeOptions = ["S", "M", "L", "XL"];
+  const productTypes = [
+    { id: 't-shirt', label: 'T-Shirt' },
+    { id: 'hoodie', label: 'Hoodie' },
+    { id: 'long-sleeve', label: 'Long Sleeve' }
+  ];
+
+  // Effects
   useEffect(() => {
     if (data) {
       setSelectedColor(data.ProductColor || "white");
@@ -53,142 +209,131 @@ const ProductDetails = ({ data }) => {
     }
   }, [data, dispatch, wishlist]);
 
-  const incrementCount = () => {
-    setCount((prevCount) => prevCount + 1);
-  };
+  // Memoized handlers
+  const handleQuantityChange = React.useCallback((type) => {
+    setCount(prev => type === 'increment' ? prev + 1 : prev > 1 ? prev - 1 : 1);
+  }, []);
 
-  const decrementCount = () => {
-    setCount((prevCount) => (prevCount > 1 ? prevCount - 1 : 1));
-  };
+  const handleWishlistToggle = React.useCallback((data) => {
+    const newState = !click;
+    setClick(newState);
+    dispatch(newState ? addToWishlist(data) : removeFromWishlist(data));
+  }, [click, dispatch]);
 
-  const removeFromWishlistHandler = (data) => {
-    setClick(false);
-    dispatch(removeFromWishlist(data));
-  };
-
-  const addToWishlistHandler = (data) => {
-    setClick(true);
-    dispatch(addToWishlist(data));
-  };
-
-  const addToCartHandler = (id) => {
-    const isItemExists = cart && cart.find((i) => i._id === id);
-    if (isItemExists) {
+  const handleAddToCart = React.useCallback((id) => {
+    if (cart?.find((i) => i._id === id)) {
       toast.error("Item already in cart!");
-    } else {
-      if (data.stock < 1) {
-        toast.error("Product stock limited!");
-      } else {
-        const cartData = {
-          ...data,
-          qty: count,
-          color: selectedColor,
-          fit,
-          size,
-          material,
-          productType,
-        };
-        dispatch(addTocart(cartData));
-        toast.success("Item added to cart successfully!");
-      }
+      return;
     }
-  };
 
-  const handleMessageSubmit = async () => {
-    if (isAuthenticated) {
-      const groupTitle = data._id + user._id;
-      const userId = user._id;
-      const sellerId = data.shop._id;
-      try {
-        const res = await axios.post(`${server}/conversation/create-new-conversation`, {
-          groupTitle,
-          userId,
-          sellerId,
-        });
-        navigate(`/inbox?${res.data.conversation._id}`);
-      } catch (error) {
-        toast.error(error.response?.data?.message || "An error occurred");
-      }
-    } else {
+    if (data.stock < 1) {
+      toast.error("Product stock limited!");
+      return;
+    }
+
+    const cartData = {
+      ...data,
+      qty: count,
+      color: selectedColor,
+      fit,
+      size,
+      material,
+      productType,
+    };
+    
+    dispatch(addTocart(cartData));
+    toast.success("Item added to cart successfully!");
+  }, [cart, count, selectedColor, fit, size, material, productType, dispatch, data]);
+
+  const handleMessageSubmit = React.useCallback(async () => {
+    if (!isAuthenticated) {
       toast.error("Please login to create a conversation");
+      return;
     }
-  };
 
-  const isProductVisible = (product) => {
+    try {
+      const res = await axios.post(`${server}/conversation/create-new-conversation`, {
+        groupTitle: data._id + user._id,
+        userId: user._id,
+        sellerId: data.shop._id,
+      });
+      navigate(`/inbox?${res.data.conversation._id}`);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "An error occurred");
+    }
+  }, [isAuthenticated, user, data, navigate]);
+
+  const getMockupUrl = React.useCallback(() => {
+    if (!data) return '';
+    
+    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
+    const config = {
+      hoodie: {
+        version: "v1728392918",
+        folder: "hoodies",
+        filename: `hoodie-${selectedColor}-front`
+      },
+      "t-shirt": {
+        version: "v1728393898",
+        folder: "t-shirts",
+        filename: `t-shirt-${selectedColor}-front`
+      },
+      "long-sleeve": {
+        version: "v1728394665",
+        folder: "long-sleeves",
+        filename: selectedColor === "gray" 
+          ? `longsleeves-${selectedColor}-front`
+          : ["white", "black"].includes(selectedColor)
+            ? `longseleves-${selectedColor}-front`
+            : `t-shirt-${selectedColor}-front`
+      }
+    };
+
+    const productConfig = config[productType];
+    if (!productConfig) return "";
+
+    const { version, folder, filename } = productConfig;
+    return `${baseUrl}${version}/${folder}/${filename}.png`;
+  }, [productType, selectedColor, data]);
+
+  const getDesignImage = React.useCallback(() => {
+    if (!data?.designImage) return '';
+    return typeof data.designImage === 'string' 
+      ? data.designImage 
+      : data.designImage.url || '';
+  }, [data]);
+
+  const isProductVisible = React.useCallback((product) => {
     if (!product) return false;
     if (product.status === 'public') return true;
-    if (product.status === 'restricted' && (user?._id === product.shop._id || user?.role === 'admin')) return true;
-    return false;
-  };
+    return product.status === 'restricted' && 
+      (user?._id === product.shop._id || user?.role === 'admin');
+  }, [user]);
 
-  const getMockupUrl = () => {
-    if (!data) return '';
-    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-    let version, folder, filename;
-    
-    switch (productType) {
-      case "hoodie":
-        version = "v1728392918";
-        folder = "hoodies";
-        filename = `hoodie-${selectedColor}-front`;
-        break;
-      case "t-shirt":
-        version = "v1728393898";
-        folder = "t-shirts";
-        filename = `t-shirt-${selectedColor}-front`;
-        break;
-      case "long-sleeve":
-        version = "v1728394665";
-        folder = "long-sleeves";
-        if (selectedColor === "white" || selectedColor === "black") {
-          filename = `longseleves-${selectedColor}-front`;
-        } else if (selectedColor === "gray") {
-          filename = `longsleeves-${selectedColor}-front`;
-        } else {
-          filename = `t-shirt-${selectedColor}-front`;
-        }
-        break;
-      default:
-        return "";
-    }
-
-    return `${baseUrl}${version}/${folder}/${filename}.png`;
-  };
-
-  const getDesignImage = () => {
-    if (data && data.designImage) {
-      if (typeof data.designImage === 'string') {
-        return data.designImage;
-      } else if (data.designImage.url) {
-        return data.designImage.url;
-      }
-    }
-    return '';
-  };
-
-  const colorOptions = ["white", "black", "red", "blue", "gray"];
-
-  const sizeOptions = ["S", "M", "L", "XL"];
+  const formatPrice = (price) => parseFloat(price).toFixed(0);
 
   if (!data) {
-    return <div className="w-full min-h-screen flex items-center justify-center">Loading...</div>;
-  }
-  const formatPrice = (price) => {
-    return parseFloat(price).toFixed(0);  // Removing decimal places
-  };
-  return (
-    <div className="bg-white">
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-xl text-gray-600">Loading...</div>
+      </div>
+    );
+  }return (
+    <div className="bg-white min-h-screen">
       {isProductVisible(data) ? (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="w-full py-5">
-            <div className="block w-full lg:flex lg:space-x-8">
-              <div className="w-full lg:w-1/2">
-                <div className="relative w-full h-[500px] bg-gray-100 rounded-lg shadow-md z-10">
+          <div className="py-5 sm:py-8">
+            <div className="flex flex-col lg:flex-row lg:space-x-8">
+              {/* Product Image Section */}
+              <section className="w-full lg:w-1/2 mb-8 lg:mb-0">
+                <div className="relative w-full h-[300px] xs:h-[400px] sm:h-[500px] bg-gray-100 rounded-lg shadow-md overflow-hidden">
                   <img
                     src={activeTab === "product" ? getMockupUrl() : getDesignImage()}
-                    alt={data.DesignTitle || "Product Image"}
-                    className="w-full h-full object-contain"
+                    alt={`${data.DesignTitle} - ${activeTab === "product" ? "Product View" : "Design View"}`}
+                    className="w-full h-full object-contain transition-opacity duration-300"
                   />
+                  
+                  {/* Design Overlay */}
                   {activeTab === "product" && (
                     <div
                       className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
@@ -200,367 +345,264 @@ const ProductDetails = ({ data }) => {
                     >
                       <img
                         src={getDesignImage()}
-                        alt="Design Preview"
+                        alt="Design Overlay"
                         className="w-full h-full object-contain"
                       />
                     </div>
                   )}
-                  <div className="absolute top-1/2 left-2 transform -translate-y-1/2">
+
+                  {/* Navigation Controls */}
+                  <div className="absolute inset-y-0 left-2 flex items-center">
                     <button
-                      className="bg-gray-200 p-2 rounded-full"
+                      type="button"
+                      aria-label="Previous view"
+                      className="bg-white/90 hover:bg-white p-2 rounded-full transition-all duration-200 
+                               shadow-md hover:shadow-lg transform hover:scale-105"
                       onClick={() => setActiveTab(activeTab === "product" ? "design" : "product")}
                     >
                       <AiOutlineLeft size={24} />
                     </button>
                   </div>
-                  <div className="absolute top-1/2 right-2 transform -translate-y-1/2">
+
+                  <div className="absolute inset-y-0 right-2 flex items-center">
                     <button
-                      className="bg-gray-200 p-2 rounded-full"
+                      type="button"
+                      aria-label="Next view"
+                      className="bg-white/90 hover:bg-white p-2 rounded-full transition-all duration-200 
+                               shadow-md hover:shadow-lg transform hover:scale-105"
                       onClick={() => setActiveTab(activeTab === "product" ? "design" : "product")}
                     >
                       <AiOutlineRight size={24} />
                     </button>
                   </div>
-                  <div className="absolute top-2 right-2">
+
+                  {/* Wishlist Button */}
+                  <button
+                    type="button"
+                    aria-label={click ? "Remove from wishlist" : "Add to wishlist"}
+                    className="absolute top-2 right-2 p-2 rounded-full bg-white/90 hover:bg-white 
+                             transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                    onClick={() => handleWishlistToggle(data)}
+                  >
                     {click ? (
-                      <AiFillHeart
-                        size={30}
-                        className="cursor-pointer"
-                        onClick={() => removeFromWishlistHandler(data)}
-                        color="red"
-                        title="Remove from wishlist"
-                      />
+                      <AiFillHeart size={30} className="text-red-500" />
                     ) : (
-                      <AiOutlineHeart
-                        size={30}
-                        className="cursor-pointer"
-                        onClick={() => addToWishlistHandler(data)}
-                        color="#333"
-                        title="Add to wishlist"
-                      />
+                      <AiOutlineHeart size={30} className="text-gray-700" />
+                    )}
+                  </button>
+                </div>
+                
+                {/* Product Type Selection */}
+                <div className="flex flex-wrap justify-center gap-2 mt-4">
+                  {productTypes.map(({ id, label }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      className={`
+                        px-4 py-2 rounded-xl transition-all duration-200
+                        ${productType === id 
+                          ? 'bg-black text-white shadow-lg transform scale-105' 
+                          : 'bg-gray-200 hover:bg-gray-300 text-black'}
+                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black
+                      `}
+                      onClick={() => setProductType(id)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              {/* Product Details Section */}
+              <section className="w-full lg:w-1/2">
+                <div className="space-y-6">
+                  <h1 className="text-2xl sm:text-3xl font-bold font-Poppins text-center lg:text-left">
+                    {data.DesignTitle}
+                  </h1>
+                  
+                  {/* Price Display */}
+                  <div className="flex items-baseline justify-center lg:justify-start space-x-2">
+                    <h4 className="text-3xl font-bold text-black">
+                      £{formatPrice(data.discountPrice || data.originalPrice)}
+                    </h4>
+                    {data.discountPrice && data.originalPrice && data.discountPrice < data.originalPrice && (
+                      <h3 className="text-xl line-through text-gray-400">
+                        £{formatPrice(data.originalPrice)}
+                      </h3>
                     )}
                   </div>
-                </div>
-                <div className="flex justify-center mt-4">
-                  <button
-                    className={`px-4 py-2 mx-2 rounded-xl ${productType === 't-shirt' ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
-                    onClick={() => setProductType('t-shirt')}
-                  >
-                    T-Shirt
-                  </button>
-                  <button
-                    className={`px-4 py-2 mx-2 rounded-xl ${productType === 'hoodie' ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
-                    onClick={() => setProductType('hoodie')}
-                  >
-                    Hoodie
-                  </button>
-                  <button
-                    className={`px-4 py-2 mx-2 rounded-xl ${productType === 'long-sleeve' ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
-                    onClick={() => setProductType('long-sleeve')}
-                  >
-                    Long Sleeve
-                  </button>
-                </div>
-              </div>
-              <div className="w-full lg:w-1/2 pt-5 relative left-24">
-                <h1 className="text-2xl mb-4 font-Poppins font-bold">{data.DesignTitle}</h1>
-                
-                <div className="flex items-baseline mt-8">
-                  <h4 className="text-3xl font-bold text-black">
-                    £{formatPrice(data.discountPrice || data.originalPrice)}
-                  </h4>
-                  {data.discountPrice && data.originalPrice && data.discountPrice < data.originalPrice && (
-                    <h3 className="text-xl line-through text-gray-400 ml-2">
-                      £{formatPrice(data.originalPrice)}
-                    </h3>
-                  )}
-                </div>
-             
-                {/* Color selection */}
-                <div className="flex items-center mt-4">
-                  <h4 className="text-lg font-bold mr-2">Color:</h4>
-                  <div className="flex flex-wrap">
-                    {colorOptions.map((color) => (
-                      <div
-                        key={color}
-                        className={`border-2 rounded-full w-8 h-8 mx-1 my-1 cursor-pointer ${
-                          selectedColor === color ? "border-black" : "border-transparent"
-                        }`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => setSelectedColor(color)}
-                        title={color}
-                      />
-                    ))}
+
+                  {/* Color Selection */}
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-bold">Color:</h4>
+                    <div className="flex flex-wrap gap-3">
+                      {colorOptions.map((color) => (
+                        <button
+                          key={color}
+                          type="button"
+                          aria-label={`Select ${color} color`}
+                          className={`
+                            w-10 h-10 rounded-full cursor-pointer
+                            transition-all duration-200 hover:scale-110
+                            ${selectedColor === color 
+                              ? "ring-2 ring-offset-2 ring-black" 
+                              : "ring-1 ring-gray-300"}
+                          `}
+                          style={{ backgroundColor: color }}
+                          onClick={() => setSelectedColor(color)}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-                {/* Fit selection */}
-                <div className="flex items-center mt-4">
-                  <h4 className="text-lg font-bold mr-2">Fit:</h4>
-                  <div className="flex">
-                    <button
-                      className={`px-4 py-2 rounded-xl mr-2 ${
-                        fit === "Male fit"
-                          ? "bg-black text-white"
-                          : "bg-gray-200 text-black"
-                      }`}
-                      onClick={() => setFit("Male fit")}
-                    >
-                      Male fit
-                    </button>
-                    <button
-                      className={`px-4 py-2 rounded-xl mr-2 ${
-                        fit === "Female fit"
-                          ? "bg-black text-white"
-                          : "bg-gray-200 text-black"
-                      }`}
-                      onClick={() => setFit("Female fit")}
-                    >
-                      Female fit
-                    </button>
+
+                  {/* Fit Selection */}
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-bold">Fit:</h4>
+                    <div className="flex flex-wrap gap-3">
+                      {["Male fit", "Female fit"].map((fitOption) => (
+                        <button
+                          key={fitOption}
+                          type="button"
+                          className={`
+                            px-4 py-2 rounded-xl transition-all duration-200
+                            ${fit === fitOption 
+                              ? "bg-black text-white shadow-lg transform scale-105" 
+                              : "bg-gray-200 hover:bg-gray-300 text-black"}
+                            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black
+                          `}
+                          onClick={() => setFit(fitOption)}
+                        >
+                          {fitOption}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                {/* Material selection */}
-                <div className="flex items-center mt-4">
-                  <h4 className="text-lg font-bold mr-2">Material:</h4>
-                  <div className="flex">
-                    <button
-                      className={`px-4 py-2 rounded-xl mr-2 ${
-                        material === "standard"
-                          ? "bg-black text-white"
-                          : "bg-gray-200 text-black"
-                      }`}
-                      onClick={() => setMaterial("standard")}
-                    >
-                      Standard
-                    </button>
-                    <button
-                      className={`px-4 py-2 rounded-xl mr-2 ${
-                        material === "premium"
-                          ? "bg-black text-white"
-                          : "bg-gray-200 text-black"
-                      }`}
-                      onClick={() => setMaterial("premium")}
-                    >
-                      Premium
-                    </button>
+
+                  {/* Material Selection */}
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-bold">Material:</h4>
+                    <div className="flex flex-wrap gap-3">
+                      {["standard", "premium"].map((materialOption) => (
+                        <button
+                          key={materialOption}
+                          type="button"
+                          className={`
+                            px-4 py-2 rounded-xl transition-all duration-200
+                            ${material === materialOption 
+                              ? "bg-black text-white shadow-lg transform scale-105" 
+                              : "bg-gray-200 hover:bg-gray-300 text-black"}
+                            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black
+                          `}
+                          onClick={() => setMaterial(materialOption)}
+                        >
+                          {materialOption.charAt(0).toUpperCase() + materialOption.slice(1)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                {/* Size selection */}
-                <div className="mt-4">
-                  <h4 className="text-lg font-bold mb-2">Size:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {sizeOptions.map((sizeOption) => (
+
+                  {/* Size Selection */}
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-bold">Size:</h4>
+                    <div className="flex flex-wrap gap-3">
+                      {sizeOptions.map((sizeOption) => (
+                        <button
+                          key={sizeOption}
+                          type="button"
+                          className={`
+                            px-4 py-2 rounded-xl transition-all duration-200
+                            ${size === sizeOption 
+                              ? "bg-black text-white shadow-lg transform scale-105" 
+                              : "bg-gray-200 hover:bg-gray-300 text-black"}
+                            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black
+                          `}
+                          onClick={() => setSize(sizeOption)}
+                        >
+                          {sizeOption}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Quantity and Add to Cart */}
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden shadow-sm">
                       <button
-                        key={sizeOption}
-                        className={`px-4 py-2 rounded-xl ${
-                          size === sizeOption
-                            ? "bg-black text-white"
-                            : "bg-gray-200 text-black"
-                        }`}
-                        onClick={() => setSize(sizeOption)}
+                        type="button"
+                        className="px-4 py-2 text-xl font-bold hover:bg-gray-100 transition-colors"
+                        onClick={() => handleQuantityChange('decrement')}
+                        aria-label="Decrease quantity"
                       >
-                        {sizeOption}
+                        -
                       </button>
-                    ))}
-                  </div>
-                </div>
-                {/* Price */}
-                
-                {/* Add to cart */}
-                <div className="flex items-center mt-8">
-                  <div className="flex items-center border border-gray-400 rounded-md px-4 py-2">
+                      <span className="px-4 text-lg min-w-[3rem] text-center">{count}</span>
+                      <button
+                        type="button"
+                        className="px-4 py-2 text-xl font-bold hover:bg-gray-100 transition-colors"
+                        onClick={() => handleQuantityChange('increment')}
+                        aria-label="Increase quantity"
+                      >
+                        +
+                      </button>
+                    </div>
+                    
                     <button
-                      className="text-xl font-bold mr-4"
-                      onClick={decrementCount}
+                      type="button"
+                      className={`
+                        ${styles.button} flex-1 text-white hover:opacity-90 
+                        transition-all duration-200 transform hover:scale-105
+                        flex items-center justify-center gap-2
+                      `}
+                      onClick={() => handleAddToCart(data._id)}
                     >
-                      -
-                    </button>
-                    <span className="text-lg">{count}</span>
-                    <button
-                      className="text-xl font-bold ml-4"
-                      onClick={incrementCount}
-                    >
-                      +
+                      <span>Add to Cart</span>
+                      <AiOutlineShoppingCart size={20} />
                     </button>
                   </div>
+
+                  {/* Message Button */}
                   <button
-                    className={`${styles.button} ml-8 text-white`}
-                    onClick={() => addToCartHandler(data._id)}
-                  >
-                    Add to Cart <AiOutlineShoppingCart className="ml-2" />
-                  </button>
-                </div>
-                {/* Message */}
-                <div className="flex items-center mt-8">
-                  <button
-                    className={`${styles.button} w-full text-gray-300`}
+                    type="button"
+                    className={`
+                      ${styles.button} w-full text-white hover:opacity-90 
+                      transition-all duration-200 transform hover:scale-105
+                      flex items-center justify-center gap-2
+                    `}
                     onClick={handleMessageSubmit}
                   >
-                    Send Message <AiOutlineMessage className="ml-2" />
+                    <span>Send Message</span>
+                    <AiOutlineMessage size={20} />
                   </button>
                 </div>
-              </div>
+              </section>
+            </div>
+
+            {/* Product Details Info Section */}
+            <div className="mt-12">
+              <ProductDetailsInfo
+                data={data}
+                products={products}
+                totalReviewsLength={products?.reduce((acc, product) => acc + (product.reviews?.length || 0), 0) || 0}
+                averageRating={
+                  products?.length > 0
+                    ? (products.reduce((acc, product) => 
+                        acc + (product.reviews?.reduce((sum, review) => sum + review.rating, 0) || 0), 0) / 
+                      products.reduce((acc, product) => acc + (product.reviews?.length || 0), 0)).toFixed(2)
+                    : 0
+                }
+              />
             </div>
           </div>
-          <ProductDetailsInfo
-            data={data}
-            products={products}
-            totalReviewsLength={products ? products.reduce((acc, product) => acc + (product.reviews?.length || 0), 0) : 0}
-            averageRating={
-              products && products.length > 0
-                ? (products.reduce((acc, product) => acc + (product.reviews?.reduce((sum, review) => sum + review.rating, 0) || 0), 0) / 
-                   products.reduce((acc, product) => acc + (product.reviews?.length || 0), 0)).toFixed(2)
-                : 0
-            }
-          />
         </div>
       ) : (
-        <div className="text-center py-10">
-          <h2 className="text-2xl font-bold">This product is not available.</h2>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <h2 className="text-2xl font-bold text-gray-800">
+            This product is not available.
+          </h2>
         </div>
       )}
     </div>
   );
-};
-
-const ProductDetailsInfo = ({
-  data,
-  products,
-  totalReviewsLength,
-  averageRating,
-}) => {
-  const [active, setActive] = useState(1);
-
-  return (
-    <div className="bg-[#f5f6fb] px-3 800px:px-10 py-2 rounded">
-      <div className="w-full flex justify-between border-b pt-10 pb-2">
-        <div className="relative">
-          <h5
-            className={
-              "text-[#000] text-[18px] px-1 leading-5 font-[600] cursor-pointer 800px:text-[20px]"
-            }
-            onClick={() => setActive(1)}
-          >
-            Product Details
-          </h5>
-          {active === 1 ? (
-            <div className={`${styles.active_indicator}`} />
-          ) : null}
-        </div>
-        <div className="relative">
-          <h5
-            className={
-              "text-[#000] text-[18px] px-1 leading-5 font-[600] cursor-pointer 800px:text-[20px]"
-            }
-            onClick={() => setActive(2)}
-          >
-            Product Reviews
-          </h5>
-          {active === 2 ? (
-            <div className={`${styles.active_indicator}`} />
-          ) : null}
-        </div>
-        <div className="relative">
-          <h5
-            className={
-              "text-[#000] text-[18px] px-1 leading-5 font-[600] cursor-pointer 800px:text-[20px]"
-            }
-            onClick={() => setActive(3)}
-          >
-            Seller Information
-          </h5>
-          {active === 3 ? (
-            <div className={`${styles.active_indicator}`} />
-          ) : null}
-        </div>
-      </div>
-      {active === 1 ? (
-        <>
-          <p className="py-2 text-[18px] leading-8 pb-10 whitespace-pre-line">
-            {data.Description}
-          </p>
-        </>
-      ) : null}
-
-      {active === 2 ? (
-        <div className="w-full min-h-[40vh] flex flex-col items-center py-3 overflow-y-scroll">
-          {data &&
-            data.reviews.map((item, index) => (
-              <div key={index} className="w-full flex my-2">
-                <img
-                  src={`${item.user.avatar?.url}`}
-                  alt=""
-                  className="w-[50px] h-[50px] rounded-full"
-                />
-                <div className="pl-2">
-                  <div className="w-full flex items-center">
-                    <h1 className="font-[500] mr-3">{item.user.name}</h1>
-                    <Ratings rating={item.rating} />
-                  </div>
-                  <p>{item.comment}</p>
-                </div>
-              </div>
-            ))}
-
-          <div className="w-full flex justify-center">
-            {data && data.reviews.length === 0 && (
-              <h5>No Reviews have been submitted for this product!</h5>
-            )}
-          </div>
-        </div>
-      ) : null}
-
-      {active === 3 && (
-        <div className="w-full block 800px:flex p-5">
-          <div className="w-full 800px:w-[50%]">
-            <Link to={`/shop/preview/${data.shop._id}`}>
-              <div className="flex items-center">
-                <img
-                  src={`${data?.shop?.avatar?.url}`}
-                  className="w-[50px] h-[50px] rounded-full"
-                  alt=""
-                />
-                <div className="pl-3">
-                  <h3 className={`${styles.shop_name}`}>{data.shop.name}</h3>
-                  <h5 className="pb-2 text-[15px]">
-                    ({averageRating}/5) Ratings
-                  </h5>
-                </div>
-              </div>
-            </Link>
-            <p className="pt-2">{data.shop.Description}</p>
-          </div>
-          <div className="w-full 800px:w-[50%] mt-5 800px:mt-0 800px:flex flex-col items-end">
-            <div className="text-left">
-              <h5 className="font-[600]">
-                Joined on:{" "}
-                <span className="font-[500]">
-                  {data.shop?.createdAt?.slice(0, 10)}
-                </span>
-              </h5>
-              <h5 className="font-[600] pt-3">
-                Total Products:{" "}
-                <span className="font-[500]">
-                  {products && products.length}
-                </span>
-              </h5>
-              <h5 className="font-[600] pt-3">
-                Total Reviews:{" "}
-                <span className="font-[500]">{totalReviewsLength}</span>
-              </h5>
-              <Link to="/">
-                <div
-                  className={`${styles.button} !rounded-[4px] !h-[39.5px] mt-3`}
-                >
-                  <h4 className="text-white">Visit Shop</h4>
-                </div>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+});
 
 export default ProductDetails;
