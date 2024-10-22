@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import styles from "../../styles/styles";
 import {
   AiOutlineHeart,
@@ -28,6 +28,7 @@ const Header = ({ activeHeading }) => {
   const [openWishlist, setOpenWishlist] = useState(false);
   const [open, setOpen] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const location = useLocation();
 
   const placeholders = [
     "Search for t-shirts...",
@@ -88,25 +89,25 @@ const Header = ({ activeHeading }) => {
         `}
       >
         <div className="max-w-[1600px] mx-auto px-4 xl:px-8">
-          <div className="flex items-center justify-between h-[70px]">
+          <div className="flex items-center justify-between h-[120px]">
             {/* Left Section - Menu & Logo */}
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-8">
               <GiHamburgerMenu 
                 size={40} 
                 className="cursor-pointer text-[#4e64df] hover:text-[#5d71e7] transition-colors"
                 onClick={() => setOpen(true)}
               />
-              <Link to="/">
+              <Link to="/" className="flex-shrink-0">
                 <img 
                   src={siteLogo} 
                   alt="Site Logo" 
-                  className="h-[60px] object-contain"
+                  className="h-[100px] w-[150px] object-contain"
                 />
               </Link>
             </div>
 
             {/* Center Section - Search */}
-            <div className="flex-1 max-w-2xl mx-8">
+            <div className="flex-1 max-w-2xl mx-12">
               <div className="relative">
                 <div className="w-full relative animate-border inline-block bg-gradient-to-r from-[#551c2c] via-[#b131ea] to-[#f2ad55] bg-[length:400%_400%] p-[2px] rounded-md">
                   <input
@@ -201,24 +202,41 @@ const Header = ({ activeHeading }) => {
         </div>
       </div>
 
-      {/* Mobile Header */}
+      {/* ArtistSign - Only show on homepage */}
+      {location.pathname === '/' && (
+        <div className="hidden 800px:block relative z-40">
+          <div className="bg-[#2b2b3b] left-[280px] bottom-[-26px] w-[1200px] h-[80px] bg-opacity-75 relative rounded-xl text-[#fff] flex items-center justify-left">   
+            <span className='font-semibold relative left-48'>Turn your passion into profit.</span>
+            <span className='relative left-56'>Sell your art on podokan today!</span>
+          </div>
+
+          <div className="w-[150px] h-[42px] bg-[#4e64df] rounded-xl font-medium left-[1070px] bottom-[35px] relative z-10">
+            <Link to={`${isSeller ? "/dashboard" : "/shop-create"}`}>
+              <h1 className="relative text-[#fff] flex items-center justify-center top-[8px]">
+                {isSeller ? "Go Dashboard" : " Artist SignUp"}{" "}
+                <FiArrowRight className="ml-1" />
+              </h1>
+            </Link>
+          </div>  
+        </div>
+      )} {/* Mobile Header */}
       <div className={`
         ${active ? "shadow-sm fixed top-0 left-0 z-50" : "relative z-50"}
         w-full bg-[#151523] lg:hidden
       `}>
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between min-h-[120px]">
             <GiHamburgerMenu
               size={32}
               className="text-[#4e64df]"
               onClick={() => setOpen(true)}
             />
             
-            <Link to="/">
+            <Link to="/" className="flex-shrink-0">
               <img
                 src={siteLogo}
                 alt="Site Logo"
-                className="h-16 w-auto object-contain"
+                className="h-[100px] w-[150px] object-contain"
               />
             </Link>
 
