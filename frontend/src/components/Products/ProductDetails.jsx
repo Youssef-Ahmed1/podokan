@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, memo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 import {
   AiFillHeart,
   AiOutlineHeart,
@@ -10,6 +11,7 @@ import {
 import { toast } from "react-toastify";
 import { addToWishlist, removeFromWishlist } from "../../redux/actions/wishlist";
 import { addTocart } from "../../redux/actions/cart";
+import { server } from "../../server";
 import Ratings from "./Ratings";
 
 // Constants
@@ -56,7 +58,51 @@ const MATERIAL_OPTIONS = [
   { value: 'premium', label: 'Premium Material', multiplier: 2 },
 ];
 
-// SizeGuide Component
+// Error Boundary Component
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.FallbackComponent({ error: this.state.error });
+    }
+    return this.props.children;
+  }
+}
+
+// Loading Spinner Component
+const LoadingSpinner = memo(() => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
+  </div>
+));
+
+// Error Display Component
+const ErrorDisplay = memo(({ message, onRetry }) => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="text-center">
+      <h2 className="text-2xl font-bold text-red-600 mb-2">Error Loading Product</h2>
+      <p className="text-gray-600 mb-4">{message}</p>
+      {onRetry && (
+        <button
+          onClick={onRetry}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Try Again
+        </button>
+      )}
+    </div>
+  </div>
+));
+
+// Size Guide Component
 const SizeGuide = memo(({ onClose }) => (
   <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -107,7 +153,7 @@ const SizeGuide = memo(({ onClose }) => (
   </div>
 ));
 
-// ProductPreview Component
+// Product Preview Component
 const ProductPreview = memo(({ 
   product, 
   selectedColor, 
@@ -116,6 +162,7 @@ const ProductPreview = memo(({
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [loadError, setLoadError] = useState(null);
 
   const getMockupUrl = useCallback(() => {
     if (!product) return '';
@@ -156,59 +203,77 @@ const ProductPreview = memo(({
       : product.designImage.url || '';
   }, [product]);
 
+  const handleImageError = useCallback(() => {
+    setLoadError('Failed to load product image');
+    setIsLoading(false);
+  }, []);
+
   return (
     <div className="relative bg-white rounded-xl shadow-lg overflow-hidden">
       <div className="aspect-w-1 aspect-h-1 w-full">
         <div className="relative w-full h-full">
-          {/* Main Product Image */}
-          <img
-            src={getMockupUrl()}
-            alt={product.DesignTitle}
-            className="w-full h-full object-contain"
-            onLoad={() => setIsLoading(false)}
-            style={{ opacity: isLoading ? 0 : 1 }}
-          />
+          {!loadError ? (
+            <>
+              {/* Main Product Image */}
+              <img
+                src={getMockupUrl()}
+                alt={product?.DesignTitle || 'Product'}
+                className="w-full h-full object-contain transition-opacity duration-300"
+                onLoad={() => setIsLoading(false)}
+                onError={handleImageError}
+                style={{ opacity: isLoading ? 0 : 1 }}
+              />
 
-          {/* Design Overlay */}
-          <div
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-            style={{ 
-              transform: `translate(-50%, -50%) scale(${product.DesignScale})`,
-              width: '200px',
-              height: '200px'
-            }}
-          >
-            <img
-              src={getDesignImageUrl()}
-              alt="Design"
-              className="w-full h-full object-contain"
-            />
-          </div>
+              {/* Design Overlay */}
+              {!isLoading && (
+                <div
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                  style={{ 
+                    transform: `translate(-50%, -50%) scale(${product?.DesignScale || 1})`,
+                    width: '200px',
+                    height: '200px'
+                  }}
+                >
+                  <img
+                    src={getDesignImageUrl()}
+                    alt="Design"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-red-500">{loadError}</p>
+            </div>
+          )}
 
           {/* Loading Indicator */}
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-white">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
             </div>
           )}
         </div>
       </div>
 
       {/* Controls */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4">
-        <button
-          onClick={() => onViewChange(currentView === 'front' ? 'back' : 'front')}
-          className="px-4 py-2 bg-white/90 hover:bg-white rounded-lg shadow-lg transition-all duration-200"
-        >
-          View {currentView === 'front' ? 'Back' : 'Front'}
-        </button>
-        <button
-          onClick={() => setIsZoomed(true)}
-          className="px-4 py-2 bg-white/90 hover:bg-white rounded-lg shadow-lg transition-all duration-200"
-        >
-          Zoom
-        </button>
-      </div>
+      {!loadError && !isLoading && (
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4">
+          <button
+            onClick={() => onViewChange(currentView === 'front' ? 'back' : 'front')}
+            className="px-4 py-2 bg-white/90 hover:bg-white rounded-lg shadow-lg transition-all duration-200"
+          >
+            View {currentView === 'front' ? 'Back' : 'Front'}
+          </button>
+          <button
+            onClick={() => setIsZoomed(true)}
+            className="px-4 py-2 bg-white/90 hover:bg-white rounded-lg shadow-lg transition-all duration-200"
+          >
+            Zoom
+          </button>
+        </div>
+      )}
 
       {/* Zoom Modal */}
       {isZoomed && (
@@ -222,13 +287,13 @@ const ProductPreview = memo(({
           >
             <img
               src={getMockupUrl()}
-              alt={product.DesignTitle}
+              alt={product?.DesignTitle || 'Product'}
               className="max-w-full max-h-full object-contain"
             />
             <div
               className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
               style={{ 
-                transform: `translate(-50%, -50%) scale(${product.DesignScale})`,
+                transform: `translate(-50%, -50%) scale(${product?.DesignScale || 1})`,
                 width: '400px',
                 height: '400px'
               }}
@@ -250,7 +315,7 @@ const ProductPreview = memo(({
       )}
     </div>
   );
-});// PriceDisplay Component
+});// Price Display Component
 const PriceDisplay = memo(({ 
   product, 
   selectedMaterial 
@@ -258,6 +323,8 @@ const PriceDisplay = memo(({
   const [showBreakdown, setShowBreakdown] = useState(false);
 
   const calculateFinalPrice = useCallback(() => {
+    if (!product?.originalPrice) return 0;
+
     const basePrice = product.originalPrice;
     const additionalPrice = PRODUCT_TYPES[product.ProductType]?.additionalPrice || 0;
     const materialMultiplier = selectedMaterial === 'premium' ? 2 : 1;
@@ -273,9 +340,11 @@ const PriceDisplay = memo(({
   }, [product, selectedMaterial]);
 
   const originalPrice = calculateFinalPrice();
-  const finalPrice = product.discountPrice 
+  const finalPrice = product?.discountPrice 
     ? calculateFinalPrice() 
     : originalPrice;
+
+  if (!product) return null;
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -346,11 +415,50 @@ const PriceDisplay = memo(({
   );
 });
 
+// Product Page Wrapper Component
+const ProductPage = () => {
+  const { id } = useParams();
+  const [productData, setProductData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchProduct = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await axios.get(`${server}/product/${id}`);
+      setProductData(response.data);
+    } catch (error) {
+      setError(error.message || 'Failed to load product');
+      console.error('Error fetching product:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return <ErrorDisplay message={error} onRetry={fetchProduct} />;
+  }
+
+  if (!productData) {
+    return <ErrorDisplay message="Product not found" />;
+  }
+
+  return <ProductDetails data={productData} />;
+};
+
 // Main ProductDetails Component
 const ProductDetails = memo(({ data }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { cart } = useSelector((state) => state.cart);
   const { wishlist } = useSelector((state) => state.wishlist);
   const { user, isAuthenticated } = useSelector((state) => state.user);
   
@@ -364,15 +472,15 @@ const ProductDetails = memo(({ data }) => {
 
   const isInWishlist = wishlist?.find((item) => item._id === data?._id);
 
-  const handleMessageSeller = () => {
+  const handleMessageSeller = useCallback(() => {
     if (!isAuthenticated) {
       toast.error("Please login to contact seller");
       return;
     }
     navigate(`/inbox?conversation=${data.shop._id}`);
-  };
+  }, [isAuthenticated, navigate, data.shop._id]);
 
-  const handleAddToWishlist = (e) => {
+  const handleAddToWishlist = useCallback((e) => {
     e.preventDefault();
     if (!isAuthenticated) {
       toast.error("Please login to add to wishlist");
@@ -385,9 +493,9 @@ const ProductDetails = memo(({ data }) => {
       dispatch(addToWishlist(data));
       toast.success("Product added to wishlist");
     }
-  };
+  }, [isAuthenticated, isInWishlist, dispatch, data]);
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = useCallback(async () => {
     if (!isAuthenticated) {
       toast.error("Please login to add to cart");
       return;
@@ -406,6 +514,7 @@ const ProductDetails = memo(({ data }) => {
         selectedFit,
         selectedMaterial,
         qty: 1,
+        finalPrice: calculateFinalPrice(), // Add the calculated final price
       };
       await dispatch(addTocart(cartData));
       toast.success("Product added to cart");
@@ -414,7 +523,15 @@ const ProductDetails = memo(({ data }) => {
     } finally {
       setIsAddingToCart(false);
     }
-  };
+  }, [
+    isAuthenticated, 
+    selectedSize, 
+    data, 
+    selectedColor, 
+    selectedFit, 
+    selectedMaterial, 
+    dispatch
+  ]);
 
   return (
     <div className="bg-white">
@@ -616,4 +733,22 @@ const ProductDetails = memo(({ data }) => {
   );
 });
 
-export default ProductDetails;
+// Wrap the export with error boundary
+const ProductDetailsWithErrorBoundary = (props) => {
+  return (
+    <ErrorBoundary
+      FallbackComponent={({ error }) => (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-red-600 mb-2">Something went wrong</h2>
+            <p className="text-gray-600">{error.message}</p>
+          </div>
+        </div>
+      )}
+    >
+      <ProductDetails {...props} />
+    </ErrorBoundary>
+  );
+};
+
+export default memo(ProductPage);
