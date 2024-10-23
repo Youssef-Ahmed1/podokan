@@ -12,8 +12,8 @@ import { addToWishlist, removeFromWishlist } from "../../redux/actions/wishlist"
 import { addTocart } from "../../redux/actions/cart";
 import Ratings from "./Ratings";
 
-// Constants
-export const COLOR_OPTIONS = {
+// Constants - Keep all constants within the file
+const COLOR_OPTIONS = {
   white: { value: 'white', label: 'White', hex: '#ffffff', textColor: 'text-gray-800' },
   black: { value: 'black', label: 'Black', hex: '#000000', textColor: 'text-white' },
   red: { value: 'red', label: 'Red', hex: '#ff0000', textColor: 'text-white' },
@@ -21,7 +21,7 @@ export const COLOR_OPTIONS = {
   gray: { value: 'gray', label: 'Gray', hex: '#808080', textColor: 'text-white' }
 };
 
-export const PRODUCT_TYPES = {
+const PRODUCT_TYPES = {
   't-shirt': { 
     value: 't-shirt', 
     label: 'T-Shirt', 
@@ -42,41 +42,22 @@ export const PRODUCT_TYPES = {
   }
 };
 
-export const SIZE_OPTIONS = [
+const SIZE_OPTIONS = [
   { value: 'S', label: 'Small' },
   { value: 'M', label: 'Medium' },
   { value: 'L', label: 'Large' },
   { value: 'XL', label: 'Extra Large' }
 ];
 
-export const FIT_OPTIONS = [
+const FIT_OPTIONS = [
   { value: 'male', label: 'Male Fit' },
   { value: 'female', label: 'Female Fit' }
 ];
 
-export const MATERIAL_OPTIONS = [
+const MATERIAL_OPTIONS = [
   { value: 'standard', label: 'Standard Material', multiplier: 1 },
   { value: 'premium', label: 'Premium Material', multiplier: 2 }
 ];
-
-// Error Boundary Component
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error };
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return this.props.FallbackComponent({ error: this.state.error });
-    }
-    return this.props.children;
-  }
-}
 
 // Size Guide Component
 const SizeGuide = memo(({ onClose }) => (
@@ -128,6 +109,38 @@ const SizeGuide = memo(({ onClose }) => (
     </div>
   </div>
 ));
+
+// Error Boundary Component
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-red-600 mb-2">Something went wrong</h2>
+            <p className="text-gray-600">{this.state.error.message}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Product Preview Component
 const ProductPreview = memo(({ 
@@ -286,17 +299,14 @@ const ProductPreview = memo(({
       )}
     </div>
   );
-});
-
-export { ProductPreview, SizeGuide, ErrorBoundary };
-// Main ProductDetails Component
+});// Main ProductDetails Component
 const ProductDetails = memo(({ data }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { wishlist } = useSelector((state) => state.wishlist);
   const { user, isAuthenticated } = useSelector((state) => state.user);
   
-  // Initialize with available product data
+  // Initialize with available product data and add error state
   const [selectedColor, setSelectedColor] = useState(() => {
     if (data?.availableColors?.length > 0) {
       return data.availableColors[0];
@@ -309,7 +319,9 @@ const ProductDetails = memo(({ data }) => {
   const [selectedMaterial, setSelectedMaterial] = useState('standard');
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [error, setError] = useState(null);
 
+  // Find if product is in wishlist
   const isInWishlist = wishlist?.find((item) => item._id === data?._id);
 
   // Validate color availability when product data changes
@@ -321,29 +333,37 @@ const ProductDetails = memo(({ data }) => {
 
   // Calculate final price with all factors
   const calculateFinalPrice = useCallback(() => {
-    if (!data?.originalPrice) return 0;
+    try {
+      if (!data?.originalPrice) return 0;
 
-    const basePrice = data.originalPrice;
-    const productTypePrice = PRODUCT_TYPES[data.ProductType]?.additionalPrice || 0;
-    const materialMultiplier = selectedMaterial === 'premium' ? 2 : 1;
-    
-    let finalPrice = (basePrice + productTypePrice) * materialMultiplier;
-    
-    if (data.discountPrice && data.discountPrice < data.originalPrice) {
-      const discountRatio = data.discountPrice / data.originalPrice;
-      finalPrice = finalPrice * discountRatio;
+      const basePrice = data.originalPrice;
+      const productTypePrice = PRODUCT_TYPES[data.ProductType]?.additionalPrice || 0;
+      const materialMultiplier = selectedMaterial === 'premium' ? 2 : 1;
+      
+      let finalPrice = (basePrice + productTypePrice) * materialMultiplier;
+      
+      if (data.discountPrice && data.discountPrice < data.originalPrice) {
+        finalPrice = data.discountPrice * materialMultiplier;
+      }
+      
+      return parseFloat(finalPrice.toFixed(2));
+    } catch (error) {
+      console.error('Price calculation error:', error);
+      return 0;
     }
-    
-    return finalPrice;
-  }, [data, selectedMaterial]);
+  }, [data?.originalPrice, data?.discountPrice, data?.ProductType, selectedMaterial]);
 
   const handleMessageSeller = useCallback(() => {
     if (!isAuthenticated) {
       toast.error("Please login to contact seller");
       return;
     }
+    if (!data?.shopId) {
+      toast.error("Shop information not available");
+      return;
+    }
     navigate(`/inbox?conversation=${data.shopId}`);
-  }, [isAuthenticated, navigate, data.shopId]);
+  }, [isAuthenticated, navigate, data?.shopId]);
 
   const handleAddToWishlist = useCallback((e) => {
     e.preventDefault();
@@ -351,31 +371,36 @@ const ProductDetails = memo(({ data }) => {
       toast.error("Please login to add to wishlist");
       return;
     }
-    if (isInWishlist) {
-      dispatch(removeFromWishlist(data._id));
-      toast.success("Product removed from wishlist");
-    } else {
-      dispatch(addToWishlist(data));
-      toast.success("Product added to wishlist");
+    try {
+      if (isInWishlist) {
+        dispatch(removeFromWishlist(data._id));
+        toast.success("Product removed from wishlist");
+      } else {
+        dispatch(addToWishlist(data));
+        toast.success("Product added to wishlist");
+      }
+    } catch (error) {
+      console.error('Wishlist error:', error);
+      toast.error("Failed to update wishlist");
     }
   }, [isAuthenticated, isInWishlist, dispatch, data]);
 
   const handleAddToCart = useCallback(async () => {
-    if (!isAuthenticated) {
-      toast.error("Please login to add to cart");
-      return;
-    }
-    if (!selectedSize) {
-      toast.error("Please select a size");
-      return;
-    }
-    if (!data.availableColors.includes(selectedColor)) {
-      toast.error("Selected color is not available");
-      return;
-    }
-
-    setIsAddingToCart(true);
     try {
+      if (!isAuthenticated) {
+        toast.error("Please login to add to cart");
+        return;
+      }
+      if (!selectedSize) {
+        toast.error("Please select a size");
+        return;
+      }
+      if (!data.availableColors.includes(selectedColor)) {
+        toast.error("Selected color is not available");
+        return;
+      }
+
+      setIsAddingToCart(true);
       const cartData = {
         ...data,
         selectedColor,
@@ -394,6 +419,7 @@ const ProductDetails = memo(({ data }) => {
       await dispatch(addTocart(cartData));
       toast.success("Product added to cart");
     } catch (error) {
+      console.error('Add to cart error:', error);
       toast.error(error.message || "Failed to add to cart");
     } finally {
       setIsAddingToCart(false);
@@ -409,257 +435,255 @@ const ProductDetails = memo(({ data }) => {
     calculateFinalPrice
   ]);
 
-  // Error handling
-  const handleError = useCallback((error) => {
-    console.error('Product Error:', error);
-    toast.error(error.message || "An error occurred");
-  }, []);
-
   // Validate product status and visibility
   const canBePurchased = data?.status === 'public' && data?.visibility === 'public';
 
+  // Handle loading state
   if (!data) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-xl text-gray-600">Product not found</p>
+        <div className="text-xl text-gray-600">Product not found</div>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-xl text-red-600">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Product Preview */}
-          <div className="space-y-6">
-            <ProductPreview
-              product={data}
-              selectedColor={selectedColor}
-              currentView={currentView}
-              onViewChange={setCurrentView}
-            />
+    <ErrorBoundary>
+      <div className="bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left Column - Product Preview */}
+            <div className="space-y-6">
+              <ProductPreview
+                product={data}
+                selectedColor={selectedColor}
+                currentView={currentView}
+                onViewChange={setCurrentView}
+              />
 
-            {/* Color Selection */}
-            <div className="bg-white rounded-xl shadow-lg p-4">
-              <h3 className="text-lg font-semibold mb-4">Available Colors</h3>
-              <div className="flex flex-wrap gap-4">
-                {Object.entries(COLOR_OPTIONS)
-                  .filter(([key]) => data.availableColors.includes(key))
-                  .map(([key, color]) => (
-                    <button
-                      key={key}
-                      onClick={() => setSelectedColor(key)}
-                      className={`
-                        group relative p-2 rounded-lg transition-all duration-200
-                        ${selectedColor === key 
-                          ? 'ring-2 ring-blue-500' 
-                          : 'hover:bg-gray-50'}
-                      `}
-                    >
-                      <div className="flex flex-col items-center space-y-2">
-                        <div 
-                          className="w-8 h-8 rounded-full border border-gray-300"
-                          style={{ backgroundColor: color.hex }}
-                        />
-                        <span className={`text-sm ${color.textColor}`}>
-                          {color.label}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Product Details */}
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                {data.DesignTitle}
-              </h1>
-              <div className="mt-2 flex items-center space-x-4">
-                <Ratings rating={data?.ratings} />
-                <span className="text-gray-500">
-                  ({data?.reviews?.length || 0} reviews)
-                </span>
+              {/* Color Selection */}
+              <div className="bg-white rounded-xl shadow-lg p-4">
+                <h3 className="text-lg font-semibold mb-4">Available Colors</h3>
+                <div className="flex flex-wrap gap-4">
+                  {Object.entries(COLOR_OPTIONS)
+                    .filter(([key]) => data.availableColors.includes(key))
+                    .map(([key, color]) => (
+                      <button
+                        key={key}
+                        onClick={() => setSelectedColor(key)}
+                        className={`
+                          group relative p-2 rounded-lg transition-all duration-200
+                          ${selectedColor === key 
+                            ? 'ring-2 ring-blue-500' 
+                            : 'hover:bg-gray-50'}
+                        `}
+                      >
+                        <div className="flex flex-col items-center space-y-2">
+                          <div 
+                            className="w-8 h-8 rounded-full border border-gray-300"
+                            style={{ backgroundColor: color.hex }}
+                          />
+                          <span className={`text-sm ${color.textColor}`}>
+                            {color.label}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                </div>
               </div>
             </div>
 
-            {/* Price Display */}
-            <div className="bg-white rounded-xl shadow-lg p-4">
-              <div className="flex items-baseline space-x-3">
-                <span className="text-3xl font-bold">
-                  £{calculateFinalPrice().toFixed(2)}
-                </span>
-                {data.discountPrice && data.discountPrice < data.originalPrice && (
-                  <>
-                    <span className="text-lg line-through text-gray-500">
-                      £{data.originalPrice.toFixed(2)}
-                    </span>
-                    <span className="text-sm text-green-600 font-medium">
-                      {((data.originalPrice - data.discountPrice) / data.originalPrice * 100).toFixed(0)}% OFF
-                    </span>
-                  </>
+            {/* Right Column - Product Details */}
+            <div className="space-y-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  {data.DesignTitle}
+                </h1>
+                <div className="mt-2 flex items-center space-x-4">
+                  <Ratings rating={data?.ratings} />
+                  <span className="text-gray-500">
+                    ({data?.reviews?.length || 0} reviews)
+                  </span>
+                </div>
+              </div>
+
+              {/* Price Display */}
+              <div className="bg-white rounded-xl shadow-lg p-4">
+                <div className="flex items-baseline space-x-3">
+                  <span className="text-3xl font-bold">
+                    £{calculateFinalPrice().toFixed(2)}
+                  </span>
+                  {data.discountPrice && data.discountPrice < data.originalPrice && (
+                    <>
+                      <span className="text-lg line-through text-gray-500">
+                        £{data.originalPrice.toFixed(2)}
+                      </span>
+                      <span className="text-sm text-green-600 font-medium">
+                        {((data.originalPrice - data.discountPrice) / data.originalPrice * 100).toFixed(0)}% OFF
+                      </span>
+                    </>
+                  )}
+                </div>
+                {selectedMaterial === 'premium' && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    Premium material selected (2x quality)
+                  </p>
                 )}
               </div>
 
-              {selectedMaterial === 'premium' && (
-                <p className="mt-2 text-sm text-gray-600">
-                  Premium material selected (2x quality)
-                </p>
-              )}
-            </div>
-
-            {/* Size Selection */}
-            <div className="bg-white rounded-xl shadow-lg p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Select Size</h3>
-                <button
-                  onClick={() => setShowSizeGuide(true)}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
-                >
-                  Size Guide
-                </button>
-              </div>
-              <div className="grid grid-cols-4 gap-2">
-                {SIZE_OPTIONS.map((size) => (
+              {/* Size Selection */}
+              <div className="bg-white rounded-xl shadow-lg p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Select Size</h3>
                   <button
-                    key={size.value}
-                    onClick={() => setSelectedSize(size.value)}
-                    className={`
-                      py-3 rounded-lg transition-all duration-200
-                      ${selectedSize === size.value
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 hover:bg-gray-200'}
-                    `}
+                    onClick={() => setShowSizeGuide(true)}
+                    className="text-blue-600 hover:text-blue-800 text-sm"
                   >
-                    {size.label}
+                    Size Guide
                   </button>
-                ))}
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {SIZE_OPTIONS.map((size) => (
+                    <button
+                      key={size.value}
+                      onClick={() => setSelectedSize(size.value)}
+                      className={`
+                        py-3 rounded-lg transition-all duration-200
+                        ${selectedSize === size.value
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-100 hover:bg-gray-200'}
+                      `}
+                    >
+                      {size.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Fit Selection */}
-            <div className="bg-white rounded-xl shadow-lg p-4">
-              <h3 className="text-lg font-semibold mb-4">Select Fit</h3>
-              <div className="grid grid-cols-2 gap-4">
-                {FIT_OPTIONS.map((fit) => (
-                  <button
-                    key={fit.value}
-                    onClick={() => setSelectedFit(fit.value)}
-                    className={`
-                      py-3 rounded-lg transition-all duration-200
-                      ${selectedFit === fit.value
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 hover:bg-gray-200'}
-                    `}
-                  >
-                    {fit.label}
-                  </button>
-                ))}
+              {/* Fit Selection */}
+              <div className="bg-white rounded-xl shadow-lg p-4">
+                <h3 className="text-lg font-semibold mb-4">Select Fit</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {FIT_OPTIONS.map((fit) => (
+                    <button
+                      key={fit.value}
+                      onClick={() => setSelectedFit(fit.value)}
+                      className={`
+                        py-3 rounded-lg transition-all duration-200
+                        ${selectedFit === fit.value
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-100 hover:bg-gray-200'}
+                      `}
+                    >
+                      {fit.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Material Selection */}
-            <div className="bg-white rounded-xl shadow-lg p-4">
-              <h3 className="text-lg font-semibold mb-4">Select Material</h3>
-              <div className="grid grid-cols-2 gap-4">
-                {MATERIAL_OPTIONS.map((material) => (
-                  <button
-                    key={material.value}
-                    onClick={() => setSelectedMaterial(material.value)}
-                    className={`
-                      p-4 rounded-lg transition-all duration-200
-                      ${selectedMaterial === material.value
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 hover:bg-gray-200'}
-                    `}
-                  >
-                    <div className="text-center">
-                      <div className="font-medium">{material.label}</div>
-                      <div className="text-sm mt-1">
-                        {material.multiplier > 1 ? `${material.multiplier}x Quality` : 'Standard Quality'}
+              {/* Material Selection */}
+              <div className="bg-white rounded-xl shadow-lg p-4">
+                <h3 className="text-lg font-semibold mb-4">Select Material</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {MATERIAL_OPTIONS.map((material) => (
+                    <button
+                      key={material.value}
+                      onClick={() => setSelectedMaterial(material.value)}
+                      className={`
+                        p-4 rounded-lg transition-all duration-200
+                        ${selectedMaterial === material.value
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-100 hover:bg-gray-200'}
+                      `}
+                    >
+                      <div className="text-center">
+                        <div className="font-medium">{material.label}</div>
+                        <div className="text-sm mt-1">
+                          {material.multiplier > 1 ? `${material.multiplier}x Quality` : 'Standard Quality'}
+                        </div>
                       </div>
-                    </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              {canBePurchased && (
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={isAddingToCart}
+                    className={`
+                      flex-1 py-3 px-6 rounded-lg text-white font-medium
+                      transition-all duration-200 flex items-center justify-center
+                      ${isAddingToCart
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700'}
+                    `}
+                  >
+                    {isAddingToCart ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                    ) : (
+                      <>
+                        <AiOutlineShoppingCart className="text-xl mr-2" />
+                        Add to Cart
+                      </>
+                    )}
                   </button>
-                ))}
+
+                  <button
+                    onClick={handleAddToWishlist}
+                    className="flex-1 py-3 px-6 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all duration-200"
+                  >
+                    {isInWishlist ? (
+                      <AiFillHeart className="text-xl text-red-500 mx-auto" />
+                    ) : (
+                      <AiOutlineHeart className="text-xl mx-auto" />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={handleMessageSeller}
+                    className="flex-1 py-3 px-6 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all duration-200"
+                  >
+                    <AiOutlineMessage className="text-xl mx-auto" />
+                  </button>
+                </div>
+              )}
+
+              {/* Product Description */}
+              <div className="bg-white rounded-xl shadow-lg p-4">
+                <h3 className="text-lg font-semibold mb-4">Description</h3>
+                <p className="text-gray-600 whitespace-pre-line">
+                  {data.Description}
+                </p>
               </div>
-            </div>
-
-            {/* Action Buttons */}
-            {canBePurchased && (
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button
-                  onClick={handleAddToCart}
-                  disabled={isAddingToCart}
-                  className={`
-                    flex-1 py-3 px-6 rounded-lg text-white font-medium
-                    transition-all duration-200 flex items-center justify-center
-                    ${isAddingToCart
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700'}
-                  `}
-                >
-                  {isAddingToCart ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
-                  ) : (
-                    <>
-                      <AiOutlineShoppingCart className="text-xl mr-2" />
-                      Add to Cart
-                    </>
-                  )}
-                </button>
-
-                <button
-                  onClick={handleAddToWishlist}
-                  className="flex-1 py-3 px-6 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all duration-200"
-                >
-                  {isInWishlist ? (
-                    <AiFillHeart className="text-xl text-red-500 mx-auto" />
-                  ) : (
-                    <AiOutlineHeart className="text-xl mx-auto" />
-                  )}
-                </button>
-
-                <button
-                  onClick={handleMessageSeller}
-                  className="flex-1 py-3 px-6 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all duration-200"
-                >
-                  <AiOutlineMessage className="text-xl mx-auto" />
-                </button>
-              </div>
-            )}
-
-            {/* Product Description */}
-            <div className="bg-white rounded-xl shadow-lg p-4">
-              <h3 className="text-lg font-semibold mb-4">Description</h3>
-              <p className="text-gray-600 whitespace-pre-line">
-                {data.Description}
-              </p>
             </div>
           </div>
         </div>
-      </div>
 
-      {showSizeGuide && <SizeGuide onClose={() => setShowSizeGuide(false)} />}
-    </div>
+        {showSizeGuide && <SizeGuide onClose={() => setShowSizeGuide(false)} />}
+      </div>
+    </ErrorBoundary>
   );
 });
 
-// Wrap the component with ErrorBoundary and memo
-const ProductDetailsWithErrorBoundary = (props) => (
-  <ErrorBoundary
-    FallbackComponent={({ error }) => (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-2">Something went wrong</h2>
-          <p className="text-gray-600">{error.message}</p>
-        </div>
-      </div>
-    )}
-  >
-    <ProductDetails {...props} />
-  </ErrorBoundary>
-);
-
-export default memo(ProductDetailsWithErrorBoundary);
+// Export with error boundary wrapper
+export default memo(ProductDetails);
