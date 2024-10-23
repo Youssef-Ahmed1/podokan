@@ -1,40 +1,14 @@
-import React, { useEffect, useState, memo, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'react-toastify';
-import { fetchPendingProducts, approveRejectProduct } from '../../../redux/actions/product';
-import styles from '../../../styles/styles';
-
-// Constants definitions (as before)
-const STATUS_OPTIONS = {
-  pending: { value: 'pending', label: 'Pending Review', color: 'bg-yellow-500' },
-  rejected: { value: 'rejected', label: 'Rejected', color: 'bg-red-500' },
-  restricted: { value: 'restricted', label: 'Restricted Access', color: 'bg-purple-500' },
-  public: { value: 'public', label: 'Public', color: 'bg-green-500' }
-};
-
-const PRODUCT_TYPES = {
-  't-shirt': { 
-    value: 't-shirt', 
-    label: 'T-Shirt', 
-    basePrice: 20,
-    premiumPrice: 30,
-    icon: '👕'
-  },
-  'hoodie': { 
-    value: 'hoodie', 
-    label: 'Hoodie', 
-    basePrice: 40,
-    premiumPrice: 60,
-    icon: '🧥'
-  },
-  'long-sleeve': { 
-    value: 'long-sleeve', 
-    label: 'Long Sleeve', 
-    basePrice: 30,
-    premiumPrice: 45,
-    icon: '👔'
-  }
-};
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import axios from "axios";
+import { fetchPendingProducts, approveRejectProduct } from "../../redux/actions/product";
+import { toast } from "react-toastify";
+import { AiOutlineDelete } from "react-icons/ai";
+import styles from "../../styles/styles";
+import { server } from "../../server";
+import { DataGrid } from "@material-ui/data-grid";
+import { Button } from "@material-ui/core";
 
 const COLOR_OPTIONS = {
   white: { value: 'white', label: 'White', hex: '#ffffff', textColor: 'text-gray-800' },
@@ -44,507 +18,406 @@ const COLOR_OPTIONS = {
   gray: { value: 'gray', label: 'Gray', hex: '#808080', textColor: 'text-white' }
 };
 
-// ProductPreview Component
-const ProductPreview = memo(({ editedProduct, onZoom, onViewChange }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [previewMode, setPreviewMode] = useState('mockup');
-
-  const getMockupUrl = useCallback((product) => {
-    if (!product) return '';
-    
-    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-    const config = {
-      hoodie: {
-        version: "v1728392918",
-        folder: "hoodies",
-        filename: `hoodie-${product.ProductColor}-${product.ProductView}`
-      },
-      "t-shirt": {
-        version: "v1728393898",
-        folder: "t-shirts",
-        filename: `t-shirt-${product.ProductColor}-${product.ProductView}`
-      },
-      "long-sleeve": {
-        version: "v1728394665",
-        folder: "long-sleeves",
-        filename: product.ProductColor === "gray" 
-          ? `longsleeves-${product.ProductColor}-${product.ProductView}`
-          : ["white", "black"].includes(product.ProductColor)
-            ? `longseleves-${product.ProductColor}-${product.ProductView}`
-            : `t-shirt-${product.ProductColor}-${product.ProductView}`
-      }
-    };
-
-    const productConfig = config[product.ProductType];
-    return productConfig 
-      ? `${baseUrl}${productConfig.version}/${productConfig.folder}/${productConfig.filename}.png`
-      : "";
-  }, []);
-
-  const getDesignImageUrl = useCallback((product) => {
-    if (!product?.designImage) return '';
-    return typeof product.designImage === 'string' 
-      ? product.designImage 
-      : product.designImage.url || '';
-  }, []);
-
-  return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-        <div className="flex space-x-4">
-          <button
-            onClick={() => setPreviewMode('mockup')}
-            className={`px-4 py-2 rounded-lg transition-all ${
-              previewMode === 'mockup' 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-100 hover:bg-gray-200'
-            }`}
-          >
-            Mockup View
-          </button>
-          <button
-            onClick={() => setPreviewMode('design')}
-            className={`px-4 py-2 rounded-lg transition-all ${
-              previewMode === 'design' 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-100 hover:bg-gray-200'
-            }`}
-          >
-            Design Only
-          </button>
-        </div>
-      </div>
-
-      <div className="relative w-full h-[500px] bg-gray-100">
-        <img
-          src={previewMode === 'mockup' ? getMockupUrl(editedProduct) : getDesignImageUrl(editedProduct)}
-          alt="Product Preview"
-          className="w-full h-full object-contain transition-opacity duration-300"
-          onLoad={() => setIsLoading(false)}
-          style={{ opacity: isLoading ? 0 : 1 }}
-        />
-
-        {previewMode === 'mockup' && (
-          <div
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-            style={{ 
-              transform: `translate(-50%, -50%) scale(${editedProduct.DesignScale})`,
-              width: '200px',
-              height: '200px'
-            }}
-          >
-            <img
-              src={getDesignImageUrl(editedProduct)}
-              alt="Design Overlay"
-              className="w-full h-full object-contain"
-            />
-          </div>
-        )}
-
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-          </div>
-        )}
-      </div>
-
-      <div className="p-4 bg-gray-50 flex justify-between items-center">
-        <button
-          onClick={() => onViewChange(editedProduct.ProductView === 'front' ? 'back' : 'front')}
-          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-all"
-        >
-          Switch to {editedProduct.ProductView === 'front' ? 'Back' : 'Front'}
-        </button>
-
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => onZoom('out')}
-            className="p-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
-          >
-            -
-          </button>
-          <span className="font-medium">
-            {(editedProduct.DesignScale * 100).toFixed(0)}%
-          </span>
-          <button
-            onClick={() => onZoom('in')}
-            className="p-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
-          >
-            +
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-});// Price Configuration Component
-const PriceConfiguration = memo(({ editedProduct, onPriceChange }) => {
-  const [showDetails, setShowDetails] = useState(false);
-
-  return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-gray-800">Price Settings</h3>
-          <button
-            onClick={() => setShowDetails(!showDetails)}
-            className="text-blue-600 hover:text-blue-800"
-          >
-            {showDetails ? 'Hide Details' : 'Show Details'}
-          </button>
-        </div>
-      </div>
-
-      <div className={`transition-all duration-300 ${showDetails ? 'max-h-[400px]' : 'max-h-0'} overflow-hidden`}>
-        <div className="p-4 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Original Price (£)
-            </label>
-            <input
-              type="number"
-              value={editedProduct.originalPrice || ''}
-              onChange={(e) => onPriceChange({
-                originalPrice: parseFloat(e.target.value),
-                discountPrice: editedProduct.discountPrice
-              })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              min="0"
-              step="0.01"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Discount Price (£) - Optional
-            </label>
-            <input
-              type="number"
-              value={editedProduct.discountPrice || ''}
-              onChange={(e) => onPriceChange({
-                originalPrice: editedProduct.originalPrice,
-                discountPrice: e.target.value ? parseFloat(e.target.value) : null
-              })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              min="0"
-              step="0.01"
-            />
-          </div>
-
-          {editedProduct.discountPrice && editedProduct.discountPrice < editedProduct.originalPrice && (
-            <div className="bg-green-50 p-3 rounded-lg">
-              <div className="flex justify-between items-center">
-                <span className="text-green-700">Discount:</span>
-                <span className="font-bold text-green-700">
-                  {(((editedProduct.originalPrice - editedProduct.discountPrice) / editedProduct.originalPrice) * 100).toFixed(0)}% OFF
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="p-4 bg-gray-50">
-        <div className="flex items-baseline space-x-3">
-          <span className="text-2xl font-bold">
-            £{editedProduct.originalPrice?.toFixed(2) || '0.00'}
-          </span>
-          {editedProduct.discountPrice && editedProduct.discountPrice < editedProduct.originalPrice && (
-            <>
-              <span className="text-lg line-through text-gray-500">
-                £{editedProduct.discountPrice.toFixed(2)}
-              </span>
-              <span className="text-sm text-green-600 font-medium">
-                {(((editedProduct.originalPrice - editedProduct.discountPrice) / editedProduct.originalPrice) * 100).toFixed(0)}% OFF
-              </span>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-});
-
-// Main AdminProductApproval Component
 const AdminProductApproval = () => {
   const dispatch = useDispatch();
-  const { isLoading, error, pendingProducts } = useSelector((state) => state.product);
-  const { user } = useSelector((state) => state.user);
-  
+  const { pendingProducts, isLoading } = useSelector((state) => state.products);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editedProduct, setEditedProduct] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showRejectionDialog, setShowRejectionDialog] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   useEffect(() => {
     dispatch(fetchPendingProducts());
   }, [dispatch]);
 
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
-
-  const handleProductSelect = useCallback((product) => {
+  const handleEdit = (product) => {
     setSelectedProduct(product);
     setEditedProduct({
       ...product,
-      originalPrice: product.originalPrice || PRODUCT_TYPES[product.ProductType]?.basePrice || 20
+      DesignTitle: product.DesignTitle || '',
+      Maintag: product.Maintag || '',
+      Designtags: product.Designtags || [],
+      Description: product.Description || '',
+      originalPrice: product.originalPrice || 0,
+      discountPrice: product.discountPrice || 0,
+      DesignScale: product.DesignScale || 1,
+      availableColors: product.availableColors || ['white'],
+      ProductColor: product.ProductColor || 'white',
+      ProductType: product.ProductType || 't-shirt',
+      ProductView: product.ProductView || 'front'
     });
-    setRejectionReason('');
-  }, []);
+  };
 
-  const handleInputChange = useCallback((e) => {
-    const { name, value } = e.target;
+  const handleInputChange = (field, value) => {
     setEditedProduct(prev => ({
       ...prev,
-      [name]: name === 'originalPrice' || name === 'discountPrice' 
-        ? parseFloat(value) 
-        : value
+      [field]: value
     }));
-  }, []);
+  };
 
-  const handlePriceChange = useCallback(({ originalPrice, discountPrice }) => {
+  const handleColorToggle = (color) => {
     setEditedProduct(prev => ({
       ...prev,
-      originalPrice,
-      discountPrice
+      availableColors: prev.availableColors.includes(color)
+        ? prev.availableColors.filter(c => c !== color)
+        : [...prev.availableColors, color]
     }));
-  }, []);
-
-  const handleStatusChange = useCallback((status) => {
-    setEditedProduct(prev => ({ ...prev, status }));
-    if (status !== 'rejected') {
-      setRejectionReason('');
-    }
-  }, []);
-
-  const handleSubmit = async () => {
-    if (!editedProduct) {
-      toast.error('No product selected');
+  };const handleApprove = async () => {
+    if (!editedProduct) return;
+    
+    if (!editedProduct.availableColors || editedProduct.availableColors.length === 0) {
+      toast.error("Please select at least one available color");
       return;
     }
 
-    if (editedProduct.status === 'rejected' && !rejectionReason.trim()) {
-      toast.error('Please provide a reason for rejection');
+    if (!editedProduct.originalPrice || editedProduct.originalPrice <= 0) {
+      toast.error("Please set a valid original price");
       return;
     }
 
-    const originalPrice = parseFloat(editedProduct.originalPrice);
-    if (isNaN(originalPrice) || originalPrice <= 0) {
-      toast.error('Please enter a valid original price');
-      return;
-    }
-
-    setIsSubmitting(true);
     try {
       const updates = {
         DesignTitle: editedProduct.DesignTitle,
-        Description: editedProduct.Description,
         Maintag: editedProduct.Maintag,
         Designtags: editedProduct.Designtags,
+        Description: editedProduct.Description,
+        originalPrice: parseFloat(editedProduct.originalPrice),
+        discountPrice: parseFloat(editedProduct.discountPrice) || parseFloat(editedProduct.originalPrice),
+        DesignScale: parseFloat(editedProduct.DesignScale),
+        availableColors: editedProduct.availableColors,
         ProductType: editedProduct.ProductType,
         ProductView: editedProduct.ProductView,
-        ProductColor: editedProduct.ProductColor,
-        DesignScale: editedProduct.DesignScale,
-        originalPrice: originalPrice,
-        discountPrice: editedProduct.discountPrice,
-        status: editedProduct.status
+        visibility: 'public' // Set visibility to public when approved
       };
 
-      const result = await dispatch(
-        approveRejectProduct(
-          editedProduct._id,
-          editedProduct.status,
-          rejectionReason,
-          updates
-        )
-      );
+      const result = await dispatch(approveRejectProduct(
+        selectedProduct._id,
+        'public',
+        '',
+        updates
+      ));
 
       if (result.success) {
-        toast.success(result.message);
+        toast.success("Product approved successfully!");
+        dispatch(fetchPendingProducts());
         setSelectedProduct(null);
         setEditedProduct(null);
-        setRejectionReason('');
-        dispatch(fetchPendingProducts());
       }
     } catch (error) {
-      toast.error(error.message || 'Failed to update product');
-    } finally {
-      setIsSubmitting(false);
+      toast.error(error.message || "Failed to approve product");
     }
   };
 
-  if (!user?.role === 'admin') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <h2 className="text-2xl font-bold text-red-600">
-          Access Denied: Admin Only
-        </h2>
-      </div>
-    );
-  }
+  const handleReject = async () => {
+    if (!rejectionReason.trim()) {
+      toast.error("Please provide a rejection reason");
+      return;
+    }
 
-  return (
-    <div className="min-h-screen bg-gray-100 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col space-y-8">
-          {/* Header */}
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Product Approval Dashboard
-            </h1>
-            <span className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-              {pendingProducts?.length || 0} Pending Reviews
-            </span>
+    try {
+      const result = await dispatch(approveRejectProduct(
+        selectedProduct._id,
+        'rejected',
+        rejectionReason,
+        { visibility: 'restricted' } // Set visibility to restricted when rejected
+      ));
+
+      if (result.success) {
+        toast.success("Product rejected successfully!");
+        dispatch(fetchPendingProducts());
+        setSelectedProduct(null);
+        setEditedProduct(null);
+        setShowRejectionDialog(false);
+        setRejectionReason("");
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to reject product");
+    }
+  };
+
+  const columns = [
+    {
+      field: "id",
+      headerName: "Product ID",
+      minWidth: 150,
+      flex: 0.7,
+    },
+    {
+      field: "name",
+      headerName: "Design Title",
+      minWidth: 180,
+      flex: 1.4,
+    },
+    {
+      field: "mainTag",
+      headerName: "Main Tag",
+      minWidth: 140,
+      flex: 0.8,
+    },
+    {
+      field: "type",
+      headerName: "Product Type",
+      minWidth: 100,
+      flex: 0.6,
+    },
+    {
+      field: "Preview",
+      flex: 1,
+      minWidth: 150,
+      headerName: "Preview",
+      type: "number",
+      sortable: false,
+      renderCell: (params) => {
+        return (
+          <>
+            <Button onClick={() => handleEdit(params.row)}>
+              <span className="text-blue-500 hover:text-blue-700">
+                Review Design
+              </span>
+            </Button>
+          </>
+        );
+      },
+    },
+  ];
+
+  const row = [];
+  pendingProducts &&
+    pendingProducts.forEach((item) => {
+      row.push({
+        id: item._id,
+        name: item.DesignTitle,
+        mainTag: item.Maintag,
+        type: item.ProductType,
+        item: item,
+      });
+    });return (
+      <div className="w-full flex justify-center pt-5">
+        <div className="w-[97%]">
+          <h3 className="text-[22px] font-Poppins pb-2">Products Pending Approval</h3>
+          <div className="w-full min-h-[45vh] bg-white rounded">
+            <DataGrid
+              rows={row}
+              columns={columns}
+              pageSize={10}
+              disableSelectionOnClick
+              autoHeight
+            />
           </div>
-
-          {/* Main Content */}
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Product List */}
-            <div className="w-full lg:w-1/3">
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div className="p-4 border-b border-gray-200">
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    Pending Products
-                  </h2>
-                </div>
-                
-                {isLoading ? (
-                  <div className="p-8 flex justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+  
+          {/* Edit Modal */}
+          {selectedProduct && editedProduct && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold">Review Product Design</h2>
+                    <button
+                      onClick={() => {
+                        setSelectedProduct(null);
+                        setEditedProduct(null);
+                      }}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      ×
+                    </button>
                   </div>
-                ) : (
-                  <div className="p-4 space-y-2">
-                    {pendingProducts?.map((product) => (
+  
+                  {/* Product Preview */}
+                  <div className="mb-6">
+                    <div className="aspect-w-1 aspect-h-1 w-full bg-gray-100 rounded-lg overflow-hidden">
+                      <img
+                        src={editedProduct.designImage?.url || editedProduct.designImage}
+                        alt={editedProduct.DesignTitle}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  </div>
+  
+                  {/* Form Fields */}
+                  <div className="space-y-6">
+                    {/* Design Title */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Design Title
+                      </label>
+                      <input
+                        type="text"
+                        value={editedProduct.DesignTitle}
+                        onChange={(e) => handleInputChange('DesignTitle', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+  
+                    {/* Main Tag */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Main Tag
+                      </label>
+                      <input
+                        type="text"
+                        value={editedProduct.Maintag}
+                        onChange={(e) => handleInputChange('Maintag', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+  
+                    {/* Design Tags */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Design Tags
+                      </label>
+                      <input
+                        type="text"
+                        value={editedProduct.Designtags}
+                        onChange={(e) => handleInputChange('Designtags', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+  
+                    {/* Description */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Description
+                      </label>
+                      <textarea
+                        value={editedProduct.Description}
+                        onChange={(e) => handleInputChange('Description', e.target.value)}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+  
+                    {/* Design Scale */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Design Scale
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={editedProduct.DesignScale}
+                        onChange={(e) => handleInputChange('DesignScale', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+  
+                    {/* Original Price */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Original Price (£)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editedProduct.originalPrice}
+                        onChange={(e) => handleInputChange('originalPrice', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+  
+                    {/* Discount Price */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Discount Price (£)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editedProduct.discountPrice}
+                        onChange={(e) => handleInputChange('discountPrice', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+  
+                    {/* Available Colors Selection */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Available Colors
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {Object.entries(COLOR_OPTIONS).map(([key, color]) => (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => handleColorToggle(key)}
+                            className={`
+                              p-3 rounded-lg border-2 transition-all duration-200
+                              ${editedProduct.availableColors.includes(key)
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-200 hover:border-gray-300'}
+                            `}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div
+                                className="w-6 h-6 rounded-full border border-gray-300"
+                                style={{ backgroundColor: color.hex }}
+                              />
+                              <span className={`text-sm ${color.textColor}`}>
+                                {color.label}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+  
+                    {/* Action Buttons */}
+                    <div className="flex space-x-4 pt-6">
                       <button
-                        key={product._id}
-                        onClick={() => handleProductSelect(product)}
-                        className={`
-                          w-full p-4 rounded-lg transition-all duration-200
-                          ${selectedProduct?._id === product._id 
-                            ? 'bg-blue-50 border-2 border-blue-500' 
-                            : 'hover:bg-gray-50 border border-gray-200'}
-                        `}
+                        onClick={handleApprove}
+                        className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
                       >
-                        <div className="flex justify-between items-center">
-                          <div className="flex-1">
-                            <h3 className="font-medium text-gray-900">
-                              {product.DesignTitle}
-                            </h3>
-                            <p className="text-sm text-gray-500">
-                              {new Date(product.createdAt).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <span className={`
-                            px-3 py-1 rounded-full text-xs font-medium
-                            ${STATUS_OPTIONS[product.status].color} text-white
-                          `}>
-                            {STATUS_OPTIONS[product.status].label}
-                          </span>
-                        </div>
+                        Approve
                       </button>
-                    ))}
+                      <button
+                        onClick={() => setShowRejectionDialog(true)}
+                        className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors"
+                      >
+                        Reject
+                      </button>
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             </div>
-
-            {/* Edit Form */}
-            {selectedProduct && (
-              <div className="w-full lg:w-2/3 space-y-6">
-                <ProductPreview
-                  editedProduct={editedProduct}
-                  onZoom={(direction) => {
-                    setEditedProduct(prev => ({
-                      ...prev,
-                      DesignScale: direction === 'in' 
-                        ? Math.min(prev.DesignScale + 0.1, 2) 
-                        : Math.max(prev.DesignScale - 0.1, 0.5)
-                    }));
-                  }}
-                  onViewChange={(view) => handleInputChange({
-                    target: { name: 'ProductView', value: view }
-                  })}
+          )}
+  
+          {/* Rejection Dialog */}
+          {showRejectionDialog && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg max-w-md w-full p-6">
+                <h3 className="text-xl font-bold mb-4">Reject Product</h3>
+                <textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="Please provide a reason for rejection..."
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                 />
-
-                <PriceConfiguration
-                  editedProduct={editedProduct}
-                  onPriceChange={handlePriceChange}
-                />
-
-                {/* Status Selection */}
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                  <div className="p-4 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      Status Update
-                    </h3>
-                  </div>
-                  <div className="p-4 space-y-4">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {Object.entries(STATUS_OPTIONS).map(([key, status]) => (
-                        <button
-                          key={key}
-                          onClick={() => handleStatusChange(key)}
-                          className={`
-                            p-3 rounded-lg transition-all duration-200
-                            ${editedProduct.status === key 
-                              ? `${status.color} text-white` 
-                              : 'bg-gray-100 hover:bg-gray-200'}
-                          `}
-                        >
-                          {status.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {editedProduct.status === 'rejected' && (
-                      <div className="animate-fadeIn">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Rejection Reason
-                        </label>
-                        <textarea
-                          value={rejectionReason}
-                          onChange={(e) => setRejectionReason(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
-                          rows="3"
-                          placeholder="Please provide a reason for rejection..."
-                        />
-                      </div>
-                    )}
-                  </div>
+                <div className="flex space-x-4 mt-6">
+                  <button
+                    onClick={handleReject}
+                    className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors"
+                  >
+                    Confirm Reject
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowRejectionDialog(false);
+                      setRejectionReason("");
+                    }}
+                    className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
                 </div>
-
-                {/* Submit Button */}
-                <button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className={`
-                    w-full py-3 rounded-lg text-white font-medium
-                    transition-all duration-200
-                    ${isSubmitting 
-                      ? 'bg-gray-400 cursor-not-allowed' 
-                      : 'bg-blue-600 hover:bg-blue-700'}
-                  `}
-                >
-                  {isSubmitting ? 'Updating...' : 'Update Product'}
-                </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
-
-      {isSubmitting && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 flex flex-col items-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
-            <p className="mt-4 text-gray-600">Processing...</p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default memo(AdminProductApproval);
+    );
+  };
+  
+  export default AdminProductApproval;
