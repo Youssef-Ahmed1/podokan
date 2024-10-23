@@ -13,7 +13,7 @@ import { addTocart } from "../../redux/actions/cart";
 import Ratings from "./Ratings";
 
 // Constants
-const COLOR_OPTIONS = {
+export const COLOR_OPTIONS = {
   white: { value: 'white', label: 'White', hex: '#ffffff', textColor: 'text-gray-800' },
   black: { value: 'black', label: 'Black', hex: '#000000', textColor: 'text-white' },
   red: { value: 'red', label: 'Red', hex: '#ff0000', textColor: 'text-white' },
@@ -21,7 +21,7 @@ const COLOR_OPTIONS = {
   gray: { value: 'gray', label: 'Gray', hex: '#808080', textColor: 'text-white' }
 };
 
-const PRODUCT_TYPES = {
+export const PRODUCT_TYPES = {
   't-shirt': { 
     value: 't-shirt', 
     label: 'T-Shirt', 
@@ -42,19 +42,19 @@ const PRODUCT_TYPES = {
   }
 };
 
-const SIZE_OPTIONS = [
+export const SIZE_OPTIONS = [
   { value: 'S', label: 'Small' },
   { value: 'M', label: 'Medium' },
   { value: 'L', label: 'Large' },
   { value: 'XL', label: 'Extra Large' }
 ];
 
-const FIT_OPTIONS = [
+export const FIT_OPTIONS = [
   { value: 'male', label: 'Male Fit' },
   { value: 'female', label: 'Female Fit' }
 ];
 
-const MATERIAL_OPTIONS = [
+export const MATERIAL_OPTIONS = [
   { value: 'standard', label: 'Standard Material', multiplier: 1 },
   { value: 'premium', label: 'Premium Material', multiplier: 2 }
 ];
@@ -77,6 +77,57 @@ class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
+
+// Size Guide Component
+const SizeGuide = memo(({ onClose }) => (
+  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold">Size Guide</h3>
+          <button 
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            ×
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="p-3 text-left">Size</th>
+                <th className="p-3">Chest (inches)</th>
+                <th className="p-3">Length (inches)</th>
+                <th className="p-3">Sleeve (inches)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { size: 'S', chest: '36-38', length: '27', sleeve: '8.5' },
+                { size: 'M', chest: '39-41', length: '28', sleeve: '9' },
+                { size: 'L', chest: '42-44', length: '29', sleeve: '9.5' },
+                { size: 'XL', chest: '45-47', length: '30', sleeve: '10' },
+              ].map((row) => (
+                <tr key={row.size} className="border-b">
+                  <td className="p-3 font-medium">{row.size}</td>
+                  <td className="p-3 text-center">{row.chest}</td>
+                  <td className="p-3 text-center">{row.length}</td>
+                  <td className="p-3 text-center">{row.sleeve}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="mt-4 text-sm text-gray-600">
+            <p>Measurements are approximate and may vary slightly by style.</p>
+            <p className="mt-2">For best results, measure yourself and compare to the size chart above.</p>
+            <p className="mt-2">If you're between sizes, order the larger size for a more comfortable fit.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+));
 
 // Product Preview Component
 const ProductPreview = memo(({ 
@@ -235,7 +286,10 @@ const ProductPreview = memo(({
       )}
     </div>
   );
-});// Main ProductDetails Component
+});
+
+export { ProductPreview, SizeGuide, ErrorBoundary };
+// Main ProductDetails Component
 const ProductDetails = memo(({ data }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -257,6 +311,13 @@ const ProductDetails = memo(({ data }) => {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const isInWishlist = wishlist?.find((item) => item._id === data?._id);
+
+  // Validate color availability when product data changes
+  useEffect(() => {
+    if (data?.availableColors && !data.availableColors.includes(selectedColor)) {
+      setSelectedColor(data.availableColors[0]);
+    }
+  }, [data, selectedColor]);
 
   // Calculate final price with all factors
   const calculateFinalPrice = useCallback(() => {
@@ -348,11 +409,21 @@ const ProductDetails = memo(({ data }) => {
     calculateFinalPrice
   ]);
 
+  // Error handling
+  const handleError = useCallback((error) => {
+    console.error('Product Error:', error);
+    toast.error(error.message || "An error occurred");
+  }, []);
+
   // Validate product status and visibility
   const canBePurchased = data?.status === 'public' && data?.visibility === 'public';
 
   if (!data) {
-    return <div>Product not found</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-xl text-gray-600">Product not found</p>
+      </div>
+    );
   }
 
   return (
@@ -431,6 +502,12 @@ const ProductDetails = memo(({ data }) => {
                   </>
                 )}
               </div>
+
+              {selectedMaterial === 'premium' && (
+                <p className="mt-2 text-sm text-gray-600">
+                  Premium material selected (2x quality)
+                </p>
+              )}
             </div>
 
             {/* Size Selection */}
@@ -569,4 +646,20 @@ const ProductDetails = memo(({ data }) => {
   );
 });
 
-export default memo(ErrorBoundary(ProductDetails));
+// Wrap the component with ErrorBoundary and memo
+const ProductDetailsWithErrorBoundary = (props) => (
+  <ErrorBoundary
+    FallbackComponent={({ error }) => (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-2">Something went wrong</h2>
+          <p className="text-gray-600">{error.message}</p>
+        </div>
+      </div>
+    )}
+  >
+    <ProductDetails {...props} />
+  </ErrorBoundary>
+);
+
+export default memo(ProductDetailsWithErrorBoundary);
