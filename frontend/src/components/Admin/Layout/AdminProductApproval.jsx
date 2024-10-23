@@ -6,7 +6,7 @@ import { fetchPendingProducts, approveRejectProduct } from "../../redux/actions/
 import { toast } from "react-toastify";
 import { AiOutlineDelete } from "react-icons/ai";
 import styles from "../../styles/styles";
-import { server } from "../../server";
+import { server } from "../../../server"
 import { DataGrid } from "@material-ui/data-grid";
 import { Button } from "@material-ui/core";
 
