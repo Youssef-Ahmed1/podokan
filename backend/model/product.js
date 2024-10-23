@@ -12,14 +12,32 @@ const productSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Shop',
     required: [true, "Shop ID is required"],
-    index: true
+    index: true,
+    validate: {
+      validator: function(v) {
+        return mongoose.Types.ObjectId.isValid(v);
+      },
+      message: "Invalid Shop ID format"
+    }
+  },
+  shop: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Shop',
+    required: [true, "Shop reference is required"],
+    validate: {
+      validator: function(v) {
+        return mongoose.Types.ObjectId.isValid(v);
+      },
+      message: "Invalid Shop reference format"
+    }
   },
   DesignTitle: {
     type: String,
     required: [true, "Please enter your product name!"],
     trim: true,
     minLength: [3, "Design title must be at least 3 characters"],
-    maxLength: [100, "Design title cannot exceed 100 characters"]
+    maxLength: [100, "Design title cannot exceed 100 characters"],
+    index: true
   },
   Description: {
     type: String,
@@ -32,7 +50,13 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please enter a main tag!"],
     trim: true,
-    index: true
+    index: true,
+    validate: {
+      validator: function(v) {
+        return v.length >= 2 && v.length <= 50;
+      },
+      message: "Main tag must be between 2 and 50 characters"
+    }
   },
   Designtags: {
     type: [String],
@@ -42,7 +66,11 @@ const productSchema = new mongoose.Schema({
       },
       message: "Each design tag must be between 1 and 50 characters"
     },
-    default: []
+    default: [],
+    set: function(tags) {
+      // Remove duplicates and trim each tag
+      return Array.from(new Set(tags.map(tag => tag.trim())));
+    }
   },
   ProductType: {
     type: String,
@@ -50,7 +78,8 @@ const productSchema = new mongoose.Schema({
     enum: {
       values: VALID_PRODUCT_TYPES,
       message: `Product type must be one of: ${VALID_PRODUCT_TYPES.join(', ')}`
-    }
+    },
+    index: true
   },
   ProductColor: {
     type: String,
@@ -70,9 +99,9 @@ const productSchema = new mongoose.Schema({
     }],
     validate: {
       validator: function(colors) {
-        return colors.length > 0;
+        return colors.length > 0 && new Set(colors).size === colors.length;
       },
-      message: "At least one color must be selected"
+      message: "At least one unique color must be selected"
     },
     default: function() {
       return [this.ProductColor];
@@ -90,7 +119,10 @@ const productSchema = new mongoose.Schema({
     type: Number,
     default: 1,
     min: [0.1, "Design scale cannot be less than 0.1"],
-    max: [5.0, "Design scale cannot exceed 5.0"]
+    max: [5.0, "Design scale cannot exceed 5.0"],
+    set: function(value) {
+      return parseFloat(parseFloat(value).toFixed(2));
+    }
   },
   originalPrice: {
     type: Number,
@@ -99,6 +131,9 @@ const productSchema = new mongoose.Schema({
         return this.status === 'public' ? price > 0 : true;
       },
       message: "Original price is required for public products and must be greater than 0"
+    },
+    set: function(value) {
+      return parseFloat(parseFloat(value).toFixed(2));
     }
   },
   discountPrice: {
@@ -108,16 +143,25 @@ const productSchema = new mongoose.Schema({
         return !price || price <= this.originalPrice;
       },
       message: "Discount price must be less than or equal to original price"
+    },
+    set: function(value) {
+      return value ? parseFloat(parseFloat(value).toFixed(2)) : undefined;
     }
   },
   designImage: {
     public_id: {
       type: String,
-      required: true
+      required: [true, "Design image public ID is required"]
     },
     url: {
       type: String,
-      required: true
+      required: [true, "Design image URL is required"],
+      validate: {
+        validator: function(v) {
+          return /^https?:\/\/.+/.test(v);
+        },
+        message: "Invalid image URL format"
+      }
     }
   },
   status: {
@@ -142,20 +186,27 @@ const productSchema = new mongoose.Schema({
     default: '',
     validate: {
       validator: function(reason) {
-        return this.status !== 'rejected' || reason.length > 0;
+        return this.status !== 'rejected' || (reason && reason.length >= 10);
       },
-      message: "Rejection reason is required when status is 'rejected'"
+      message: "A detailed rejection reason (min 10 characters) is required when status is 'rejected'"
     }
   },
   reviews: [{
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true
+      required: true,
+      validate: {
+        validator: function(v) {
+          return mongoose.Types.ObjectId.isValid(v);
+        },
+        message: "Invalid User ID format"
+      }
     },
     name: {
       type: String,
-      required: true
+      required: true,
+      trim: true
     },
     rating: {
       type: Number,
@@ -179,7 +230,10 @@ const productSchema = new mongoose.Schema({
     type: Number,
     default: 0,
     min: [0, "Overall rating cannot be negative"],
-    max: [5, "Overall rating cannot exceed 5"]
+    max: [5, "Overall rating cannot exceed 5"],
+    set: function(value) {
+      return parseFloat(parseFloat(value).toFixed(2));
+    }
   },
   sold_out: {
     type: Number,
@@ -197,14 +251,28 @@ const productSchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Shop',
-    required: true
+    required: true,
+    validate: {
+      validator: function(v) {
+        return mongoose.Types.ObjectId.isValid(v);
+      },
+      message: "Invalid creator ID format"
+    }
   },
   lastModifiedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
+    validate: {
+      validator: function(v) {
+        return mongoose.Types.ObjectId.isValid(v);
+      },
+      message: "Invalid modifier ID format"
+    }
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
 // Indexes for better query performance
@@ -212,6 +280,8 @@ productSchema.index({ DesignTitle: 'text', Description: 'text', Maintag: 'text',
 productSchema.index({ status: 1, visibility: 1 });
 productSchema.index({ shopId: 1, status: 1 });
 productSchema.index({ createdAt: -1 });
+productSchema.index({ 'reviews.rating': 1 });
+productSchema.index({ originalPrice: 1 });
 
 // Pre-save middleware
 productSchema.pre('save', function(next) {
@@ -220,6 +290,12 @@ productSchema.pre('save', function(next) {
   // Ensure availableColors includes ProductColor
   if (!this.availableColors.includes(this.ProductColor)) {
     this.availableColors.push(this.ProductColor);
+  }
+
+  // Update ratings when reviews change
+  if (this.reviews?.length > 0) {
+    this.ratings = parseFloat((this.reviews.reduce((acc, item) => item.rating + acc, 0) / 
+      this.reviews.length).toFixed(2));
   }
   
   next();
@@ -233,9 +309,24 @@ productSchema.virtual('discountPercentage').get(function() {
   return 0;
 });
 
+// Virtual for stock status
+productSchema.virtual('isInStock').get(function() {
+  return this.sold_out < 999999; // Assuming unlimited stock for digital products
+});
+
 // Method to check if product can be purchased
 productSchema.methods.canBePurchased = function() {
-  return this.status === 'public' && this.visibility === 'public';
+  return this.status === 'public' && 
+         this.visibility === 'public' && 
+         this.isInStock;
 };
 
-module.exports = mongoose.model("Product", productSchema);
+// Export constants for use in other files
+module.exports.VALID_COLORS = VALID_COLORS;
+module.exports.VALID_PRODUCT_TYPES = VALID_PRODUCT_TYPES;
+module.exports.VALID_VIEWS = VALID_VIEWS;
+module.exports.VALID_STATUSES = VALID_STATUSES;
+module.exports.VALID_VISIBILITY = VALID_VISIBILITY;
+
+// Export model
+module.exports.Product = mongoose.model("Product", productSchema);
