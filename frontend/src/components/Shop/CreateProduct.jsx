@@ -1,15 +1,33 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { createProduct } from "../../redux/actions/product";
+import { AiOutlineCloudUpload, AiOutlineDelete, AiOutlineInfoCircle } from "react-icons/ai";
+import { BiRuler, BiMove } from "react-icons/bi";
+import { MdOutlineKeyboardArrowUp, MdOutlineKeyboardArrowDown, 
+         MdOutlineKeyboardArrowLeft, MdOutlineKeyboardArrowRight } from "react-icons/md";
 
 const CreateProduct = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { seller } = useSelector((state) => state.seller);
+  
+  // Refs
+  const designPreviewRef = useRef(null);
+  const mockupContainerRef = useRef(null);
+  const designPositionRef = useRef({ x: 0, y: 0 });
+  
+  // State
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [designQualityScore, setDesignQualityScore] = useState(null);
+  const [showGuides, setShowGuides] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isDesignVisible, setIsDesignVisible] = useState(true);
+  const [designStats, setDesignStats] = useState(null);
+  
   const [formState, setFormState] = useState({
     DesignTitle: "",
     Description: "",
@@ -20,345 +38,667 @@ const CreateProduct = () => {
     ProductView: "front",
     DesignScale: 1,
     shopId: "",
+    designPosition: { x: 50, y: 50 }, // Center position in percentage
   });
-  const [designPreview, setDesignPreview] = useState(null);
-  const [designData, setDesignData] = useState(null);
-  
+
+  const [designFile, setDesignFile] = useState({
+    preview: null,
+    file: null,
+    originalFile: null,
+    compressionStats: null
+  });
+
+  // Constants for design boundaries
+  const BOUNDARY_LIMITS = {
+    't-shirt': { top: 25, bottom: 70, left: 25, right: 75 },
+    'hoodie': { top: 30, bottom: 65, left: 30, right: 70 },
+    'long-sleeve': { top: 25, bottom: 70, left: 25, right: 75 }
+  };
+
+  // Design Quality Scoring System
+  const calculateDesignQualityScore = (imageInfo) => {
+    let score = 100;
+    let feedback = [];
+
+    // DPI Score (40 points)
+    const dpiScore = Math.min(40, (imageInfo.dpi / 300) * 40);
+    score -= (40 - dpiScore);
+    if (imageInfo.dpi < 300) {
+      feedback.push({
+        type: 'error',
+        message: `DPI is ${Math.round(imageInfo.dpi)}. Minimum required is 300 DPI.`
+      });
+    }
+
+    // Size Score (30 points)
+    const sizeScore = Math.min(30, (Math.min(imageInfo.compressedSize, 500000) / 500000) * 30);
+    score -= (30 - sizeScore);
+    if (imageInfo.compressedSize > 500000) {
+      feedback.push({
+        type: 'warning',
+        message: 'File size is larger than recommended.'
+      });
+    }
+
+    // Transparency Score (20 points)
+    if (!imageInfo.hasTransparency) {
+      score -= 20;
+      feedback.push({
+        type: 'error',
+        message: 'Design should have a transparent background.'
+      });
+    }
+
+    // Dimension Score (10 points)
+    const minDimension = Math.min(imageInfo.width, imageInfo.height);
+    if (minDimension < 1000) {
+      score -= 10;
+      feedback.push({
+        type: 'error',
+        message: 'Design dimensions should be at least 1000x1000 pixels.'
+      });
+    }
+
+    return {
+      score: Math.max(0, Math.round(score)),
+      feedback,
+      details: {
+        dpi: imageInfo.dpi,
+        size: imageInfo.compressedSize,
+        dimensions: `${imageInfo.width}x${imageInfo.height}`,
+        transparency: imageInfo.hasTransparency
+      }
+    };
+  };
+
+  // Initial setup
   useEffect(() => {
     if (seller && seller._id) {
-      setFormState(prevState => ({ ...prevState, shopId: seller._id }));
+      setFormState(prev => ({ ...prev, shopId: seller._id }));
       setIsLoading(false);
     } else if (seller === null) {
-      toast.error("No seller logged in. Please log in to create a product.");
+      toast.error("Please log in as a seller to create products.");
       setIsLoading(false);
     }
   }, [seller]);
-  
-  const handleChange = (e) => {
-    const { id, type, checked, value } = e.target;
-    setFormState(prevState => ({
-      ...prevState,
-      [id]: type === 'checkbox' ? checked : value
-    }));
-  };
-  
-  const handleDesignUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 100 * 2048 * 2048) { // 50MB limit
-        toast.error("File size exceeds 100MB limit. Please choose a smaller file.");
-        return;
+
+  // Keyboard controls for design positioning
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!designFile.preview) return;
+
+      const MOVE_STEP = 1; // Percentage to move
+      const currentPos = formState.designPosition;
+      let newPos = { ...currentPos };
+
+      switch (e.key) {
+        case 'ArrowUp':
+          newPos.y = Math.max(0, currentPos.y - MOVE_STEP);
+          e.preventDefault();
+          break;
+        case 'ArrowDown':
+          newPos.y = Math.min(100, currentPos.y + MOVE_STEP);
+          e.preventDefault();
+          break;
+        case 'ArrowLeft':
+          newPos.x = Math.max(0, currentPos.x - MOVE_STEP);
+          e.preventDefault();
+          break;
+        case 'ArrowRight':
+          newPos.x = Math.min(100, currentPos.x + MOVE_STEP);
+          e.preventDefault();
+          break;
+        default:
+          return;
       }
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setDesignPreview(event.target.result);
-        setDesignData(file);
-      };
-      reader.readAsDataURL(file);
+
+      checkBoundariesAndUpdate(newPos);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [formState.designPosition, designFile.preview, formState.ProductType]);
+
+  // Boundary checking function
+  const checkBoundariesAndUpdate = (position) => {
+    const boundaries = BOUNDARY_LIMITS[formState.ProductType];
+    const isWithinBounds = 
+      position.x >= boundaries.left && 
+      position.x <= boundaries.right && 
+      position.y >= boundaries.top && 
+      position.y <= boundaries.bottom;
+
+    setIsDesignVisible(isWithinBounds);
+    
+    if (isWithinBounds) {
+      setFormState(prev => ({
+        ...prev,
+        designPosition: position
+      }));
     }
   };
 
-  const handleSubmit = useCallback(
-    async (e) => {
-      e.preventDefault();
-      if (isSubmitting) return;
-      setIsSubmitting(true);
-  
-      if (!formState.shopId) {
-        toast.error("Seller information is missing. Please make sure you are logged in.");
-        setIsSubmitting(false);
+
+  // Design upload and compression handling
+  const handleDesignUpload = async (file) => {
+    try {
+      if (file.size > 50 * 1024 * 1024) { // 50MB limit
+        toast.error("File size exceeds 50MB limit");
         return;
       }
-  
-      if (!formState.DesignTitle || !formState.Maintag || !formState.Description || !designData) {
-        toast.error("Please fill in all required fields and upload a design");
-        setIsSubmitting(false);
+
+      setIsLoading(true);
+      const compressionResult = await compressDesign(file);
+      
+      // Validate compression results
+      if (compressionResult.compressedSize > 500 * 1024) { // 500KB limit
+        toast.error("Unable to compress image to required size. Please try a smaller image.");
+        setIsLoading(false);
         return;
       }
-  
-      const formData = new FormData();
-      Object.keys(formState).forEach(key => formData.append(key, formState[key]));
-      if (designData) {
-        formData.append("designImage", designData);
+
+      // Create preview and calculate quality score
+      const previewUrl = await createDesignPreview(compressionResult.file, formState.ProductColor);
+      const qualityScore = calculateDesignQualityScore({
+        dpi: compressionResult.dpi,
+        compressedSize: compressionResult.compressedSize,
+        width: compressionResult.width,
+        height: compressionResult.height,
+        hasTransparency: await checkTransparency(compressionResult.file)
+      });
+
+      setDesignFile({
+        preview: previewUrl,
+        file: compressionResult.file,
+        originalFile: file,
+        compressionStats: compressionResult
+      });
+
+      setDesignQualityScore(qualityScore);
+      
+      // Show compression success message
+      toast.success(`Design compressed from ${(file.size / (1024 * 1024)).toFixed(2)}MB to ${(compressionResult.compressedSize / 1024).toFixed(2)}KB`);
+      
+      if (qualityScore.score < 80) {
+        toast.warning("Design quality could be improved. Check the quality score details.");
       }
-  
-      try {
-        const response = await dispatch(createProduct(formData));
-        if (response && response.success) {
-          toast.success("Product created successfully and is awaiting inspection!");
-          navigate("/dashboard");
-        } else {
-          toast.error(response?.message || "An error occurred while creating the product.");
-        }
-      } catch (error) {
-        console.error("Error details:", error);
-        toast.error(error.response?.data?.message || "An error occurred while creating the product.");
-      } finally {
-        setIsSubmitting(false);
-      }
-    },
-    [formState, designData, navigate, dispatch, isSubmitting]
-  );
-  
-  const getMockupUrl = () => {
-    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-    let version, folder, filename;
-    
-    switch (formState.ProductType) {
-      case "hoodie":
-        version = "v1728392918";
-        folder = "hoodies";
-        filename = `hoodie-${formState.ProductColor}-${formState.ProductView}`;
-        break;
-      case "t-shirt":
-        version = "v1728393898";
-        folder = "t-shirts";
-        filename = `t-shirt-${formState.ProductColor}-${formState.ProductView}`;
-        break;
-      case "long-sleeve":
-        version = "v1728394665";
-        folder = "long-sleeves";
-        if (formState.ProductColor === "white" || formState.ProductColor === "black") {
-          filename = `longseleves-${formState.ProductColor}-${formState.ProductView}`;
-        } else if (formState.ProductColor === "gray") {
-          filename = `longsleeves-${formState.ProductColor}-${formState.ProductView}`;
-        } else {
-          filename = `t-shirt-${formState.ProductColor}-${formState.ProductView}`;
-        }
-        break;
-      default:
-        return "";
+
+    } catch (error) {
+      toast.error(error.message || "Failed to process design");
+    } finally {
+      setIsLoading(false);
     }
-  
-    return `${baseUrl}${version}/${folder}/${filename}.png`;
   };
-  
-  const handleZoom = (direction) => {
-    setFormState(prevState => ({
-      ...prevState,
-      DesignScale: direction === 'in'
-        ? Math.min(prevState.DesignScale + 0.1, 2)
-        : Math.max(prevState.DesignScale - 0.1, 0.5)
-    }));
+
+  // Drag and drop handlers
+  const handleDrag = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type === "image/png") {
+      handleDesignUpload(file);
+    } else {
+      toast.error("Please upload only PNG files");
+    }
+  }, []);
+
+  // Design position handling
+  const handleDesignDrag = useCallback((e) => {
+    if (!mockupContainerRef.current || !isDragging) return;
+
+    const rect = mockupContainerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    checkBoundariesAndUpdate({ x, y });
+  }, [isDragging, checkBoundariesAndUpdate]);
+
+  // Form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+
+      // Validate design quality
+      if (designQualityScore?.score < 60) {
+        if (!window.confirm("Design quality is low. Are you sure you want to proceed?")) {
+          return;
+        }
+      }
+
+      // Prepare form data
+      const formData = new FormData();
+      Object.keys(formState).forEach(key => {
+        if (key === 'designPosition') {
+          formData.append(key, JSON.stringify(formState[key]));
+        } else {
+          formData.append(key, formState[key]);
+        }
+      });
+
+      // Append compressed design
+      if (designFile.file) {
+        formData.append("designImage", designFile.file);
+      }
+
+      const response = await dispatch(createProduct(formData));
+      if (response?.success) {
+        toast.success("Product created successfully and is awaiting inspection!");
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to create product");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-[80vh]">
-        <div className="text-center">
-          <svg className="animate-spin h-10 w-10 text-blue-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <p className="text-blue-500 font-semibold">Loading seller data...</p>
-        </div>
+
+  // UI Component: Design Quality Indicator
+  const QualityIndicator = ({ score }) => (
+    <div className="bg-white p-4 rounded-lg shadow-md">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-semibold">Design Quality Score</h3>
+        <span className={`text-lg font-bold ${
+          score > 80 ? 'text-green-500' : 
+          score > 60 ? 'text-yellow-500' : 
+          'text-red-500'
+        }`}>
+          {score}/100
+        </span>
       </div>
-    );
-  }
-  
-  if (!seller || !formState.shopId) {
-    return (
-      <div className="flex items-center justify-center h-[80vh]">
-        <div className="text-center">
-          <p className="text-red-500 font-semibold">No seller data available. Please log in.</p>
-        </div>
+      <div className="w-full bg-gray-200 rounded-full h-2.5">
+        <div 
+          className={`h-2.5 rounded-full ${
+            score > 80 ? 'bg-green-500' : 
+            score > 60 ? 'bg-yellow-500' : 
+            'bg-red-500'
+          }`}
+          style={{ width: `${score}%` }}
+        ></div>
       </div>
-    );
-  }
-  
+    </div>
+  );
+
+  // Main render
   return (
     <div className="w-[90%] 800px:w-[90%] bg-white shadow h-[80vh] rounded-[4px] p-3 overflow-y-scroll">
-      <h2 className="text-3xl font-bold mb-4 text-center text-green-600">Design Product</h2>
-      <p className="text-center text-blue-500 mb-4">
-        <a href="#" className="underline">Need help uploading?</a>
-      </p>
-  
-      <div className="design-upload-area mb-8">
-        {!designPreview ? (
-          <div
-            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer w-[400px] h-[400px] mx-auto flex items-center justify-center"
-            onClick={() => document.getElementById("design-upload").click()}
-          >
-            <div>
-              <svg
-                className="w-12 h-12 mx-auto mb-4 text-gray-400"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-              <p className="text-sm text-gray-600">Drop one file here or click to upload</p>
-            </div>
-          </div>
-        ) : (
-          <div className="relative w-[400px] h-[400px] mx-auto">
-            <img src={designPreview} alt="Design Preview" className="w-full h-full object-contain" />
-          </div>
-        )}
-        <input
-          type="file"
-          id="design-upload"
-          accept="image/png"
-          onChange={handleDesignUpload}
-          className="hidden"
-        />
-      </div>
-  
-      {designPreview && (
-        <form onSubmit={handleSubmit}>
-          <div className="mb-6">
-            <label htmlFor="DesignTitle" className="block mb-1 font-medium">Design Title:</label>
-            <input
-              type="text"
-              id="DesignTitle"
-              value={formState.DesignTitle}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Give your design a name"
-            />
-          </div>
-  
-          <div className="mb-6">
-            <label htmlFor="Maintag" className="block mb-1 font-medium">Main Tag:</label>
-            <input
-              type="text"
-              id="Maintag"
-              value={formState.Maintag}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="What do people search to find your design?"
-            />
-          </div>
-  
-          <div className="mb-6">
-            <label htmlFor="Designtags" className="block mb-1 font-medium">Design Tags:</label>
-            <input
-              type="text"
-              id="Designtags"
-              value={formState.Designtags}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Any other relevant tags to categorize your design"
-            />
-          </div>
-  
-          <div className="mb-6">
-            <label htmlFor="Description" className="block mb-1 font-medium">Description:</label>
-            <textarea
-              id="Description"
-              value={formState.Description}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Describe your design in a short sentence or two!"
-              rows="3"
-            ></textarea>
-          </div>
-  
-          <div className="mb-6">
-            <label htmlFor="ProductType" className="block mb-1 font-medium">Product Type:</label>
-            <select
-              id="ProductType"
-              value={formState.ProductType}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-3xl font-bold mb-4 text-center text-gray-800">Create New Design</h2>
+        
+        {/* Design Upload Area */}
+        <div className="mb-8">
+          {!designFile.preview ? (
+            <div
+              className={`border-2 border-dashed rounded-lg p-8 transition-all ${
+                dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+              }`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById('design-upload').click()}
             >
-              <option value="t-shirt">T-shirt</option>
-              <option value="hoodie">Hoodie</option>
-              <option value="long-sleeve">Long Sleeve</option>
-            </select>
-          </div>
-  
-          <div className="mb-8">
-            <h3 className="text-xl font-bold mb-4">Product Mockup</h3>
-            <div className="relative w-full h-[500px] bg-gray-100">
-              <img
-                src={getMockupUrl()}
-                alt="Product Mockup"
-                className="w-full h-full object-contain"
+              <div className="text-center">
+                <AiOutlineCloudUpload className="mx-auto h-12 w-12 text-gray-400" />
+                <p className="mt-2 text-gray-600">
+                  Drop your design here or click to upload
+                </p>
+                <p className="mt-1 text-sm text-gray-500">
+                  PNG files only, max 50MB
+                </p>
+              </div>
+              <input
+                id="design-upload"
+                type="file"
+                accept="image/png"
+                onChange={(e) => handleDesignUpload(e.target.files[0])}
+                className="hidden"
               />
-              <div
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                style={{ 
-                  transform: `translate(-50%, -50%) scale(${formState.DesignScale})`,
-                  width: '200px',
-                  height: '200px'
-                }}
+            </div>
+          ) : (
+            <div className="relative">
+              {/* Design Preview */}
+              <div 
+                ref={mockupContainerRef}
+                className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden"
+                onMouseMove={handleDesignDrag}
+                onMouseDown={() => setIsDragging(true)}
+                onMouseUp={() => setIsDragging(false)}
+                onMouseLeave={() => setIsDragging(false)}
               >
-                {designPreview && (
-                  <img
-                    src={designPreview}
-                    alt="Design Preview"
-                    className="w-full h-full object-contain"
-                  />
+                {/* Product Mockup */}
+                <img
+                  src={getMockupUrl()}
+                  alt="Product Mockup"
+                  className="w-full h-full object-contain"
+                />
+
+                {/* Design Overlay */}
+                {isDesignVisible && (
+                  <div
+                    ref={designPreviewRef}
+                    style={{
+                      position: 'absolute',
+                      top: `${formState.designPosition.y}%`,
+                      left: `${formState.designPosition.x}%`,
+                      transform: `translate(-50%, -50%) scale(${formState.DesignScale})`,
+                      width: '200px',
+                      height: '200px',
+                      cursor: isDragging ? 'grabbing' : 'grab'
+                    }}
+                  >
+                    <img
+                      src={designFile.preview}
+                      alt="Design Preview"
+                      className="w-full h-full object-contain"
+                      draggable="false"
+                    />
+                  </div>
+                )}
+
+                {/* Design Guides */}
+                {showGuides && (
+                  <div className="absolute inset-0 pointer-events-none">
+                    {/* Show boundary lines based on BOUNDARY_LIMITS */}
+                    <div className="border-2 border-blue-500 border-dashed opacity-30"
+                         style={{
+                           position: 'absolute',
+                           top: `${BOUNDARY_LIMITS[formState.ProductType].top}%`,
+                           left: `${BOUNDARY_LIMITS[formState.ProductType].left}%`,
+                           right: `${100 - BOUNDARY_LIMITS[formState.ProductType].right}%`,
+                           bottom: `${100 - BOUNDARY_LIMITS[formState.ProductType].bottom}%`
+                         }}
+                    />
+                  </div>
                 )}
               </div>
-            </div>
-            <div className="mt-4 flex justify-center space-x-4">
-              <button
-                type="button"
-                onClick={() => setFormState({ ...formState, ProductView: formState.ProductView === "front" ? "back" : "front" })}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                Switch to {formState.ProductView === "front" ? "Back" : "Front"}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleZoom('in')}
-                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-              >
-                Zoom In
-              </button>
-              <button
-                type="button"
-                onClick={() => handleZoom('out')}
-                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-              >
-                Zoom Out
-              </button>
-            </div>
-          </div>
-  
-          <div className="mb-8">
-            <label htmlFor="ProductColor" className="block mb-1 font-medium">Product Color:</label>
-            <div className="grid grid-cols-4 gap-4">
-              {['white', 'black', 'red', 'blue', 'gray'].map((color) => (
-                <div
-                  key={color}
-                  className={`p-4 rounded-md cursor-pointer ${
-                    formState.ProductColor === color ? 'ring-2 ring-blue-500' : 'bg-gray-100'
-                  }`}
-                  onClick={() => setFormState({ ...formState, ProductColor: color })}
-                  aria-label={`Select color ${color}`}
+
+              {/* Controls */}
+              <div className="mt-4 flex justify-center space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setShowGuides(!showGuides)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                 >
-                  <div
-                    className="w-12 h-12 mx-auto rounded-full"
-                    style={{ backgroundColor: color }}
-                  ></div>
-                  <p className="mt-2 text-center text-sm capitalize">{color}</p>
+                  {showGuides ? 'Hide Guides' : 'Show Guides'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormState(prev => ({
+                    ...prev,
+                    ProductView: prev.ProductView === "front" ? "back" : "front"
+                  }))}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                >
+                  Switch to {formState.ProductView === "front" ? "Back" : "Front"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+{/* Quality Score and Stats (shown when design is uploaded) */}
+        {designQualityScore && (
+          <div className="mb-8 space-y-4">
+            <QualityIndicator score={designQualityScore.score} />
+            
+            {/* Detailed Stats */}
+            <div className="bg-white p-4 rounded-lg shadow-md space-y-3">
+              <h3 className="font-semibold text-gray-700">Design Statistics</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">
+                    Original Size: {(designFile.originalFile.size / (1024 * 1024)).toFixed(2)}MB
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Compressed Size: {(designFile.compressionStats.compressedSize / 1024).toFixed(2)}KB
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Compression Ratio: {designFile.compressionStats.compressionRatio}%
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">
+                    Dimensions: {designFile.compressionStats.width}x{designFile.compressionStats.height}px
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    DPI: {Math.round(designFile.compressionStats.dpi)}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Quality: {designFile.compressionStats.quality}%
+                  </p>
+                </div>
+              </div>
+
+              {/* Quality Feedback */}
+              {designQualityScore.feedback.map((item, index) => (
+                <div 
+                  key={index} 
+                  className={`text-sm p-2 rounded ${
+                    item.type === 'error' ? 'bg-red-50 text-red-700' : 
+                    item.type === 'warning' ? 'bg-yellow-50 text-yellow-700' : 
+                    'bg-blue-50 text-blue-700'
+                  }`}
+                >
+                  <AiOutlineInfoCircle className="inline mr-2" />
+                  {item.message}
                 </div>
               ))}
             </div>
           </div>
-          <button
-            type="submit"
-            className={`w-full px-4 py-2 text-lg font-bold text-white ${
-              isSubmitting ? 'bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
-            } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Creating Product...' : 'Create Product'}
-          </button>
+        )}
+
+        {/* Product Details Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Design Title */}
+          <div>
+            <label htmlFor="DesignTitle" className="block text-sm font-medium text-gray-700">
+              Design Title
+              <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="DesignTitle"
+              value={formState.DesignTitle}
+              onChange={(e) => setFormState(prev => ({
+                ...prev,
+                DesignTitle: e.target.value
+              }))}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              placeholder="Enter a catchy title for your design"
+              required
+              maxLength={100}
+            />
+          </div>
+
+          {/* Main Tag */}
+          <div>
+            <label htmlFor="Maintag" className="block text-sm font-medium text-gray-700">
+              Main Tag
+              <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="Maintag"
+              value={formState.Maintag}
+              onChange={(e) => setFormState(prev => ({
+                ...prev,
+                Maintag: e.target.value
+              }))}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              placeholder="Primary category or theme"
+              required
+            />
+          </div>
+
+          {/* Design Tags */}
+          <div>
+            <label htmlFor="Designtags" className="block text-sm font-medium text-gray-700">
+              Design Tags
+            </label>
+            <input
+              type="text"
+              id="Designtags"
+              value={formState.Designtags}
+              onChange={(e) => setFormState(prev => ({
+                ...prev,
+                Designtags: e.target.value
+              }))}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              placeholder="Comma-separated tags (e.g., funny, cute, trendy)"
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label htmlFor="Description" className="block text-sm font-medium text-gray-700">
+              Description
+              <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              id="Description"
+              value={formState.Description}
+              onChange={(e) => setFormState(prev => ({
+                ...prev,
+                Description: e.target.value
+              }))}
+              rows={4}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              placeholder="Describe your design and its appeal"
+              required
+            />
+          </div>
+
+          {/* Product Type Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Product Type
+            </label>
+            <div className="grid grid-cols-3 gap-4">
+              {['t-shirt', 'hoodie', 'long-sleeve'].map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setFormState(prev => ({
+                    ...prev,
+                    ProductType: type
+                  }))}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    formState.ProductType === type
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-center">
+                    <span className="capitalize">{type.replace('-', ' ')}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Color Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Available Colors
+            </label>
+            <div className="grid grid-cols-5 gap-4">
+              {Object.entries(COLOR_OPTIONS).map(([key, color]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setFormState(prev => ({
+                    ...prev,
+                    ProductColor: key
+                  }))}
+                  className={`group relative p-2 rounded-lg transition-all ${
+                    formState.ProductColor === key
+                      ? 'ring-2 ring-blue-500'
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex flex-col items-center space-y-2">
+                    <div
+                      className="w-8 h-8 rounded-full border border-gray-300"
+                      style={{ backgroundColor: color.hex }}
+                    />
+                    <span className={`text-sm ${color.textColor}`}>
+                      {color.label}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Scale Controls */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Design Scale: {formState.DesignScale.toFixed(1)}x
+            </label>
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={formState.DesignScale}
+              onChange={(e) => setFormState(prev => ({
+                ...prev,
+                DesignScale: parseFloat(e.target.value)
+              }))}
+              className="w-full"
+            />
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex justify-end space-x-4">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting || !designFile.file}
+              className={`px-4 py-2 text-sm font-medium text-white rounded-md ${
+                isSubmitting || !designFile.file
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
+            >
+              {isSubmitting ? (
+                <div className="flex items-center">
+                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                  Creating Product...
+                </div>
+              ) : (
+                'Create Product'
+              )}
+            </button>
+          </div>
         </form>
-      )}
+
+        {/* Help Modal - Can be triggered by a help button */}
+        {/* You might want to add a help modal with design guidelines */}
+      </div>
     </div>
   );
 };
-  
+
 export default CreateProduct;
