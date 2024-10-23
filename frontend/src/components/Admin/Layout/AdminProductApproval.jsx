@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { fetchPendingProducts, approveRejectProduct } from "../../redux/actions/product";
+import { fetchPendingProducts, approveRejectProduct } from "../../../redux/actions/product";
 import { toast } from "react-toastify";
 import { AiOutlineDelete } from "react-icons/ai";
-import styles from "../../styles/styles";
+import styles from "../../../styles/styles";
 import { server } from "../../../server"
 import { DataGrid } from "@material-ui/data-grid";
 import { Button } from "@material-ui/core";
