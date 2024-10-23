@@ -54,7 +54,8 @@ export const fetchPendingProducts = () => async (dispatch) => {
         : null,
       DesignScale: product.DesignScale || 1,
       originalPrice: product.originalPrice || 0,
-      discountPrice: product.discountPrice || product.originalPrice || 0
+      discountPrice: product.discountPrice || product.originalPrice || 0,
+      availableColors: product.availableColors || ['white'] // Added availableColors
     }));
 
     dispatch({ type: "fetchPendingProductsSuccess", payload: products });
@@ -72,9 +73,21 @@ export const approveRejectProduct = (productId, status, rejectionReason, updates
   try {
     dispatch({ type: "approveRejectProductRequest" });
 
+    // Add validation for available colors when approving
+    if (status === 'public') {
+      if (!updates.availableColors || updates.availableColors.length === 0) {
+        throw new Error('Please select at least one available color');
+      }
+    }
+
     const response = await axios.put(
       `${server}/product/approve-reject-product/${productId}`,
-      { status, rejectionReason, ...updates },
+      { 
+        status, 
+        rejectionReason, 
+        ...updates,
+        visibility: status === 'public' ? 'public' : 'restricted' 
+      },
       {
         withCredentials: true,
         headers: {
@@ -120,8 +133,14 @@ export const getAllProductsShop = (id) => async (dispatch) => {
     dispatch({ type: "getAllProductsShopRequest" });
 
     const { data } = await axios.get(`${server}/product/get-all-products-shop/${id}`);
+    
+    // Add availableColors to each product
+    const products = data.products.map(product => ({
+      ...product,
+      availableColors: product.availableColors || ['white']
+    }));
 
-    dispatch({ type: "getAllProductsShopSuccess", payload: data.products });
+    dispatch({ type: "getAllProductsShopSuccess", payload: products });
   } catch (error) {
     dispatch({
       type: "getAllProductsShopFailed",
@@ -180,7 +199,8 @@ export const getAllProducts = () => async (dispatch) => {
       ...product,
       DesignScale: product.DesignScale || 1,
       originalPrice: product.originalPrice || 0,
-      discountPrice: product.discountPrice || product.originalPrice || 0
+      discountPrice: product.discountPrice || product.originalPrice || 0,
+      availableColors: product.availableColors || ['white'] // Added availableColors
     }));
     dispatch({ type: "getAllProductsSuccess", payload: approvedProducts });
   } catch (error) {
