@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback, memo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import {
   AiFillHeart,
   AiOutlineHeart,
@@ -11,7 +10,6 @@ import {
 import { toast } from "react-toastify";
 import { addToWishlist, removeFromWishlist } from "../../redux/actions/wishlist";
 import { addTocart } from "../../redux/actions/cart";
-import { server } from "../../server";
 import Ratings from "./Ratings";
 
 // Constants
@@ -28,16 +26,19 @@ const PRODUCT_TYPES = {
     value: 't-shirt', 
     label: 'T-Shirt', 
     additionalPrice: 0,
+    basePrice: 0
   },
   'hoodie': { 
     value: 'hoodie', 
     label: 'Hoodie', 
     additionalPrice: 200,
+    basePrice: 200
   },
   'long-sleeve': { 
     value: 'long-sleeve', 
     label: 'Long Sleeve', 
     additionalPrice: 120,
+    basePrice: 120
   }
 };
 
@@ -45,17 +46,17 @@ const SIZE_OPTIONS = [
   { value: 'S', label: 'Small' },
   { value: 'M', label: 'Medium' },
   { value: 'L', label: 'Large' },
-  { value: 'XL', label: 'Extra Large' },
+  { value: 'XL', label: 'Extra Large' }
 ];
 
 const FIT_OPTIONS = [
   { value: 'male', label: 'Male Fit' },
-  { value: 'female', label: 'Female Fit' },
+  { value: 'female', label: 'Female Fit' }
 ];
 
 const MATERIAL_OPTIONS = [
   { value: 'standard', label: 'Standard Material', multiplier: 1 },
-  { value: 'premium', label: 'Premium Material', multiplier: 2 },
+  { value: 'premium', label: 'Premium Material', multiplier: 2 }
 ];
 
 // Error Boundary Component
@@ -76,82 +77,6 @@ class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
-
-// Loading Spinner Component
-const LoadingSpinner = memo(() => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
-  </div>
-));
-
-// Error Display Component
-const ErrorDisplay = memo(({ message, onRetry }) => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="text-center">
-      <h2 className="text-2xl font-bold text-red-600 mb-2">Error Loading Product</h2>
-      <p className="text-gray-600 mb-4">{message}</p>
-      {onRetry && (
-        <button
-          onClick={onRetry}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Try Again
-        </button>
-      )}
-    </div>
-  </div>
-));
-
-// Size Guide Component
-const SizeGuide = memo(({ onClose }) => (
-  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-    <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-      <div className="p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold">Size Guide</h3>
-          <button 
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            ×
-          </button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="p-3 text-left">Size</th>
-                <th className="p-3">Chest (inches)</th>
-                <th className="p-3">Length (inches)</th>
-                <th className="p-3">Sleeve (inches)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { size: 'S', chest: '36-38', length: '27', sleeve: '8.5' },
-                { size: 'M', chest: '39-41', length: '28', sleeve: '9' },
-                { size: 'L', chest: '42-44', length: '29', sleeve: '9.5' },
-                { size: 'XL', chest: '45-47', length: '30', sleeve: '10' },
-              ].map((row) => (
-                <tr key={row.size} className="border-b">
-                  <td className="p-3 font-medium">{row.size}</td>
-                  <td className="p-3 text-center">{row.chest}</td>
-                  <td className="p-3 text-center">{row.length}</td>
-                  <td className="p-3 text-center">{row.sleeve}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="mt-4 text-sm text-gray-600">
-            <p>Measurements are approximate and may vary slightly by style.</p>
-            <p className="mt-2">For best results, measure yourself and compare to the size chart above.</p>
-            <p className="mt-2">If you're between sizes, order the larger size for a more comfortable fit.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-));
 
 // Product Preview Component
 const ProductPreview = memo(({ 
@@ -214,7 +139,6 @@ const ProductPreview = memo(({
         <div className="relative w-full h-full">
           {!loadError ? (
             <>
-              {/* Main Product Image */}
               <img
                 src={getMockupUrl()}
                 alt={product?.DesignTitle || 'Product'}
@@ -224,7 +148,6 @@ const ProductPreview = memo(({
                 style={{ opacity: isLoading ? 0 : 1 }}
               />
 
-              {/* Design Overlay */}
               {!isLoading && (
                 <div
                   className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
@@ -248,7 +171,6 @@ const ProductPreview = memo(({
             </div>
           )}
 
-          {/* Loading Indicator */}
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-white">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
@@ -257,7 +179,6 @@ const ProductPreview = memo(({
         </div>
       </div>
 
-      {/* Controls */}
       {!loadError && !isLoading && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4">
           <button
@@ -275,7 +196,6 @@ const ProductPreview = memo(({
         </div>
       )}
 
-      {/* Zoom Modal */}
       {isZoomed && (
         <div 
           className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
@@ -315,155 +235,21 @@ const ProductPreview = memo(({
       )}
     </div>
   );
-});// Price Display Component
-const PriceDisplay = memo(({ 
-  product, 
-  selectedMaterial 
-}) => {
-  const [showBreakdown, setShowBreakdown] = useState(false);
-
-  const calculateFinalPrice = useCallback(() => {
-    if (!product?.originalPrice) return 0;
-
-    const basePrice = product.originalPrice;
-    const additionalPrice = PRODUCT_TYPES[product.ProductType]?.additionalPrice || 0;
-    const materialMultiplier = selectedMaterial === 'premium' ? 2 : 1;
-    
-    const totalPrice = (basePrice + additionalPrice) * materialMultiplier;
-    
-    if (product.discountPrice) {
-      const discountMultiplier = product.discountPrice / product.originalPrice;
-      return totalPrice * discountMultiplier;
-    }
-    
-    return totalPrice;
-  }, [product, selectedMaterial]);
-
-  const originalPrice = calculateFinalPrice();
-  const finalPrice = product?.discountPrice 
-    ? calculateFinalPrice() 
-    : originalPrice;
-
-  if (!product) return null;
-
-  return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="p-4">
-        <div className="flex items-baseline space-x-3">
-          <span className="text-3xl font-bold">
-            £{finalPrice.toFixed(2)}
-          </span>
-          {product.discountPrice && product.discountPrice < product.originalPrice && (
-            <>
-              <span className="text-lg line-through text-gray-500">
-                £{originalPrice.toFixed(2)}
-              </span>
-              <span className="text-sm text-green-600 font-medium">
-                {(((originalPrice - finalPrice) / originalPrice) * 100).toFixed(0)}% OFF
-              </span>
-            </>
-          )}
-        </div>
-
-        <button
-          onClick={() => setShowBreakdown(!showBreakdown)}
-          className="mt-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
-        >
-          {showBreakdown ? 'Hide price details' : 'Show price details'}
-        </button>
-
-        {showBreakdown && (
-          <div className="mt-4 space-y-3 animate-fadeIn">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Base Price:</span>
-              <span className="font-medium">£{product.originalPrice.toFixed(2)}</span>
-            </div>
-            
-            {PRODUCT_TYPES[product.ProductType]?.additionalPrice > 0 && (
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Product Type Addition:</span>
-                <span className="font-medium">
-                  +£{PRODUCT_TYPES[product.ProductType].additionalPrice.toFixed(2)}
-                </span>
-              </div>
-            )}
-
-            {selectedMaterial === 'premium' && (
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Premium Material:</span>
-                <span className="text-green-600">×2</span>
-              </div>
-            )}
-
-            {product.discountPrice && product.discountPrice < product.originalPrice && (
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Discount Applied:</span>
-                <span className="text-red-600">
-                  -{(((originalPrice - finalPrice) / originalPrice) * 100).toFixed(0)}%
-                </span>
-              </div>
-            )}
-
-            <div className="border-t pt-2 flex justify-between items-center">
-              <span className="font-semibold">Final Price:</span>
-              <span className="font-bold text-lg">£{finalPrice.toFixed(2)}</span>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-});
-
-// Product Page Wrapper Component
-const ProductPage = () => {
-  const { id } = useParams();
-  const [productData, setProductData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchProduct = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await axios.get(`${server}/product/${id}`);
-      setProductData(response.data);
-    } catch (error) {
-      setError(error.message || 'Failed to load product');
-      console.error('Error fetching product:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    fetchProduct();
-  }, [fetchProduct]);
-
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
-
-  if (error) {
-    return <ErrorDisplay message={error} onRetry={fetchProduct} />;
-  }
-
-  if (!productData) {
-    return <ErrorDisplay message="Product not found" />;
-  }
-
-  return <ProductDetails data={productData} />;
-};
-
-// Main ProductDetails Component
+});// Main ProductDetails Component
 const ProductDetails = memo(({ data }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { wishlist } = useSelector((state) => state.wishlist);
   const { user, isAuthenticated } = useSelector((state) => state.user);
   
-  const [selectedColor, setSelectedColor] = useState(data?.ProductColor || 'white');
-  const [currentView, setCurrentView] = useState('front');
+  // Initialize with available product data
+  const [selectedColor, setSelectedColor] = useState(() => {
+    if (data?.availableColors?.length > 0) {
+      return data.availableColors[0];
+    }
+    return data?.ProductColor || 'white';
+  });
+  const [currentView, setCurrentView] = useState(data?.ProductView || 'front');
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedFit, setSelectedFit] = useState('male');
   const [selectedMaterial, setSelectedMaterial] = useState('standard');
@@ -472,13 +258,31 @@ const ProductDetails = memo(({ data }) => {
 
   const isInWishlist = wishlist?.find((item) => item._id === data?._id);
 
+  // Calculate final price with all factors
+  const calculateFinalPrice = useCallback(() => {
+    if (!data?.originalPrice) return 0;
+
+    const basePrice = data.originalPrice;
+    const productTypePrice = PRODUCT_TYPES[data.ProductType]?.additionalPrice || 0;
+    const materialMultiplier = selectedMaterial === 'premium' ? 2 : 1;
+    
+    let finalPrice = (basePrice + productTypePrice) * materialMultiplier;
+    
+    if (data.discountPrice && data.discountPrice < data.originalPrice) {
+      const discountRatio = data.discountPrice / data.originalPrice;
+      finalPrice = finalPrice * discountRatio;
+    }
+    
+    return finalPrice;
+  }, [data, selectedMaterial]);
+
   const handleMessageSeller = useCallback(() => {
     if (!isAuthenticated) {
       toast.error("Please login to contact seller");
       return;
     }
-    navigate(`/inbox?conversation=${data.shop._id}`);
-  }, [isAuthenticated, navigate, data.shop._id]);
+    navigate(`/inbox?conversation=${data.shopId}`);
+  }, [isAuthenticated, navigate, data.shopId]);
 
   const handleAddToWishlist = useCallback((e) => {
     e.preventDefault();
@@ -504,6 +308,10 @@ const ProductDetails = memo(({ data }) => {
       toast.error("Please select a size");
       return;
     }
+    if (!data.availableColors.includes(selectedColor)) {
+      toast.error("Selected color is not available");
+      return;
+    }
 
     setIsAddingToCart(true);
     try {
@@ -514,12 +322,18 @@ const ProductDetails = memo(({ data }) => {
         selectedFit,
         selectedMaterial,
         qty: 1,
-        finalPrice: calculateFinalPrice(), // Add the calculated final price
+        finalPrice: calculateFinalPrice(),
+        productConfiguration: {
+          color: selectedColor,
+          size: selectedSize,
+          fit: selectedFit,
+          material: selectedMaterial
+        }
       };
       await dispatch(addTocart(cartData));
       toast.success("Product added to cart");
     } catch (error) {
-      toast.error("Failed to add to cart");
+      toast.error(error.message || "Failed to add to cart");
     } finally {
       setIsAddingToCart(false);
     }
@@ -530,8 +344,16 @@ const ProductDetails = memo(({ data }) => {
     selectedColor, 
     selectedFit, 
     selectedMaterial, 
-    dispatch
+    dispatch,
+    calculateFinalPrice
   ]);
+
+  // Validate product status and visibility
+  const canBePurchased = data?.status === 'public' && data?.visibility === 'public';
+
+  if (!data) {
+    return <div>Product not found</div>;
+  }
 
   return (
     <div className="bg-white">
@@ -550,28 +372,30 @@ const ProductDetails = memo(({ data }) => {
             <div className="bg-white rounded-xl shadow-lg p-4">
               <h3 className="text-lg font-semibold mb-4">Available Colors</h3>
               <div className="flex flex-wrap gap-4">
-                {Object.entries(COLOR_OPTIONS).map(([key, color]) => (
-                  <button
-                    key={key}
-                    onClick={() => setSelectedColor(key)}
-                    className={`
-                      group relative p-2 rounded-lg transition-all duration-200
-                      ${selectedColor === key 
-                        ? 'ring-2 ring-blue-500' 
-                        : 'hover:bg-gray-50'}
-                    `}
-                  >
-                    <div className="flex flex-col items-center space-y-2">
-                      <div 
-                        className="w-8 h-8 rounded-full border border-gray-300"
-                        style={{ backgroundColor: color.hex }}
-                      />
-                      <span className={`text-sm ${color.textColor}`}>
-                        {color.label}
-                      </span>
-                    </div>
-                  </button>
-                ))}
+                {Object.entries(COLOR_OPTIONS)
+                  .filter(([key]) => data.availableColors.includes(key))
+                  .map(([key, color]) => (
+                    <button
+                      key={key}
+                      onClick={() => setSelectedColor(key)}
+                      className={`
+                        group relative p-2 rounded-lg transition-all duration-200
+                        ${selectedColor === key 
+                          ? 'ring-2 ring-blue-500' 
+                          : 'hover:bg-gray-50'}
+                      `}
+                    >
+                      <div className="flex flex-col items-center space-y-2">
+                        <div 
+                          className="w-8 h-8 rounded-full border border-gray-300"
+                          style={{ backgroundColor: color.hex }}
+                        />
+                        <span className={`text-sm ${color.textColor}`}>
+                          {color.label}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
               </div>
             </div>
           </div>
@@ -591,10 +415,23 @@ const ProductDetails = memo(({ data }) => {
             </div>
 
             {/* Price Display */}
-            <PriceDisplay
-              product={data}
-              selectedMaterial={selectedMaterial}
-            />
+            <div className="bg-white rounded-xl shadow-lg p-4">
+              <div className="flex items-baseline space-x-3">
+                <span className="text-3xl font-bold">
+                  £{calculateFinalPrice().toFixed(2)}
+                </span>
+                {data.discountPrice && data.discountPrice < data.originalPrice && (
+                  <>
+                    <span className="text-lg line-through text-gray-500">
+                      £{data.originalPrice.toFixed(2)}
+                    </span>
+                    <span className="text-sm text-green-600 font-medium">
+                      {((data.originalPrice - data.discountPrice) / data.originalPrice * 100).toFixed(0)}% OFF
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
 
             {/* Size Selection */}
             <div className="bg-white rounded-xl shadow-lg p-4">
@@ -664,7 +501,7 @@ const ProductDetails = memo(({ data }) => {
                     <div className="text-center">
                       <div className="font-medium">{material.label}</div>
                       <div className="text-sm mt-1">
-                        {material.value === 'premium' ? '2x Quality' : 'Standard Quality'}
+                        {material.multiplier > 1 ? `${material.multiplier}x Quality` : 'Standard Quality'}
                       </div>
                     </div>
                   </button>
@@ -673,46 +510,48 @@ const ProductDetails = memo(({ data }) => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={handleAddToCart}
-                disabled={isAddingToCart}
-                className={`
-                  flex-1 py-3 px-6 rounded-lg text-white font-medium
-                  transition-all duration-200 flex items-center justify-center
-                  ${isAddingToCart
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700'}
-                `}
-              >
-                {isAddingToCart ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
-                ) : (
-                  <>
-                    <AiOutlineShoppingCart className="text-xl mr-2" />
-                    Add to Cart
-                  </>
-                )}
-              </button>
+            {canBePurchased && (
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={isAddingToCart}
+                  className={`
+                    flex-1 py-3 px-6 rounded-lg text-white font-medium
+                    transition-all duration-200 flex items-center justify-center
+                    ${isAddingToCart
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700'}
+                  `}
+                >
+                  {isAddingToCart ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                  ) : (
+                    <>
+                      <AiOutlineShoppingCart className="text-xl mr-2" />
+                      Add to Cart
+                    </>
+                  )}
+                </button>
 
-              <button
-                onClick={handleAddToWishlist}
-                className="flex-1 py-3 px-6 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all duration-200"
-              >
-                {isInWishlist ? (
-                  <AiFillHeart className="text-xl text-red-500 mx-auto" />
-                ) : (
-                  <AiOutlineHeart className="text-xl mx-auto" />
-                )}
-              </button>
+                <button
+                  onClick={handleAddToWishlist}
+                  className="flex-1 py-3 px-6 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all duration-200"
+                >
+                  {isInWishlist ? (
+                    <AiFillHeart className="text-xl text-red-500 mx-auto" />
+                  ) : (
+                    <AiOutlineHeart className="text-xl mx-auto" />
+                  )}
+                </button>
 
-              <button
-                onClick={handleMessageSeller}
-                className="flex-1 py-3 px-6 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all duration-200"
-              >
-                <AiOutlineMessage className="text-xl mx-auto" />
-              </button>
-            </div>
+                <button
+                  onClick={handleMessageSeller}
+                  className="flex-1 py-3 px-6 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all duration-200"
+                >
+                  <AiOutlineMessage className="text-xl mx-auto" />
+                </button>
+              </div>
+            )}
 
             {/* Product Description */}
             <div className="bg-white rounded-xl shadow-lg p-4">
@@ -725,30 +564,9 @@ const ProductDetails = memo(({ data }) => {
         </div>
       </div>
 
-      {/* Size Guide Modal */}
-      {showSizeGuide && (
-        <SizeGuide onClose={() => setShowSizeGuide(false)} />
-      )}
+      {showSizeGuide && <SizeGuide onClose={() => setShowSizeGuide(false)} />}
     </div>
   );
 });
 
-// Wrap the export with error boundary
-const ProductDetailsWithErrorBoundary = (props) => {
-  return (
-    <ErrorBoundary
-      FallbackComponent={({ error }) => (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-red-600 mb-2">Something went wrong</h2>
-            <p className="text-gray-600">{error.message}</p>
-          </div>
-        </div>
-      )}
-    >
-      <ProductDetails {...props} />
-    </ErrorBoundary>
-  );
-};
-
-export default memo(ProductPage);
+export default memo(ErrorBoundary(ProductDetails));
