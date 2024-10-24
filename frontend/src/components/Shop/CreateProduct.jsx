@@ -254,6 +254,7 @@ const checkTransparency = async (file) => {
   const [showRequirements, setShowRequirements] = useState(true);
   const [compressionProgress, setCompressionProgress] = useState(0);
   const [isScaling, setIsScaling] = useState(false);
+  
 
   // Form State
   const [formState, setFormState] = useState({
@@ -294,7 +295,107 @@ const checkTransparency = async (file) => {
       navigate("/login");
     }
   }, [seller, navigate]);
+// Add these handlers right after your state declarations
+const handleDrag = useCallback((e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  if (e.type === "dragenter" || e.type === "dragover") {
+    setDragActive(true);
+  } else if (e.type === "dragleave") {
+    setDragActive(false);
+  }
+}, []);
 
+const handleDrop = useCallback((e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  setDragActive(false);
+  
+  const file = e.dataTransfer.files?.[0];
+  if (file) {
+    handleDesignUpload(file);
+  }
+}, []);
+
+const handleDesignUpload = useCallback(async (file) => {
+  try {
+    if (!file) return;
+
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("File size exceeds 20MB limit");
+      return;
+    }
+
+    if (file.type !== "image/png") {
+      toast.error("Please upload only PNG files");
+      return;
+    }
+
+    setIsLoading(true);
+    setDesignFile(prev => ({ ...prev, isCompressing: true }));
+    
+    if (compressionTimeoutRef.current) {
+      clearTimeout(compressionTimeoutRef.current);
+    }
+
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      progress += 5;
+      if (progress <= 90) {
+        setCompressionProgress(progress);
+      }
+    }, 500);
+
+    const compressionResult = await compressDesign(file);
+    clearInterval(progressInterval);
+    setCompressionProgress(100);
+
+    const previewUrl = await createDesignPreview(compressionResult.file, formState.ProductColor);
+    const hasTransparency = await checkTransparency(compressionResult.file);
+    
+    const qualityScore = calculateDesignQualityScore({
+      dpi: compressionResult.dpi,
+      compressedSize: compressionResult.compressedSize,
+      width: compressionResult.width,
+      height: compressionResult.height,
+      hasTransparency
+    });
+
+    setDesignFile({
+      preview: previewUrl,
+      file: compressionResult.file,
+      originalFile: file,
+      compressionStats: compressionResult,
+      error: null,
+      isCompressing: false
+    });
+
+    setDesignQualityScore(qualityScore);
+    setDesignStats(compressionResult);
+    setShowRequirements(false);
+
+    toast.success(
+      `Design optimized: ${(file.size / (1024 * 1024)).toFixed(2)}MB → ` +
+      `${(compressionResult.compressedSize / 1024).toFixed(2)}KB`
+    );
+
+    if (qualityScore.score < 80) {
+      toast.info("Check design quality details for optimization tips.");
+    }
+
+  } catch (error) {
+    console.error("Design upload error:", error);
+    setDesignFile(prev => ({
+      ...prev,
+      error: error.message,
+      isCompressing: false
+    }));
+    toast.error("Failed to process design. Please try a different file.");
+  } finally {
+    setIsLoading(false);
+    setCompressionProgress(0);
+  }
+}, [formState.ProductColor, calculateDesignQualityScore]);
   // Boundary Check Implementation
   const checkBoundariesAndUpdate = useCallback((position) => {
     const boundaries = BOUNDARY_LIMITS[formState.ProductType];
