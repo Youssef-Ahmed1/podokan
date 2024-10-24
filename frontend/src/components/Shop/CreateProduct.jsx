@@ -8,17 +8,200 @@ import { BiRuler, BiMove } from "react-icons/bi";
 import { MdOutlineKeyboardArrowUp, MdOutlineKeyboardArrowDown, 
          MdOutlineKeyboardArrowLeft, MdOutlineKeyboardArrowRight } from "react-icons/md";
 
-const CreateProduct = () => {
+// Constants
+const COLOR_OPTIONS = {
+  white: { value: 'white', label: 'White', hex: '#ffffff', textColor: 'text-gray-800' },
+  black: { value: 'black', label: 'Black', hex: '#000000', textColor: 'text-white' },
+  red: { value: 'red', label: 'Red', hex: '#ff0000', textColor: 'text-white' },
+  blue: { value: 'blue', label: 'Blue', hex: '#0000ff', textColor: 'text-white' },
+  gray: { value: 'gray', label: 'Gray', hex: '#808080', textColor: 'text-white' }
+};
+
+const BOUNDARY_LIMITS = {
+  't-shirt': { top: 25, bottom: 70, left: 25, right: 75 },
+  'hoodie': { top: 30, bottom: 65, left: 30, right: 70 },
+  'long-sleeve': { top: 25, bottom: 70, left: 25, right: 75 }
+};
+
+const PRODUCT_TYPES = {
+  't-shirt': {
+    label: 'T-Shirt',
+    mockupConfig: {
+      version: "v1728393898",
+      folder: "t-shirts",
+      getFilename: (color, view) => `t-shirt-${color}-${view}`
+    }
+  },
+  'hoodie': {
+    label: 'Hoodie',
+    mockupConfig: {
+      version: "v1728392918",
+      folder: "hoodies",
+      getFilename: (color, view) => `hoodie-${color}-${view}`
+    }
+  },
+  'long-sleeve': {
+    label: 'Long Sleeve',
+    mockupConfig: {
+      version: "v1728394665",
+      folder: "long-sleeves",
+      getFilename: (color, view) => color === "gray" 
+        ? `longsleeves-${color}-${view}`
+        : ["white", "black"].includes(color)
+          ? `longseleves-${color}-${view}`
+          : `t-shirt-${color}-${view}`
+    }
+  }
+};
+
+// Utility Functions
+const getMockupUrl = (productType = 't-shirt', color = 'white', view = 'front') => {
+  const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
+  const config = PRODUCT_TYPES[productType]?.mockupConfig;
+  
+  if (!config) return "";
+  
+  const filename = config.getFilename(color, view);
+  return `${baseUrl}${config.version}/${config.folder}/${filename}.png`;
+};
+
+const compressDesign = async (file) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    img.onload = async () => {
+      try {
+        let { width, height } = img;
+        const MAX_DIMENSION = 2000;
+        const TARGET_SIZE = 500 * 1024; // 500KB
+        
+        if (Math.max(width, height) > MAX_DIMENSION) {
+          const ratio = MAX_DIMENSION / Math.max(width, height);
+          width *= ratio;
+          height *= ratio;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.filter = 'sharpen(1)';
+        ctx.drawImage(img, 0, 0, width, height);
+
+        let quality = 0.9;
+        let blob;
+        
+        while (quality >= 0.3) {
+          blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', quality));
+          
+          if (blob.size <= TARGET_SIZE) break;
+          
+          quality -= 0.1;
+        }
+
+        const compressedFile = new File([blob], file.name, {
+          type: 'image/png',
+          lastModified: Date.now()
+        });
+
+        const dpi = calculateDPI(width, height);
+
+        resolve({
+          file: compressedFile,
+          compressedSize: blob.size,
+          width,
+          height,
+          quality: quality * 100,
+          dpi,
+          compressionRatio: ((file.size - blob.size) / file.size * 100).toFixed(2)
+        });
+      } catch (error) {
+        reject(new Error('Compression failed: ' + error.message));
+      }
+    };
+
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = URL.createObjectURL(file);
+  });
+};
+
+const createDesignPreview = async (file, productColor) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      const img = new Image();
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        if (['black', 'navy', 'gray'].includes(productColor)) {
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = e.target.result;
+    };
+    
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+};
+
+const checkTransparency = async (file) => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i] < 250) {
+          resolve(true);
+          return;
+        }
+      }
+      resolve(false);
+    };
+
+    img.src = URL.createObjectURL(file);
+  });
+};
+
+const calculateDPI = (width, height) => {
+  const PRINT_SIZE = 12;
+  return Math.min(width, height) / PRINT_SIZE;
+};const CreateProduct = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { seller } = useSelector((state) => state.seller);
-  
+
   // Refs
   const designPreviewRef = useRef(null);
   const mockupContainerRef = useRef(null);
   const designPositionRef = useRef({ x: 0, y: 0 });
-  
-  // State
+  const dragStartRef = useRef(null);
+
+  // State Management
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -27,7 +210,9 @@ const CreateProduct = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDesignVisible, setIsDesignVisible] = useState(true);
   const [designStats, setDesignStats] = useState(null);
-  
+  const [validationErrors, setValidationErrors] = useState({});
+
+  // Form State
   const [formState, setFormState] = useState({
     DesignTitle: "",
     Description: "",
@@ -38,22 +223,22 @@ const CreateProduct = () => {
     ProductView: "front",
     DesignScale: 1,
     shopId: "",
-    designPosition: { x: 50, y: 50 }, // Center position in percentage
+    designPosition: { x: 50, y: 50 },
+    availableColors: ["white"],
+    price: {
+      original: 0,
+      discount: 0
+    }
   });
 
+  // Design File State
   const [designFile, setDesignFile] = useState({
     preview: null,
     file: null,
     originalFile: null,
-    compressionStats: null
+    compressionStats: null,
+    error: null
   });
-
-  // Constants for design boundaries
-  const BOUNDARY_LIMITS = {
-    't-shirt': { top: 25, bottom: 70, left: 25, right: 75 },
-    'hoodie': { top: 30, bottom: 65, left: 30, right: 70 },
-    'long-sleeve': { top: 25, bottom: 70, left: 25, right: 75 }
-  };
 
   // Design Quality Scoring System
   const calculateDesignQualityScore = (imageInfo) => {
@@ -111,23 +296,25 @@ const CreateProduct = () => {
     };
   };
 
-  // Initial setup
+  // Initial Setup Effect
   useEffect(() => {
     if (seller && seller._id) {
       setFormState(prev => ({ ...prev, shopId: seller._id }));
       setIsLoading(false);
     } else if (seller === null) {
-      toast.error("Please log in as a seller to create products.");
-      setIsLoading(false);
+      toast.error("Please log in as a seller to create products");
+      navigate("/login");
     }
-  }, [seller]);
+  }, [seller, navigate]);
 
-  // Keyboard controls for design positioning
+  // Keyboard Controls Effect
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (!designFile.preview) return;
+    if (!designFile.preview) return;
 
-      const MOVE_STEP = 1; // Percentage to move
+    const handleKeyDown = (e) => {
+      if (!designFile.preview || isSubmitting) return;
+
+      const MOVE_STEP = e.shiftKey ? 5 : 1;
       const currentPos = formState.designPosition;
       let newPos = { ...currentPos };
 
@@ -148,6 +335,9 @@ const CreateProduct = () => {
           newPos.x = Math.min(100, currentPos.x + MOVE_STEP);
           e.preventDefault();
           break;
+        case 'Escape':
+          setIsDragging(false);
+          break;
         default:
           return;
       }
@@ -157,11 +347,13 @@ const CreateProduct = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [formState.designPosition, designFile.preview, formState.ProductType]);
+  }, [formState.designPosition, designFile.preview, formState.ProductType, isSubmitting]);
 
-  // Boundary checking function
-  const checkBoundariesAndUpdate = (position) => {
+  // Boundary Checking
+  const checkBoundariesAndUpdate = useCallback((position) => {
     const boundaries = BOUNDARY_LIMITS[formState.ProductType];
+    if (!boundaries) return;
+
     const isWithinBounds = 
       position.x >= boundaries.left && 
       position.x <= boundaries.right && 
@@ -176,61 +368,73 @@ const CreateProduct = () => {
         designPosition: position
       }));
     }
-  };
 
+    return isWithinBounds;
+  }, [formState.ProductType]);
 
-  // Design upload and compression handling
+  // Design Upload Handler
   const handleDesignUpload = async (file) => {
     try {
-      if (file.size > 50 * 1024 * 1024) { // 50MB limit
+      if (!file) return;
+
+      if (file.size > 50 * 1024 * 1024) {
         toast.error("File size exceeds 50MB limit");
         return;
       }
 
-      setIsLoading(true);
-      const compressionResult = await compressDesign(file);
-      
-      // Validate compression results
-      if (compressionResult.compressedSize > 500 * 1024) { // 500KB limit
-        toast.error("Unable to compress image to required size. Please try a smaller image.");
-        setIsLoading(false);
+      if (file.type !== "image/png") {
+        toast.error("Please upload only PNG files");
         return;
       }
 
-      // Create preview and calculate quality score
+      setIsLoading(true);
+      
+      const compressionResult = await compressDesign(file);
+      if (compressionResult.compressedSize > 500 * 1024) {
+        throw new Error("Unable to compress image to required size");
+      }
+
       const previewUrl = await createDesignPreview(compressionResult.file, formState.ProductColor);
+      const hasTransparency = await checkTransparency(compressionResult.file);
+      
       const qualityScore = calculateDesignQualityScore({
         dpi: compressionResult.dpi,
         compressedSize: compressionResult.compressedSize,
         width: compressionResult.width,
         height: compressionResult.height,
-        hasTransparency: await checkTransparency(compressionResult.file)
+        hasTransparency
       });
 
       setDesignFile({
         preview: previewUrl,
         file: compressionResult.file,
         originalFile: file,
-        compressionStats: compressionResult
+        compressionStats: compressionResult,
+        error: null
       });
 
       setDesignQualityScore(qualityScore);
-      
-      // Show compression success message
-      toast.success(`Design compressed from ${(file.size / (1024 * 1024)).toFixed(2)}MB to ${(compressionResult.compressedSize / 1024).toFixed(2)}KB`);
-      
+      setDesignStats(compressionResult);
+
+      toast.success(
+        `Design compressed from ${(file.size / (1024 * 1024)).toFixed(2)}MB to ` +
+        `${(compressionResult.compressedSize / 1024).toFixed(2)}KB`
+      );
+
       if (qualityScore.score < 80) {
         toast.warning("Design quality could be improved. Check the quality score details.");
       }
 
     } catch (error) {
+      console.error("Design upload error:", error);
+      setDesignFile(prev => ({ ...prev, error: error.message }));
       toast.error(error.message || "Failed to process design");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Drag and drop handlers
+  // Drag and Drop Handlers
   const handleDrag = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -247,14 +451,12 @@ const CreateProduct = () => {
     setDragActive(false);
     
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type === "image/png") {
+    if (file) {
       handleDesignUpload(file);
-    } else {
-      toast.error("Please upload only PNG files");
     }
   }, []);
 
-  // Design position handling
+  // Design Position Handler
   const handleDesignDrag = useCallback((e) => {
     if (!mockupContainerRef.current || !isDragging) return;
 
@@ -265,32 +467,71 @@ const CreateProduct = () => {
     checkBoundariesAndUpdate({ x, y });
   }, [isDragging, checkBoundariesAndUpdate]);
 
-  // Form submission
+  // Form Validation
+  const validateForm = useCallback(() => {
+    const errors = {};
+
+    if (!designFile.file) {
+      errors.design = "Please upload a design";
+    }
+
+    if (!formState.DesignTitle.trim()) {
+      errors.DesignTitle = "Design title is required";
+    }
+
+    if (!formState.Maintag.trim()) {
+      errors.Maintag = "Main tag is required";
+    }
+
+    if (!formState.Description.trim()) {
+      errors.Description = "Description is required";
+    }
+
+    if (formState.price.original <= 0) {
+      errors.price = "Please set a valid price";
+    }
+
+    if (formState.price.discount >= formState.price.original) {
+      errors.discount = "Discount price must be less than original price";
+    }
+
+    return errors;
+  }, [formState, designFile]);
+
+  // Form Submission Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
 
     try {
+      const errors = validateForm();
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors);
+        toast.error("Please fix all validation errors");
+        return;
+      }
+
       setIsSubmitting(true);
 
-      // Validate design quality
       if (designQualityScore?.score < 60) {
-        if (!window.confirm("Design quality is low. Are you sure you want to proceed?")) {
+        const proceed = window.confirm(
+          "Design quality is low. This might affect print quality. Do you want to proceed?"
+        );
+        if (!proceed) {
+          setIsSubmitting(false);
           return;
         }
       }
 
-      // Prepare form data
       const formData = new FormData();
-      Object.keys(formState).forEach(key => {
-        if (key === 'designPosition') {
-          formData.append(key, JSON.stringify(formState[key]));
+      Object.entries(formState).forEach(([key, value]) => {
+        if (key === 'designPosition' || key === 'availableColors' || key === 'price') {
+          formData.append(key, JSON.stringify(value));
         } else {
-          formData.append(key, formState[key]);
+          formData.append(key, value);
         }
       });
 
-      // Append compressed design
       if (designFile.file) {
         formData.append("designImage", designFile.file);
       }
@@ -299,15 +540,17 @@ const CreateProduct = () => {
       if (response?.success) {
         toast.success("Product created successfully and is awaiting inspection!");
         navigate("/dashboard");
+      } else {
+        throw new Error(response?.message || "Failed to create product");
       }
+
     } catch (error) {
+      console.error("Submit error:", error);
       toast.error(error.message || "Failed to create product");
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // UI Component: Design Quality Indicator
+  };// UI Component: Design Quality Indicator
   const QualityIndicator = ({ score }) => (
     <div className="bg-white p-4 rounded-lg shadow-md">
       <div className="flex items-center justify-between mb-2">
@@ -333,7 +576,7 @@ const CreateProduct = () => {
     </div>
   );
 
-  // Main render
+  // Main Render
   return (
     <div className="w-[90%] 800px:w-[90%] bg-white shadow h-[80vh] rounded-[4px] p-3 overflow-y-scroll">
       <div className="max-w-4xl mx-auto">
@@ -365,7 +608,10 @@ const CreateProduct = () => {
                 id="design-upload"
                 type="file"
                 accept="image/png"
-                onChange={(e) => handleDesignUpload(e.target.files[0])}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleDesignUpload(file);
+                }}
                 className="hidden"
               />
             </div>
@@ -382,7 +628,11 @@ const CreateProduct = () => {
               >
                 {/* Product Mockup */}
                 <img
-                  src={getMockupUrl()}
+                  src={getMockupUrl(
+                    formState.ProductType,
+                    formState.ProductColor,
+                    formState.ProductView
+                  )}
                   alt="Product Mockup"
                   className="w-full h-full object-contain"
                 />
@@ -398,7 +648,8 @@ const CreateProduct = () => {
                       transform: `translate(-50%, -50%) scale(${formState.DesignScale})`,
                       width: '200px',
                       height: '200px',
-                      cursor: isDragging ? 'grabbing' : 'grab'
+                      cursor: isDragging ? 'grabbing' : 'grab',
+                      transition: isDragging ? 'none' : 'all 0.2s ease-out'
                     }}
                   >
                     <img
@@ -413,22 +664,22 @@ const CreateProduct = () => {
                 {/* Design Guides */}
                 {showGuides && (
                   <div className="absolute inset-0 pointer-events-none">
-                    {/* Show boundary lines based on BOUNDARY_LIMITS */}
-                    <div className="border-2 border-blue-500 border-dashed opacity-30"
-                         style={{
-                           position: 'absolute',
-                           top: `${BOUNDARY_LIMITS[formState.ProductType].top}%`,
-                           left: `${BOUNDARY_LIMITS[formState.ProductType].left}%`,
-                           right: `${100 - BOUNDARY_LIMITS[formState.ProductType].right}%`,
-                           bottom: `${100 - BOUNDARY_LIMITS[formState.ProductType].bottom}%`
-                         }}
+                    <div 
+                      className="border-2 border-blue-500 border-dashed opacity-30"
+                      style={{
+                        position: 'absolute',
+                        top: `${BOUNDARY_LIMITS[formState.ProductType].top}%`,
+                        left: `${BOUNDARY_LIMITS[formState.ProductType].left}%`,
+                        right: `${100 - BOUNDARY_LIMITS[formState.ProductType].right}%`,
+                        bottom: `${100 - BOUNDARY_LIMITS[formState.ProductType].bottom}%`
+                      }}
                     />
                   </div>
                 )}
               </div>
 
-              {/* Controls */}
-              <div className="mt-4 flex justify-center space-x-4">
+              {/* Design Controls */}
+              <div className="mt-4 flex flex-wrap justify-center gap-4">
                 <button
                   type="button"
                   onClick={() => setShowGuides(!showGuides)}
@@ -443,14 +694,33 @@ const CreateProduct = () => {
                     ProductView: prev.ProductView === "front" ? "back" : "front"
                   }))}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                  disabled={isSubmitting}
                 >
                   Switch to {formState.ProductView === "front" ? "Back" : "Front"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDesignFile({
+                      preview: null,
+                      file: null,
+                      originalFile: null,
+                      compressionStats: null,
+                      error: null
+                    });
+                    setDesignQualityScore(null);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-md hover:bg-red-50"
+                  disabled={isSubmitting}
+                >
+                  Remove Design
                 </button>
               </div>
             </div>
           )}
         </div>
-{/* Quality Score and Stats (shown when design is uploaded) */}
+
+        {/* Quality Score and Stats */}
         {designQualityScore && (
           <div className="mb-8 space-y-4">
             <QualityIndicator score={designQualityScore.score} />
@@ -478,7 +748,7 @@ const CreateProduct = () => {
                     DPI: {Math.round(designFile.compressionStats.dpi)}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Quality: {designFile.compressionStats.quality}%
+                    Quality: {designFile.compressionStats.quality.toFixed(1)}%
                   </p>
                 </div>
               </div>
@@ -517,11 +787,19 @@ const CreateProduct = () => {
                 ...prev,
                 DesignTitle: e.target.value
               }))}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className={`mt-1 block w-full rounded-md shadow-sm
+                ${validationErrors.DesignTitle 
+                  ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                  : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                }`}
               placeholder="Enter a catchy title for your design"
               required
               maxLength={100}
+              disabled={isSubmitting}
             />
+            {validationErrors.DesignTitle && (
+              <p className="mt-1 text-sm text-red-600">{validationErrors.DesignTitle}</p>
+            )}
           </div>
 
           {/* Main Tag */}
@@ -538,10 +816,18 @@ const CreateProduct = () => {
                 ...prev,
                 Maintag: e.target.value
               }))}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className={`mt-1 block w-full rounded-md shadow-sm
+                ${validationErrors.Maintag 
+                  ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                  : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                }`}
               placeholder="Primary category or theme"
               required
+              disabled={isSubmitting}
             />
+            {validationErrors.Maintag && (
+              <p className="mt-1 text-sm text-red-600">{validationErrors.Maintag}</p>
+            )}
           </div>
 
           {/* Design Tags */}
@@ -557,8 +843,10 @@ const CreateProduct = () => {
                 ...prev,
                 Designtags: e.target.value
               }))}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
+                focus:ring-blue-500 focus:border-blue-500"
               placeholder="Comma-separated tags (e.g., funny, cute, trendy)"
+              disabled={isSubmitting}
             />
           </div>
 
@@ -576,10 +864,18 @@ const CreateProduct = () => {
                 Description: e.target.value
               }))}
               rows={4}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className={`mt-1 block w-full rounded-md shadow-sm
+                ${validationErrors.Description 
+                  ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                  : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                }`}
               placeholder="Describe your design and its appeal"
               required
+              disabled={isSubmitting}
             />
+            {validationErrors.Description && (
+              <p className="mt-1 text-sm text-red-600">{validationErrors.Description}</p>
+            )}
           </div>
 
           {/* Product Type Selection */}
@@ -588,7 +884,7 @@ const CreateProduct = () => {
               Product Type
             </label>
             <div className="grid grid-cols-3 gap-4">
-              {['t-shirt', 'hoodie', 'long-sleeve'].map((type) => (
+              {Object.entries(PRODUCT_TYPES).map(([type, config]) => (
                 <button
                   key={type}
                   type="button"
@@ -596,14 +892,15 @@ const CreateProduct = () => {
                     ...prev,
                     ProductType: type
                   }))}
+                  disabled={isSubmitting}
                   className={`p-4 rounded-lg border-2 transition-all ${
                     formState.ProductType === type
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <div className="text-center">
-                    <span className="capitalize">{type.replace('-', ' ')}</span>
+                    <span className="capitalize">{config.label}</span>
                   </div>
                 </button>
               ))}
@@ -624,11 +921,12 @@ const CreateProduct = () => {
                     ...prev,
                     ProductColor: key
                   }))}
+                  disabled={isSubmitting}
                   className={`group relative p-2 rounded-lg transition-all ${
                     formState.ProductColor === key
                       ? 'ring-2 ring-blue-500'
                       : 'hover:bg-gray-50'
-                  }`}
+                  } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <div className="flex flex-col items-center space-y-2">
                     <div
@@ -660,6 +958,7 @@ const CreateProduct = () => {
                 DesignScale: parseFloat(e.target.value)
               }))}
               className="w-full"
+              disabled={isSubmitting}
             />
           </div>
 
@@ -668,7 +967,8 @@ const CreateProduct = () => {
             <button
               type="button"
               onClick={() => navigate('/dashboard')}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 
+                rounded-md hover:bg-gray-50"
               disabled={isSubmitting}
             >
               Cancel
@@ -684,7 +984,8 @@ const CreateProduct = () => {
             >
               {isSubmitting ? (
                 <div className="flex items-center">
-                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent 
+                    rounded-full" />
                   Creating Product...
                 </div>
               ) : (
@@ -693,9 +994,6 @@ const CreateProduct = () => {
             </button>
           </div>
         </form>
-
-        {/* Help Modal - Can be triggered by a help button */}
-        {/* You might want to add a help modal with design guidelines */}
       </div>
     </div>
   );
