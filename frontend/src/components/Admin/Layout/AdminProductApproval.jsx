@@ -18,6 +18,9 @@ const PRODUCT_TYPES = {
       recommended: 0.5,
     },
     mockupConfig: {
+      version: 'v1',
+      folder: 'mockups/t-shirts',
+      getFilename: (color, view) => `${color}-${view}`,
       designArea: {
         front: { width: 300, height: 400, top: '25%', left: '50%' },
         back: { width: 300, height: 400, top: '25%', left: '50%' }
@@ -36,6 +39,9 @@ const PRODUCT_TYPES = {
       recommended: 0.55,
     },
     mockupConfig: {
+      version: 'v1',
+      folder: '/hoodies',
+      getFilename: (color, view) => `${color}-${view}`,
       designArea: {
         front: { width: 280, height: 380, top: '30%', left: '50%' },
         back: { width: 300, height: 400, top: '25%', left: '50%' }
@@ -44,8 +50,31 @@ const PRODUCT_TYPES = {
       minScale: 0.5,
       maxScale: 2
     }
+  },
+'long-sleeves': {
+  label: 'long-sleeves',
+  basePrice: 40,
+  productionCost: 25,
+  margins: {
+    min: 0.35,
+    recommended: 0.55,
+  },
+  mockupConfig: {
+    version: 'v1',
+    folder: '/long-sleeves',
+    getFilename: (color, view) => `${color}-${view}`,
+    designArea: {
+      front: { width: 280, height: 380, top: '30%', left: '50%' },
+      back: { width: 300, height: 400, top: '25%', left: '50%' }
+    },
+    defaultScale: 1,
+    minScale: 0.5,
+    maxScale: 2
   }
+}
 };
+
+
 
 const COLOR_OPTIONS = {
   white: {
@@ -164,9 +193,19 @@ ErrorBoundary.propTypes = {
   const colorConfig = COLOR_OPTIONS[editedProduct.ProductColor];
 
   const mockupUrl = useMemo(() => {
-    return `${process.env.REACT_APP_CLOUDINARY_URL}/${editedProduct.ProductType}/${editedProduct.ProductColor}/${editedProduct.ProductView}.png`;
+    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
+    const config = PRODUCT_TYPES[editedProduct.ProductType]?.mockupConfig;
+    
+    if (!config) return "";
+    
+    const filename = config.getFilename(
+      editedProduct.ProductColor, 
+      editedProduct.ProductView
+    );
+    
+    return `${baseUrl}${config.version}/${config.folder}/${filename}.png`;
   }, [editedProduct.ProductType, editedProduct.ProductColor, editedProduct.ProductView]);
-
+  
   const handleImageLoad = useCallback(() => {
     setLoading(false);
     setError(null);
