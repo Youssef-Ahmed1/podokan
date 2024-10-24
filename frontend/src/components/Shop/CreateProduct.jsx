@@ -16,13 +16,11 @@ const COLOR_OPTIONS = {
   blue: { value: 'blue', label: 'Blue', hex: '#0000ff', textColor: 'text-white' },
   gray: { value: 'gray', label: 'Gray', hex: '#808080', textColor: 'text-white' }
 };
-
 const BOUNDARY_LIMITS = {
-  't-shirt': { top: 25, bottom: 70, left: 25, right: 75 },
-  'hoodie': { top: 30, bottom: 65, left: 30, right: 70 },
-  'long-sleeve': { top: 25, bottom: 70, left: 25, right: 75 }
+  't-shirt': { top: 30, bottom: 65, left: 30, right: 70 },
+  'hoodie': { top: 35, bottom: 60, left: 35, right: 65 },
+  'long-sleeve': { top: 30, bottom: 65, left: 30, right: 70 }
 };
-
 const PRODUCT_TYPES = {
   't-shirt': {
     label: 'T-Shirt',
@@ -195,6 +193,61 @@ const createDesignPreview = async (file, productColor) => {
     reader.readAsDataURL(file);
   });
 };
+useEffect(() => {
+  if (!designFile.preview) return;
+
+  const handleKeyDown = (e) => {
+    if (!designFile.preview || isSubmitting) return;
+
+    const MOVE_STEP = e.shiftKey ? 5 : 1;
+    const SCALE_STEP = e.shiftKey ? 0.1 : 0.05;
+    const currentPos = formState.designPosition;
+    let newPos = { ...currentPos };
+    let newScale = formState.DesignScale;
+
+    switch (e.key) {
+      case 'ArrowUp':
+        newPos.y = Math.max(0, currentPos.y - MOVE_STEP);
+        e.preventDefault();
+        break;
+      case 'ArrowDown':
+        newPos.y = Math.min(100, currentPos.y + MOVE_STEP);
+        e.preventDefault();
+        break;
+      case 'ArrowLeft':
+        newPos.x = Math.max(0, currentPos.x - MOVE_STEP);
+        e.preventDefault();
+        break;
+      case 'ArrowRight':
+        newPos.x = Math.min(100, currentPos.x + MOVE_STEP);
+        e.preventDefault();
+        break;
+      case '+':
+      case '=':
+        newScale = Math.min(3, formState.DesignScale + SCALE_STEP);
+        e.preventDefault();
+        break;
+      case '-':
+      case '_':
+        newScale = Math.max(0.1, formState.DesignScale - SCALE_STEP);
+        e.preventDefault();
+        break;
+      case 'Escape':
+        setIsDragging(false);
+        break;
+      default:
+        return;
+    }
+
+    checkBoundariesAndUpdate(newPos);
+    if (newScale !== formState.DesignScale) {
+      setFormState(prev => ({ ...prev, DesignScale: newScale }));
+    }
+  };
+
+  window.addEventListener('keydown', handleKeyDown);
+  return () => window.removeEventListener('keydown', handleKeyDown);
+}, [formState.designPosition, formState.DesignScale, designFile.preview, formState.ProductType, isSubmitting]);
 
 const checkTransparency = async (file) => {
   return new Promise((resolve) => {
@@ -595,7 +648,41 @@ const handleSubmit = async (e) => {
       </div>
     </div>
   );
-
+  const ScaleControl = ({ scale, onChange, disabled }) => (
+    <div className="w-full max-w-xs mx-auto">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-gray-700">Design Size: {scale.toFixed(1)}x</span>
+        <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            onClick={() => onChange(Math.max(0.1, scale - 0.1))}
+            disabled={disabled || scale <= 0.1}
+            className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+          >
+            <AiOutlineMinusCircle size={20} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange(Math.min(3, scale + 0.1))}
+            disabled={disabled || scale >= 3}
+            className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+          >
+            <AiOutlinePlusCircle size={20} />
+          </button>
+        </div>
+      </div>
+      <input
+        type="range"
+        min="0.1"
+        max="3"
+        step="0.1"
+        value={scale}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        disabled={disabled}
+        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+      />
+    </div>
+  );
   // Main Render
   return (
     <div className="w-[90%] 800px:w-[90%] bg-white shadow h-[80vh] rounded-[4px] p-3 overflow-y-scroll">
@@ -707,31 +794,27 @@ const handleSubmit = async (e) => {
 
                 {/* Design Overlay with Smooth Clipping */}
                 <div
-                  ref={designPreviewRef}
-                  className={`design-preview absolute ${!isDesignVisible ? 'clipped' : ''}`}
-                  style={{
-                    top: `${formState.designPosition.y}%`,
-                    left: `${formState.designPosition.x}%`,
-                    transform: `translate(-50%, -50%) scale(${formState.DesignScale})`,
-                    width: '200px',
-                    height: '200px',
-                    cursor: isDragging ? 'grabbing' : 'grab',
-                    '--clip-path': `inset(
-                      ${Math.max(0, BOUNDARY_LIMITS[formState.ProductType].top - formState.designPosition.y)}% 
-                      ${Math.max(0, formState.designPosition.x - BOUNDARY_LIMITS[formState.ProductType].right)}% 
-                      ${Math.max(0, formState.designPosition.y - BOUNDARY_LIMITS[formState.ProductType].bottom)}% 
-                      ${Math.max(0, BOUNDARY_LIMITS[formState.ProductType].left - formState.designPosition.x)}%
-                    )`
-                  }}
-                >
-                  <img
-                    src={designFile.preview}
-                    alt="Design Preview"
-                    className="w-full h-full object-contain"
-                    draggable="false"
-                    style={{ border: 'none' }}
-                  />
-                </div>
+  ref={designPreviewRef}
+  style={{
+    position: 'absolute',
+    top: `${formState.designPosition.y}%`,
+    left: `${formState.designPosition.x}%`,
+    transform: `translate(-50%, -50%) scale(${formState.DesignScale})`,
+    width: '200px',
+    height: '200px',
+    cursor: isDragging ? 'grabbing' : 'grab',
+    opacity: isDesignVisible ? '1' : '0.5', // Instead of hiding, make it semi-transparent
+    transition: isDragging ? 'none' : 'all 0.2s ease-out'
+  }}
+>
+  <img
+    src={designFile.preview}
+    alt="Design Preview"
+    className="w-full h-full object-contain"
+    draggable="false"
+    style={{ border: 'none' }}
+  />
+</div>
 
                 {/* Design Guides */}
                 {showGuides && (
@@ -751,16 +834,27 @@ const handleSubmit = async (e) => {
               </div>
 
               {/* Design Controls */}
-              <div className="mt-4 flex flex-wrap justify-center gap-4">
-                <button
-                  type="button"
-                  onClick={() => setShowGuides(!showGuides)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white 
-                    border border-gray-300 rounded-md hover:bg-gray-50 
-                    transition-colors duration-200"
-                >
-                  {showGuides ? 'Hide Guides' : 'Show Guides'}
-                </button>
+              <div className="mt-4 space-y-4">
+  {/* Scale Control */}
+  <ScaleControl
+    scale={formState.DesignScale}
+    onChange={(newScale) => setFormState(prev => ({
+      ...prev,
+      DesignScale: newScale
+    }))}
+    disabled={isSubmitting}
+  />
+
+  <div className="flex flex-wrap justify-center gap-4">
+    <button
+      type="button"
+      onClick={() => setShowGuides(!showGuides)}
+      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white 
+        border border-gray-300 rounded-md hover:bg-gray-50 
+        transition-colors duration-200"
+    >
+      {showGuides ? 'Hide Guides' : 'Show Guides'}
+    </button>
                 <button
                   type="button"
                   onClick={() => setFormState(prev => ({
@@ -795,7 +889,8 @@ const handleSubmit = async (e) => {
                 </button>
               </div>
             </div>
-          )}
+          
+            </div>)}
         </div>
 
 {/* Quality Score and Stats */}
