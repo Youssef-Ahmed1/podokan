@@ -20,7 +20,7 @@ const PRODUCT_TYPES = {
     mockupConfig: {
       version: 'v1',
       folder: 'mockups/t-shirts',
-      getFilename: (color, view) => `${color}-${view}`,
+      getFilename: (color, view) => `tshirt-${color}-${view}`,
       designArea: {
         front: { width: 300, height: 400, top: '25%', left: '50%' },
         back: { width: 300, height: 400, top: '25%', left: '50%' }
@@ -41,7 +41,7 @@ const PRODUCT_TYPES = {
     mockupConfig: {
       version: 'v1',
       folder: '/hoodies',
-      getFilename: (color, view) => `${color}-${view}`,
+      getFilename: (color, view) => `hoodie-${color}-${view}`,
       designArea: {
         front: { width: 280, height: 380, top: '30%', left: '50%' },
         back: { width: 300, height: 400, top: '25%', left: '50%' }
@@ -62,7 +62,7 @@ const PRODUCT_TYPES = {
   mockupConfig: {
     version: 'v1',
     folder: '/long-sleeves',
-    getFilename: (color, view) => `${color}-${view}`,
+    getFilename: (color, view) => `long-sleeves${color}-${view}`,
     designArea: {
       front: { width: 280, height: 380, top: '30%', left: '50%' },
       back: { width: 300, height: 400, top: '25%', left: '50%' }
