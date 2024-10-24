@@ -261,6 +261,107 @@ const ScaleControl = ({ scale, onChange, disabled }) => (
     />
   </div>
 );
+const validateForm = (formState, designFile) => {
+  const errors = {};
+
+  // Form fields validation
+  Object.entries(FORM_FIELDS).forEach(([fieldName, config]) => {
+    const error = config.validation(formState[fieldName]);
+    if (error) errors[fieldName] = error;
+  });
+
+  // Design file validation
+  if (!designFile.file) {
+    errors.design = "Please upload a design";
+  }
+
+  // Price validation
+  if (formState.price.original <= 0) {
+    errors.price = "Please set a valid price";
+  }
+
+  if (formState.price.discount >= formState.price.original) {
+    errors.discount = "Discount price must be less than original price";
+  }
+
+  return errors;
+};
+
+const calculateDesignQualityScore = (imageInfo) => {
+  let score = 100;
+  let feedback = [];
+
+  // DPI Scoring (40 points)
+  const dpiScore = Math.min(40, (imageInfo.dpi / 300) * 40);
+  score -= (40 - dpiScore);
+  if (imageInfo.dpi < 300) {
+    feedback.push({
+      type: 'warning',
+      message: `DPI is ${Math.round(imageInfo.dpi)}. Higher DPI recommended for best print quality.`
+    });
+  }
+
+  // Size Scoring (30 points)
+  const sizeScore = Math.min(30, (Math.min(imageInfo.compressedSize, 500000) / 500000) * 30);
+  score -= (30 - sizeScore);
+  if (imageInfo.compressedSize > 500000) {
+    feedback.push({
+      type: 'info',
+      message: 'File will be optimized for web display and printing.'
+    });
+  }
+
+  // Transparency Check (20 points)
+  if (!imageInfo.hasTransparency) {
+    score -= 20;
+    feedback.push({
+      type: 'error',
+      message: 'Design requires a transparent background for proper display.'
+    });
+  }
+
+  // Dimension Check (10 points)
+  const minDimension = Math.min(imageInfo.width, imageInfo.height);
+  const maxDimension = Math.max(imageInfo.width, imageInfo.height);
+  if (minDimension < 1000 || maxDimension > 4000) {
+    score -= 10;
+    feedback.push({
+      type: 'warning',
+      message: 'Optimal dimensions are between 1000px and 4000px.'
+    });
+  }
+
+  return {
+    score: Math.max(0, Math.round(score)),
+    feedback,
+    details: {
+      dpi: imageInfo.dpi,
+      size: imageInfo.compressedSize,
+      dimensions: `${imageInfo.width}x${imageInfo.height}`,
+      transparency: imageInfo.hasTransparency
+    }
+  };
+};
+
+const checkBoundariesAndUpdate = (position, productType, setIsDesignVisible, setFormState) => {
+  const boundaries = BOUNDARY_LIMITS[productType];
+  if (!boundaries) return false;
+
+  const isWithinBounds = 
+    position.x >= boundaries.left && 
+    position.x <= boundaries.right && 
+    position.y >= boundaries.top && 
+    position.y <= boundaries.bottom;
+
+  setIsDesignVisible(isWithinBounds);
+  
+  setFormState(prev => ({
+    ...prev,
+    designPosition: position
+  }));
+
+  return isWithinBounds;
+};
 
 // Main Component
 const CreateProduct = () => {
@@ -550,15 +651,20 @@ const CreateProduct = () => {
 
   const handleDesignDrag = useCallback((e) => {
     if (!mockupContainerRef.current || !isDragging) return;
-
+  
     const rect = mockupContainerRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-
+  
     requestAnimationFrame(() => {
-      checkBoundariesAndUpdate({ x, y });
+      checkBoundariesAndUpdate(
+        { x, y }, 
+        formState.ProductType,
+        setIsDesignVisible,
+        setFormState
+      );
     });
-  }, [isDragging, checkBoundariesAndUpdate]);
+  }, [isDragging, formState.ProductType]);
 
   const handleScaleChange = useCallback((newScale) => {
     setIsScaling(true);
@@ -572,8 +678,8 @@ const CreateProduct = () => {
     if (isSubmitting) return;
 
     try {
-      const errors = validateForm();
-      if (Object.keys(errors).length > 0) {
+      const errors = validateForm(formState, designFile);
+            if (Object.keys(errors).length > 0) {
         setValidationErrors(errors);
         // Scroll to the first error
         const firstErrorField = Object.keys(errors)[0];
