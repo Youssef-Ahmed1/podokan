@@ -2,7 +2,7 @@ import React, { useEffect, useState, memo, useCallback, useMemo, useRef } from '
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { fetchPendingProducts, approveRejectProduct } from '../../redux/actions/product';
-import styles from "../../styles/styles";
+import styles from "../../../styles/styles";
 import { 
   AiOutlineCloudUpload, 
   AiOutlineDelete, 
