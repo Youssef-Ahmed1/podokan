@@ -11,7 +11,7 @@ import {
   AiOutlineZoomIn,
   AiOutlineZoomOut,
 } from "react-icons/ai";
-import { fetchPendingProducts, approveRejectProduct } from "../../redux/actions/product";
+import { fetchPendingProducts, approveRejectProduct } from "../../../redux/actions/product";
 import { createTheme, ThemeProvider } from '@material-ui/core/styles';
 
 // Constants
