@@ -1424,32 +1424,32 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
                 </div>
               ) : (
                 <div className="divide-y divide-gray-200 max-h-[calc(100vh-220px)] overflow-y-auto">
-                  {pendingProducts?.map((product) => (
-                    <button
-                      key={product._id}
-                      onClick={() => handleProductSelect(product)}
-                      className={`
-                        w-full p-4 text-left transition-colors duration-200 hover:bg-gray-50
-                        ${selectedProductId === product._id ? 'bg-blue-50' : ''}
-                      `}
-                    >
-                      <h3 className="font-medium text-gray-900 mb-1">
-                        {product.DesignTitle}
-                      </h3>
-                      <p className="text-sm text-gray-500 mb-2">
-                        {product.ProductType} • {formatDate(product.createdAt)}
-                      </p>
-                      <div className="flex items-center text-sm">
-                        <span className={`
-                          px-2 py-1 rounded-full text-xs font-medium
-                          ${STATUS_CONFIG[product.status || 'pending'].color.replace('bg-', 'bg-opacity-20 ')}
-                          ${STATUS_CONFIG[product.status || 'pending'].textColor}
-                        `}>
-                          {STATUS_CONFIG[product.status || 'pending'].label}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
+           {pendingProducts?.map((product) => (
+  <button
+    key={product._id}
+    onClick={() => handleProductSelect(product)}
+    className={`
+      w-full p-4 text-left transition-colors duration-200 hover:bg-gray-50
+      ${selectedProductId === product._id ? 'bg-blue-50' : ''}
+    `}
+  >
+    <h3 className="font-medium text-gray-900 mb-1">
+      {product.DesignTitle || 'Untitled Design'}
+    </h3>
+    <p className="text-sm text-gray-500 mb-2">
+      {product.ProductType || 'Unknown Type'} • {formatDate(product.createdAt)}
+    </p>
+    <div className="flex items-center text-sm">
+      <span className={`
+        px-2 py-1 rounded-full text-xs font-medium
+        ${STATUS_CONFIG[product.status || 'pending'].color.replace('bg-', 'bg-opacity-20 ')}
+        ${STATUS_CONFIG[product.status || 'pending'].textColor}
+      `}>
+        {STATUS_CONFIG[product.status || 'pending'].label}
+      </span>
+    </div>
+  </button>
+))}
                 </div>
               )}
             </div>
@@ -1506,12 +1506,24 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
 
 // Utility function for date formatting
 const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  }).format(date);
-};
+  try {
+    if (!dateString) return 'N/A';
+    
+    const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Invalid Date';
+    }
 
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(date);
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return 'Invalid Date';
+  }
+};
 export default memo(AdminProductApproval);
