@@ -33,40 +33,45 @@ const COLOR_OPTIONS = {
   black: { value: 'black', label: 'Black', hex: '#000000', textColor: 'text-white' },
   red: { value: 'red', label: 'Red', hex: '#ff0000', textColor: 'text-white' },
   blue: { value: 'blue', label: 'Blue', hex: '#0000ff', textColor: 'text-white' },
-  gray: { value: 'gray', label: 'Gray', hex: '#808080', textColor: 'text-white' }
+  gray: { value: 'gray', label: 'Gray', hex: '#808080', textColor: 'text-white' },
+  green: { value: 'green', label: 'Green', hex: '#008000', textColor: 'text-white' },
+  yellow: { value: 'yellow', label: 'Yellow', hex: '#ffff00', textColor: 'text-gray-800' }
 };
-
 const PRODUCT_TYPES = {
   't-shirt': {
     label: 'T-Shirt',
+    basePrice: 295, // 205 (cost) + 90 (design)
+    productionCost: 205,
+    designCost: 90,
     mockupConfig: {
       version: "v1728393898",
       folder: "t-shirts",
       getFilename: (color, view) => `t-shirt-${color}-${view}`
     }
   },
+  'long-sleeve': {
+    label: 'Long Sleeve',
+    basePrice: 390, // 300 (cost) + 90 (design)
+    productionCost: 300,
+    designCost: 90,
+    mockupConfig: {
+      version: "v1728394665",
+      folder: "long-sleeves",
+      getFilename: (color, view) => `long-sleeve-${color}-${view}` // Fixed typo
+    }
+  },
   'hoodie': {
     label: 'Hoodie',
+    basePrice: 490, // 400 (cost) + 90 (design)
+    productionCost: 400,
+    designCost: 90,
     mockupConfig: {
       version: "v1728392918",
       folder: "hoodies",
       getFilename: (color, view) => `hoodie-${color}-${view}`
     }
-  },
-  'long-sleeve': {
-    label: 'Long Sleeve',
-    mockupConfig: {
-      version: "v1728394665",
-      folder: "long-sleeves",
-      getFilename: (color, view) => color === "gray" 
-        ? `longsleeves-${color}-${view}`
-        : ["white", "black"].includes(color)
-          ? `longseleves-${color}-${view}`
-          : `t-shirt-${color}-${view}`
-    }
   }
 };
-
 const FORM_FIELDS = {
   DesignTitle: {
     label: "Design Title",
@@ -420,7 +425,17 @@ const CreateProduct = () => {
     error: null,
     isCompressing: false
   });
-
+  const calculateMinimumPrice = (productType) => {
+    const config = PRODUCT_TYPES[productType];
+    const baseCost = config.productionCost + config.designCost;
+    return Math.ceil(baseCost * 1.15); // 15% minimum margin
+  };
+  
+  const calculateRecommendedPrice = (productType) => {
+    const config = PRODUCT_TYPES[productType];
+    const baseCost = config.productionCost + config.designCost;
+    return Math.ceil(baseCost * 1.25); // 25% recommended margin
+  };
   // Form Field Component
   const FormField = useCallback(({ name, value, onChange, error }) => {
     const config = FORM_FIELDS[name];
