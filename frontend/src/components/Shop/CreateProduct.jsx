@@ -477,6 +477,65 @@ const calculateDPI = (width, height) => {
     return isWithinBounds;
   }, [formState.ProductType]);
 
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (isSubmitting) return;
+
+  try {
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      toast.error("Please fix all validation errors");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Quality check confirmation
+    if (designQualityScore?.score < 60) {
+      const proceed = window.confirm(
+        "Design quality is low. This might affect print quality. Do you want to proceed?"
+      );
+      if (!proceed) {
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    // Prepare form data
+    const formData = new FormData();
+    
+    // Add all form state fields
+    Object.entries(formState).forEach(([key, value]) => {
+      if (key === 'designPosition' || key === 'availableColors' || key === 'price') {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        formData.append(key, value);
+      }
+    });
+
+    // Add design file if exists
+    if (designFile.file) {
+      formData.append("designImage", designFile.file);
+    }
+
+    // Submit to backend
+    const response = await dispatch(createProduct(formData));
+    
+    if (response?.success) {
+      toast.success("Product created successfully and is awaiting inspection!");
+      navigate("/dashboard");
+    } else {
+      throw new Error(response?.message || "Failed to create product");
+    }
+
+  } catch (error) {
+    console.error("Submit error:", error);
+    toast.error(error.message || "Failed to create product");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   // Form Validation with Improved Checks
   const validateForm = useCallback(() => {
     const errors = {};
@@ -508,7 +567,6 @@ const calculateDPI = (width, height) => {
     return errors;
   }, [formState, designFile]);
 
-// Continue from Part 2...
 
   // UI Components
   const DesignRequirements = () => (
