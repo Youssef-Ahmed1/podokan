@@ -11,70 +11,62 @@ import PropTypes from 'prop-types';
 const PRODUCT_TYPES = {
   't-shirt': {
     label: 'T-Shirt',
-    basePrice: 20,
-    productionCost: 12,
+    basePrice: 295, // 205 (cost) + 90 (design)
+    productionCost: 205,
+    designCost: 90,
     margins: {
-      min: 0.3,
-      recommended: 0.5,
+      min: 0.15,
+      recommended: 0.25,
     },
     mockupConfig: {
       version: 'v1',
-      folder: 'mockups/t-shirts',
+      folder: 't-shirts',
       getFilename: (color, view) => `tshirt-${color}-${view}`,
       designArea: {
         front: { width: 300, height: 400, top: '25%', left: '50%' },
         back: { width: 300, height: 400, top: '25%', left: '50%' }
-      },
-      defaultScale: 1,
-      minScale: 0.5,
-      maxScale: 2
+      }
+    }
+  },
+  'long-sleeve': {
+    label: 'Long Sleeve',
+    basePrice: 390, // 300 (cost) + 90 (design)
+    productionCost: 300,
+    designCost: 90,
+    margins: {
+      min: 0.15,
+      recommended: 0.25,
+    },
+    mockupConfig: {
+      version: 'v1',
+      folder: 'long-sleeves',
+      getFilename: (color, view) => `longsleeve-${color}-${view}`,
+      designArea: {
+        front: { width: 300, height: 400, top: '25%', left: '50%' },
+        back: { width: 300, height: 400, top: '25%', left: '50%' }
+      }
     }
   },
   'hoodie': {
     label: 'Hoodie',
-    basePrice: 40,
-    productionCost: 25,
+    basePrice: 490, // 400 (cost) + 90 (design)
+    productionCost: 400,
+    designCost: 90,
     margins: {
-      min: 0.35,
-      recommended: 0.55,
+      min: 0.15,
+      recommended: 0.25,
     },
     mockupConfig: {
       version: 'v1',
-      folder: '/hoodies',
+      folder: 'hoodies',
       getFilename: (color, view) => `hoodie-${color}-${view}`,
       designArea: {
         front: { width: 280, height: 380, top: '30%', left: '50%' },
         back: { width: 300, height: 400, top: '25%', left: '50%' }
-      },
-      defaultScale: 1,
-      minScale: 0.5,
-      maxScale: 2
+      }
     }
-  },
-'long-sleeves': {
-  label: 'long-sleeves',
-  basePrice: 40,
-  productionCost: 25,
-  margins: {
-    min: 0.35,
-    recommended: 0.55,
-  },
-  mockupConfig: {
-    version: 'v1',
-    folder: '/long-sleeves',
-    getFilename: (color, view) => `long-sleeves${color}-${view}`,
-    designArea: {
-      front: { width: 280, height: 380, top: '30%', left: '50%' },
-      back: { width: 300, height: 400, top: '25%', left: '50%' }
-    },
-    defaultScale: 1,
-    minScale: 0.5,
-    maxScale: 2
   }
-}
 };
-
-
 
 const COLOR_OPTIONS = {
   white: {
@@ -92,36 +84,48 @@ const COLOR_OPTIONS = {
     textColor: 'text-white',
     mockupModifier: 'brightness(0)',
     designBlendMode: 'screen'
+  },
+  red: {
+    value: 'red',
+    label: 'Red',
+    hex: '#ff0000',
+    textColor: 'text-white',
+    mockupModifier: 'none',
+    designBlendMode: 'multiply'
+  },
+  gray: {
+    value: 'gray',
+    label: 'Gray',
+    hex: '#808080',
+    textColor: 'text-white',
+    mockupModifier: 'none',
+    designBlendMode: 'multiply'
+  },
+  green: {
+    value: 'green',
+    label: 'Green',
+    hex: '#008000',
+    textColor: 'text-white',
+    mockupModifier: 'none',
+    designBlendMode: 'multiply'
+  },
+  yellow: {
+    value: 'yellow',
+    label: 'Yellow',
+    hex: '#ffff00',
+    textColor: 'text-gray-800',
+    mockupModifier: 'none',
+    designBlendMode: 'multiply'
+  },
+  blue: {
+    value: 'blue',
+    label: 'Blue',
+    hex: '#0000ff',
+    textColor: 'text-white',
+    mockupModifier: 'none',
+    designBlendMode: 'multiply'
   }
 };
-
-const STATUS_CONFIG = {
-  pending: {
-    value: 'pending',
-    label: 'Pending Review',
-    color: 'bg-yellow-500',
-    textColor: 'text-yellow-800',
-    icon: AiOutlineWarning,
-    description: 'Awaiting admin review'
-  },
-  public: {
-    value: 'public',
-    label: 'Public',
-    color: 'bg-green-500',
-    textColor: 'text-green-800',
-    icon: AiOutlineInfoCircle,
-    description: 'Visible to all users'
-  },
-  rejected: {
-    value: 'rejected',
-    label: 'Rejected',
-    color: 'bg-red-500',
-    textColor: 'text-red-800',
-    icon: AiOutlineWarning,
-    description: 'Not approved for sale'
-  }
-};
-
 // Utility Functions
 const getImageFormat = (url) => {
   const extension = url.split('.').pop().toLowerCase();
@@ -373,30 +377,32 @@ ErrorBoundary.propTypes = {
           onError={handleImageError}
         />
 
-        {!loading && !error && editedProduct.designImage && (
-          <div
-            className={`absolute transform -translate-x-1/2 -translate-y-1/2 ${
-              isDragging ? 'cursor-grabbing' : 'cursor-grab'
-            }`}
-            style={{
-              left: `${position.x}%`,
-              top: `${position.y}%`,
-              width: `${productConfig.mockupConfig.designArea[editedProduct.ProductView].width}px`,
-              height: `${productConfig.mockupConfig.designArea[editedProduct.ProductView].height}px`,
-              transform: `translate(-50%, -50%) scale(${zoom})`,
-              mixBlendMode: colorConfig.designBlendMode
-            }}
-            onMouseDown={handleDragStart}
-            onTouchStart={handleDragStart}
-          >
-            <img
-              src={editedProduct.designImage}
-              alt="Design"
-              className="w-full h-full object-contain"
-              draggable={false}
-            />
-          </div>
-        )}
+{!loading && !error && editedProduct.designImage && (
+  <div
+    className={`absolute transform -translate-x-1/2 -translate-y-1/2 ${
+      isDragging ? 'cursor-grabbing' : 'cursor-grab'
+    }`}
+    style={{
+      left: `${position.x}%`,
+      top: `${position.y}%`,
+      width: `${productConfig.mockupConfig.designArea[editedProduct.ProductView].width}px`,
+      height: `${productConfig.mockupConfig.designArea[editedProduct.ProductView].height}px`,
+      transform: `translate(-50%, -50%) scale(${zoom})`,
+      mixBlendMode: colorConfig.designBlendMode,
+      opacity: 1 // Ensure full opacity
+    }}
+    onMouseDown={handleDragStart}
+    onTouchStart={handleDragStart}
+  >
+    <img
+      src={editedProduct.designImage}
+      alt="Design"
+      className="w-full h-full object-contain"
+      draggable={false}
+      style={{ opacity: 1 }} // Ensure full opacity
+    />
+  </div>
+)}
       </div>
 
       <div className="p-4 bg-gray-50 text-sm text-gray-500">
@@ -1136,24 +1142,41 @@ ValidationSystem.displayName = 'ValidationSystem';const StatusManager = memo(({
 
   const handleStatusChange = useCallback((newStatus) => {
     if (disabled || isProcessing) return;
-
-    const statusChanges = {
-      'rejected': {
-        title: 'Reject Product',
-        message: 'This will notify the seller and remove the product from public view.',
-        action: 'Reject',
-        actionColor: 'bg-red-600 hover:bg-red-700',
-        requiresReason: true
+  
+    const STATUS_CONFIG = {
+      pending: {
+        value: 'pending',
+        label: 'Pending Review',
+        color: 'bg-yellow-500',
+        textColor: 'text-yellow-800',
+        icon: AiOutlineWarning,
+        description: 'Awaiting admin review'
       },
-      'public': {
-        title: 'Approve Product',
-        message: 'This will make the product visible to all users.',
-        action: 'Approve',
-        actionColor: 'bg-green-600 hover:bg-green-700',
-        requiresReason: false
+      public: {
+        value: 'public',
+        label: 'Public',
+        color: 'bg-green-500',
+        textColor: 'text-green-800',
+        icon: AiOutlineInfoCircle,
+        description: 'Visible to all users'
+      },
+      restricted: {
+        value: 'restricted',
+        label: 'Restricted',
+        color: 'bg-orange-500',
+        textColor: 'text-orange-800',
+        icon: AiOutlineWarning,
+        description: 'Limited visibility'
+      },
+      rejected: {
+        value: 'rejected',
+        label: 'Rejected',
+        color: 'bg-red-500',
+        textColor: 'text-red-800',
+        icon: AiOutlineWarning,
+        description: 'Not approved for sale'
       }
     };
-
     const change = statusChanges[newStatus];
     if (change) {
       setConfirmDialog({
