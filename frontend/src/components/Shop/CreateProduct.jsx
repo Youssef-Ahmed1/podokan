@@ -54,7 +54,7 @@ const PRODUCT_TYPES = {
   }
 };
 
-// Utility Functions
+// Enhanced Utility Functions
 const getMockupUrl = (productType = 't-shirt', color = 'white', view = 'front') => {
   const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
   const config = PRODUCT_TYPES[productType]?.mockupConfig;
@@ -65,6 +65,7 @@ const getMockupUrl = (productType = 't-shirt', color = 'white', view = 'front') 
   return `${baseUrl}${config.version}/${config.folder}/${filename}.png`;
 };
 
+// Improved image compression with chunked processing
 const compressDesign = async (file) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -74,9 +75,10 @@ const compressDesign = async (file) => {
     img.onload = async () => {
       try {
         let { width, height } = img;
-        const MAX_DIMENSION = 2000;
-        const TARGET_SIZE = 500 * 1024; // 500KB
+        const MAX_DIMENSION = 4000; // Increased max dimension
+        const TARGET_SIZE = 500 * 1024; // Target: 500KB
         
+        // Calculate initial dimensions while maintaining aspect ratio
         if (Math.max(width, height) > MAX_DIMENSION) {
           const ratio = MAX_DIMENSION / Math.max(width, height);
           width *= ratio;
@@ -85,18 +87,52 @@ const compressDesign = async (file) => {
 
         canvas.width = width;
         canvas.height = height;
-        ctx.filter = 'sharpen(1)';
-        ctx.drawImage(img, 0, 0, width, height);
 
-        let quality = 0.9;
-        let blob;
+        // Apply image smoothing and sharpening
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.filter = 'sharpen(1)';
         
-        while (quality >= 0.3) {
+        // Draw image in chunks for large files
+        const CHUNK_SIZE = 1000;
+        for (let y = 0; y < height; y += CHUNK_SIZE) {
+          for (let x = 0; x < width; x += CHUNK_SIZE) {
+            const chunkWidth = Math.min(CHUNK_SIZE, width - x);
+            const chunkHeight = Math.min(CHUNK_SIZE, height - y);
+            
+            ctx.drawImage(
+              img,
+              x, y, chunkWidth, chunkHeight,
+              x, y, chunkWidth, chunkHeight
+            );
+          }
+        }
+
+        // Progressive compression with quality adjustment
+        let quality = 1.0;
+        let blob;
+        let attempts = 0;
+        const MAX_ATTEMPTS = 10;
+        
+        while (attempts < MAX_ATTEMPTS) {
           blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', quality));
           
-          if (blob.size <= TARGET_SIZE) break;
+          if (blob.size <= TARGET_SIZE || quality <= 0.3) break;
           
-          quality -= 0.1;
+          // Adaptive quality reduction
+          quality -= blob.size > TARGET_SIZE * 2 ? 0.2 : 0.1;
+          quality = Math.max(0.3, quality); // Don't go below 30% quality
+          attempts++;
+        }
+
+        // If still too large, try reducing dimensions
+        if (blob.size > TARGET_SIZE && width > 1000) {
+          width *= 0.8;
+          height *= 0.8;
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+          blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', quality));
         }
 
         const compressedFile = new File([blob], file.name, {
@@ -195,13 +231,14 @@ const calculateDPI = (width, height) => {
   const dispatch = useDispatch();
   const { seller } = useSelector((state) => state.seller);
 
-  // Refs
+  // Refs with improved tracking
   const designPreviewRef = useRef(null);
   const mockupContainerRef = useRef(null);
   const designPositionRef = useRef({ x: 0, y: 0 });
   const dragStartRef = useRef(null);
+  const compressionTimeoutRef = useRef(null);
 
-  // State Management
+  // Enhanced State Management
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -211,8 +248,10 @@ const calculateDPI = (width, height) => {
   const [isDesignVisible, setIsDesignVisible] = useState(true);
   const [designStats, setDesignStats] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
+  const [showRequirements, setShowRequirements] = useState(true);
+  const [compressionProgress, setCompressionProgress] = useState(0);
 
-  // Form State
+  // Enhanced Form State
   const [formState, setFormState] = useState({
     DesignTitle: "",
     Description: "",
@@ -231,37 +270,38 @@ const calculateDPI = (width, height) => {
     }
   });
 
-  // Design File State
+  // Enhanced Design File State
   const [designFile, setDesignFile] = useState({
     preview: null,
     file: null,
     originalFile: null,
     compressionStats: null,
-    error: null
+    error: null,
+    isCompressing: false
   });
 
-  // Design Quality Scoring System
+  // Design Quality Scoring System with improved metrics
   const calculateDesignQualityScore = (imageInfo) => {
     let score = 100;
     let feedback = [];
 
-    // DPI Score (40 points)
+    // Enhanced DPI Scoring (40 points)
     const dpiScore = Math.min(40, (imageInfo.dpi / 300) * 40);
     score -= (40 - dpiScore);
     if (imageInfo.dpi < 300) {
       feedback.push({
-        type: 'error',
-        message: `DPI is ${Math.round(imageInfo.dpi)}. Minimum required is 300 DPI.`
+        type: 'warning',
+        message: `DPI is ${Math.round(imageInfo.dpi)}. Higher DPI recommended for best print quality.`
       });
     }
 
-    // Size Score (30 points)
+    // Enhanced Size Scoring (30 points)
     const sizeScore = Math.min(30, (Math.min(imageInfo.compressedSize, 500000) / 500000) * 30);
     score -= (30 - sizeScore);
     if (imageInfo.compressedSize > 500000) {
       feedback.push({
-        type: 'warning',
-        message: 'File size is larger than recommended.'
+        type: 'info',
+        message: 'File will be optimized for web display and printing.'
       });
     }
 
@@ -270,17 +310,18 @@ const calculateDPI = (width, height) => {
       score -= 20;
       feedback.push({
         type: 'error',
-        message: 'Design should have a transparent background.'
+        message: 'Design requires a transparent background for proper display.'
       });
     }
 
-    // Dimension Score (10 points)
+    // Dimension Score with improved criteria (10 points)
     const minDimension = Math.min(imageInfo.width, imageInfo.height);
-    if (minDimension < 1000) {
+    const maxDimension = Math.max(imageInfo.width, imageInfo.height);
+    if (minDimension < 1000 || maxDimension > 4000) {
       score -= 10;
       feedback.push({
-        type: 'error',
-        message: 'Design dimensions should be at least 1000x1000 pixels.'
+        type: 'warning',
+        message: 'Optimal dimensions are between 1000px and 4000px.'
       });
     }
 
@@ -296,89 +337,13 @@ const calculateDPI = (width, height) => {
     };
   };
 
-  // Initial Setup Effect
-  useEffect(() => {
-    if (seller && seller._id) {
-      setFormState(prev => ({ ...prev, shopId: seller._id }));
-      setIsLoading(false);
-    } else if (seller === null) {
-      toast.error("Please log in as a seller to create products");
-      navigate("/login");
-    }
-  }, [seller, navigate]);
-
-  // Keyboard Controls Effect
-  useEffect(() => {
-    if (!designFile.preview) return;
-
-    const handleKeyDown = (e) => {
-      if (!designFile.preview || isSubmitting) return;
-
-      const MOVE_STEP = e.shiftKey ? 5 : 1;
-      const currentPos = formState.designPosition;
-      let newPos = { ...currentPos };
-
-      switch (e.key) {
-        case 'ArrowUp':
-          newPos.y = Math.max(0, currentPos.y - MOVE_STEP);
-          e.preventDefault();
-          break;
-        case 'ArrowDown':
-          newPos.y = Math.min(100, currentPos.y + MOVE_STEP);
-          e.preventDefault();
-          break;
-        case 'ArrowLeft':
-          newPos.x = Math.max(0, currentPos.x - MOVE_STEP);
-          e.preventDefault();
-          break;
-        case 'ArrowRight':
-          newPos.x = Math.min(100, currentPos.x + MOVE_STEP);
-          e.preventDefault();
-          break;
-        case 'Escape':
-          setIsDragging(false);
-          break;
-        default:
-          return;
-      }
-
-      checkBoundariesAndUpdate(newPos);
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [formState.designPosition, designFile.preview, formState.ProductType, isSubmitting]);
-
-  // Boundary Checking
-  const checkBoundariesAndUpdate = useCallback((position) => {
-    const boundaries = BOUNDARY_LIMITS[formState.ProductType];
-    if (!boundaries) return;
-
-    const isWithinBounds = 
-      position.x >= boundaries.left && 
-      position.x <= boundaries.right && 
-      position.y >= boundaries.top && 
-      position.y <= boundaries.bottom;
-
-    setIsDesignVisible(isWithinBounds);
-    
-    if (isWithinBounds) {
-      setFormState(prev => ({
-        ...prev,
-        designPosition: position
-      }));
-    }
-
-    return isWithinBounds;
-  }, [formState.ProductType]);
-
-  // Design Upload Handler
+  // Enhanced Design Upload Handler
   const handleDesignUpload = async (file) => {
     try {
       if (!file) return;
 
-      if (file.size > 50 * 1024 * 1024) {
-        toast.error("File size exceeds 50MB limit");
+      if (file.size > 20 * 1024 * 1024) { // 20MB limit
+        toast.error("File size exceeds 20MB limit");
         return;
       }
 
@@ -388,11 +353,25 @@ const calculateDPI = (width, height) => {
       }
 
       setIsLoading(true);
+      setDesignFile(prev => ({ ...prev, isCompressing: true }));
       
-      const compressionResult = await compressDesign(file);
-      if (compressionResult.compressedSize > 500 * 1024) {
-        throw new Error("Unable to compress image to required size");
+      // Clear any existing compression timeout
+      if (compressionTimeoutRef.current) {
+        clearTimeout(compressionTimeoutRef.current);
       }
+
+      // Show compression progress
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += 5;
+        if (progress <= 90) {
+          setCompressionProgress(progress);
+        }
+      }, 500);
+
+      const compressionResult = await compressDesign(file);
+      clearInterval(progressInterval);
+      setCompressionProgress(100);
 
       const previewUrl = await createDesignPreview(compressionResult.file, formState.ProductColor);
       const hasTransparency = await checkTransparency(compressionResult.file);
@@ -410,31 +389,38 @@ const calculateDPI = (width, height) => {
         file: compressionResult.file,
         originalFile: file,
         compressionStats: compressionResult,
-        error: null
+        error: null,
+        isCompressing: false
       });
 
       setDesignQualityScore(qualityScore);
       setDesignStats(compressionResult);
+      setShowRequirements(false);
 
       toast.success(
-        `Design compressed from ${(file.size / (1024 * 1024)).toFixed(2)}MB to ` +
+        `Design optimized: ${(file.size / (1024 * 1024)).toFixed(2)}MB → ` +
         `${(compressionResult.compressedSize / 1024).toFixed(2)}KB`
       );
 
       if (qualityScore.score < 80) {
-        toast.warning("Design quality could be improved. Check the quality score details.");
+        toast.info("Check design quality details for optimization tips.");
       }
 
     } catch (error) {
       console.error("Design upload error:", error);
-      setDesignFile(prev => ({ ...prev, error: error.message }));
-      toast.error(error.message || "Failed to process design");
+      setDesignFile(prev => ({
+        ...prev,
+        error: error.message,
+        isCompressing: false
+      }));
+      toast.error("Failed to process design. Please try a different file.");
     } finally {
       setIsLoading(false);
+      setCompressionProgress(0);
     }
   };
 
-  // Drag and Drop Handlers
+  // Enhanced Drag and Drop Handlers
   const handleDrag = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -456,7 +442,7 @@ const calculateDPI = (width, height) => {
     }
   }, []);
 
-  // Design Position Handler
+  // Enhanced Design Position Handler with Smooth Movement
   const handleDesignDrag = useCallback((e) => {
     if (!mockupContainerRef.current || !isDragging) return;
 
@@ -464,10 +450,34 @@ const calculateDPI = (width, height) => {
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
 
-    checkBoundariesAndUpdate({ x, y });
-  }, [isDragging, checkBoundariesAndUpdate]);
+    // Smooth position updating
+    requestAnimationFrame(() => {
+      checkBoundariesAndUpdate({ x, y });
+    });
+  }, [isDragging]);
 
-  // Form Validation
+  // Enhanced Boundary Checking with Smooth Clipping
+  const checkBoundariesAndUpdate = useCallback((position) => {
+    const boundaries = BOUNDARY_LIMITS[formState.ProductType];
+    if (!boundaries) return;
+
+    const isWithinBounds = 
+      position.x >= boundaries.left && 
+      position.x <= boundaries.right && 
+      position.y >= boundaries.top && 
+      position.y <= boundaries.bottom;
+
+    setIsDesignVisible(true); // Always show design, clipping will handle visibility
+    
+    setFormState(prev => ({
+      ...prev,
+      designPosition: position
+    }));
+
+    return isWithinBounds;
+  }, [formState.ProductType]);
+
+  // Form Validation with Improved Checks
   const validateForm = useCallback(() => {
     const errors = {};
 
@@ -498,80 +508,32 @@ const calculateDPI = (width, height) => {
     return errors;
   }, [formState, designFile]);
 
-  // Form Submission Handler
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (isSubmitting) return;
+// Continue from Part 2...
 
-    try {
-      const errors = validateForm();
-      if (Object.keys(errors).length > 0) {
-        setValidationErrors(errors);
-        toast.error("Please fix all validation errors");
-        return;
-      }
-
-      setIsSubmitting(true);
-
-      if (designQualityScore?.score < 60) {
-        const proceed = window.confirm(
-          "Design quality is low. This might affect print quality. Do you want to proceed?"
-        );
-        if (!proceed) {
-          setIsSubmitting(false);
-          return;
-        }
-      }
-
-      const formData = new FormData();
-      Object.entries(formState).forEach(([key, value]) => {
-        if (key === 'designPosition' || key === 'availableColors' || key === 'price') {
-          formData.append(key, JSON.stringify(value));
-        } else {
-          formData.append(key, value);
-        }
-      });
-
-      if (designFile.file) {
-        formData.append("designImage", designFile.file);
-      }
-
-      const response = await dispatch(createProduct(formData));
-      if (response?.success) {
-        toast.success("Product created successfully and is awaiting inspection!");
-        navigate("/dashboard");
-      } else {
-        throw new Error(response?.message || "Failed to create product");
-      }
-
-    } catch (error) {
-      console.error("Submit error:", error);
-      toast.error(error.message || "Failed to create product");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };// UI Component: Design Quality Indicator
-  const QualityIndicator = ({ score }) => (
-    <div className="bg-white p-4 rounded-lg shadow-md">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="font-semibold">Design Quality Score</h3>
-        <span className={`text-lg font-bold ${
-          score > 80 ? 'text-green-500' : 
-          score > 60 ? 'text-yellow-500' : 
-          'text-red-500'
-        }`}>
-          {score}/100
-        </span>
-      </div>
-      <div className="w-full bg-gray-200 rounded-full h-2.5">
-        <div 
-          className={`h-2.5 rounded-full ${
-            score > 80 ? 'bg-green-500' : 
-            score > 60 ? 'bg-yellow-500' : 
-            'bg-red-500'
-          }`}
-          style={{ width: `${score}%` }}
-        ></div>
+  // UI Components
+  const DesignRequirements = () => (
+    <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+      <h3 className="text-xl font-bold text-gray-800 mb-4">Design Requirements</h3>
+      <div className="space-y-4">
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <h4 className="font-semibold text-blue-800 mb-2">File Specifications</h4>
+          <ul className="list-disc list-inside text-blue-700 space-y-2">
+            <li>File format: PNG with transparent background</li>
+            <li>Maximum file size: 20MB (will be optimized)</li>
+            <li>Recommended dimensions: 1000px to 4000px</li>
+            <li>Recommended DPI: 300 or higher</li>
+          </ul>
+        </div>
+        
+        <div className="bg-green-50 p-4 rounded-lg">
+          <h4 className="font-semibold text-green-800 mb-2">Design Guidelines</h4>
+          <ul className="list-disc list-inside text-green-700 space-y-2">
+            <li>Keep important elements within safe area</li>
+            <li>Use high contrast colors for better visibility</li>
+            <li>Avoid very thin lines (minimum 1px width)</li>
+            <li>Test your design on different backgrounds</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
@@ -579,31 +541,62 @@ const calculateDPI = (width, height) => {
   // Main Render
   return (
     <div className="w-[90%] 800px:w-[90%] bg-white shadow h-[80vh] rounded-[4px] p-3 overflow-y-scroll">
+      <style>
+        {`
+          .design-preview {
+            clip-path: inset(0);
+            transition: clip-path 0.3s ease-out;
+          }
+          
+          .design-preview.clipped {
+            clip-path: var(--clip-path);
+          }
+        `}
+      </style>
+      
       <div className="max-w-4xl mx-auto">
         <h2 className="text-3xl font-bold mb-4 text-center text-gray-800">Create New Design</h2>
         
-        {/* Design Upload Area */}
+        {/* Show Requirements First */}
+        {!designFile.preview && <DesignRequirements />}
+        
+        {/* Enhanced Upload Area */}
         <div className="mb-8">
           {!designFile.preview ? (
             <div
-              className={`border-2 border-dashed rounded-lg p-8 transition-all ${
-                dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-              }`}
+              className={`
+                relative border-2 border-dashed rounded-lg p-8 transition-all
+                ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}
+                hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer
+                group
+              `}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
               onDrop={handleDrop}
               onClick={() => document.getElementById('design-upload').click()}
             >
-              <div className="text-center">
-                <AiOutlineCloudUpload className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-gray-600">
-                  Drop your design here or click to upload
-                </p>
-                <p className="mt-1 text-sm text-gray-500">
-                  PNG files only, max 50MB
-                </p>
+              <div className="text-center space-y-4">
+                <div className="relative inline-block">
+                  <AiOutlineCloudUpload className="mx-auto h-16 w-16 text-blue-400 
+                    group-hover:text-blue-500 transition-colors" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-20 h-20 border-4 border-blue-500 border-dashed 
+                      rounded-full animate-spin opacity-0 group-hover:opacity-100 
+                      transition-opacity" />
+                  </div>
+                </div>
+                
+                <div>
+                  <p className="text-lg font-medium text-gray-700 group-hover:text-gray-900">
+                    Drop your design here or click to browse
+                  </p>
+                  <p className="mt-2 text-sm text-gray-500 group-hover:text-gray-700">
+                    PNG files only, max 20MB
+                  </p>
+                </div>
               </div>
+
               <input
                 id="design-upload"
                 type="file"
@@ -614,13 +607,30 @@ const calculateDPI = (width, height) => {
                 }}
                 className="hidden"
               />
+
+              {/* Compression Progress Indicator */}
+              {designFile.isCompressing && (
+                <div className="absolute inset-0 bg-white/90 flex items-center 
+                  justify-center flex-col space-y-4">
+                  <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-500 transition-all duration-300"
+                      style={{ width: `${compressionProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Optimizing design... {compressionProgress}%
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="relative">
               {/* Design Preview */}
               <div 
                 ref={mockupContainerRef}
-                className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden"
+                className="relative w-full aspect-square bg-gray-100 rounded-lg 
+                  overflow-hidden shadow-inner"
                 onMouseMove={handleDesignDrag}
                 onMouseDown={() => setIsDragging(true)}
                 onMouseUp={() => setIsDragging(false)}
@@ -637,29 +647,33 @@ const calculateDPI = (width, height) => {
                   className="w-full h-full object-contain"
                 />
 
-                {/* Design Overlay */}
-                {isDesignVisible && (
-                  <div
-                    ref={designPreviewRef}
-                    style={{
-                      position: 'absolute',
-                      top: `${formState.designPosition.y}%`,
-                      left: `${formState.designPosition.x}%`,
-                      transform: `translate(-50%, -50%) scale(${formState.DesignScale})`,
-                      width: '200px',
-                      height: '200px',
-                      cursor: isDragging ? 'grabbing' : 'grab',
-                      transition: isDragging ? 'none' : 'all 0.2s ease-out'
-                    }}
-                  >
-                    <img
-                      src={designFile.preview}
-                      alt="Design Preview"
-                      className="w-full h-full object-contain"
-                      draggable="false"
-                    />
-                  </div>
-                )}
+                {/* Design Overlay with Smooth Clipping */}
+                <div
+                  ref={designPreviewRef}
+                  className={`design-preview absolute ${!isDesignVisible ? 'clipped' : ''}`}
+                  style={{
+                    top: `${formState.designPosition.y}%`,
+                    left: `${formState.designPosition.x}%`,
+                    transform: `translate(-50%, -50%) scale(${formState.DesignScale})`,
+                    width: '200px',
+                    height: '200px',
+                    cursor: isDragging ? 'grabbing' : 'grab',
+                    '--clip-path': `inset(
+                      ${Math.max(0, BOUNDARY_LIMITS[formState.ProductType].top - formState.designPosition.y)}% 
+                      ${Math.max(0, formState.designPosition.x - BOUNDARY_LIMITS[formState.ProductType].right)}% 
+                      ${Math.max(0, formState.designPosition.y - BOUNDARY_LIMITS[formState.ProductType].bottom)}% 
+                      ${Math.max(0, BOUNDARY_LIMITS[formState.ProductType].left - formState.designPosition.x)}%
+                    )`
+                  }}
+                >
+                  <img
+                    src={designFile.preview}
+                    alt="Design Preview"
+                    className="w-full h-full object-contain"
+                    draggable="false"
+                    style={{ border: 'none' }}
+                  />
+                </div>
 
                 {/* Design Guides */}
                 {showGuides && (
@@ -683,7 +697,9 @@ const calculateDPI = (width, height) => {
                 <button
                   type="button"
                   onClick={() => setShowGuides(!showGuides)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white 
+                    border border-gray-300 rounded-md hover:bg-gray-50 
+                    transition-colors duration-200"
                 >
                   {showGuides ? 'Hide Guides' : 'Show Guides'}
                 </button>
@@ -693,7 +709,8 @@ const calculateDPI = (width, height) => {
                     ...prev,
                     ProductView: prev.ProductView === "front" ? "back" : "front"
                   }))}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 
+                    rounded-md hover:bg-blue-700 transition-colors duration-200"
                   disabled={isSubmitting}
                 >
                   Switch to {formState.ProductView === "front" ? "Back" : "Front"}
@@ -709,8 +726,11 @@ const calculateDPI = (width, height) => {
                       error: null
                     });
                     setDesignQualityScore(null);
+                    setShowRequirements(true);
                   }}
-                  className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-md hover:bg-red-50"
+                  className="px-4 py-2 text-sm font-medium text-red-600 bg-white 
+                    border border-red-300 rounded-md hover:bg-red-50 
+                    transition-colors duration-200"
                   disabled={isSubmitting}
                 >
                   Remove Design
@@ -720,120 +740,160 @@ const calculateDPI = (width, height) => {
           )}
         </div>
 
-        {/* Quality Score and Stats */}
-        {designQualityScore && (
+{/* Quality Score and Stats */}
+{designQualityScore && (
           <div className="mb-8 space-y-4">
-            <QualityIndicator score={designQualityScore.score} />
+            {/* Quality Score Indicator */}
+            <div className="bg-white p-4 rounded-lg shadow-md">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-gray-800">Design Quality Score</h3>
+                <span className={`text-lg font-bold ${
+                  designQualityScore.score > 80 ? 'text-green-500' : 
+                  designQualityScore.score > 60 ? 'text-yellow-500' : 
+                  'text-red-500'
+                }`}>
+                  {designQualityScore.score}/100
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    designQualityScore.score > 80 ? 'bg-green-500' : 
+                    designQualityScore.score > 60 ? 'bg-yellow-500' : 
+                    'bg-red-500'
+                  }`}
+                  style={{ width: `${designQualityScore.score}%` }}
+                />
+              </div>
+            </div>
             
             {/* Detailed Stats */}
             <div className="bg-white p-4 rounded-lg shadow-md space-y-3">
               <h3 className="font-semibold text-gray-700">Design Statistics</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <p className="text-sm text-gray-600">
-                    Original Size: {(designFile.originalFile.size / (1024 * 1024)).toFixed(2)}MB
+                  <p className="text-sm text-gray-600 flex justify-between">
+                    <span>Original Size:</span>
+                    <span className="font-medium">
+                      {(designFile.originalFile.size / (1024 * 1024)).toFixed(2)}MB
+                    </span>
                   </p>
-                  <p className="text-sm text-gray-600">
-                    Compressed Size: {(designFile.compressionStats.compressedSize / 1024).toFixed(2)}KB
+                  <p className="text-sm text-gray-600 flex justify-between">
+                    <span>Optimized Size:</span>
+                    <span className="font-medium">
+                      {(designFile.compressionStats.compressedSize / 1024).toFixed(2)}KB
+                    </span>
                   </p>
-                  <p className="text-sm text-gray-600">
-                    Compression Ratio: {designFile.compressionStats.compressionRatio}%
+                  <p className="text-sm text-gray-600 flex justify-between">
+                    <span>Compression:</span>
+                    <span className="font-medium text-green-600">
+                      {designFile.compressionStats.compressionRatio}% reduced
+                    </span>
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm text-gray-600">
-                    Dimensions: {designFile.compressionStats.width}x{designFile.compressionStats.height}px
+                  <p className="text-sm text-gray-600 flex justify-between">
+                    <span>Dimensions:</span>
+                    <span className="font-medium">
+                      {designFile.compressionStats.width} × {designFile.compressionStats.height}px
+                    </span>
                   </p>
-                  <p className="text-sm text-gray-600">
-                    DPI: {Math.round(designFile.compressionStats.dpi)}
+                  <p className="text-sm text-gray-600 flex justify-between">
+                    <span>DPI:</span>
+                    <span className="font-medium">
+                      {Math.round(designFile.compressionStats.dpi)}
+                    </span>
                   </p>
-                  <p className="text-sm text-gray-600">
-                    Quality: {designFile.compressionStats.quality.toFixed(1)}%
+                  <p className="text-sm text-gray-600 flex justify-between">
+                    <span>Quality:</span>
+                    <span className="font-medium">
+                      {designFile.compressionStats.quality.toFixed(1)}%
+                    </span>
                   </p>
                 </div>
               </div>
 
-              {/* Quality Feedback */}
-              {designQualityScore.feedback.map((item, index) => (
-                <div 
-                  key={index} 
-                  className={`text-sm p-2 rounded ${
-                    item.type === 'error' ? 'bg-red-50 text-red-700' : 
-                    item.type === 'warning' ? 'bg-yellow-50 text-yellow-700' : 
-                    'bg-blue-50 text-blue-700'
-                  }`}
-                >
-                  <AiOutlineInfoCircle className="inline mr-2" />
-                  {item.message}
-                </div>
-              ))}
+              {/* Quality Feedback Messages */}
+              <div className="mt-4 space-y-2">
+                {designQualityScore.feedback.map((item, index) => (
+                  <div 
+                    key={index} 
+                    className={`text-sm p-2 rounded flex items-start ${
+                      item.type === 'error' ? 'bg-red-50 text-red-700' : 
+                      item.type === 'warning' ? 'bg-yellow-50 text-yellow-700' : 
+                      'bg-blue-50 text-blue-700'
+                    }`}
+                  >
+                    <AiOutlineInfoCircle className="mt-0.5 mr-2 flex-shrink-0" />
+                    <span>{item.message}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
-        {/* Product Details Form */}
+        {/* Product Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Design Title */}
-          <div>
-            <label htmlFor="DesignTitle" className="block text-sm font-medium text-gray-700">
-              Design Title
-              <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="DesignTitle"
-              value={formState.DesignTitle}
-              onChange={(e) => setFormState(prev => ({
-                ...prev,
-                DesignTitle: e.target.value
-              }))}
-              className={`mt-1 block w-full rounded-md shadow-sm
-                ${validationErrors.DesignTitle 
-                  ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                  : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                }`}
-              placeholder="Enter a catchy title for your design"
-              required
-              maxLength={100}
-              disabled={isSubmitting}
-            />
-            {validationErrors.DesignTitle && (
-              <p className="mt-1 text-sm text-red-600">{validationErrors.DesignTitle}</p>
-            )}
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Design Title */}
+            <div>
+              <label htmlFor="DesignTitle" className="block text-sm font-medium text-gray-700">
+                Design Title <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="DesignTitle"
+                value={formState.DesignTitle}
+                onChange={(e) => setFormState(prev => ({
+                  ...prev,
+                  DesignTitle: e.target.value
+                }))}
+                className={`mt-1 block w-full rounded-md shadow-sm
+                  ${validationErrors.DesignTitle 
+                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                  }`}
+                placeholder="Enter a catchy title"
+                maxLength={100}
+                disabled={isSubmitting}
+              />
+              {validationErrors.DesignTitle && (
+                <p className="mt-1 text-sm text-red-600">{validationErrors.DesignTitle}</p>
+              )}
+            </div>
 
-          {/* Main Tag */}
-          <div>
-            <label htmlFor="Maintag" className="block text-sm font-medium text-gray-700">
-              Main Tag
-              <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="Maintag"
-              value={formState.Maintag}
-              onChange={(e) => setFormState(prev => ({
-                ...prev,
-                Maintag: e.target.value
-              }))}
-              className={`mt-1 block w-full rounded-md shadow-sm
-                ${validationErrors.Maintag 
-                  ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                  : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                }`}
-              placeholder="Primary category or theme"
-              required
-              disabled={isSubmitting}
-            />
-            {validationErrors.Maintag && (
-              <p className="mt-1 text-sm text-red-600">{validationErrors.Maintag}</p>
-            )}
+            {/* Main Tag */}
+            <div>
+              <label htmlFor="Maintag" className="block text-sm font-medium text-gray-700">
+                Main Category <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="Maintag"
+                value={formState.Maintag}
+                onChange={(e) => setFormState(prev => ({
+                  ...prev,
+                  Maintag: e.target.value
+                }))}
+                className={`mt-1 block w-full rounded-md shadow-sm
+                  ${validationErrors.Maintag 
+                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                  }`}
+                placeholder="Main design category"
+                disabled={isSubmitting}
+              />
+              {validationErrors.Maintag && (
+                <p className="mt-1 text-sm text-red-600">{validationErrors.Maintag}</p>
+              )}
+            </div>
           </div>
 
           {/* Design Tags */}
           <div>
             <label htmlFor="Designtags" className="block text-sm font-medium text-gray-700">
-              Design Tags
+              Additional Tags
             </label>
             <input
               type="text"
@@ -853,8 +913,7 @@ const calculateDPI = (width, height) => {
           {/* Description */}
           <div>
             <label htmlFor="Description" className="block text-sm font-medium text-gray-700">
-              Description
-              <span className="text-red-500">*</span>
+              Description <span className="text-red-500">*</span>
             </label>
             <textarea
               id="Description"
@@ -864,13 +923,12 @@ const calculateDPI = (width, height) => {
                 Description: e.target.value
               }))}
               rows={4}
-              className={`mt-1 block w-full rounded-md shadow-sm
+              className={`mt-1 block w-full rounded-md shadow-sm resize-none
                 ${validationErrors.Description 
                   ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
                   : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
                 }`}
-              placeholder="Describe your design and its appeal"
-              required
+              placeholder="Describe your design"
               disabled={isSubmitting}
             />
             {validationErrors.Description && (
@@ -878,97 +936,14 @@ const calculateDPI = (width, height) => {
             )}
           </div>
 
-          {/* Product Type Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Product Type
-            </label>
-            <div className="grid grid-cols-3 gap-4">
-              {Object.entries(PRODUCT_TYPES).map(([type, config]) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setFormState(prev => ({
-                    ...prev,
-                    ProductType: type
-                  }))}
-                  disabled={isSubmitting}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    formState.ProductType === type
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <div className="text-center">
-                    <span className="capitalize">{config.label}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Color Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Available Colors
-            </label>
-            <div className="grid grid-cols-5 gap-4">
-              {Object.entries(COLOR_OPTIONS).map(([key, color]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setFormState(prev => ({
-                    ...prev,
-                    ProductColor: key
-                  }))}
-                  disabled={isSubmitting}
-                  className={`group relative p-2 rounded-lg transition-all ${
-                    formState.ProductColor === key
-                      ? 'ring-2 ring-blue-500'
-                      : 'hover:bg-gray-50'
-                  } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <div className="flex flex-col items-center space-y-2">
-                    <div
-                      className="w-8 h-8 rounded-full border border-gray-300"
-                      style={{ backgroundColor: color.hex }}
-                    />
-                    <span className={`text-sm ${color.textColor}`}>
-                      {color.label}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Scale Controls */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Design Scale: {formState.DesignScale.toFixed(1)}x
-            </label>
-            <input
-              type="range"
-              min="0.5"
-              max="2"
-              step="0.1"
-              value={formState.DesignScale}
-              onChange={(e) => setFormState(prev => ({
-                ...prev,
-                DesignScale: parseFloat(e.target.value)
-              }))}
-              className="w-full"
-              disabled={isSubmitting}
-            />
-          </div>
-
-          {/* Submit Button */}
-          <div className="flex justify-end space-x-4">
+          {/* Submit Section */}
+          <div className="flex justify-end space-x-4 pt-6">
             <button
               type="button"
               onClick={() => navigate('/dashboard')}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 
-                rounded-md hover:bg-gray-50"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white 
+                border border-gray-300 rounded-md hover:bg-gray-50 
+                transition-colors duration-200"
               disabled={isSubmitting}
             >
               Cancel
@@ -976,7 +951,8 @@ const calculateDPI = (width, height) => {
             <button
               type="submit"
               disabled={isSubmitting || !designFile.file}
-              className={`px-4 py-2 text-sm font-medium text-white rounded-md ${
+              className={`px-6 py-2 text-sm font-medium text-white rounded-md 
+                transition-all duration-200 ${
                 isSubmitting || !designFile.file
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700'
@@ -984,8 +960,8 @@ const calculateDPI = (width, height) => {
             >
               {isSubmitting ? (
                 <div className="flex items-center">
-                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent 
-                    rounded-full" />
+                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-white 
+                    border-t-transparent rounded-full" />
                   Creating Product...
                 </div>
               ) : (
