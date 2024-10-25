@@ -2006,7 +2006,10 @@ ValidationSystem.propTypes = {
   disabled: PropTypes.bool
 };
 
-ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = () => {
+ValidationSystem.displayName = 'ValidationSystem';
+
+
+const AdminProductApproval = () => {
   const dispatch = useDispatch();
   const { pendingProducts, loading, error } = useSelector((state) => state.product);
   
@@ -2026,7 +2029,15 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
 
   // Initial data fetch
   useEffect(() => {
-    dispatch(fetchPendingProducts());
+    const fetchData = async () => {
+      try {
+        await dispatch(fetchPendingProducts());
+      } catch (err) {
+        console.error('Failed to fetch products:', err);
+      }
+    };
+    fetchData();
+
     return () => {
       debouncedSearch.cancel();
     };
@@ -2034,14 +2045,16 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
-    if (!pendingProducts) return [];
+    if (!Array.isArray(pendingProducts)) return [];
 
     return pendingProducts
       .filter(product => {
+        if (!product) return false;
+        
         const matchesStatus = filterStatus === 'all' || product.status === filterStatus;
         const matchesSearch = !searchTerm || 
-          product.DesignTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.shop?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+          (product.DesignTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           product.shop?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
         return matchesStatus && matchesSearch;
       })
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -2049,15 +2062,18 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
 
   // Product selection handler
   const handleProductSelect = useCallback((product) => {
+    if (!product) return;
+
     setSelectedProductId(product._id);
     setEditedProduct({
       ...product,
       DesignPosition: product.DesignPosition || { x: 50, y: 50 },
-      DesignScale: product.DesignScale || 1
+      DesignScale: product.DesignScale || 1,
+      ProductView: product.ProductView || 'front'
     });
   }, []);
 
-  // Update handlers
+  // Design position update handler
   const handlePositionUpdate = useCallback((newPosition) => {
     if (!editedProduct || processingAction) return;
 
@@ -2067,6 +2083,7 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
     }));
   }, [editedProduct, processingAction]);
 
+  // Design scale update handler
   const handleScaleUpdate = useCallback((newScale) => {
     if (!editedProduct || processingAction) return;
 
@@ -2076,6 +2093,7 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
     }));
   }, [editedProduct, processingAction]);
 
+  // Price update handler
   const handlePriceUpdate = useCallback(({ originalPrice, discountPrice }) => {
     if (!editedProduct || processingAction) return;
 
@@ -2086,12 +2104,23 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
     }));
   }, [editedProduct, processingAction]);
 
+  // View change handler
   const handleViewChange = useCallback((newView) => {
     if (!editedProduct || processingAction) return;
 
     setEditedProduct(prev => ({
       ...prev,
       ProductView: newView
+    }));
+  }, [editedProduct, processingAction]);
+
+  // Main tag update handler
+  const handleMainTagUpdate = useCallback((newTag) => {
+    if (!editedProduct || processingAction) return;
+
+    setEditedProduct(prev => ({
+      ...prev,
+      Maintag: newTag
     }));
   }, [editedProduct, processingAction]);
 
@@ -2117,23 +2146,41 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
       })).unwrap();
 
       if (success) {
-        toast.success(`Product ${newStatus === 'public' ? 'approved' : newStatus}`);
+        toast.success(`Product ${newStatus === 'public' ? 'approved' : newStatus}`, {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        });
         setEditedProduct(null);
         setSelectedProductId(null);
         dispatch(fetchPendingProducts());
       }
     } catch (err) {
-      toast.error(ErrorUtils.handleApiError(err));
+      toast.error(ErrorUtils.handleApiError(err), {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
     } finally {
       setProcessingAction(false);
     }
   }, [editedProduct, processingAction, dispatch]);
 
-  return (
+
+return (
     <ErrorBoundary>
       <div className={styles.section}>
         <div className="mb-8">
           <h1 className={styles.heading}>Product Approval Dashboard</h1>
+          <p className="text-gray-600 mt-2">
+            Review and manage product submissions
+          </p>
         </div>
 
         {/* Main Content Grid */}
@@ -2141,11 +2188,11 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
           {/* Product List Sidebar */}
           <div className="lg:col-span-4 xl:col-span-3">
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-              {/* Search and Filter Header */}
-              <div className="p-4 border-b border-gray-200 space-y-4">
+              {/* Header with Search and Filters */}
+              <div className="p-4 border-b border-gray-200">
                 <div className="flex justify-between items-center">
                   <h2 className="text-lg font-semibold text-gray-800">
-                    Products
+                    Products {filteredProducts.length > 0 && `(${filteredProducts.length})`}
                   </h2>
                   {loading && (
                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent" />
@@ -2153,36 +2200,49 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
                 </div>
 
                 {/* Search Input */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search products..."
-                    onChange={(e) => debouncedSearch(e.target.value)}
-                    className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                <div className="mt-4 space-y-4">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search by title or shop name..."
+                      onChange={(e) => debouncedSearch(e.target.value)}
+                      className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
                   </div>
-                </div>
 
-                {/* Status Filter */}
-                <div className="flex space-x-2">
-                  {Object.entries(STATUS_CONFIG).map(([status, config]) => (
+                  {/* Status Filters */}
+                  <div className="flex flex-wrap gap-2">
                     <button
-                      key={status}
-                      onClick={() => setFilterStatus(status === filterStatus ? 'all' : status)}
+                      onClick={() => setFilterStatus('all')}
                       className={`
                         px-3 py-1 rounded-full text-xs font-medium transition-colors
-                        ${filterStatus === status
-                          ? config.color.replace('bg-', 'bg-opacity-100 ') + ' ' + config.textColor
-                          : config.color.replace('bg-', 'bg-opacity-20 ') + ' ' + config.textColor.replace('text-', 'text-opacity-60 ')}
+                        ${filterStatus === 'all'
+                          ? 'bg-gray-800 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
                       `}
                     >
-                      {config.label}
+                      All
                     </button>
-                  ))}
+                    {Object.entries(STATUS_CONFIG).map(([status, config]) => (
+                      <button
+                        key={status}
+                        onClick={() => setFilterStatus(status === filterStatus ? 'all' : status)}
+                        className={`
+                          px-3 py-1 rounded-full text-xs font-medium transition-colors
+                          ${filterStatus === status
+                            ? config.color.replace('bg-', 'bg-opacity-100 ') + ' ' + config.textColor
+                            : config.color.replace('bg-', 'bg-opacity-20 ') + ' ' + config.textColor.replace('text-', 'text-opacity-60 ')}
+                        `}
+                      >
+                        {config.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -2192,16 +2252,34 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
                   <div className="bg-red-50 p-4 rounded-lg">
                     <div className="flex">
                       <AiOutlineWarning className="text-red-500 mt-0.5 mr-3" size={20} />
-                      <p className="text-sm text-red-700">{error}</p>
+                      <div>
+                        <h3 className="text-sm font-medium text-red-800">Error Loading Products</h3>
+                        <p className="text-sm text-red-700 mt-1">{error}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              ) : filteredProducts.length === 0 ? (
+              ) : !Array.isArray(pendingProducts) || filteredProducts.length === 0 ? (
                 <div className="p-8 text-center">
-                  <AiOutlineCheckCircle size={48} className="mx-auto text-green-500 mb-4" />
-                  <p className="text-gray-500">
-                    {searchTerm ? 'No products match your search' : 'No products to review'}
-                  </p>
+                  {loading ? (
+                    <div className="animate-pulse space-y-4">
+                      {[...Array(3)].map((_, index) => (
+                        <div key={index} className="bg-gray-200 h-20 rounded-lg" />
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      <AiOutlineCheckCircle size={48} className="mx-auto text-green-500 mb-4" />
+                      <p className="text-gray-500">
+                        {searchTerm 
+                          ? 'No products match your search'
+                          : filterStatus !== 'all'
+                            ? `No ${filterStatus} products found`
+                            : 'No products to review'
+                        }
+                      </p>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="divide-y divide-gray-200 max-h-[calc(100vh-220px)] overflow-y-auto">
@@ -2214,13 +2292,19 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
                         ${selectedProductId === product._id ? 'bg-blue-50' : ''}
                       `}
                     >
-                      <h3 className="font-medium text-gray-900 mb-1">
+                      <h3 className="font-medium text-gray-900 mb-1 truncate">
                         {product.DesignTitle || 'Untitled Design'}
                       </h3>
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm text-gray-500">
-                          {PRODUCT_TYPES[product.ProductType]?.label || product.ProductType}
-                        </p>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-500">
+                            {PRODUCT_TYPES[product.ProductType]?.label || product.ProductType}
+                          </span>
+                          <span className="text-gray-300">•</span>
+                          <span className="text-sm text-gray-500">
+                            {COLOR_OPTIONS[product.ProductColor]?.label || product.ProductColor}
+                          </span>
+                        </div>
                         <p className="text-sm text-gray-500">
                           {formatDate(product.createdAt)}
                         </p>
@@ -2234,11 +2318,16 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
                           {STATUS_CONFIG[product.status || 'pending'].label}
                         </span>
                         {product.shop?.name && (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-500 truncate max-w-[150px]">
                             {product.shop.name}
                           </span>
                         )}
                       </div>
+                      {product.rejectionReason && (
+                        <p className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">
+                          Rejection reason: {product.rejectionReason}
+                        </p>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -2250,16 +2339,14 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
           <div className="lg:col-span-8 xl:col-span-9">
             {editedProduct ? (
               <div className="space-y-8">
+                {/* Product Metadata */}
                 <ProductMetadata
                   product={editedProduct}
-                  onMainTagChange={(newTag) => {
-                    setEditedProduct(prev => ({
-                      ...prev,
-                      Maintag: newTag
-                    }));
-                  }}
+                  onMainTagChange={handleMainTagUpdate}
                   disabled={processingAction}
                 />
+
+                {/* Product Preview */}
                 <ProductPreview
                   editedProduct={editedProduct}
                   onZoom={handleScaleUpdate}
@@ -2267,6 +2354,8 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
                   onViewChange={handleViewChange}
                   disabled={processingAction}
                 />
+
+                {/* Price Calculator */}
                 <PriceCalculator
                   productType={editedProduct.ProductType}
                   originalPrice={editedProduct.originalPrice}
@@ -2274,6 +2363,8 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
                   onChange={handlePriceUpdate}
                   disabled={processingAction}
                 />
+
+                {/* Validation System */}
                 <ValidationSystem
                   product={editedProduct}
                   onStatusChange={handleStatusChange}
@@ -2290,6 +2381,19 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
                   <p className="text-gray-500">
                     Choose a product from the list to start the review process
                   </p>
+                  {!loading && filteredProducts.length === 0 && (
+                    <div className="mt-4">
+                      <button
+                        onClick={() => {
+                          setFilterStatus('all');
+                          setSearchTerm('');
+                        }}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        Clear filters
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -2299,5 +2403,7 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
     </ErrorBoundary>
   );
 };
+
+AdminProductApproval.displayName = 'AdminProductApproval';
 
 export default memo(AdminProductApproval);
