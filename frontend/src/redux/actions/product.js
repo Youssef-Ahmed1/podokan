@@ -37,7 +37,6 @@ export const createProduct = (formData) => async (dispatch) => {
   }
 };
 
-// fetch pending products (for admin)
 export const fetchPendingProducts = () => async (dispatch) => {
   try {
     dispatch({ type: "fetchPendingProductsRequest" });
@@ -45,48 +44,48 @@ export const fetchPendingProducts = () => async (dispatch) => {
       withCredentials: true,
     });
     
-    const products = data.products.map(product => ({
+    // Ensure products is an array and properly formatted
+    const products = Array.isArray(data.products) ? data.products.map(product => ({
       ...product,
       designImage: product.designImage 
         ? (typeof product.designImage === 'string' 
             ? product.designImage 
             : product.designImage.url)
         : null,
+      DesignPosition: product.DesignPosition || { x: 50, y: 50 },
       DesignScale: product.DesignScale || 1,
+      ProductView: product.ProductView || 'front',
       originalPrice: product.originalPrice || 0,
-      discountPrice: product.discountPrice || product.originalPrice || 0,
-      availableColors: product.availableColors || ['white'] // Added availableColors
-    }));
+      discountPrice: product.discountPrice || null,
+      availableColors: product.availableColors || ['white'],
+      status: product.status || 'pending'
+    })) : [];
 
     dispatch({ type: "fetchPendingProductsSuccess", payload: products });
+    return products;
   } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message;
     console.error("Error fetching pending products:", error);
     dispatch({
       type: "fetchPendingProductsFail",
-      payload: error.response?.data?.message || error.message,
+      payload: errorMessage,
     });
+    throw new Error(errorMessage);
   }
 };
 
-// approve or reject product (for admin)
-export const approveRejectProduct = (productId, status, rejectionReason, updates) => async (dispatch) => {
+export const approveRejectProduct = ({ productId, status, statusReason, updates }) => async (dispatch) => {
   try {
     dispatch({ type: "approveRejectProductRequest" });
-
-    // Add validation for available colors when approving
-    if (status === 'public') {
-      if (!updates.availableColors || updates.availableColors.length === 0) {
-        throw new Error('Please select at least one available color');
-      }
-    }
 
     const response = await axios.put(
       `${server}/product/approve-reject-product/${productId}`,
       { 
         status, 
-        rejectionReason, 
+        statusReason, 
         ...updates,
-        visibility: status === 'public' ? 'public' : 'restricted' 
+        visibility: status === 'public' ? 'public' : 'restricted',
+        availableColors: updates.availableColors || ['white']
       },
       {
         withCredentials: true,
@@ -97,28 +96,17 @@ export const approveRejectProduct = (productId, status, rejectionReason, updates
     );
 
     if (response.data.success) {
-      dispatch({ type: "approveRejectProductSuccess", payload: response.data.message });
-      return { success: true, message: `Product status updated to ${status} successfully` };
+      dispatch({ 
+        type: "approveRejectProductSuccess", 
+        payload: response.data.message 
+      });
+      return { success: true, message: `Product ${status === 'public' ? 'approved' : status}` };
     } else {
       throw new Error(response.data.message || 'Failed to update product status');
     }
   } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message;
     console.error("Error in approveRejectProduct:", error);
-    let errorMessage = "An unknown error occurred";
-    if (error.response) {
-      console.error("Error response:", error.response.data);
-      console.error("Error status:", error.response.status);
-      errorMessage = error.response.data.message || `Server error: ${error.response.status}`;
-      if (error.response.data.stack) {
-        console.error("Error stack:", error.response.data.stack);
-      }
-    } else if (error.request) {
-      console.error("No response received:", error.request);
-      errorMessage = "No response received from server";
-    } else {
-      console.error("Error setting up request:", error.message);
-      errorMessage = error.message;
-    }
     dispatch({
       type: "approveRejectProductFail",
       payload: errorMessage,
@@ -126,7 +114,6 @@ export const approveRejectProduct = (productId, status, rejectionReason, updates
     throw new Error(errorMessage);
   }
 };
-
 // get all products of a shop
 export const getAllProductsShop = (id) => async (dispatch) => {
   try {
