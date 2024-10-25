@@ -44,36 +44,34 @@ export const fetchPendingProducts = () => async (dispatch) => {
       withCredentials: true,
     });
     
-    // Ensure products is an array and properly formatted
-    const products = Array.isArray(data.products) ? data.products.map(product => ({
+    // Ensure we have an array of products
+    const products = Array.isArray(data?.products) ? data.products.map(product => ({
       ...product,
       designImage: product.designImage 
         ? (typeof product.designImage === 'string' 
             ? product.designImage 
             : product.designImage.url)
         : null,
-      DesignPosition: product.DesignPosition || { x: 50, y: 50 },
       DesignScale: product.DesignScale || 1,
+      DesignPosition: product.DesignPosition || { x: 50, y: 50 },
       ProductView: product.ProductView || 'front',
       originalPrice: product.originalPrice || 0,
       discountPrice: product.discountPrice || null,
-      availableColors: product.availableColors || ['white'],
-      status: product.status || 'pending'
+      availableColors: product.availableColors || ['white']
     })) : [];
 
-    dispatch({ type: "fetchPendingProductsSuccess", payload: products });
-    return products;
+    dispatch({ 
+      type: "fetchPendingProductsSuccess", 
+      payload: products 
+    });
   } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message;
     console.error("Error fetching pending products:", error);
     dispatch({
       type: "fetchPendingProductsFail",
-      payload: errorMessage,
+      payload: error.response?.data?.message || error.message,
     });
-    throw new Error(errorMessage);
   }
 };
-
 export const approveRejectProduct = ({ productId, status, statusReason, updates }) => async (dispatch) => {
   try {
     dispatch({ type: "approveRejectProductRequest" });
