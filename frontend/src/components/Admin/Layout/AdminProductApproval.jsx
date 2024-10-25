@@ -2163,6 +2163,59 @@ ValidationSystem.propTypes = {
 };
 
 ValidationSystem.displayName = 'ValidationSystem';
+javascript
+
+
+const isProductValid = (product) => {
+  if (!product) return false;
+
+  // Check required fields
+  const requiredFields = [
+    'DesignTitle',
+    'Description',
+    'Maintag',
+    'ProductType',
+    'DesignPosition',
+    'DesignScale'
+  ];
+
+  const hasRequiredFields = requiredFields.every(field => {
+    const value = product[field];
+    return value !== undefined && value !== null && value !== '';
+  });
+
+  if (!hasRequiredFields) return false;
+
+  // Validate specific fields
+  const validations = [
+    // Title length
+    product.DesignTitle.length >= 3 && product.DesignTitle.length <= 100,
+    
+    // Description length
+    product.Description.length >= 10 && product.Description.length <= 500,
+    
+    // At least one product type
+    Array.isArray(product.productTypes) && product.productTypes.length > 0,
+    
+    // At least one color
+    Array.isArray(product.availableColors) && product.availableColors.length > 0,
+    
+    // At least one tag
+    Array.isArray(product.Designtags) && product.Designtags.length > 0,
+    
+    // Valid position
+    typeof product.DesignPosition.x === 'number' && 
+    typeof product.DesignPosition.y === 'number' &&
+    product.DesignPosition.x >= 0 && product.DesignPosition.x <= 100 &&
+    product.DesignPosition.y >= 0 && product.DesignPosition.y <= 100,
+    
+    // Valid scale
+    typeof product.DesignScale === 'number' && 
+    product.DesignScale >= 0.1 && product.DesignScale <= 2
+  ];
+
+  return validations.every(Boolean);
+};
 
 
 const AdminProductApproval = () => {
