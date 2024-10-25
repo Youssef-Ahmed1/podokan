@@ -13,7 +13,7 @@ import { BiRuler } from 'react-icons/bi';
 import { BsZoomIn, BsZoomOut } from 'react-icons/bs';
 import { debounce } from 'lodash';
 import PropTypes from 'prop-types';
-import { fetchPendingProducts, approveRejectProduct } from '../../../redux/actions/productActions';
+import { fetchPendingProducts, approveRejectProduct } from '../../../redux/actions/product';
 import styles from '../../../styles/styles';
 
 // Constants
