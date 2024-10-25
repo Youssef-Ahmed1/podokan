@@ -2010,8 +2010,14 @@ ValidationSystem.displayName = 'ValidationSystem';
 
 
 const AdminProductApproval = () => {
-  const dispatch = useDispatch();
-  const { pendingProducts, loading, error } = useSelector((state) => state.product);
+    const dispatch = useDispatch();
+    const { 
+      pendingProducts, 
+      isLoading: loading, 
+      error,
+      selectedProduct 
+    } = useSelector((state) => state.product);
+    
   
   const [editedProduct, setEditedProduct] = useState(null);
   const [selectedProductId, setSelectedProductId] = useState(null);
@@ -2031,9 +2037,9 @@ const AdminProductApproval = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await dispatch(fetchPendingProducts());
+        await dispatch(fetchPendingProducts()).unwrap();
       } catch (err) {
-        console.error('Failed to fetch products:', err);
+        toast.error(err.message || 'Failed to fetch products');
       }
     };
     fetchData();
@@ -2043,135 +2049,58 @@ const AdminProductApproval = () => {
     };
   }, [dispatch, debouncedSearch]);
 
-  // Filter and sort products
+  // Update filtered products with proper type checking
   const filteredProducts = useMemo(() => {
-    if (!Array.isArray(pendingProducts)) return [];
+    if (!Array.isArray(pendingProducts)) {
+      console.warn('pendingProducts is not an array:', pendingProducts);
+      return [];
+    }
 
     return pendingProducts
-      .filter(product => {
-        if (!product) return false;
-        
-        const matchesStatus = filterStatus === 'all' || product.status === filterStatus;
-        const matchesSearch = !searchTerm || 
-          (product.DesignTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           product.shop?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
-        return matchesStatus && matchesSearch;
-      })
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }, [pendingProducts, filterStatus, searchTerm]);
+    .filter(product => {
+      if (!product || typeof product !== 'object') return false;
+      
+      const matchesStatus = filterStatus === 'all' || product.status === filterStatus;
+      const matchesSearch = !searchTerm || 
+        (product.DesignTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         product.shop?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+      return matchesStatus && matchesSearch;
+    })
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}, [pendingProducts, filterStatus, searchTerm]);
 
-  // Product selection handler
-  const handleProductSelect = useCallback((product) => {
-    if (!product) return;
+// Update status change handler
+const handleStatusChange = useCallback(async (newStatus, reason = '') => {
+  if (!editedProduct || processingAction) return;
 
-    setSelectedProductId(product._id);
-    setEditedProduct({
-      ...product,
-      DesignPosition: product.DesignPosition || { x: 50, y: 50 },
-      DesignScale: product.DesignScale || 1,
-      ProductView: product.ProductView || 'front'
-    });
-  }, []);
+  try {
+    setProcessingAction(true);
 
-  // Design position update handler
-  const handlePositionUpdate = useCallback((newPosition) => {
-    if (!editedProduct || processingAction) return;
-
-    setEditedProduct(prev => ({
-      ...prev,
-      DesignPosition: newPosition
-    }));
-  }, [editedProduct, processingAction]);
-
-  // Design scale update handler
-  const handleScaleUpdate = useCallback((newScale) => {
-    if (!editedProduct || processingAction) return;
-
-    setEditedProduct(prev => ({
-      ...prev,
-      DesignScale: newScale
-    }));
-  }, [editedProduct, processingAction]);
-
-  // Price update handler
-  const handlePriceUpdate = useCallback(({ originalPrice, discountPrice }) => {
-    if (!editedProduct || processingAction) return;
-
-    setEditedProduct(prev => ({
-      ...prev,
-      originalPrice,
-      discountPrice: discountPrice || null
-    }));
-  }, [editedProduct, processingAction]);
-
-  // View change handler
-  const handleViewChange = useCallback((newView) => {
-    if (!editedProduct || processingAction) return;
-
-    setEditedProduct(prev => ({
-      ...prev,
-      ProductView: newView
-    }));
-  }, [editedProduct, processingAction]);
-
-  // Main tag update handler
-  const handleMainTagUpdate = useCallback((newTag) => {
-    if (!editedProduct || processingAction) return;
-
-    setEditedProduct(prev => ({
-      ...prev,
-      Maintag: newTag
-    }));
-  }, [editedProduct, processingAction]);
-
-  // Status change handler
-  const handleStatusChange = useCallback(async (newStatus, reason = '') => {
-    if (!editedProduct || processingAction) return;
-
-    try {
-      setProcessingAction(true);
-
-      const success = await dispatch(approveRejectProduct({
-        productId: editedProduct._id,
-        status: newStatus,
-        statusReason: reason,
-        updates: {
-          DesignPosition: editedProduct.DesignPosition,
-          DesignScale: editedProduct.DesignScale,
-          originalPrice: editedProduct.originalPrice,
-          discountPrice: editedProduct.discountPrice,
-          ProductView: editedProduct.ProductView,
-          Maintag: editedProduct.Maintag
-        }
-      })).unwrap();
-
-      if (success) {
-        toast.success(`Product ${newStatus === 'public' ? 'approved' : newStatus}`, {
-          position: 'top-right',
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true
-        });
-        setEditedProduct(null);
-        setSelectedProductId(null);
-        dispatch(fetchPendingProducts());
+    await dispatch(approveRejectProduct({
+      productId: editedProduct._id,
+      status: newStatus,
+      statusReason: reason,
+      updates: {
+        DesignPosition: editedProduct.DesignPosition,
+        DesignScale: editedProduct.DesignScale,
+        originalPrice: editedProduct.originalPrice,
+        discountPrice: editedProduct.discountPrice,
+        ProductView: editedProduct.ProductView,
+        Maintag: editedProduct.Maintag,
+        availableColors: editedProduct.availableColors || ['white']
       }
-    } catch (err) {
-      toast.error(ErrorUtils.handleApiError(err), {
-        position: 'top-right',
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true
-      });
-    } finally {
-      setProcessingAction(false);
-    }
-  }, [editedProduct, processingAction, dispatch]);
+    })).unwrap();
 
+    toast.success(`Product ${newStatus === 'public' ? 'approved' : newStatus}`);
+    setEditedProduct(null);
+    setSelectedProductId(null);
+    dispatch(fetchPendingProducts());
+  } catch (err) {
+    toast.error(err.message || 'Failed to update product status');
+  } finally {
+    setProcessingAction(false);
+  }
+}, [editedProduct, processingAction, dispatch]);
 
 return (
     <ErrorBoundary>
