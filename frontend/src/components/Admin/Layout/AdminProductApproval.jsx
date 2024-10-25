@@ -993,6 +993,8 @@ const ProductPreview = memo(({
   const [error, setError] = useState(null);
   const [showGuides, setShowGuides] = useState(false);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [positionMode, setPositionMode] = useState('percentage'); // 'percentage' or 'pixels'
+  const [pixelPosition, setPixelPosition] = useState({ x: 0, y: 0 });
 
   // Get product configuration
   const productConfig = PRODUCT_TYPES[editedProduct.ProductType];
@@ -1007,32 +1009,86 @@ const ProductPreview = memo(({
     );
   }, [editedProduct.ProductType, editedProduct.ProductColor, editedProduct.ProductView]);
 
-  // Handle design position constraints with guidelines
-  const getPositionConstraints = useCallback(() => {
-    const designArea = productConfig.mockupConfig.designArea[editedProduct.ProductView];
-    const containerBounds = containerRef.current?.getBoundingClientRect();
-    const scaleFactor = containerBounds ? containerBounds.width / imageSize.width : 1;
+  // Convert between pixels and percentages
+  const convertToPixels = useCallback((percentPosition) => {
+    const container = containerRef.current;
+    if (!container) return { x: 0, y: 0 };
 
+    const { width, height } = container.getBoundingClientRect();
     return {
-      minX: 0,
-      maxX: 100,
-      minY: 0,
-      maxY: 100,
-      defaultX: parseFloat(designArea.left),
-      defaultY: parseFloat(designArea.top),
-      scaleFactor,
-      designAreaWidth: designArea.width * scaleFactor * editedProduct.DesignScale,
-      designAreaHeight: designArea.height * scaleFactor * editedProduct.DesignScale
+      x: (percentPosition.x * width) / 100,
+      y: (percentPosition.y * height) / 100
     };
-  }, [productConfig, editedProduct.ProductView, editedProduct.DesignScale, imageSize]);
+  }, []);
 
-  // Debounced position update
-  const debouncedPositionUpdate = useMemo(
-    () => debounce(onPositionChange, 16),
-    [onPositionChange]
-  );
+  const convertToPercentage = useCallback((pixelPos) => {
+    const container = containerRef.current;
+    if (!container) return { x: 0, y: 0 };
 
-  // Handle drag operations
+    const { width, height } = container.getBoundingClientRect();
+    return {
+      x: (pixelPos.x * 100) / width,
+      y: (pixelPos.y * 100) / height
+    };
+  }, []);
+
+  // Update pixel position when percentage position changes
+  useEffect(() => {
+    const newPixelPos = convertToPixels(editedProduct.DesignPosition);
+    setPixelPosition(newPixelPos);
+  }, [editedProduct.DesignPosition, convertToPixels]);
+
+  // Position centering handlers
+  const handleCenterX = useCallback(() => {
+    if (disabled) return;
+    const newPosition = {
+      ...editedProduct.DesignPosition,
+      x: 50
+    };
+    onPositionChange(newPosition);
+  }, [disabled, editedProduct.DesignPosition, onPositionChange]);
+
+  const handleCenterY = useCallback(() => {
+    if (disabled) return;
+    const newPosition = {
+      ...editedProduct.DesignPosition,
+      y: 50
+    };
+    onPositionChange(newPosition);
+  }, [disabled, editedProduct.DesignPosition, onPositionChange]);
+
+  // Handle direct position input
+  const handlePositionInput = useCallback((axis, value) => {
+    if (disabled) return;
+
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return;
+
+    let newPosition;
+    if (positionMode === 'percentage') {
+      newPosition = {
+        ...editedProduct.DesignPosition,
+        [axis]: Math.max(0, Math.min(100, numValue))
+      };
+    } else {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const { width, height } = container.getBoundingClientRect();
+      const maxPixels = axis === 'x' ? width : height;
+      const pixels = Math.max(0, Math.min(maxPixels, numValue));
+      const percentage = (pixels * 100) / maxPixels;
+      
+      newPosition = {
+        ...editedProduct.DesignPosition,
+        [axis]: percentage
+      };
+    }
+
+    onPositionChange(newPosition);
+  }, [disabled, positionMode, editedProduct.DesignPosition, onPositionChange]);
+
+  // Enhanced drag handling with both pixel and percentage support
   const handleDragStart = useCallback((e) => {
     if (disabled) return;
     
@@ -1051,25 +1107,35 @@ const ProductPreview = memo(({
     const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
     
     const container = containerRef.current.getBoundingClientRect();
-    const deltaX = (clientX - dragStart.x) / container.width * 100;
-    const deltaY = (clientY - dragStart.y) / container.height * 100;
+    const deltaX = clientX - dragStart.x;
+    const deltaY = clientY - dragStart.y;
 
-    const constraints = getPositionConstraints();
-    const newPosition = {
-      x: Math.max(constraints.minX, Math.min(constraints.maxX, editedProduct.DesignPosition.x + deltaX)),
-      y: Math.max(constraints.minY, Math.min(constraints.maxY, editedProduct.DesignPosition.y + deltaY))
-    };
+    let newPosition;
+    if (positionMode === 'percentage') {
+      const deltaXPercent = (deltaX / container.width) * 100;
+      const deltaYPercent = (deltaY / container.height) * 100;
+      
+      newPosition = {
+        x: Math.max(0, Math.min(100, editedProduct.DesignPosition.x + deltaXPercent)),
+        y: Math.max(0, Math.min(100, editedProduct.DesignPosition.y + deltaYPercent))
+      };
+    } else {
+      const currentPixels = convertToPixels(editedProduct.DesignPosition);
+      const newX = Math.max(0, Math.min(container.width, currentPixels.x + deltaX));
+      const newY = Math.max(0, Math.min(container.height, currentPixels.y + deltaY));
+      
+      newPosition = convertToPercentage({ x: newX, y: newY });
+    }
 
     setDragStart({ x: clientX, y: clientY });
-    debouncedPositionUpdate(newPosition);
-  }, [isDragging, dragStart, editedProduct.DesignPosition, disabled, getPositionConstraints, debouncedPositionUpdate]);
+    onPositionChange(newPosition);
+  }, [isDragging, dragStart, editedProduct.DesignPosition, disabled, positionMode, convertToPixels, convertToPercentage, onPositionChange]);
 
   const handleDragEnd = useCallback(() => {
     setIsDragging(false);
-    debouncedPositionUpdate.flush();
-  }, [debouncedPositionUpdate]);
+  }, []);
 
-  // Handle zoom with mouse wheel
+  // Handle zoom with mouse wheel and buttons
   const handleWheel = useCallback((e) => {
     if (disabled || !e.ctrlKey) return;
     
@@ -1117,9 +1183,8 @@ const ProductPreview = memo(({
       window.removeEventListener('mouseup', handleDragEnd);
       window.removeEventListener('touchmove', handleDragMove);
       window.removeEventListener('touchend', handleDragEnd);
-      debouncedPositionUpdate.cancel();
     };
-  }, [isDragging, handleDragMove, handleDragEnd, debouncedPositionUpdate]);
+  }, [isDragging, handleDragMove, handleDragEnd]);
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -1145,6 +1210,56 @@ const ProductPreview = memo(({
                   {view.charAt(0).toUpperCase() + view.slice(1)}
                 </button>
               ))}
+            </div>
+
+            {/* Position Mode Toggle */}
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setPositionMode('percentage')}
+                className={`
+                  px-3 py-1 rounded-md text-sm font-medium transition-all
+                  ${positionMode === 'percentage'
+                    ? 'bg-white shadow-sm text-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'}
+                `}
+              >
+                %
+              </button>
+              <button
+                onClick={() => setPositionMode('pixels')}
+                className={`
+                  px-3 py-1 rounded-md text-sm font-medium transition-all
+                  ${positionMode === 'pixels'
+                    ? 'bg-white shadow-sm text-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'}
+                `}
+              >
+                px
+              </button>
+            </div>
+
+            {/* Centering Controls */}
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={handleCenterX}
+                disabled={disabled}
+                className="p-1 rounded-full hover:bg-gray-100 disabled:opacity-50"
+                title="Center Horizontally"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 4v16M4 12h16" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
+              <button
+                onClick={handleCenterY}
+                disabled={disabled}
+                className="p-1 rounded-full hover:bg-gray-100 disabled:opacity-50"
+                title="Center Vertically"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 4v16M4 12h16" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
             </div>
 
             {/* Zoom Controls */}
@@ -1259,19 +1374,58 @@ const ProductPreview = memo(({
             />
           </div>
         )}
+
+        {/* Position Indicator */}
+        <div className="absolute bottom-4 right-4 bg-black/75 text-white px-3 py-1 rounded-full text-sm">
+          {positionMode === 'percentage' ? (
+            <>
+              X: {editedProduct.DesignPosition.x.toFixed(1)}% Y: {editedProduct.DesignPosition.y.toFixed(1)}%
+            </>
+          ) : (
+            <>
+              X: {pixelPosition.x.toFixed(0)}px Y: {pixelPosition.y.toFixed(0)}px
+            </>
+          )}
+        </div>
       </div>
 
-      <div className="p-4 bg-gray-50 text-sm text-gray-500">
+      {/* Position Controls */}
+      <div className="p-4 bg-gray-50">
         <div className="flex items-center justify-between">
-          <p>
+          <div className="flex items-center space-x-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">X Position</label>
+              <input
+                type="number"
+                value={positionMode === 'percentage' 
+                  ? editedProduct.DesignPosition.x.toFixed(1)
+                  : pixelPosition.x.toFixed(0)
+                }
+                onChange={(e) => handlePositionInput('x', e.target.value)}
+                disabled={disabled}
+                className="w-24 px-2 py-1 border border-gray-300 rounded-md"
+              />
+              <span className="ml-1 text-sm text-gray-500">{positionMode === 'percentage' ? '%' : 'px'}</span>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Y Position</label>
+              <input
+                type="number"
+                value={positionMode === 'percentage'
+                  ? editedProduct.DesignPosition.y.toFixed(1)
+                  : pixelPosition.y.toFixed(0)
+                }
+                onChange={(e) => handlePositionInput('y', e.target.value)}
+                disabled={disabled}
+                className="w-24 px-2 py-1 border border-gray-300 rounded-md"
+              />
+              <span className="ml-1 text-sm text-gray-500">{positionMode === 'percentage' ? '%' : 'px'}</span>
+            </div>
+          </div>
+          <div className="text-sm text-gray-500">
             {disabled 
               ? 'Preview mode: Design position is locked'
               : 'Drag to adjust design position • Use zoom controls or Ctrl + Mouse Wheel to resize'}
-          </p>
-          <div className="text-right">
-            <p className="text-xs text-gray-400">
-              Position: {editedProduct.DesignPosition.x.toFixed(1)}%, {editedProduct.DesignPosition.y.toFixed(1)}%
-            </p>
           </div>
         </div>
       </div>
@@ -1297,7 +1451,9 @@ ProductPreview.propTypes = {
   disabled: PropTypes.bool
 };
 
-ProductPreview.displayName = 'ProductPreview';const PriceCalculator = memo(({ 
+ProductPreview.displayName = 'ProductPreview';
+
+;const PriceCalculator = memo(({ 
   productType,
   originalPrice,
   discountPrice,
@@ -2018,393 +2174,772 @@ const AdminProductApproval = () => {
     selectedProduct 
   } = useSelector((state) => state.product);
   
-const [editedProduct, setEditedProduct] = useState(null);
-const [selectedProductId, setSelectedProductId] = useState(null);
-const [processingAction, setProcessingAction] = useState(false);
-const [filterStatus, setFilterStatus] = useState('all');
-const [searchTerm, setSearchTerm] = useState('');
+  const [editedProduct, setEditedProduct] = useState(null);
+  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [processingAction, setProcessingAction] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const [sortOrder, setSortOrder] = useState('newest');
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedColors, setSelectedColors] = useState([]);
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
-// Debounced search
-const debouncedSearch = useMemo(
-  () => debounce((term) => {
-    setSearchTerm(term);
-  }, 300),
-  []
-);
+  const scrollRef = useRef(null);
+  const searchInputRef = useRef(null);
+  const lastScrollPosition = useRef(0);
 
-// Initial data fetch
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      await dispatch(fetchPendingProducts()).unwrap();
-    } catch (err) {
-      toast.error(err.message || 'Failed to fetch products');
+  // Debounced search
+  const debouncedSearch = useMemo(
+    () => debounce((term) => {
+      setSearchTerm(term);
+      setCurrentPage(1); // Reset to first page on new search
+    }, 300),
+    []
+  );
+
+  // Scroll position restoration
+  useEffect(() => {
+    const savedScrollPosition = sessionStorage.getItem('productListScrollPosition');
+    if (savedScrollPosition && scrollRef.current) {
+      scrollRef.current.scrollTop = parseInt(savedScrollPosition, 10);
     }
-  };
-  fetchData();
 
-  return () => {
-    debouncedSearch.cancel();
-  };
-}, [dispatch, debouncedSearch]);
+    return () => {
+      if (scrollRef.current) {
+        sessionStorage.setItem('productListScrollPosition', scrollRef.current.scrollTop);
+      }
+    };
+  }, []);
 
-const handleProductSelect = useCallback((product) => {
-  if (!product || !product._id) {
-    console.warn('Invalid product selected:', product);
-    return;
-  }
+  // Prompt user if they try to leave with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
 
-  try {
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  // Initial data fetch
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await dispatch(fetchPendingProducts()).unwrap();
+      } catch (err) {
+        toast.error(err.message || 'Failed to fetch products');
+      }
+    };
+    fetchData();
+
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [dispatch, debouncedSearch]);
+
+  // Handle scroll events for infinite loading
+  const handleScroll = useCallback((e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    const isNearBottom = scrollHeight - scrollTop <= clientHeight * 1.5;
+    
+    if (isNearBottom && !isScrolling && hasMoreItems) {
+      setIsScrolling(true);
+      setCurrentPage(prev => prev + 1);
+    }
+
+    lastScrollPosition.current = scrollTop;
+  }, [isScrolling]);
+
+  // Calculate total pages
+  const totalPages = useMemo(() => {
+    if (!filteredProducts.length) return 0;
+    return Math.ceil(filteredProducts.length / itemsPerPage);
+  }, [filteredProducts.length]);
+
+  // Check if there are more items to load
+  const hasMoreItems = currentPage < totalPages;
+
+  // Handle sort change
+  const handleSortChange = useCallback((newOrder) => {
+    setSortOrder(newOrder);
+    setCurrentPage(1);
+  }, []);
+
+  // Handle filter changes
+  const handleFilterChange = useCallback((filterType, value) => {
+    switch (filterType) {
+      case 'status':
+        setFilterStatus(value);
+        break;
+      case 'categories':
+        setSelectedCategories(prev => 
+          prev.includes(value)
+            ? prev.filter(cat => cat !== value)
+            : [...prev, value]
+        );
+        break;
+      case 'colors':
+        setSelectedColors(prev =>
+          prev.includes(value)
+            ? prev.filter(color => color !== value)
+            : [...prev, value]
+        );
+        break;
+      case 'priceRange':
+        setPriceRange(value);
+        break;
+      default:
+        console.warn('Unknown filter type:', filterType);
+    }
+    setCurrentPage(1);
+  }, []);
+
+  // Reset all filters
+  const handleResetFilters = useCallback(() => {
+    setFilterStatus('all');
+    setSearchTerm('');
+    setSelectedCategories([]);
+    setSelectedColors([]);
+    setPriceRange({ min: 0, max: 1000 });
+    setCurrentPage(1);
+    if (searchInputRef.current) {
+      searchInputRef.current.value = '';
+    }
+  }, []);
+
+  // Product selection handler
+  const handleProductSelect = useCallback((product) => {
+    if (!product) return;
+    
+    if (hasUnsavedChanges) {
+      const confirm = window.confirm('You have unsaved changes. Do you want to discard them?');
+      if (!confirm) return;
+    }
+
     setSelectedProductId(product._id);
     setEditedProduct({
       ...product,
+      productTypes: [product.ProductType], // Initialize with current type
       DesignPosition: product.DesignPosition || { x: 50, y: 50 },
       DesignScale: product.DesignScale || 1,
       ProductView: product.ProductView || 'front',
-      designImage: product.designImage?.url || product.designImage || '',
+      availableColors: product.availableColors || [product.ProductColor],
+      isMature: product.isMature || false,
       Designtags: Array.isArray(product.Designtags) ? product.Designtags : []
     });
-  } catch (error) {
-    console.error('Error selecting product:', error);
-    toast.error('Failed to load product details');
-  }
-}, []);
+    setHasUnsavedChanges(false);
+  }, [hasUnsavedChanges]);// Metadata update handlers
+  const handleTitleChange = useCallback((newTitle) => {
+    if (!editedProduct || processingAction) return;
 
-// Main tag update handler
-const handleMainTagUpdate = useCallback((newTag) => {
-  if (!editedProduct || processingAction) return;
+    setEditedProduct(prev => ({
+      ...prev,
+      DesignTitle: newTitle
+    }));
+    setHasUnsavedChanges(true);
+  }, [editedProduct, processingAction]);
 
-  setEditedProduct(prev => ({
-    ...prev,
-    Maintag: newTag
-  }));
-}, [editedProduct, processingAction]);
+  const handleDescriptionChange = useCallback((newDescription) => {
+    if (!editedProduct || processingAction) return;
 
-// Scale update handler
-const handleScaleUpdate = useCallback((newScale) => {
-  if (!editedProduct || processingAction) return;
+    setEditedProduct(prev => ({
+      ...prev,
+      Description: newDescription
+    }));
+    setHasUnsavedChanges(true);
+  }, [editedProduct, processingAction]);
 
-  setEditedProduct(prev => ({
-    ...prev,
-    DesignScale: newScale
-  }));
-}, [editedProduct, processingAction]);
+  const handleMainTagChange = useCallback((newTag) => {
+    if (!editedProduct || processingAction) return;
 
-// Position update handler
-const handlePositionUpdate = useCallback((newPosition) => {
-  if (!editedProduct || processingAction) return;
+    setEditedProduct(prev => ({
+      ...prev,
+      Maintag: newTag
+    }));
+    setHasUnsavedChanges(true);
+  }, [editedProduct, processingAction]);
 
-  setEditedProduct(prev => ({
-    ...prev,
-    DesignPosition: newPosition
-  }));
-}, [editedProduct, processingAction]);
+  const handleProductTypesChange = useCallback((productType) => {
+    if (!editedProduct || processingAction) return;
 
-// View change handler
-const handleViewChange = useCallback((newView) => {
-  if (!editedProduct || processingAction) return;
+    setEditedProduct(prev => {
+      const currentTypes = prev.productTypes || [];
+      let newTypes;
 
-  setEditedProduct(prev => ({
-    ...prev,
-    ProductView: newView
-  }));
-}, [editedProduct, processingAction]);
-
-// Price update handler
-const handlePriceUpdate = useCallback(({ originalPrice, discountPrice }) => {
-  if (!editedProduct || processingAction) return;
-
-  setEditedProduct(prev => ({
-    ...prev,
-    originalPrice,
-    discountPrice: discountPrice || null
-  }));
-}, [editedProduct, processingAction]);
-
-const filteredProducts = useMemo(() => {
-  // Ensure pendingProducts is an array
-  if (!pendingProducts || !Array.isArray(pendingProducts)) {
-    return [];
-  }
-
-  // Filter and map only valid products
-  return pendingProducts
-    .filter(product => {
-      if (!product || typeof product !== 'object' || !product._id) {
-        return false;
+      if (currentTypes.includes(productType)) {
+        if (currentTypes.length === 1) {
+          toast.warning('At least one product type must be selected');
+          return prev;
+        }
+        newTypes = currentTypes.filter(type => type !== productType);
+      } else {
+        newTypes = [...currentTypes, productType];
       }
-      
-      const matchesStatus = filterStatus === 'all' || product.status === filterStatus;
-      const matchesSearch = !searchTerm || 
-        (product.DesignTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         product.shop?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
-      return matchesStatus && matchesSearch;
-    })
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-}, [pendingProducts, filterStatus, searchTerm]);
 
-// Status change handler
-const handleStatusChange = useCallback(async (newStatus, reason = '') => {
-  if (!editedProduct || processingAction) return;
+      return {
+        ...prev,
+        productTypes: newTypes,
+        ProductType: newTypes.includes(prev.ProductType) 
+          ? prev.ProductType 
+          : newTypes[0]
+      };
+    });
+    setHasUnsavedChanges(true);
+  }, [editedProduct, processingAction]);
 
-  try {
-    setProcessingAction(true);
+  const handleColorsChange = useCallback((newColors) => {
+    if (!editedProduct || processingAction) return;
 
-    await dispatch(approveRejectProduct({
-      productId: editedProduct._id,
-      status: newStatus,
-      statusReason: reason,
-      updates: {
+    setEditedProduct(prev => ({
+      ...prev,
+      availableColors: newColors,
+      ProductColor: newColors.includes(prev.ProductColor)
+        ? prev.ProductColor
+        : newColors[0]
+    }));
+    setHasUnsavedChanges(true);
+  }, [editedProduct, processingAction]);
+
+  const handleTagsChange = useCallback((newTags) => {
+    if (!editedProduct || processingAction) return;
+
+    setEditedProduct(prev => ({
+      ...prev,
+      Designtags: newTags
+    }));
+    setHasUnsavedChanges(true);
+  }, [editedProduct, processingAction]);
+
+  const handleMatureContentChange = useCallback((isMature) => {
+    if (!editedProduct || processingAction) return;
+
+    if (isMature) {
+      const confirm = window.confirm(
+        'Marking content as mature will restrict its visibility. Are you sure?'
+      );
+      if (!confirm) return;
+    }
+
+    setEditedProduct(prev => ({
+      ...prev,
+      isMature
+    }));
+    setHasUnsavedChanges(true);
+  }, [editedProduct, processingAction]);
+
+  // Preview update handlers
+  const handleScaleUpdate = useCallback((newScale) => {
+    if (!editedProduct || processingAction) return;
+
+    setEditedProduct(prev => ({
+      ...prev,
+      DesignScale: newScale
+    }));
+    setHasUnsavedChanges(true);
+  }, [editedProduct, processingAction]);
+
+  const handlePositionUpdate = useCallback((newPosition) => {
+    if (!editedProduct || processingAction) return;
+
+    setEditedProduct(prev => ({
+      ...prev,
+      DesignPosition: newPosition
+    }));
+    setHasUnsavedChanges(true);
+  }, [editedProduct, processingAction]);
+
+  const handleViewChange = useCallback((newView) => {
+    if (!editedProduct || processingAction) return;
+
+    setEditedProduct(prev => ({
+      ...prev,
+      ProductView: newView
+    }));
+    setHasUnsavedChanges(true);
+  }, [editedProduct, processingAction]);
+
+  // Status change handler
+  const handleStatusChange = useCallback(async (newStatus, reason = '') => {
+    if (!editedProduct || processingAction) return;
+
+    try {
+      setProcessingAction(true);
+
+      const updates = {
+        productTypes: editedProduct.productTypes,
+        availableColors: editedProduct.availableColors,
         DesignPosition: editedProduct.DesignPosition,
         DesignScale: editedProduct.DesignScale,
-        originalPrice: editedProduct.originalPrice,
-        discountPrice: editedProduct.discountPrice,
         ProductView: editedProduct.ProductView,
         Maintag: editedProduct.Maintag,
-        availableColors: editedProduct.availableColors || ['white']
-      }
-    })).unwrap();
+        Designtags: editedProduct.Designtags,
+        DesignTitle: editedProduct.DesignTitle,
+        Description: editedProduct.Description,
+        isMature: editedProduct.isMature
+      };
 
-    toast.success(`Product ${newStatus === 'public' ? 'approved' : newStatus}`);
-    setEditedProduct(null);
-    setSelectedProductId(null);
-    dispatch(fetchPendingProducts());
-  } catch (err) {
-    toast.error(err.message || 'Failed to update product status');
-  } finally {
-    setProcessingAction(false);
-  }
-}, [editedProduct, processingAction, dispatch]);
+      await dispatch(approveRejectProduct({
+        productId: editedProduct._id,
+        status: newStatus,
+        statusReason: reason,
+        updates
+      })).unwrap();
 
-return (
-  <ErrorBoundary>
-    <div className={styles.section}>
-      <div className="mb-8">
-        <h1 className={styles.heading}>Product Approval Dashboard</h1>
-        <p className="text-gray-600 mt-2">
-          Review and manage product submissions
-        </p>
-      </div>
+      toast.success(`Product ${newStatus === 'public' ? 'approved' : newStatus}`);
+      setEditedProduct(null);
+      setSelectedProductId(null);
+      setHasUnsavedChanges(false);
+      dispatch(fetchPendingProducts());
+    } catch (err) {
+      toast.error(err.message || 'Failed to update product status');
+    } finally {
+      setProcessingAction(false);
+    }
+  }, [editedProduct, processingAction, dispatch]);
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Product List Sidebar */}
-        <div className="lg:col-span-4 xl:col-span-3">
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            {/* Header with Search and Filters */}
-            <div className="p-4 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-gray-800">
-                  Products {filteredProducts.length > 0 && `(${filteredProducts.length})`}
-                </h2>
-                {loading && (
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent" />
-                )}
-              </div>
+  // Filter and sort products
+  const filteredProducts = useMemo(() => {
+    if (!pendingProducts?.length) return [];
 
-              {/* Search Input */}
-              <div className="mt-4 space-y-4">
+    return pendingProducts
+      .filter(product => {
+        if (!product) return false;
+        
+        // Status filter
+        const matchesStatus = filterStatus === 'all' || product.status === filterStatus;
+        
+        // Search filter
+        const matchesSearch = !searchTerm || [
+          product.DesignTitle,
+          product.Description,
+          product.shop?.name,
+          ...product.Designtags || []
+        ].some(field => 
+          field?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        // Category filter
+        const matchesCategories = !selectedCategories.length || 
+          selectedCategories.includes(product.Maintag);
+
+        // Color filter
+        const matchesColors = !selectedColors.length ||
+          selectedColors.some(color => product.availableColors?.includes(color));
+
+        // Price filter
+        const matchesPrice = (!priceRange.min || product.originalPrice >= priceRange.min) &&
+          (!priceRange.max || product.originalPrice <= priceRange.max);
+
+        return matchesStatus && matchesSearch && matchesCategories && 
+               matchesColors && matchesPrice;
+      })
+      .sort((a, b) => {
+        switch (sortOrder) {
+          case 'newest':
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          case 'oldest':
+            return new Date(a.createdAt) - new Date(b.createdAt);
+          case 'priceAsc':
+            return a.originalPrice - b.originalPrice;
+          case 'priceDesc':
+            return b.originalPrice - a.originalPrice;
+          default:
+            return 0;
+        }
+      });
+  }, [pendingProducts, filterStatus, searchTerm, selectedCategories, 
+      selectedColors, priceRange, sortOrder]);
+
+  // Paginate products
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredProducts.slice(0, startIndex + itemsPerPage);
+  }, [filteredProducts, currentPage]);
+
+  return (
+    <ErrorBoundary>
+      <div className={styles.section}>
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className={styles.heading}>Product Approval Dashboard</h1>
+          <p className="text-gray-600 mt-2">
+            Review and manage product submissions
+          </p>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Product List Sidebar */}
+          <div className="lg:col-span-4 xl:col-span-3">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+              {/* Search and Filters Header */}
+              <div className="p-4 border-b border-gray-200">
                 <div className="relative">
                   <input
+                    ref={searchInputRef}
                     type="text"
-                    placeholder="Search by title or shop name..."
+                    placeholder="Search products..."
                     onChange={(e) => debouncedSearch(e.target.value)}
-                    className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                   <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                   </div>
                 </div>
 
-                {/* Status Filters */}
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setFilterStatus('all')}
-                    className={`
-                      px-3 py-1 rounded-full text-xs font-medium transition-colors
-                      ${filterStatus === 'all'
-                        ? 'bg-gray-800 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
-                    `}
-                  >
-                    All
-                  </button>
-                  {Object.entries(STATUS_CONFIG).map(([status, config]) => (
-                    <button
-                      key={status}
-                      onClick={() => setFilterStatus(status === filterStatus ? 'all' : status)}
-                      className={`
-                        px-3 py-1 rounded-full text-xs font-medium transition-colors
-                        ${filterStatus === status
-                          ? config.color.replace('bg-', 'bg-opacity-100 ') + ' ' + config.textColor
-                          : config.color.replace('bg-', 'bg-opacity-20 ') + ' ' + config.textColor.replace('text-', 'text-opacity-60 ')}
-                      `}
-                    >
-                      {config.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Product List */}
-            {error ? (
-              <div className="p-4">
-                <div className="bg-red-50 p-4 rounded-lg">
-                  <div className="flex">
-                    <AiOutlineWarning className="text-red-500 mt-0.5 mr-3" size={20} />
-                    <div>
-                      <h3 className="text-sm font-medium text-red-800">Error Loading Products</h3>
-                      <p className="text-sm text-red-700 mt-1">{error}</p>
+                {/* Filter Controls */}
+                <div className="mt-4 space-y-4">
+                  {/* Status Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Status
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {['all', 'pending', 'rejected', 'public'].map((status) => (
+                        <button
+                          key={status}
+                          onClick={() => handleFilterChange('status', status)}
+                          className={`
+                            px-3 py-1 rounded-full text-sm font-medium
+                            ${filterStatus === status
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
+                          `}
+                        >
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </button>
+                      ))}
                     </div>
                   </div>
+
+                  {/* Sort Order */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Sort By
+                    </label>
+                    <select
+                      value={sortOrder}
+                      onChange={(e) => handleSortChange(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="newest">Newest First</option>
+                      <option value="oldest">Oldest First</option>
+                      <option value="priceAsc">Price: Low to High</option>
+                      <option value="priceDesc">Price: High to Low</option>
+                    </select>
+                  </div>
+
+                  {/* Category Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Categories
+                    </label>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {MAIN_TAG_OPTIONS.map((category) => (
+                        <label key={category.value} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedCategories.includes(category.value)}
+                            onChange={() => handleFilterChange('categories', category.value)}
+                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-600">
+                            {category.label}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Color Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Colors
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(COLOR_OPTIONS).map(([colorKey, colorData]) => (
+                        <button
+                          key={colorKey}
+                          onClick={() => handleFilterChange('colors', colorKey)}
+                          className={`
+                            w-8 h-8 rounded-full border-2 transition-all
+                            ${selectedColors.includes(colorKey)
+                              ? 'border-blue-500 scale-110'
+                              : 'border-gray-300 hover:border-gray-400'}
+                          `}
+                          style={{ backgroundColor: colorData.hex }}
+                          title={colorData.label}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Price Range Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Price Range
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="number"
+                        value={priceRange.min}
+                        onChange={(e) => handleFilterChange('priceRange', {
+                          ...priceRange,
+                          min: parseInt(e.target.value) || 0
+                        })}
+                        className="w-24 px-2 py-1 border border-gray-300 rounded-lg"
+                        placeholder="Min"
+                      />
+                      <span className="text-gray-500">to</span>
+                      <input
+                        type="number"
+                        value={priceRange.max}
+                        onChange={(e) => handleFilterChange('priceRange', {
+                          ...priceRange,
+                          max: parseInt(e.target.value) || 1000
+                        })}
+                        className="w-24 px-2 py-1 border border-gray-300 rounded-lg"
+                        placeholder="Max"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Reset Filters */}
+                  <button
+                    onClick={handleResetFilters}
+                    className="w-full px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    Reset Filters
+                  </button>
                 </div>
               </div>
-            ) : !Array.isArray(pendingProducts) || filteredProducts.length === 0 ? (
-              <div className="p-8 text-center">
-                {loading ? (
-                  <div className="animate-pulse space-y-4">
-                    {[...Array(3)].map((_, index) => (
-                      <div key={index} className="bg-gray-200 h-20 rounded-lg" />
-                    ))}
+
+              {/* Product List */}
+              <div
+                ref={scrollRef}
+                className="h-[calc(100vh-20rem)] overflow-y-auto"
+                onScroll={handleScroll}
+              >
+                {loading && !paginatedProducts.length ? (
+                  <div className="p-8 text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4" />
+                    <p className="text-gray-500">Loading products...</p>
+                  </div>
+                ) : error ? (
+                  <div className="p-8 text-center text-red-500">
+                    <AiOutlineWarning size={32} className="mx-auto mb-2" />
+                    <p>{error}</p>
+                  </div>
+                ) : paginatedProducts.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500">
+                    <AiOutlineInfoCircle size={32} className="mx-auto mb-2" />
+                    <p>No products found</p>
                   </div>
                 ) : (
-                  <>
-                    <AiOutlineCheckCircle size={48} className="mx-auto text-green-500 mb-4" />
-                    <p className="text-gray-500">
-                      {searchTerm 
-                        ? 'No products match your search'
-                        : filterStatus !== 'all'
-                          ? `No ${filterStatus} products found`
-                          : 'No products to review'
-                      }
-                    </p>
-                  </>
+                  <div className="divide-y divide-gray-200">
+                    {paginatedProducts.map((product) => (
+                      <ProductListItem
+                        key={product._id}
+                        product={product}
+                        isSelected={selectedProductId === product._id}
+                        onClick={() => handleProductSelect(product)}
+                        disabled={processingAction}
+                      />
+                    ))}
+                    {isScrolling && hasMoreItems && (
+                      <div className="p-4 text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent mx-auto" />
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
-            ): (
-              <div className="divide-y divide-gray-200 max-h-[calc(100vh-220px)] overflow-y-auto">
-                {filteredProducts.map((product) => (
+            </div>
+          </div>
+
+{/* Product Preview and Controls */}
+<div className="lg:col-span-8 xl:col-span-9">
+            {editedProduct ? (
+              <div className="space-y-8">
+                {/* Product Metadata */}
+                <ProductMetadata
+                  product={editedProduct}
+                  onMainTagChange={handleMainTagChange}
+                  onProductTypesChange={handleProductTypesChange}
+                  onColorsChange={handleColorsChange}
+                  onTagsChange={handleTagsChange}
+                  onTitleChange={handleTitleChange}
+                  onDescriptionChange={handleDescriptionChange}
+                  onMatureContentChange={handleMatureContentChange}
+                  disabled={processingAction}
+                />
+
+                {/* Product Preview */}
+                <ProductPreview
+                  editedProduct={editedProduct}
+                  onZoom={handleScaleUpdate}
+                  onPositionChange={handlePositionUpdate}
+                  onViewChange={handleViewChange}
+                  disabled={processingAction}
+                />
+
+                {/* Validation System */}
+                <ValidationSystem
+                  product={editedProduct}
+                  onStatusChange={handleStatusChange}
+                  disabled={processingAction}
+                />
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-between bg-white rounded-xl shadow-lg p-4">
+                  <div className="flex items-center space-x-4">
+                    <button
+                      onClick={() => handleStatusChange('rejected', 'Does not meet guidelines')}
+                      disabled={processingAction}
+                      className={`
+                        px-6 py-2 rounded-lg font-medium transition-colors
+                        ${processingAction
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : 'bg-red-100 text-red-600 hover:bg-red-200'}
+                      `}
+                    >
+                      Reject
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange('public')}
+                      disabled={processingAction || !isProductValid(editedProduct)}
+                      className={`
+                        px-6 py-2 rounded-lg font-medium transition-colors
+                        ${processingAction || !isProductValid(editedProduct)
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : 'bg-green-100 text-green-600 hover:bg-green-200'}
+                      `}
+                    >
+                      Approve
+                    </button>
+                  </div>
                   <button
-                    key={product._id}
-                    onClick={() => handleProductSelect(product)}
-                    className={`
-                      w-full p-4 text-left transition-colors duration-200 hover:bg-gray-50
-                      ${selectedProductId === product._id ? 'bg-blue-50' : ''}
-                    `}
+                    onClick={() => {
+                      if (hasUnsavedChanges) {
+                        const confirm = window.confirm('Discard unsaved changes?');
+                        if (!confirm) return;
+                      }
+                      setEditedProduct(null);
+                      setSelectedProductId(null);
+                      setHasUnsavedChanges(false);
+                    }}
+                    disabled={processingAction}
+                    className="text-gray-500 hover:text-gray-700"
                   >
-                    <h3 className="font-medium text-gray-900 mb-1 truncate">
-                      {product.DesignTitle || 'Untitled Design'}
-                    </h3>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-500">
-                          {PRODUCT_TYPES[product.ProductType]?.label || product.ProductType}
-                        </span>
-                        <span className="text-gray-300">•</span>
-                        <span className="text-sm text-gray-500">
-                          {COLOR_OPTIONS[product.ProductColor]?.label || product.ProductColor}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-500">
-                        {formatDate(product.createdAt)}
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className={`
-                        px-2 py-1 rounded-full text-xs font-medium
-                        ${STATUS_CONFIG[product.status || 'pending'].color.replace('bg-', 'bg-opacity-20 ')}
-                        ${STATUS_CONFIG[product.status || 'pending'].textColor}
-                      `}>
-                        {STATUS_CONFIG[product.status || 'pending'].label}
-                      </span>
-                      {product.shop?.name && (
-                        <span className="text-xs text-gray-500 truncate max-w-[150px]">
-                          {product.shop.name}
-                        </span>
-                      )}
-                    </div>
-                    {product.rejectionReason && (
-                      <p className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">
-                        Rejection reason: {product.rejectionReason}
-                      </p>
-                    )}
+                    Cancel
                   </button>
-                ))}
+                </div>
+
+                {/* Unsaved Changes Warning */}
+                {hasUnsavedChanges && (
+                  <div className="fixed bottom-4 right-4 bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-2 rounded-lg shadow-lg z-50">
+                    <p className="text-sm font-medium">
+                      You have unsaved changes
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+                <div className="max-w-md mx-auto">
+                  <AiOutlineInfoCircle size={48} className="mx-auto text-blue-500 mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    Select a Product to Review
+                  </h3>
+                  <p className="text-gray-500">
+                    Choose a product from the list to start the review process
+                  </p>
+                  {!loading && filteredProducts.length === 0 && (
+                    <div className="mt-4">
+                      <button
+                        onClick={handleResetFilters}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        Clear filters
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
         </div>
+      </div>
+    </ErrorBoundary>
+  );
+};
 
-        {/* Product Preview and Controls */}
-        <div className="lg:col-span-8 xl:col-span-9">
-          {editedProduct ? (
-            <div className="space-y-8">
-              {/* Product Metadata */}
-              <ProductMetadata
-                product={editedProduct}
-                onMainTagChange={handleMainTagUpdate}
-                disabled={processingAction}
-              />
-
-              {/* Product Preview */}
-              <ProductPreview
-                editedProduct={editedProduct}
-                onZoom={handleScaleUpdate}
-                onPositionChange={handlePositionUpdate}
-                onViewChange={handleViewChange}
-                disabled={processingAction}
-              />
-
-              {/* Price Calculator */}
-              <PriceCalculator
-                productType={editedProduct.ProductType}
-                originalPrice={editedProduct.originalPrice}
-                discountPrice={editedProduct.discountPrice}
-                onChange={handlePriceUpdate}
-                disabled={processingAction}
-              />
-
-              {/* Validation System */}
-              <ValidationSystem
-                product={editedProduct}
-                onStatusChange={handleStatusChange}
-                disabled={processingAction}
-              />
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-              <div className="max-w-md mx-auto">
-                <AiOutlineInfoCircle size={48} className="mx-auto text-blue-500 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Select a Product to Review
-                </h3>
-                <p className="text-gray-500">
-                  Choose a product from the list to start the review process
-                </p>
-                {!loading && filteredProducts.length === 0 && (
-                  <div className="mt-4">
-                    <button
-                      onClick={() => {
-                        setFilterStatus('all');
-                        setSearchTerm('');
-                      }}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      Clear filters
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+// ProductListItem component
+const ProductListItem = memo(({ product, isSelected, onClick, disabled }) => {
+  return (
+    <div
+      onClick={disabled ? undefined : onClick}
+      className={`
+        p-4 cursor-pointer transition-colors
+        ${disabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50'}
+        ${isSelected ? 'bg-blue-50' : ''}
+      `}
+    >
+      <div className="flex items-center space-x-4">
+        <div className="relative w-16 h-16 flex-shrink-0">
+          <img
+            src={product.designImage}
+            alt={product.DesignTitle}
+            className="w-full h-full object-cover rounded-lg"
+          />
+          <div className={`
+            absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white
+            ${statusColors[product.status] || 'bg-gray-400'}
+          `} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="text-sm font-medium text-gray-900 truncate">
+            {product.DesignTitle || 'Untitled Design'}
+          </h4>
+          <p className="text-sm text-gray-500 truncate">
+            by {product.shop?.name || 'Unknown Shop'}
+          </p>
+          <div className="flex items-center mt-1">
+            <span className="text-sm font-medium text-gray-900">
+              £{product.originalPrice.toFixed(2)}
+            </span>
+            {product.discountPrice && (
+              <span className="ml-2 text-sm text-gray-500 line-through">
+                £{product.discountPrice.toFixed(2)}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>
-  </ErrorBoundary>
-);
+  );
+});
+
+ProductListItem.propTypes = {
+  product: PropTypes.object.isRequired,
+  isSelected: PropTypes.bool,
+  onClick: PropTypes.func.isRequired,
+  disabled: PropTypes.bool
+};
+
+const statusColors = {
+  pending: 'bg-yellow-400',
+  rejected: 'bg-red-500',
+  public: 'bg-green-500'
 };
 
 AdminProductApproval.displayName = 'AdminProductApproval';
