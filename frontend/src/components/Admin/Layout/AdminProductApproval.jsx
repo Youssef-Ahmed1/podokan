@@ -2114,7 +2114,7 @@ const handlePriceUpdate = useCallback(({ originalPrice, discountPrice }) => {
 
 // Filter and sort products
 const filteredProducts = useMemo(() => {
-  if (!Array.isArray(pendingProducts)) {
+  if (!pendingProducts || !Array.isArray(pendingProducts)) {
     console.warn('pendingProducts is not an array:', pendingProducts);
     return [];
   }
