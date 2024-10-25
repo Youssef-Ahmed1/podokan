@@ -2010,53 +2010,116 @@ ValidationSystem.displayName = 'ValidationSystem';
 
 
 const AdminProductApproval = () => {
-    const dispatch = useDispatch();
-    const { 
-      pendingProducts, 
-      isLoading: loading, 
-      error,
-      selectedProduct 
-    } = useSelector((state) => state.product);
-    
+  const dispatch = useDispatch();
+  const { 
+    pendingProducts, 
+    isLoading: loading, 
+    error,
+    selectedProduct 
+  } = useSelector((state) => state.product);
   
-  const [editedProduct, setEditedProduct] = useState(null);
-  const [selectedProductId, setSelectedProductId] = useState(null);
-  const [processingAction, setProcessingAction] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+const [editedProduct, setEditedProduct] = useState(null);
+const [selectedProductId, setSelectedProductId] = useState(null);
+const [processingAction, setProcessingAction] = useState(false);
+const [filterStatus, setFilterStatus] = useState('all');
+const [searchTerm, setSearchTerm] = useState('');
 
-  // Debounced search
-  const debouncedSearch = useMemo(
-    () => debounce((term) => {
-      setSearchTerm(term);
-    }, 300),
-    []
-  );
+// Debounced search
+const debouncedSearch = useMemo(
+  () => debounce((term) => {
+    setSearchTerm(term);
+  }, 300),
+  []
+);
 
-  // Initial data fetch
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await dispatch(fetchPendingProducts()).unwrap();
-      } catch (err) {
-        toast.error(err.message || 'Failed to fetch products');
-      }
-    };
-    fetchData();
-
-    return () => {
-      debouncedSearch.cancel();
-    };
-  }, [dispatch, debouncedSearch]);
-
-  // Update filtered products with proper type checking
-  const filteredProducts = useMemo(() => {
-    if (!Array.isArray(pendingProducts)) {
-      console.warn('pendingProducts is not an array:', pendingProducts);
-      return [];
+// Initial data fetch
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      await dispatch(fetchPendingProducts()).unwrap();
+    } catch (err) {
+      toast.error(err.message || 'Failed to fetch products');
     }
+  };
+  fetchData();
 
-    return pendingProducts
+  return () => {
+    debouncedSearch.cancel();
+  };
+}, [dispatch, debouncedSearch]);
+
+// Product selection handler
+const handleProductSelect = useCallback((product) => {
+  if (!product) return;
+
+  setSelectedProductId(product._id);
+  setEditedProduct({
+    ...product,
+    DesignPosition: product.DesignPosition || { x: 50, y: 50 },
+    DesignScale: product.DesignScale || 1,
+    ProductView: product.ProductView || 'front'
+  });
+}, []);
+
+// Main tag update handler
+const handleMainTagUpdate = useCallback((newTag) => {
+  if (!editedProduct || processingAction) return;
+
+  setEditedProduct(prev => ({
+    ...prev,
+    Maintag: newTag
+  }));
+}, [editedProduct, processingAction]);
+
+// Scale update handler
+const handleScaleUpdate = useCallback((newScale) => {
+  if (!editedProduct || processingAction) return;
+
+  setEditedProduct(prev => ({
+    ...prev,
+    DesignScale: newScale
+  }));
+}, [editedProduct, processingAction]);
+
+// Position update handler
+const handlePositionUpdate = useCallback((newPosition) => {
+  if (!editedProduct || processingAction) return;
+
+  setEditedProduct(prev => ({
+    ...prev,
+    DesignPosition: newPosition
+  }));
+}, [editedProduct, processingAction]);
+
+// View change handler
+const handleViewChange = useCallback((newView) => {
+  if (!editedProduct || processingAction) return;
+
+  setEditedProduct(prev => ({
+    ...prev,
+    ProductView: newView
+  }));
+}, [editedProduct, processingAction]);
+
+// Price update handler
+const handlePriceUpdate = useCallback(({ originalPrice, discountPrice }) => {
+  if (!editedProduct || processingAction) return;
+
+  setEditedProduct(prev => ({
+    ...prev,
+    originalPrice,
+    discountPrice: discountPrice || null
+  }));
+}, [editedProduct, processingAction]);
+
+// Filter and sort products
+const filteredProducts = useMemo(() => {
+  if (!Array.isArray(pendingProducts)) {
+    console.warn('pendingProducts is not an array:', pendingProducts);
+    return [];
+  }
+
+  return pendingProducts
     .filter(product => {
       if (!product || typeof product !== 'object') return false;
       
@@ -2069,7 +2132,7 @@ const AdminProductApproval = () => {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }, [pendingProducts, filterStatus, searchTerm]);
 
-// Update status change handler
+// Status change handler
 const handleStatusChange = useCallback(async (newStatus, reason = '') => {
   if (!editedProduct || processingAction) return;
 
@@ -2103,234 +2166,234 @@ const handleStatusChange = useCallback(async (newStatus, reason = '') => {
 }, [editedProduct, processingAction, dispatch]);
 
 return (
-    <ErrorBoundary>
-      <div className={styles.section}>
-        <div className="mb-8">
-          <h1 className={styles.heading}>Product Approval Dashboard</h1>
-          <p className="text-gray-600 mt-2">
-            Review and manage product submissions
-          </p>
-        </div>
+  <ErrorBoundary>
+    <div className={styles.section}>
+      <div className="mb-8">
+        <h1 className={styles.heading}>Product Approval Dashboard</h1>
+        <p className="text-gray-600 mt-2">
+          Review and manage product submissions
+        </p>
+      </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Product List Sidebar */}
-          <div className="lg:col-span-4 xl:col-span-3">
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-              {/* Header with Search and Filters */}
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold text-gray-800">
-                    Products {filteredProducts.length > 0 && `(${filteredProducts.length})`}
-                  </h2>
-                  {loading && (
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent" />
-                  )}
-                </div>
-
-                {/* Search Input */}
-                <div className="mt-4 space-y-4">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Search by title or shop name..."
-                      onChange={(e) => debouncedSearch(e.target.value)}
-                      className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {/* Status Filters */}
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => setFilterStatus('all')}
-                      className={`
-                        px-3 py-1 rounded-full text-xs font-medium transition-colors
-                        ${filterStatus === 'all'
-                          ? 'bg-gray-800 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
-                      `}
-                    >
-                      All
-                    </button>
-                    {Object.entries(STATUS_CONFIG).map(([status, config]) => (
-                      <button
-                        key={status}
-                        onClick={() => setFilterStatus(status === filterStatus ? 'all' : status)}
-                        className={`
-                          px-3 py-1 rounded-full text-xs font-medium transition-colors
-                          ${filterStatus === status
-                            ? config.color.replace('bg-', 'bg-opacity-100 ') + ' ' + config.textColor
-                            : config.color.replace('bg-', 'bg-opacity-20 ') + ' ' + config.textColor.replace('text-', 'text-opacity-60 ')}
-                        `}
-                      >
-                        {config.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Product List Sidebar */}
+        <div className="lg:col-span-4 xl:col-span-3">
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            {/* Header with Search and Filters */}
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Products {filteredProducts.length > 0 && `(${filteredProducts.length})`}
+                </h2>
+                {loading && (
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent" />
+                )}
               </div>
 
-              {/* Product List */}
-              {error ? (
-                <div className="p-4">
-                  <div className="bg-red-50 p-4 rounded-lg">
-                    <div className="flex">
-                      <AiOutlineWarning className="text-red-500 mt-0.5 mr-3" size={20} />
-                      <div>
-                        <h3 className="text-sm font-medium text-red-800">Error Loading Products</h3>
-                        <p className="text-sm text-red-700 mt-1">{error}</p>
-                      </div>
-                    </div>
+              {/* Search Input */}
+              <div className="mt-4 space-y-4">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search by title or shop name..."
+                    onChange={(e) => debouncedSearch(e.target.value)}
+                    className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
                   </div>
                 </div>
-              ) : !Array.isArray(pendingProducts) || filteredProducts.length === 0 ? (
-                <div className="p-8 text-center">
-                  {loading ? (
-                    <div className="animate-pulse space-y-4">
-                      {[...Array(3)].map((_, index) => (
-                        <div key={index} className="bg-gray-200 h-20 rounded-lg" />
-                      ))}
-                    </div>
-                  ) : (
-                    <>
-                      <AiOutlineCheckCircle size={48} className="mx-auto text-green-500 mb-4" />
-                      <p className="text-gray-500">
-                        {searchTerm 
-                          ? 'No products match your search'
-                          : filterStatus !== 'all'
-                            ? `No ${filterStatus} products found`
-                            : 'No products to review'
-                        }
-                      </p>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-200 max-h-[calc(100vh-220px)] overflow-y-auto">
-                  {filteredProducts.map((product) => (
+
+                {/* Status Filters */}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setFilterStatus('all')}
+                    className={`
+                      px-3 py-1 rounded-full text-xs font-medium transition-colors
+                      ${filterStatus === 'all'
+                        ? 'bg-gray-800 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
+                    `}
+                  >
+                    All
+                  </button>
+                  {Object.entries(STATUS_CONFIG).map(([status, config]) => (
                     <button
-                      key={product._id}
-                      onClick={() => handleProductSelect(product)}
+                      key={status}
+                      onClick={() => setFilterStatus(status === filterStatus ? 'all' : status)}
                       className={`
-                        w-full p-4 text-left transition-colors duration-200 hover:bg-gray-50
-                        ${selectedProductId === product._id ? 'bg-blue-50' : ''}
+                        px-3 py-1 rounded-full text-xs font-medium transition-colors
+                        ${filterStatus === status
+                          ? config.color.replace('bg-', 'bg-opacity-100 ') + ' ' + config.textColor
+                          : config.color.replace('bg-', 'bg-opacity-20 ') + ' ' + config.textColor.replace('text-', 'text-opacity-60 ')}
                       `}
                     >
-                      <h3 className="font-medium text-gray-900 mb-1 truncate">
-                        {product.DesignTitle || 'Untitled Design'}
-                      </h3>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-gray-500">
-                            {PRODUCT_TYPES[product.ProductType]?.label || product.ProductType}
-                          </span>
-                          <span className="text-gray-300">•</span>
-                          <span className="text-sm text-gray-500">
-                            {COLOR_OPTIONS[product.ProductColor]?.label || product.ProductColor}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-500">
-                          {formatDate(product.createdAt)}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className={`
-                          px-2 py-1 rounded-full text-xs font-medium
-                          ${STATUS_CONFIG[product.status || 'pending'].color.replace('bg-', 'bg-opacity-20 ')}
-                          ${STATUS_CONFIG[product.status || 'pending'].textColor}
-                        `}>
-                          {STATUS_CONFIG[product.status || 'pending'].label}
-                        </span>
-                        {product.shop?.name && (
-                          <span className="text-xs text-gray-500 truncate max-w-[150px]">
-                            {product.shop.name}
-                          </span>
-                        )}
-                      </div>
-                      {product.rejectionReason && (
-                        <p className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">
-                          Rejection reason: {product.rejectionReason}
-                        </p>
-                      )}
+                      {config.label}
                     </button>
                   ))}
                 </div>
-              )}
+              </div>
             </div>
-          </div>
 
-          {/* Product Preview and Controls */}
-          <div className="lg:col-span-8 xl:col-span-9">
-            {editedProduct ? (
-              <div className="space-y-8">
-                {/* Product Metadata */}
-                <ProductMetadata
-                  product={editedProduct}
-                  onMainTagChange={handleMainTagUpdate}
-                  disabled={processingAction}
-                />
-
-                {/* Product Preview */}
-                <ProductPreview
-                  editedProduct={editedProduct}
-                  onZoom={handleScaleUpdate}
-                  onPositionChange={handlePositionUpdate}
-                  onViewChange={handleViewChange}
-                  disabled={processingAction}
-                />
-
-                {/* Price Calculator */}
-                <PriceCalculator
-                  productType={editedProduct.ProductType}
-                  originalPrice={editedProduct.originalPrice}
-                  discountPrice={editedProduct.discountPrice}
-                  onChange={handlePriceUpdate}
-                  disabled={processingAction}
-                />
-
-                {/* Validation System */}
-                <ValidationSystem
-                  product={editedProduct}
-                  onStatusChange={handleStatusChange}
-                  disabled={processingAction}
-                />
+            {/* Product List */}
+            {error ? (
+              <div className="p-4">
+                <div className="bg-red-50 p-4 rounded-lg">
+                  <div className="flex">
+                    <AiOutlineWarning className="text-red-500 mt-0.5 mr-3" size={20} />
+                    <div>
+                      <h3 className="text-sm font-medium text-red-800">Error Loading Products</h3>
+                      <p className="text-sm text-red-700 mt-1">{error}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : !Array.isArray(pendingProducts) || filteredProducts.length === 0 ? (
+              <div className="p-8 text-center">
+                {loading ? (
+                  <div className="animate-pulse space-y-4">
+                    {[...Array(3)].map((_, index) => (
+                      <div key={index} className="bg-gray-200 h-20 rounded-lg" />
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <AiOutlineCheckCircle size={48} className="mx-auto text-green-500 mb-4" />
+                    <p className="text-gray-500">
+                      {searchTerm 
+                        ? 'No products match your search'
+                        : filterStatus !== 'all'
+                          ? `No ${filterStatus} products found`
+                          : 'No products to review'
+                      }
+                    </p>
+                  </>
+                )}
               </div>
             ) : (
-              <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-                <div className="max-w-md mx-auto">
-                  <AiOutlineInfoCircle size={48} className="mx-auto text-blue-500 mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    Select a Product to Review
-                  </h3>
-                  <p className="text-gray-500">
-                    Choose a product from the list to start the review process
-                  </p>
-                  {!loading && filteredProducts.length === 0 && (
-                    <div className="mt-4">
-                      <button
-                        onClick={() => {
-                          setFilterStatus('all');
-                          setSearchTerm('');
-                        }}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                      >
-                        Clear filters
-                      </button>
+              <div className="divide-y divide-gray-200 max-h-[calc(100vh-220px)] overflow-y-auto">
+                {filteredProducts.map((product) => (
+                  <button
+                    key={product._id}
+                    onClick={() => handleProductSelect(product)}
+                    className={`
+                      w-full p-4 text-left transition-colors duration-200 hover:bg-gray-50
+                      ${selectedProductId === product._id ? 'bg-blue-50' : ''}
+                    `}
+                  >
+                    <h3 className="font-medium text-gray-900 mb-1 truncate">
+                      {product.DesignTitle || 'Untitled Design'}
+                    </h3>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-500">
+                          {PRODUCT_TYPES[product.ProductType]?.label || product.ProductType}
+                        </span>
+                        <span className="text-gray-300">•</span>
+                        <span className="text-sm text-gray-500">
+                          {COLOR_OPTIONS[product.ProductColor]?.label || product.ProductColor}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        {formatDate(product.createdAt)}
+                      </p>
                     </div>
-                  )}
-                </div>
+                    <div className="flex items-center justify-between">
+                      <span className={`
+                        px-2 py-1 rounded-full text-xs font-medium
+                        ${STATUS_CONFIG[product.status || 'pending'].color.replace('bg-', 'bg-opacity-20 ')}
+                        ${STATUS_CONFIG[product.status || 'pending'].textColor}
+                      `}>
+                        {STATUS_CONFIG[product.status || 'pending'].label}
+                      </span>
+                      {product.shop?.name && (
+                        <span className="text-xs text-gray-500 truncate max-w-[150px]">
+                          {product.shop.name}
+                        </span>
+                      )}
+                    </div>
+                    {product.rejectionReason && (
+                      <p className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">
+                        Rejection reason: {product.rejectionReason}
+                      </p>
+                    )}
+                  </button>
+                ))}
               </div>
             )}
           </div>
         </div>
+
+        {/* Product Preview and Controls */}
+        <div className="lg:col-span-8 xl:col-span-9">
+          {editedProduct ? (
+            <div className="space-y-8">
+              {/* Product Metadata */}
+              <ProductMetadata
+                product={editedProduct}
+                onMainTagChange={handleMainTagUpdate}
+                disabled={processingAction}
+              />
+
+              {/* Product Preview */}
+              <ProductPreview
+                editedProduct={editedProduct}
+                onZoom={handleScaleUpdate}
+                onPositionChange={handlePositionUpdate}
+                onViewChange={handleViewChange}
+                disabled={processingAction}
+              />
+
+              {/* Price Calculator */}
+              <PriceCalculator
+                productType={editedProduct.ProductType}
+                originalPrice={editedProduct.originalPrice}
+                discountPrice={editedProduct.discountPrice}
+                onChange={handlePriceUpdate}
+                disabled={processingAction}
+              />
+
+              {/* Validation System */}
+              <ValidationSystem
+                product={editedProduct}
+                onStatusChange={handleStatusChange}
+                disabled={processingAction}
+              />
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+              <div className="max-w-md mx-auto">
+                <AiOutlineInfoCircle size={48} className="mx-auto text-blue-500 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Select a Product to Review
+                </h3>
+                <p className="text-gray-500">
+                  Choose a product from the list to start the review process
+                </p>
+                {!loading && filteredProducts.length === 0 && (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => {
+                        setFilterStatus('all');
+                        setSearchTerm('');
+                      }}
+                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    >
+                      Clear filters
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </ErrorBoundary>
-  );
+    </div>
+  </ErrorBoundary>
+);
 };
 
 AdminProductApproval.displayName = 'AdminProductApproval';
