@@ -2163,7 +2163,6 @@ ValidationSystem.propTypes = {
 };
 
 ValidationSystem.displayName = 'ValidationSystem';
-javascript
 
 
 const isProductValid = (product) => {
