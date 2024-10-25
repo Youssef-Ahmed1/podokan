@@ -13,8 +13,8 @@ import { BiRuler } from 'react-icons/bi';
 import { BsZoomIn, BsZoomOut } from 'react-icons/bs';
 import { debounce } from 'lodash';
 import PropTypes from 'prop-types';
-import { fetchPendingProducts, approveRejectProduct } from '../redux/actions/productActions';
-import styles from '../styles/styles';
+import { fetchPendingProducts, approveRejectProduct } from '../../../redux/actions/productActions';
+import styles from '../../../styles/styles';
 
 // Constants
 const VALID_COLORS = ['white', 'black', 'red', 'blue', 'gray'];
