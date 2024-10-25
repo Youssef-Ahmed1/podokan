@@ -44,20 +44,23 @@ export const fetchPendingProducts = () => async (dispatch) => {
       withCredentials: true,
     });
     
-    // Ensure we have an array of products
-    const products = Array.isArray(data?.products) ? data.products.map(product => ({
+    if (!data || !data.products) {
+      throw new Error('Invalid response format');
+    }
+
+    // Ensure we have an array and transform the data
+    const products = Array.isArray(data.products) ? data.products.map(product => ({
       ...product,
-      designImage: product.designImage 
-        ? (typeof product.designImage === 'string' 
-            ? product.designImage 
-            : product.designImage.url)
-        : null,
-      DesignScale: product.DesignScale || 1,
+      _id: product._id || '',
+      designImage: product.designImage?.url || product.designImage || '',
       DesignPosition: product.DesignPosition || { x: 50, y: 50 },
+      DesignScale: product.DesignScale || 1,
       ProductView: product.ProductView || 'front',
       originalPrice: product.originalPrice || 0,
       discountPrice: product.discountPrice || null,
-      availableColors: product.availableColors || ['white']
+      availableColors: product.availableColors || ['white'],
+      status: product.status || 'pending',
+      Designtags: Array.isArray(product.Designtags) ? product.Designtags : []
     })) : [];
 
     dispatch({ 
