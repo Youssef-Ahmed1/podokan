@@ -251,6 +251,178 @@ const STATUS_CONFIG = {
     description: 'Not approved for sale'
   }
 };
+const MAIN_TAG_OPTIONS = [
+  { value: 'Funny', label: 'Funny' },
+  { value: 'Anime', label: 'Anime' },
+  { value: 'Sci-fi', label: 'Sci-fi' },
+  { value: 'Movies', label: 'Movies' },
+  { value: 'Vintage', label: 'Vintage' },
+  { value: 'Music', label: 'Music' },
+  { value: 'Television', label: 'Television' },
+  { value: 'Sports', label: 'Sports' },
+  { value: 'Custom', label: 'Custom' }
+];
+
+const ProductMetadata = memo(({ product, onMainTagChange, disabled }) => {
+  return (
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="p-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-800">Product Metadata</h3>
+      </div>
+
+      <div className="p-4 space-y-4">
+        {/* Title and Description */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Design Title
+            </label>
+            <input
+              type="text"
+              value={product.DesignTitle || ''}
+              readOnly
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Shop Name
+            </label>
+            <input
+              type="text"
+              value={product.shop?.name || 'N/A'}
+              readOnly
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700"
+            />
+          </div>
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Description
+          </label>
+          <textarea
+            value={product.Description || ''}
+            readOnly
+            rows={3}
+            className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700"
+          />
+        </div>
+
+        {/* Main Tag and Design Tags */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Main Tag
+            </label>
+            <select
+              value={product.Maintag || ''}
+              onChange={(e) => onMainTagChange(e.target.value)}
+              disabled={disabled}
+              className={`
+                w-full px-3 py-2 border border-gray-300 rounded-lg
+                ${disabled ? 'bg-gray-50' : 'bg-white'}
+                focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+              `}
+            >
+              <option value="">Select Main Tag</option>
+              {MAIN_TAG_OPTIONS.map(tag => (
+                <option key={tag.value} value={tag.value}>
+                  {tag.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Design Tags
+            </label>
+            <div className="flex flex-wrap gap-2 p-2 bg-gray-50 border border-gray-300 rounded-lg min-h-[42px]">
+              {product.Designtags?.map((tag, index) => (
+                <span
+                  key={index}
+                  className="px-2 py-1 bg-blue-100 text-blue-700 text-sm rounded-full"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Metadata */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Product Type
+            </label>
+            <input
+              type="text"
+              value={product.ProductType || 'N/A'}
+              readOnly
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Color
+            </label>
+            <input
+              type="text"
+              value={product.ProductColor || 'N/A'}
+              readOnly
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Created At
+            </label>
+            <input
+              type="text"
+              value={formatDate(product.createdAt)}
+              readOnly
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Last Updated
+            </label>
+            <input
+              type="text"
+              value={formatDate(product.updatedAt)}
+              readOnly
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+// Update the price display in the ProductPreview component
+<div className="mt-4 flex items-center justify-between px-4">
+  <div>
+    <span className={styles.productDiscountPrice}>
+      £{product.discountPrice?.toFixed(2) || product.originalPrice.toFixed(2)}
+    </span>
+    {product.discountPrice && (
+      <span className={styles.price}>
+        £{product.originalPrice.toFixed(2)}
+      </span>
+    )}
+  </div>
+  {product.shop?.name && (
+    <Link to={`/shop/${product.shop._id}`} className={styles.shop_name}>
+      {product.shop.name}
+    </Link>
+  )}
+</div>
+
+
 
 // Validation Rules
 const VALIDATION_RULES = {
@@ -1454,7 +1626,39 @@ ValidationSystem.displayName = 'ValidationSystem';const AdminProductApproval = (
               )}
             </div>
           </div>
-
+          {editedProduct && (
+  <div className="space-y-8">
+    <ProductMetadata
+      product={editedProduct}
+      onMainTagChange={(newTag) => {
+        setEditedProduct(prev => ({
+          ...prev,
+          Maintag: newTag
+        }));
+      }}
+      disabled={processingAction}
+    />
+    <ProductPreview
+      editedProduct={editedProduct}
+      onZoom={handleScaleUpdate}
+      onPositionChange={handlePositionUpdate}
+      onViewChange={handleViewChange}
+      disabled={processingAction}
+    />
+    <PriceCalculator
+      productType={editedProduct.ProductType}
+      originalPrice={editedProduct.originalPrice}
+      discountPrice={editedProduct.discountPrice}
+      onChange={handlePriceUpdate}
+      disabled={processingAction}
+    />
+    <ValidationSystem
+      product={editedProduct}
+      onStatusChange={handleStatusChange}
+      disabled={processingAction}
+    />
+  </div>
+)}
           {/* Product Preview and Controls */}
           <div className="lg:col-span-8 xl:col-span-9">
             {editedProduct ? (
