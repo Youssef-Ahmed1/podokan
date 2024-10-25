@@ -2048,17 +2048,26 @@ useEffect(() => {
   };
 }, [dispatch, debouncedSearch]);
 
-// Product selection handler
 const handleProductSelect = useCallback((product) => {
-  if (!product) return;
+  if (!product || !product._id) {
+    console.warn('Invalid product selected:', product);
+    return;
+  }
 
-  setSelectedProductId(product._id);
-  setEditedProduct({
-    ...product,
-    DesignPosition: product.DesignPosition || { x: 50, y: 50 },
-    DesignScale: product.DesignScale || 1,
-    ProductView: product.ProductView || 'front'
-  });
+  try {
+    setSelectedProductId(product._id);
+    setEditedProduct({
+      ...product,
+      DesignPosition: product.DesignPosition || { x: 50, y: 50 },
+      DesignScale: product.DesignScale || 1,
+      ProductView: product.ProductView || 'front',
+      designImage: product.designImage?.url || product.designImage || '',
+      Designtags: Array.isArray(product.Designtags) ? product.Designtags : []
+    });
+  } catch (error) {
+    console.error('Error selecting product:', error);
+    toast.error('Failed to load product details');
+  }
 }, []);
 
 // Main tag update handler
@@ -2112,16 +2121,18 @@ const handlePriceUpdate = useCallback(({ originalPrice, discountPrice }) => {
   }));
 }, [editedProduct, processingAction]);
 
-// Filter and sort products
 const filteredProducts = useMemo(() => {
+  // Ensure pendingProducts is an array
   if (!pendingProducts || !Array.isArray(pendingProducts)) {
-    console.warn('pendingProducts is not an array:', pendingProducts);
     return [];
   }
 
+  // Filter and map only valid products
   return pendingProducts
     .filter(product => {
-      if (!product || typeof product !== 'object') return false;
+      if (!product || typeof product !== 'object' || !product._id) {
+        return false;
+      }
       
       const matchesStatus = filterStatus === 'all' || product.status === filterStatus;
       const matchesSearch = !searchTerm || 
@@ -2273,7 +2284,7 @@ return (
                   </>
                 )}
               </div>
-            ) : (
+            ): (
               <div className="divide-y divide-gray-200 max-h-[calc(100vh-220px)] overflow-y-auto">
                 {filteredProducts.map((product) => (
                   <button
