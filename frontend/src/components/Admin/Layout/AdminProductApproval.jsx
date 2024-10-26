@@ -1198,18 +1198,19 @@ const PRODUCT_CONFIG = {
     minPrice: 490,
     designCost: 90,
     label: 'Hoodie',
-    designArea: { width: 280, height: 380 }
+    designArea: { width: 280, height: 380 },
+    currency: 'EGP'
   },
   'long-sleeve': {
     basePrice: 390,
     minPrice: 390,
     designCost: 90,
     label: 'Long Sleeve',
-    designArea: { width: 300, height: 400 }
+    designArea: { width: 300, height: 400 },
+    currency: 'EGP'
   }
   
 };
-// Put this after PRODUCT_CONFIG and before the components
 const COLOR_OPTIONS = {
   white: {
     value: 'white',
@@ -1320,7 +1321,7 @@ const AdminProductApproval = () => {
   const { 
     pendingProducts, 
     isLoading, 
-    error: productError,
+    error,
     filters,
     pagination 
   }
@@ -1564,39 +1565,20 @@ const AdminProductApproval = () => {
   }
 
   // Error state
-  if (productError) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-4xl mx-auto bg-red-50 p-4 rounded-lg">
-          <div className="flex items-center">
-            <AiOutlineWarning className="h-6 w-6 text-red-500 mr-3" />
-            <h3 className="text-sm font-medium text-red-800">
-              {productError}
-            </h3>
-          </div>
-          <button
-            onClick={() => dispatch(fetchPendingProducts())}
-            className="mt-3 text-sm font-medium text-red-600 hover:text-red-500"
-          >
-            Try again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Render error state
-  if (error && !editMode) {
+  const displayError = error || userError;
+  
+  if (displayError && !editMode) {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-4xl mx-auto bg-red-50 p-4 rounded-lg text-red-700">
           <AiOutlineWarning className="inline-block mr-2" />
-          {error}
+          {displayError}
         </div>
       </div>
     );
   }
 
+  
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto">
