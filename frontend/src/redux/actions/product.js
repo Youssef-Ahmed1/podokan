@@ -174,6 +174,58 @@ export const deleteProduct = (id) => async (dispatch) => {
   }
 };
 
+// Update product design position
+export const updateDesignPosition = (productId, position) => async (dispatch) => {
+  try {
+    dispatch({ type: "updateDesignPositionRequest" });
+
+    const response = await axios.put(
+      `${server}/product/update-design-position/${productId}`,
+      { DesignPosition: position },
+      { withCredentials: true }
+    );
+
+    dispatch({
+      type: "updateDesignPositionSuccess",
+      payload: { productId, position }
+    });
+
+    return response.data;
+  } catch (error) {
+    dispatch({
+      type: "updateDesignPositionFail",
+      payload: error.response?.data?.message || error.message
+    });
+    throw error;
+  }
+};
+
+// Center design position
+export const centerDesign = (productId, axis) => async (dispatch) => {
+  try {
+    dispatch({ type: "centerDesignRequest" });
+
+    const response = await axios.put(
+      `${server}/product/center-design/${productId}`,
+      { axis },
+      { withCredentials: true }
+    );
+
+    dispatch({
+      type: "centerDesignSuccess",
+      payload: { productId, position: response.data.position }
+    });
+
+    return response.data;
+  } catch (error) {
+    dispatch({
+      type: "centerDesignFail",
+      payload: error.response?.data?.message || error.message
+    });
+    throw error;
+  }
+};
+
 // get all products (only approved ones)
 export const getAllProducts = () => async (dispatch) => {
   try {

@@ -104,8 +104,49 @@ export const productReducer = createReducer(initialState, (builder) => {
       state.allProducts = [];
     })
 
-    // Update Product Design
-    .addCase("updateProductDesignRequest", (state) => {
+
+.addCase("updateDesignPositionRequest", (state) => {
+  state.isLoading = true;
+  state.error = null;
+})
+.addCase("updateDesignPositionSuccess", (state, action) => {
+  state.isLoading = false;
+  state.error = null;
+  // Update position in pending products
+  const product = state.pendingProducts.find(p => p._id === action.payload.productId);
+  if (product) {
+    product.DesignPosition = action.payload.position;
+  }
+  // Update position in selected product if it exists
+  if (state.selectedProduct?._id === action.payload.productId) {
+    state.selectedProduct.DesignPosition = action.payload.position;
+  }
+})
+.addCase("updateDesignPositionFail", (state, action) => {
+  state.isLoading = false;
+  state.error = action.payload;
+})
+.addCase("centerDesignRequest", (state) => {
+  state.isLoading = true;
+  state.error = null;
+})
+.addCase("centerDesignSuccess", (state, action) => {
+  state.isLoading = false;
+  state.error = null;
+  // Update position in pending products
+  const product = state.pendingProducts.find(p => p._id === action.payload.productId);
+  if (product) {
+    product.DesignPosition = action.payload.position;
+  }
+  // Update position in selected product if it exists
+  if (state.selectedProduct?._id === action.payload.productId) {
+    state.selectedProduct.DesignPosition = action.payload.position;
+  }
+})
+.addCase("centerDesignFail", (state, action) => {
+  state.isLoading = false;
+  state.error = action.payload;
+})    .addCase("updateProductDesignRequest", (state) => {
       state.isLoading = true;
       state.error = null;
       state.success = false;
