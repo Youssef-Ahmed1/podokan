@@ -106,7 +106,92 @@ router.post(
           success: false, 
           errors: errors.array() 
         });
+      }// productController.js - Add these new routes
+
+// Update design position
+router.put(
+  "/update-design-position/:id",
+  isAuthenticated,
+  isAdmin("Admin"),
+  [
+    body('DesignPosition')
+      .isObject()
+      .withMessage('Design position must be an object')
+      .custom((position) => {
+        return position && 
+               typeof position.x === 'number' && 
+               typeof position.y === 'number' &&
+               position.x >= 0 && position.x <= 100 &&
+               position.y >= 0 && position.y <= 100;
+      })
+      .withMessage('Invalid position coordinates')
+  ],
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { DesignPosition } = req.body;
+
+      const product = await Product.findById(id);
+      if (!product) {
+        return next(new ErrorHandler("Product not found", 404));
       }
+
+      product.DesignPosition = DesignPosition;
+      await product.save();
+
+      res.status(200).json({
+        success: true,
+        message: "Design position updated successfully",
+        position: DesignPosition
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Center design
+router.put(
+  "/center-design/:id",
+  isAuthenticated,
+  isAdmin("Admin"),
+  [
+    body('axis')
+      .isIn(['x', 'y', 'both'])
+      .withMessage('Invalid axis specified')
+  ],
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { axis } = req.body;
+
+      const product = await Product.findById(id);
+      if (!product) {
+        return next(new ErrorHandler("Product not found", 404));
+      }
+
+      const newPosition = { ...product.DesignPosition };
+      
+      if (axis === 'x' || axis === 'both') {
+        newPosition.x = 50; // Center horizontally
+      }
+      if (axis === 'y' || axis === 'both') {
+        newPosition.y = 50; // Center vertically
+      }
+
+      product.DesignPosition = newPosition;
+      await product.save();
+
+      res.status(200).json({
+        success: true,
+        message: "Design centered successfully",
+        position: newPosition
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
 
       const { 
         shopId, 
