@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo ,useRef} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
+import { loadUser } from '../../../redux/actions/user';
 import { 
   AiOutlineWarning, 
   AiOutlineCheckCircle,
@@ -16,7 +17,8 @@ import {
 import { BiGrid, BiRuler } from 'react-icons/bi';
 import { BsZoomIn, BsZoomOut } from 'react-icons/bs';
 import { fetchPendingProducts, approveRejectProduct } from '../../../redux/actions/product';
-import PropTypes from 'prop-types';
+import PropTypes from 'prop-types'
+import { useNavigate } from 'react-router-dom';;
 
 // Sub-components go here, before the main component
 const ProductCard = ({ product, onSelect, viewMode }) => {
@@ -29,9 +31,11 @@ const ProductCard = ({ product, onSelect, viewMode }) => {
   };
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-GB', {
+    return new Intl.NumberFormat('en-EG', {
       style: 'currency',
-      currency: 'egp'
+      currency: 'EGP',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(price || 0);
   };
 
@@ -234,7 +238,8 @@ const ProductEditView = ({
   onReject,
   onCancel,
   validationErrors,
-  isValidating
+  isValidating,
+  
 }) => {
   const [activeTab, setActiveTab] = useState('metadata');
   const [designView, setDesignView] = useState('front');
@@ -1185,7 +1190,8 @@ const PRODUCT_CONFIG = {
     minPrice: 295,
     designCost: 90,
     label: 'T-Shirt',
-    designArea: { width: 300, height: 400 }
+    designArea: { width: 300, height: 400 },
+    currency: 'EGP'  
   },
   'hoodie': {
     basePrice: 490,
@@ -1309,16 +1315,20 @@ const colorPropType = PropTypes.oneOf(Object.keys(COLOR_OPTIONS));
 
 
 const AdminProductApproval = () => {
-  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();  
   const { 
     pendingProducts, 
     isLoading, 
-    error,
+    error: productError,
     filters,
     pagination 
-  } = useSelector(state => state.product);
-  const { isAuthenticated, user } = useSelector(state => state.user);
-
+  }
+  
+  = useSelector(state => state.product);
+  const { isAuthenticated, user, loading: userLoading } = useSelector(
+    (state) => state.user
+  );
   // Local state
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -1328,7 +1338,7 @@ const AdminProductApproval = () => {
   const [viewMode, setViewMode] = useState('list');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-
+  
   // Validation state
   const [validationErrors, setValidationErrors] = useState({});
   const [isValidating, setIsValidating] = useState(false);
@@ -1348,27 +1358,42 @@ const AdminProductApproval = () => {
     ProductView: 'front'
   });
 
-  // Initial load
   useEffect(() => {
-    const loadData = async () => {
+    const checkAuth = async () => {
       try {
         if (!isAuthenticated) {
-          toast.error('Please login to continue');
-          return;
+          await dispatch(loadUser()).unwrap();
         }
-
-        if (user?.role !== 'admin') {
-          toast.error('Unauthorized access');
-          return;
-        }
-
-        await dispatch(fetchPendingProducts()).unwrap();
       } catch (error) {
-        toast.error(error.message || 'Failed to fetch products');
+        toast.error(error.message || 'Authentication failed');
+        navigate('/login', { 
+          state: { from: '/admin-approval' } 
+        });
       }
     };
 
-    loadData();
+    checkAuth();
+  }, [dispatch, isAuthenticated, navigate]);
+
+  // Check admin authorization
+  useEffect(() => {
+    if (isAuthenticated && user && user.role !== 'Admin') {
+      toast.error('Access denied. Admin privileges required.');
+      navigate('/');
+    }
+  }, [isAuthenticated, user, navigate]);
+  useEffect(() => {
+    const loadProducts = async () => {
+      if (isAuthenticated && user?.role === 'Admin') {
+        try {
+          await dispatch(fetchPendingProducts()).unwrap();
+        } catch (error) {
+          toast.error(error.message || 'Failed to load products');
+        }
+      }
+    };
+
+    loadProducts();
   }, [dispatch, isAuthenticated, user]);
 
   // Filtered and sorted products
@@ -1472,8 +1497,8 @@ const AdminProductApproval = () => {
     // Price validation
     const minPrice = PRODUCT_CONFIG[editedProduct.ProductType].minPrice;
     if (!editedProduct.originalPrice || editedProduct.originalPrice < minPrice) {
-      errors.originalPrice = `Minimum price is £${minPrice}`;
-    }
+      errors.originalPrice = `Minimum price is ${formatPrice(minPrice)}`;
+        }
     if (editedProduct.discountPrice && editedProduct.discountPrice > editedProduct.originalPrice) {
       errors.discountPrice = 'Discount price cannot be higher than original price';
     }
@@ -1483,35 +1508,29 @@ const AdminProductApproval = () => {
   }, [editedProduct]);
 
   // Handle approve/reject
-  const handleApprove = useCallback(async () => {
+  const handleApprove = useCallback(async (product) => {
     try {
-      setIsValidating(true);
-      if (!validateProduct()) {
-        toast.error('Please fix validation errors before approving');
-        return;
-      }
-
       await dispatch(approveRejectProduct({
-        productId: selectedProduct._id,
+        productId: product._id,
         status: 'public',
         updates: {
-          ...editedProduct,
-          visibility: 'public'
+          visibility: 'public',
+          originalPrice: product.originalPrice,
+          discountPrice: product.discountPrice,
+          availableColors: product.availableColors
         }
       })).unwrap();
 
       toast.success('Product approved successfully');
-      setEditMode(false);
       setSelectedProduct(null);
-      setEditedProduct(null);
+      setEditMode(false);
     } catch (error) {
       toast.error(error.message || 'Failed to approve product');
-    } finally {
-      setIsValidating(false);
     }
-  }, [dispatch, selectedProduct, editedProduct, validateProduct]);
+  }, [dispatch]);
 
-  const handleReject = useCallback(async () => {
+
+  const handleReject = useCallback(async (product) => {
     const reason = window.prompt('Please provide a reason for rejection:');
     if (!reason?.trim()) {
       toast.error('Rejection reason is required');
@@ -1520,26 +1539,48 @@ const AdminProductApproval = () => {
 
     try {
       await dispatch(approveRejectProduct({
-        productId: selectedProduct._id,
+        productId: product._id,
         status: 'rejected',
         statusReason: reason,
         updates: { visibility: 'restricted' }
       })).unwrap();
 
       toast.success('Product rejected successfully');
-      setEditMode(false);
       setSelectedProduct(null);
-      setEditedProduct(null);
+      setEditMode(false);
     } catch (error) {
       toast.error(error.message || 'Failed to reject product');
     }
-  }, [dispatch, selectedProduct]);
+  }, [dispatch]);
+
 
   // Render loading state
-  if (isLoading && !editMode) {
-    return (
+  if (userLoading || isLoading) {
+        return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
+      </div>
+    );
+  }
+
+  // Error state
+  if (productError) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto bg-red-50 p-4 rounded-lg">
+          <div className="flex items-center">
+            <AiOutlineWarning className="h-6 w-6 text-red-500 mr-3" />
+            <h3 className="text-sm font-medium text-red-800">
+              {productError}
+            </h3>
+          </div>
+          <button
+            onClick={() => dispatch(fetchPendingProducts())}
+            className="mt-3 text-sm font-medium text-red-600 hover:text-red-500"
+          >
+            Try again
+          </button>
+        </div>
       </div>
     );
   }
