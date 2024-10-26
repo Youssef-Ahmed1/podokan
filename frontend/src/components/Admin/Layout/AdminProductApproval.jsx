@@ -1327,7 +1327,7 @@ const AdminProductApproval = () => {
   }
   
   = useSelector(state => state.product);
-  const { isAuthenticated, user, loading: userLoading } = useSelector(
+  const { isAuthenticated, user, loading: userLoading ,  error: userError } = useSelector(
     (state) => state.user
   );
   // Local state
