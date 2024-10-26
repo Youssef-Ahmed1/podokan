@@ -8,7 +8,10 @@ import {
   AiOutlineDelete,
   AiOutlineEye,
   AiOutlineSearch,
-  AiOutlineFilter
+  AiOutlineFilter,
+    AiOutlineTags, 
+  AiOutlineShop, 
+  
 } from 'react-icons/ai';
 import { BiGrid, BiRuler } from 'react-icons/bi';
 import { BsZoomIn, BsZoomOut } from 'react-icons/bs';
