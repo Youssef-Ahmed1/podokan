@@ -11,8 +11,7 @@ const eventInitialState = {
 };
 
 export const eventReducer = createReducer(eventInitialState, (builder) => {
-  builder
-    .addCase("EVENT_CREATE_REQUEST", (state) => {
+  builder.addCase("EVENT_CREATE_REQUEST", (state) => {
       state.isLoading = true;
     })
     .addCase("EVENT_CREATE_SUCCESS", (state, action) => {
