@@ -1,7 +1,7 @@
 import React, { useEffect, useState, memo, useCallback, useMemo, useRef ,Fragment} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { fetchPendingProducts, approveRejectProduct } from '../../../redux/actions/product';
+import { fetchPendingProducts, approveRejectProduct , getAllProducts} from '../../../redux/actions/product';
 import { BsZoomIn, BsZoomOut } from 'react-icons/bs';
 import { AiOutlineWarning, AiOutlineInfoCircle } from 'react-icons/ai';
 import { debounce } from 'lodash';
