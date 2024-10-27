@@ -11,7 +11,9 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 
-
+const VALID_STATUSES = ['pending', 'public', 'rejected'];
+const VALID_COLORS = ['white', 'black', 'gray', 'red', 'blue'];
+const VALID_PRODUCT_TYPES = ['t-shirt', 'hoodie', 'long-sleeves'];
 
 // Multer configuration
 const storage = multer.diskStorage({
@@ -143,101 +145,31 @@ router.post(
     }
   })
 );// Approve/Reject Product route
-router.put(
-  '/approve-reject-product/:id',
-  isAuthenticated,
-  isAdmin("Admin"),
-  [
-    body('status')
-      .isIn(VALID_STATUSES)
-      .withMessage('Invalid status value'),
-    body('originalPrice')
-      .if(body('status').equals('public'))
-      .isFloat({ min: 0.01 })
-      .withMessage('Valid original price is required for public products'),
-    body('discountPrice')
-      .optional()
-      .isFloat({ min: 0 })
-      .custom((value, { req }) => {
-        return !value || value <= req.body.originalPrice;
-      })
-      .withMessage('Discount price must be less than or equal to original price'),
-    body('availableColors')
-      .if(body('status').equals('public'))
-      .isArray()
-      .withMessage('Available colors must be an array')
-      .custom((colors) => colors.every(color => VALID_COLORS.includes(color)))
-      .withMessage(`Available colors must be from: ${VALID_COLORS.join(', ')}`)
-      .custom((colors) => colors.length > 0)
-      .withMessage('At least one color must be selected'),
-    body('rejectionReason')
-      .if(body('status').equals('rejected'))
-      .notEmpty()
-      .withMessage('Rejection reason is required when rejecting a product')
-  ],
+router.put('/approve-reject-product/:id', isAuthenticated, isAdmin("Admin"), 
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { id } = req.params;
-      const { status, rejectionReason, ...updates } = req.body;
-
-      // Validate request
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ 
-          success: false, 
-          errors: errors.array() 
-        });
-      }
-
-      // Validate product ID
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        return next(new ErrorHandler("Invalid product ID", 400));
-      }
-
-      // Find product
-      const product = await Product.findById(id);
-      if (!product) {
-        return next(new ErrorHandler("Product not found", 404));
-      }
-
-      // Validate status transition
-      if (product.status === 'rejected' && status !== 'pending') {
-        return next(new ErrorHandler("Rejected products must be resubmitted as pending", 400));
-      }
+      const { status, statusReason, ...updates } = req.body;
 
       // Prepare update data
       const updateData = {
+        ...updates,
         status,
-        rejectionReason: status === 'rejected' ? rejectionReason : undefined,
-        originalPrice: status === 'public' ? parseFloat(updates.originalPrice) : undefined,
-        discountPrice: updates.discountPrice ? parseFloat(updates.discountPrice) : undefined,
-        availableColors: updates.availableColors,
+        visibility: 'public', // Always set visibility to public when approving
+        rejectionReason: status === 'rejected' ? statusReason : undefined,
         lastModified: new Date(),
         lastModifiedBy: req.user._id
       };
 
-      // Remove undefined values
-      Object.keys(updateData).forEach(key => 
-        updateData[key] === undefined && delete updateData[key]
-      );
-
-      // Update product
       const updatedProduct = await Product.findByIdAndUpdate(
         id,
         { $set: updateData },
-        { 
-          new: true, 
-          runValidators: true,
-          select: '-__v' // Exclude version key
-        }
+        { new: true, runValidators: true }
       );
-
-      // Notify shop owner about the status change
-      await notifyShopOwner(updatedProduct, status);
 
       res.status(200).json({
         success: true,
-        message: `Product ${status === 'rejected' ? 'rejected' : 'updated'} successfully`,
+        message: `Product ${status === 'public' ? 'approved' : 'rejected'} successfully`,
         product: updatedProduct
       });
 
@@ -246,7 +178,6 @@ router.put(
     }
   })
 );
-
 // Update product design
 router.put(
   "/update-product-design/:id",
@@ -507,66 +438,39 @@ router.delete(
 );
 
 // Get all products (public)
-router.get(
-  "/get-all-products",
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 20;
-      const skip = (page - 1) * limit;
+router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
 
-      // Build query
-      let query = {
-        status: { $in: ["public", "restricted"] }
-      };
+    // Build query - include both public and restricted visibility
+    let query = {
+      status: 'public'  // Only get products with public status
+      // Remove the visibility filter to show both public and restricted products
+    };
 
-      // Add filters
-      if (req.query.productType && VALID_PRODUCT_TYPES.includes(req.query.productType)) {
-        query.ProductType = req.query.productType;
-      }
+    // Get products
+    const products = await Product.find(query)
+      .select('-__v')
+      .sort(req.query.sort || '-createdAt')
+      .skip(skip)
+      .limit(limit)
+      .populate('shopId', 'name email avatar');
 
-      if (req.query.color && VALID_COLORS.includes(req.query.color)) {
-        query.availableColors = req.query.color;
-      }
+    console.log('Found products:', products.length); // Debug log
 
-      if (req.query.minPrice || req.query.maxPrice) {
-        query.originalPrice = {};
-        if (req.query.minPrice) query.originalPrice.$gte = parseFloat(req.query.minPrice);
-        if (req.query.maxPrice) query.originalPrice.$lte = parseFloat(req.query.maxPrice);
-      }
-
-      if (req.query.search) {
-        query.$or = [
-          { DesignTitle: { $regex: req.query.search, $options: 'i' } },
-          { Description: { $regex: req.query.search, $options: 'i' } },
-          { Maintag: { $regex: req.query.search, $options: 'i' } },
-          { Designtags: { $regex: req.query.search, $options: 'i' } }
-        ];
-      }
-
-      // Get total count
-      const totalProducts = await Product.countDocuments(query);
-
-      // Get products
-      let products = await Product.find(query)
-        .select('-__v')
-        .sort(req.query.sort || '-createdAt')
-        .skip(skip)
-        .limit(limit)
-        .populate('shopId', 'name email avatar');
-
-      res.status(200).json({
-        success: true,
-        products,
-        currentPage: page,
-        totalPages: Math.ceil(totalProducts / limit),
-        totalProducts,
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
+    res.status(200).json({
+      success: true,
+      products,
+      currentPage: page,
+      totalPages: Math.ceil(totalProducts / limit),
+      totalProducts,
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+}));
 
 // Create/Update review
 router.put(
