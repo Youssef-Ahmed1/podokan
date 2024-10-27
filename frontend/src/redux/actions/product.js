@@ -82,32 +82,21 @@ export const approveRejectProduct = (productId, newStatus, rejectionReason, upda
   try {
     dispatch({ type: "approveRejectProductRequest" });
 
-    // Format the data
     const formattedData = {
       status: newStatus,
       statusReason: rejectionReason || '',
+      visibility: newStatus === 'public' ? 'public' : 'restricted',
       ...updates,
-      // Convert arrays to proper format
-      Designtags: Array.isArray(updates.Designtags) ? updates.Designtags.join(',') : '',
-      mainTags: Array.isArray(updates.mainTags) ? updates.mainTags.join(',') : '',
+      // Ensure arrays are properly formatted
       availableColors: Array.isArray(updates.availableColors) 
         ? updates.availableColors 
         : [updates.ProductColor || 'white'],
       availableProductTypes: Array.isArray(updates.availableProductTypes)
         ? updates.availableProductTypes
         : [updates.ProductType || 't-shirt'],
-      // Ensure other fields are properly formatted
-      ProductType: updates.ProductType || 't-shirt',
-      ProductColor: updates.ProductColor || 'white',
-      ProductView: updates.ProductView || 'front',
-      DesignScale: updates.DesignScale || 1,
-      DesignPosition: updates.DesignPosition || { x: 50, y: 25 },
-      visibility: newStatus === 'public' ? 'public' : 'restricted',
-      originalPrice: typeof updates.originalPrice === 'number' ? updates.originalPrice : 0,
-      discountPrice: typeof updates.discountPrice === 'number' ? updates.discountPrice : null
+      mainTags: Array.isArray(updates.mainTags) ? updates.mainTags : [],
+      Designtags: Array.isArray(updates.Designtags) ? updates.Designtags : [],
     };
-
-    console.log('Sending to server:', formattedData);
 
     const response = await axios.put(
       `${server}/product/approve-reject-product/${productId}`,
@@ -125,6 +114,13 @@ export const approveRejectProduct = (productId, newStatus, rejectionReason, upda
         type: "approveRejectProductSuccess", 
         payload: response.data.message 
       });
+
+      // Refresh both pending and all products lists
+      dispatch(fetchPendingProducts());
+      if (newStatus === 'public') {
+        dispatch(getAllProducts());
+      }
+
       return { 
         success: true, 
         message: `Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully` 
@@ -141,6 +137,8 @@ export const approveRejectProduct = (productId, newStatus, rejectionReason, upda
     throw error;
   }
 };
+
+
 
 export const getAllProductsShop = (id) => async (dispatch) => {
   try {
@@ -201,24 +199,36 @@ export const deleteProduct = (id) => async (dispatch) => {
 };
 
 
-// get all products (only approved ones)
 export const getAllProducts = () => async (dispatch) => {
   try {
     dispatch({ type: "getAllProductsRequest" });
 
     const { data } = await axios.get(`${server}/product/get-all-products`);
 
+    // Filter and format products
     const approvedProducts = data.products
-    .filter(product => product.status === 'public' || product.status === 'restricted')
-    .map(product => ({
-      ...product,
-      DesignScale: product.DesignScale || 1,
-      originalPrice: product.originalPrice || 0,
-      discountPrice: product.discountPrice || product.originalPrice || 0,
-      availableColors: product.availableColors || ['white'] // Added availableColors
-    }));
-    dispatch({ type: "getAllProductsSuccess", payload: approvedProducts });
+      .filter(product => product.status === 'public')
+      .map(product => ({
+        ...product,
+        DesignScale: product.DesignScale || 1,
+        DesignPosition: product.DesignPosition || { x: 50, y: 25 },
+        originalPrice: product.originalPrice || 0,
+        discountPrice: product.discountPrice || null,
+        availableColors: Array.isArray(product.availableColors) 
+          ? product.availableColors 
+          : [product.ProductColor || 'white'],
+        availableProductTypes: Array.isArray(product.availableProductTypes)
+          ? product.availableProductTypes
+          : [product.ProductType || 't-shirt'],
+        visibility: product.visibility || 'public'
+      }));
+
+    dispatch({ 
+      type: "getAllProductsSuccess", 
+      payload: approvedProducts 
+    });
   } catch (error) {
+    console.error("Error fetching all products:", error);
     dispatch({
       type: "getAllProductsFailed",
       payload: error.response?.data?.message || error.message,
