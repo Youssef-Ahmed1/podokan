@@ -238,146 +238,84 @@ const ProductPreview = memo(({
   const designRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [position, setPosition] = useState({ x: 50, y: 25 });
+  const [position, setPosition] = useState({ x: 50, y: 50 }); // Changed initial position
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(false);
   const [isOutOfBounds, setIsOutOfBounds] = useState(false);
-  const [designBounds, setDesignBounds] = useState(null);
 
   const productConfig = PRODUCT_TYPES[editedProduct.ProductType];
   const colorConfig = COLOR_OPTIONS[editedProduct.ProductColor];
   const designArea = productConfig.mockupConfig.designArea[editedProduct.ProductView];
 
-  // Calculate design boundaries
-  useEffect(() => {
-    if (containerRef.current) {
-      const container = containerRef.current.getBoundingClientRect();
-      // Convert percentage to pixels for design area
-      const width = (container.width * parseFloat(designArea.width)) / 100;
-      const height = (container.height * parseFloat(designArea.height)) / 100;
-      
-      // Calculate position based on percentage values from designArea
-      const top = (container.height * parseFloat(designArea.top)) / 100;
-      const left = (container.width * parseFloat(designArea.left)) / 100;
-  
-      setDesignBounds({
-        width,
-        height,
-        top,
-        left,
-        right: left + width,
-        bottom: top + height,
-        centerX: left + (width / 2),
-        centerY: top + (height / 2)
-      });
-    }
-  }, [designArea, editedProduct.ProductView]);
-  // Check if design is out of bounds
+  // Design area calculation
+  const getDesignAreaStyle = useCallback(() => {
+    const containerWidth = containerRef.current?.clientWidth || 0;
+    const containerHeight = containerRef.current?.clientHeight || 0;
+
+    // Convert design area dimensions to pixels
+    const width = Math.min(containerWidth * 0.4, 300); // 40% of container width or max 300px
+    const height = (width * designArea.height) / designArea.width;
+    const top = containerHeight * 0.3; // 30% from top
+    const left = containerWidth / 2; // center horizontally
+
+    return {
+      position: 'absolute',
+      top: `${top}px`,
+      left: `${left}px`,
+      width: `${width}px`,
+      height: `${height}px`,
+      transform: 'translate(-50%, -50%)',
+      border: '2px dashed rgba(59, 130, 246, 0.5)',
+      pointerEvents: 'none',
+      zIndex: 10
+    };
+  }, [designArea]);
+
+  // Check boundaries
   const checkBoundary = useCallback(() => {
-    if (!designRef.current || !containerRef.current || !designBounds) return;
+    if (!designRef.current || !containerRef.current) return;
 
-    const design = designRef.current.getBoundingClientRect();
     const container = containerRef.current.getBoundingClientRect();
-
+    const design = designRef.current.getBoundingClientRect();
     const designCenter = {
-      x: design.left + (design.width / 2) - container.left,
-      y: design.top + (design.height / 2) - container.top
+      x: design.left + design.width / 2 - container.left,
+      y: design.top + design.height / 2 - container.top
+    };
+
+    const safeArea = {
+      left: container.width * 0.2,
+      right: container.width * 0.8,
+      top: container.height * 0.2,
+      bottom: container.height * 0.8
     };
 
     const isOut = 
-      designCenter.x < designBounds.left ||
-      designCenter.x > designBounds.right ||
-      designCenter.y < designBounds.top ||
-      designCenter.y > designBounds.bottom;
+      designCenter.x < safeArea.left ||
+      designCenter.x > safeArea.right ||
+      designCenter.y < safeArea.top ||
+      designCenter.y > safeArea.bottom;
 
     setIsOutOfBounds(isOut);
-    return isOut;
-  }, [designBounds]);
+  }, []);
 
-  // Center design functions
+  // Center design
   const centerDesign = useCallback((axis) => {
     if (disabled) return;
 
     const newPosition = { ...position };
     if (axis === 'x' || axis === 'both') newPosition.x = 50;
-    if (axis === 'y' || axis === 'both') newPosition.y = 25;
+    if (axis === 'y' || axis === 'both') newPosition.y = 50;
 
     setPosition(newPosition);
     onPositionChange?.(newPosition);
   }, [disabled, position, onPositionChange]);
 
-  // Grid rendering function with design border
-  const renderGrid = useCallback(() => {
-    if (!showGrid && !designBounds) return null;
-
-    return (
-      <>
-        {/* Design Border */}
-        <div
-          className="absolute border-2 border-dashed border-blue-500 pointer-events-none"
-          style={{
-            top: `${designBounds?.top}px`,
-            left: `${designBounds?.left}px`,
-            width: `${designBounds?.width}px`,
-            height: `${designBounds?.height}px`,
-            opacity: 0.5
-          }}
-        />
-        
-        {showGrid && (
-          <>
-            {/* Center Lines */}
-            <div className="absolute top-0 bottom-0 left-1/2 w-px bg-blue-500 opacity-50 transform -translate-x-1/2" />
-            <div className="absolute left-0 right-0 top-1/2 h-px bg-blue-500 opacity-50 transform -translate-y-1/2" />
-            
-            {/* Grid Lines */}
-            {Array.from({ length: 9 }).map((_, i) => (
-              <Fragment key={i}>
-                <div 
-                  className="absolute top-0 bottom-0 w-px bg-gray-300 opacity-25"
-                  style={{ left: `${(i + 1) * 10}%` }}
-                />
-                <div 
-                  className="absolute left-0 right-0 h-px bg-gray-300 opacity-25"
-                  style={{ top: `${(i + 1) * 10}%` }}
-                />
-              </Fragment>
-            ))}
-          </>
-        )}
-      </>
-    );
-  }, [showGrid, designBounds]);
-
-  const mockupUrl = useMemo(() => {
-    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-    const config = PRODUCT_TYPES[editedProduct.ProductType]?.mockupConfig;
-    
-    if (!config) return "";
-    
-    const filename = config.getFilename(
-      editedProduct.ProductColor, 
-      editedProduct.ProductView
-    );
-    
-    return `${baseUrl}${config.version}/${config.folder}/${filename}.png`;
-  }, [editedProduct.ProductType, editedProduct.ProductColor, editedProduct.ProductView]);
-  
-  const handleImageLoad = useCallback(() => {
-    setLoading(false);
-    setError(null);
-  }, []);
-
-  const handleImageError = useCallback(() => {
-    setLoading(false);
-    setError('Failed to load product mockup');
-  }, []);
-
+  // Handle drag
   const handleDragStart = useCallback((e) => {
     if (disabled) return;
-    e.preventDefault(); // Prevent image drag
+    e.preventDefault();
     
     const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
     const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
@@ -387,7 +325,7 @@ const ProductPreview = memo(({
   }, [disabled]);
 
   const handleDragMove = useCallback((e) => {
-    if (!isDragging || !containerRef.current || !designBounds || disabled) return;
+    if (!isDragging || !containerRef.current || disabled) return;
 
     const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
     const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
@@ -396,7 +334,6 @@ const ProductPreview = memo(({
     const deltaX = (clientX - dragStart.x) / container.width * 100;
     const deltaY = (clientY - dragStart.y) / container.height * 100;
 
-    // Calculate new position with constraints
     const newPosition = {
       x: Math.max(0, Math.min(100, position.x + deltaX)),
       y: Math.max(0, Math.min(100, position.y + deltaY))
@@ -406,24 +343,31 @@ const ProductPreview = memo(({
     setDragStart({ x: clientX, y: clientY });
     onPositionChange?.(newPosition);
     checkBoundary();
-  }, [isDragging, dragStart, position, disabled, onPositionChange, checkBoundary, designBounds]);
+  }, [isDragging, dragStart, position, disabled, onPositionChange, checkBoundary]);
 
   const handleDragEnd = useCallback(() => {
     setIsDragging(false);
   }, []);
 
+  // Handle zoom
   const handleZoom = useCallback((direction) => {
     if (disabled) return;
     
-    const newZoom = direction === 'in' 
-      ? Math.min(zoom * 1.1, productConfig.mockupConfig.maxScale)
-      : Math.max(zoom * 0.9, productConfig.mockupConfig.minScale);
+    const zoomFactor = direction === 'in' ? 1.1 : 0.9;
+    const newZoom = Math.max(
+      productConfig.mockupConfig.minScale,
+      Math.min(
+        productConfig.mockupConfig.maxScale,
+        zoom * zoomFactor
+      )
+    );
     
     setZoom(newZoom);
     onZoom?.(newZoom);
     setTimeout(checkBoundary, 0);
   }, [zoom, disabled, productConfig, onZoom, checkBoundary]);
 
+  // Event listeners
   useEffect(() => {
     if (isDragging) {
       window.addEventListener('mousemove', handleDragMove);
@@ -440,15 +384,27 @@ const ProductPreview = memo(({
     };
   }, [isDragging, handleDragMove, handleDragEnd]);
 
+  // Check boundary on position/zoom change
   useEffect(() => {
     checkBoundary();
   }, [position, zoom, checkBoundary]);
 
+  // Get mockup URL
+  const mockupUrl = useMemo(() => {
+    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
+    const config = productConfig.mockupConfig;
+    const filename = config.getFilename(
+      editedProduct.ProductColor, 
+      editedProduct.ProductView
+    );
+    return `${baseUrl}${config.version}/${config.folder}/${filename}.png`;
+  }, [editedProduct.ProductType, editedProduct.ProductColor, editedProduct.ProductView, productConfig]);
+
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      {/* Controls Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-gray-800">Product Preview</h3>
           <div className="flex items-center space-x-4">
             {/* View Controls */}
             <div className="flex bg-gray-100 rounded-lg p-1">
@@ -470,8 +426,8 @@ const ProductPreview = memo(({
               ))}
             </div>
 
-            {/* Alignment Controls */}
-            <div className="flex items-center space-x-2 border-l border-r px-4">
+            {/* Center Controls */}
+            <div className="flex items-center space-x-2">
               <button
                 onClick={() => centerDesign('x')}
                 disabled={disabled}
@@ -503,7 +459,7 @@ const ProductPreview = memo(({
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                        d="M4 4h4m4 0h4m4 0h4M4 8h4m4 0h4m4 0h4M4 12h4m4 0h4m4 0h4M4 16h4m4 0h4m4 0h4M4 20h4m4 0h4m4 0h4" />
+                    d="M4 4h4m4 0h4m4 0h4M4 8h4m4 0h4m4 0h4M4 12h4m4 0h4m4 0h4" />
                 </svg>
               </button>
               <div className="flex items-center space-x-1">
@@ -530,11 +486,26 @@ const ProductPreview = memo(({
         </div>
       </div>
 
+      {/* Preview Area */}
       <div 
         ref={containerRef}
         className="relative aspect-square w-full bg-gray-50 overflow-hidden"
       >
-        {renderGrid()}
+        {/* Design Area Border */}
+        <div style={getDesignAreaStyle()} />
+
+        {/* Grid Overlay */}
+        {showGrid && (
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-blue-400 opacity-30" />
+            <div className="absolute top-1/2 left-0 right-0 h-px bg-blue-400 opacity-30" />
+            <div className="grid grid-cols-4 grid-rows-4 h-full">
+              {Array.from({ length: 16 }).map((_, i) => (
+                <div key={i} className="border border-blue-200 opacity-10" />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Mockup Image */}
         <img
@@ -544,12 +515,15 @@ const ProductPreview = memo(({
           style={{
             filter: colorConfig.mockupModifier !== 'none' ? colorConfig.mockupModifier : undefined
           }}
-          onLoad={handleImageLoad}
-          onError={handleImageError}
+          onLoad={() => setLoading(false)}
+          onError={() => {
+            setLoading(false);
+            setError('Failed to load mockup');
+          }}
         />
 
         {/* Design Layer */}
-        {!loading && !error && editedProduct.designImage && designBounds && (
+        {!loading && !error && editedProduct.designImage && (
           <div
             ref={designRef}
             className={`
@@ -562,8 +536,8 @@ const ProductPreview = memo(({
             style={{
               left: `${position.x}%`,
               top: `${position.y}%`,
-              width: `${designBounds.width}px`,
-              height: `${designBounds.height}px`,
+              width: `${designArea.width}px`,
+              height: `${designArea.height}px`,
               transform: `translate(-50%, -50%) scale(${zoom})`,
               mixBlendMode: colorConfig.designBlendMode
             }}
@@ -756,6 +730,250 @@ PriceCalculator.propTypes = {
 };
 
 PriceCalculator.displayName = 'PriceCalculator';
+
+
+
+const MultiSelect = memo(({ 
+  options, 
+  value = [], 
+  onChange, 
+  placeholder = "Select...", 
+  disabled = false 
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <div
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`
+          min-h-[2.5rem] p-2 border rounded-lg bg-white
+          ${disabled 
+            ? 'bg-gray-50 cursor-not-allowed' 
+            : 'cursor-pointer hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500'}
+        `}
+      >
+        <div className="flex flex-wrap gap-2">
+          {value.length > 0 ? (
+            value.map((val) => {
+              const option = options.find(opt => opt.value === val);
+              return (
+                <div
+                  key={val}
+                  className="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-100 
+                           rounded-full text-sm text-gray-700"
+                >
+                  <span>{option?.label || val}</span>
+                  {!disabled && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onChange(value.filter(v => v !== val));
+                      }}
+                      className="ml-1 text-gray-400 hover:text-gray-600"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <span className="text-gray-500 text-sm">{placeholder}</span>
+          )}
+        </div>
+      </div>
+
+      {isOpen && !disabled && (
+        <div className="absolute z-50 w-full mt-1 py-1 bg-white rounded-lg shadow-lg 
+                      border border-gray-200 max-h-64 overflow-y-auto">
+          {options.map((option) => (
+            <div
+              key={option.value}
+              onClick={() => {
+                const newValue = value.includes(option.value)
+                  ? value.filter(v => v !== option.value)
+                  : [...value, option.value];
+                onChange(newValue);
+              }}
+              className={`
+                flex items-center gap-2 px-3 py-2 cursor-pointer
+                ${value.includes(option.value) 
+                  ? 'bg-blue-50 text-blue-700' 
+                  : 'hover:bg-gray-50 text-gray-700'}
+              `}
+            >
+              <span className="text-sm">{option.label}</span>
+              {value.includes(option.value) && (
+                <svg className="w-4 h-4 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" 
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                    clipRule="evenodd" 
+                  />
+                </svg>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
+MultiSelect.propTypes = {
+  options: PropTypes.arrayOf(PropTypes.shape({
+    value: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired
+  })).isRequired,
+  value: PropTypes.arrayOf(PropTypes.string),
+  onChange: PropTypes.func.isRequired,
+  placeholder: PropTypes.string,
+  disabled: PropTypes.bool
+};
+
+MultiSelect.displayName = 'MultiSelect';
+
+
+
+const ColorMultiSelect = memo(({ 
+  value = [], 
+  onChange, 
+  disabled = false 
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleToggleColor = useCallback((colorKey) => {
+    if (disabled) return;
+    
+    const newValue = value.includes(colorKey)
+      ? value.filter(v => v !== colorKey)
+      : [...value, colorKey];
+    
+    onChange(newValue);
+  }, [value, onChange, disabled]);
+
+  const handleRemoveColor = useCallback((e, colorKey) => {
+    e.stopPropagation();
+    if (disabled) return;
+    
+    const newValue = value.filter(v => v !== colorKey);
+    onChange(newValue);
+  }, [value, onChange, disabled]);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {/* Selected Colors Display */}
+      <div
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`
+          min-h-[2.5rem] p-2 border rounded-lg bg-white
+          ${disabled 
+            ? 'bg-gray-50 cursor-not-allowed' 
+            : 'cursor-pointer hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500'}
+        `}
+      >
+        <div className="flex flex-wrap gap-2">
+          {value.length > 0 ? (
+            value.map((colorKey) => {
+              const color = COLOR_OPTIONS[colorKey];
+              return (
+                <div
+                  key={colorKey}
+                  className="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-100 
+                           rounded-full text-sm text-gray-700"
+                >
+                  <span
+                    className="w-3 h-3 rounded-full border border-gray-300"
+                    style={{ backgroundColor: color.hex }}
+                  />
+                  <span>{color.label}</span>
+                  {!disabled && (
+                    <button
+                      onClick={(e) => handleRemoveColor(e, colorKey)}
+                      className="ml-1 text-gray-400 hover:text-gray-600"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <span className="text-gray-500 text-sm">Select colors...</span>
+          )}
+        </div>
+      </div>
+
+      {/* Dropdown Menu */}
+      {isOpen && !disabled && (
+        <div className="absolute z-50 w-full mt-1 py-1 bg-white rounded-lg shadow-lg 
+                      border border-gray-200 max-h-64 overflow-y-auto">
+          {Object.entries(COLOR_OPTIONS).map(([colorKey, color]) => (
+            <div
+              key={colorKey}
+              onClick={() => handleToggleColor(colorKey)}
+              className={`
+                flex items-center gap-2 px-3 py-2 cursor-pointer
+                ${value.includes(colorKey) 
+                  ? 'bg-blue-50 text-blue-700' 
+                  : 'hover:bg-gray-50 text-gray-700'}
+              `}
+            >
+              <div className="flex items-center flex-1 gap-2">
+                <span
+                  className="w-4 h-4 rounded-full border border-gray-300"
+                  style={{ backgroundColor: color.hex }}
+                />
+                <span className="text-sm">{color.label}</span>
+              </div>
+              {value.includes(colorKey) && (
+                <svg className="w-4 h-4 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" 
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                        clipRule="evenodd" />
+                </svg>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
+ColorMultiSelect.propTypes = {
+  value: PropTypes.arrayOf(PropTypes.string),
+  onChange: PropTypes.func.isRequired,
+  disabled: PropTypes.bool
+};
+
+ColorMultiSelect.displayName = 'ColorMultiSelect';
+
 const Dropdown = memo(({ 
   options, 
   value, 
@@ -940,100 +1158,6 @@ const ProductConfig = memo(({
     }
   }, [handleAddTag]);
 
-<Dropdown
-  label="Product Type"
-  options={Object.entries(PRODUCT_TYPES).map(([value, config]) => ({
-    value,
-    label: config.label
-  }))}
-  value={editedProduct.ProductType}
-  onChange={(value) => onUpdate({ ProductType: value })}
-  disabled={disabled}
-/>
-
-const MultiSelect = ({ options, value, onChange, placeholder, disabled }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  return (
-    <div className="relative" ref={dropdownRef}>
-      <div
-        className={`
-          p-2 border rounded-lg bg-white cursor-pointer
-          ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-blue-500'}
-        `}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-      >
-        <div className="flex flex-wrap gap-1">
-          {value.length > 0 ? (
-            value.map((item) => (
-              <span
-                key={item}
-                className="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-sm"
-              >
-                {options.find(opt => opt.value === item)?.label || item}
-                {!disabled && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onChange(value.filter(v => v !== item));
-                    }}
-                    className="ml-1 hover:text-blue-900"
-                  >
-                    ×
-                  </button>
-                )}
-              </span>
-            ))
-          ) : (
-            <span className="text-gray-500">{placeholder}</span>
-          )}
-        </div>
-      </div>
-      
-      {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg overflow-hidden">
-          <div className="max-h-60 overflow-y-auto">
-            {options.map((option) => (
-              <div
-                key={option.value}
-                className={`
-                  p-2 cursor-pointer hover:bg-blue-50 flex items-center space-x-2
-                  ${value.includes(option.value) ? 'bg-blue-50' : ''}
-                `}
-                onClick={() => {
-                  const newValue = value.includes(option.value)
-                    ? value.filter(v => v !== option.value)
-                    : [...value, option.value];
-                  onChange(newValue);
-                }}
-              >
-                {option.color && (
-                  <span 
-                    className="w-4 h-4 rounded-full border border-gray-300"
-                    style={{ backgroundColor: option.color }}
-                  />
-                )}
-                <span>{option.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -1077,21 +1201,16 @@ const MultiSelect = ({ options, value, onChange, placeholder, disabled }) => {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Available Colors
-              </label>
-              <MultiSelect
-                options={Object.entries(COLOR_OPTIONS).map(([value, config]) => ({
-                  value,
-                  label: config.label
-                }))}
-                value={editedProduct.availableColors || [editedProduct.ProductColor]}
-                onChange={handleAvailableColorsChange}
-                placeholder="Select available colors..."
-                disabled={disabled}
-              />
-            </div>
+            <div className="space-y-2">
+  <label className="block text-sm font-medium text-gray-700">
+    Available Colors
+  </label>
+  <ColorMultiSelect
+    value={editedProduct.availableColors || [editedProduct.ProductColor]}
+    onChange={handleAvailableColorsChange}
+    disabled={disabled}
+  />
+</div>
           </div>
         )}
 
