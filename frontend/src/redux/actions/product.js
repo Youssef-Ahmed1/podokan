@@ -205,9 +205,12 @@ export const getAllProducts = () => async (dispatch) => {
 
     const { data } = await axios.get(`${server}/product/get-all-products`);
 
-    // Filter and format products
+    // Filter only public products and ensure they have the correct status
     const approvedProducts = data.products
-      .filter(product => product.status === 'public')
+      .filter(product => 
+        product.status === 'public' && 
+        product.visibility === 'public'
+      )
       .map(product => ({
         ...product,
         DesignScale: product.DesignScale || 1,
@@ -220,8 +223,12 @@ export const getAllProducts = () => async (dispatch) => {
         availableProductTypes: Array.isArray(product.availableProductTypes)
           ? product.availableProductTypes
           : [product.ProductType || 't-shirt'],
-        visibility: product.visibility || 'public'
+        // Ensure these fields are set
+        status: 'public',
+        visibility: 'public'
       }));
+
+    console.log('Filtered products:', approvedProducts); // Debug log
 
     dispatch({ 
       type: "getAllProductsSuccess", 
