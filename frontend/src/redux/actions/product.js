@@ -75,19 +75,49 @@ export const fetchPendingProducts = () => async (dispatch) => {
     });
   }
 };
-export const approveRejectProduct = ({ productId, status, statusReason, updates }) => async (dispatch) => {
+
+
+
+export const approveRejectProduct = (productId, newStatus, rejectionReason, updates) => async (dispatch) => {
   try {
     dispatch({ type: "approveRejectProductRequest" });
 
+    // Ensure we have all required data
+    if (!productId || !newStatus) {
+      throw new Error('Missing required parameters');
+    }
+
+    const requestData = {
+      status: newStatus,
+      statusReason: rejectionReason || '',
+      ...updates,
+      ProductType: updates.ProductType || 't-shirt',
+      ProductColor: updates.ProductColor || 'white',
+      ProductView: updates.ProductView || 'front',
+      DesignScale: updates.DesignScale || 1,
+      DesignPosition: updates.DesignPosition || { x: 50, y: 25 },
+      visibility: newStatus === 'public' ? 'public' : 'restricted',
+      availableColors: Array.isArray(updates.availableColors) 
+        ? updates.availableColors 
+        : [updates.ProductColor || 'white'],
+      availableProductTypes: Array.isArray(updates.availableProductTypes)
+        ? updates.availableProductTypes
+        : [updates.ProductType || 't-shirt'],
+      mainTags: Array.isArray(updates.mainTags) ? updates.mainTags : [],
+      Designtags: Array.isArray(updates.Designtags) ? updates.Designtags : [],
+      originalPrice: typeof updates.originalPrice === 'number' 
+        ? updates.originalPrice 
+        : 0,
+      discountPrice: typeof updates.discountPrice === 'number' 
+        ? updates.discountPrice 
+        : null
+    };
+
+    console.log('Sending to server:', requestData); // Debug log
+
     const response = await axios.put(
       `${server}/product/approve-reject-product/${productId}`,
-      { 
-        status, 
-        statusReason, 
-        ...updates,
-        visibility: status === 'public' ? 'public' : 'restricted',
-        availableColors: updates.availableColors || ['white']
-      },
+      requestData,
       {
         withCredentials: true,
         headers: {
@@ -101,7 +131,10 @@ export const approveRejectProduct = ({ productId, status, statusReason, updates 
         type: "approveRejectProductSuccess", 
         payload: response.data.message 
       });
-      return { success: true, message: `Product ${status === 'public' ? 'approved' : status}` };
+      return { 
+        success: true, 
+        message: `Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully` 
+      };
     } else {
       throw new Error(response.data.message || 'Failed to update product status');
     }
@@ -115,7 +148,9 @@ export const approveRejectProduct = ({ productId, status, statusReason, updates 
     throw new Error(errorMessage);
   }
 };
-// get all products of a shop
+
+
+
 export const getAllProductsShop = (id) => async (dispatch) => {
   try {
     dispatch({ type: "getAllProductsShopRequest" });
@@ -174,57 +209,6 @@ export const deleteProduct = (id) => async (dispatch) => {
   }
 };
 
-// Update product design position
-export const updateDesignPosition = (productId, position) => async (dispatch) => {
-  try {
-    dispatch({ type: "updateDesignPositionRequest" });
-
-    const response = await axios.put(
-      `${server}/product/update-design-position/${productId}`,
-      { DesignPosition: position },
-      { withCredentials: true }
-    );
-
-    dispatch({
-      type: "updateDesignPositionSuccess",
-      payload: { productId, position }
-    });
-
-    return response.data;
-  } catch (error) {
-    dispatch({
-      type: "updateDesignPositionFail",
-      payload: error.response?.data?.message || error.message
-    });
-    throw error;
-  }
-};
-
-// Center design position
-export const centerDesign = (productId, axis) => async (dispatch) => {
-  try {
-    dispatch({ type: "centerDesignRequest" });
-
-    const response = await axios.put(
-      `${server}/product/center-design/${productId}`,
-      { axis },
-      { withCredentials: true }
-    );
-
-    dispatch({
-      type: "centerDesignSuccess",
-      payload: { productId, position: response.data.position }
-    });
-
-    return response.data;
-  } catch (error) {
-    dispatch({
-      type: "centerDesignFail",
-      payload: error.response?.data?.message || error.message
-    });
-    throw error;
-  }
-};
 
 // get all products (only approved ones)
 export const getAllProducts = () => async (dispatch) => {
