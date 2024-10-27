@@ -2019,7 +2019,6 @@ const AdminProductApproval = () => {
           editedProduct.rejectionReason || '',
           {
             ...editedProduct,
-            // Ensure these fields exist
             ProductType: editedProduct.ProductType || 't-shirt',
             ProductColor: editedProduct.ProductColor || 'white',
             ProductView: editedProduct.ProductView || 'front',
@@ -2030,16 +2029,23 @@ const AdminProductApproval = () => {
             mainTags: editedProduct.mainTags || [],
             Designtags: editedProduct.Designtags || [],
             originalPrice: editedProduct.originalPrice || 0,
-            discountPrice: editedProduct.discountPrice || null
+            discountPrice: editedProduct.discountPrice || null,
+            visibility: newStatus === 'public' ? 'public' : 'restricted'
           }
         )
       );
   
       if (result.success) {
         toast.success(result.message);
+        // Clear selected product and edited product
         setSelectedProduct(null);
         setEditedProduct(null);
-        dispatch(fetchPendingProducts());
+        // Refresh the pending products list
+        await dispatch(fetchPendingProducts());
+        // If approved, also refresh all products
+        if (newStatus === 'public') {
+          await dispatch(getAllProducts());
+        }
       }
     } catch (error) {
       console.error('Status change failed:', error);
@@ -2048,8 +2054,6 @@ const AdminProductApproval = () => {
       setIsSubmitting(false);
     }
   }, [editedProduct, dispatch]);
-
-
 
   // Check if user has admin access
   if (!user?.role === 'admin') {
