@@ -861,6 +861,7 @@ const ColorMultiSelect = memo(({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -874,18 +875,17 @@ const ColorMultiSelect = memo(({
   }, []);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative inline-block w-full" ref={dropdownRef}>
       <div
         onClick={() => !disabled && setIsOpen(!isOpen)}
         className={`
-          min-h-[2.5rem] p-2 border rounded-lg bg-white
+          min-h-[2.5rem] p-2 border rounded-lg bg-white w-full
           ${disabled 
             ? 'bg-gray-50 cursor-not-allowed' 
             : 'cursor-pointer hover:border-blue-500'}
         `}
       >
-        {/* Selected Colors Display */}
-        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+        <div className="flex flex-wrap gap-2">
           {value.length > 0 ? (
             value.map((colorKey) => {
               const color = COLOR_OPTIONS[colorKey];
@@ -904,7 +904,8 @@ const ColorMultiSelect = memo(({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onChange(value.filter(v => v !== colorKey));
+                        const newValue = value.filter(v => v !== colorKey);
+                        onChange(newValue);
                       }}
                       className="ml-1 text-gray-400 hover:text-gray-600"
                     >
@@ -920,42 +921,42 @@ const ColorMultiSelect = memo(({
         </div>
       </div>
 
-      {/* Dropdown Menu */}
       {isOpen && !disabled && (
-        <div className="fixed z-50 w-full max-w-[calc(100vw-2rem)] left-1/2 transform -translate-x-1/2
-                      mt-1 py-1 bg-white rounded-lg shadow-lg border border-gray-200">
-          <div className="max-h-64 overflow-y-auto">
-            {Object.entries(COLOR_OPTIONS).map(([colorKey, color]) => (
-              <div
-                key={colorKey}
-                onClick={() => {
-                  const newValue = value.includes(colorKey)
-                    ? value.filter(v => v !== colorKey)
-                    : [...value, colorKey];
-                  onChange(newValue);
-                }}
-                className={`
-                  flex items-center gap-2 px-3 py-2 cursor-pointer
-                  ${value.includes(colorKey) ? 'bg-blue-50' : 'hover:bg-gray-50'}
-                `}
-              >
-                <div className="flex items-center flex-1 gap-2">
-                  <span
-                    className="w-4 h-4 rounded-full border border-gray-300"
-                    style={{ backgroundColor: color.hex }}
-                  />
-                  <span className="text-sm">{color.label}</span>
-                </div>
-                {value.includes(colorKey) && (
-                  <svg className="w-4 h-4 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" 
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
-                      clipRule="evenodd" />
-                  </svg>
-                )}
+        <div 
+          ref={menuRef}
+          className="absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg shadow-lg 
+                    border border-gray-200 max-h-64 overflow-y-auto"
+        >
+          {Object.entries(COLOR_OPTIONS).map(([colorKey, color]) => (
+            <div
+              key={colorKey}
+              onClick={() => {
+                const newValue = value.includes(colorKey)
+                  ? value.filter(v => v !== colorKey)
+                  : [...value, colorKey];
+                onChange(newValue);
+              }}
+              className={`
+                flex items-center gap-2 px-3 py-2 cursor-pointer
+                ${value.includes(colorKey) ? 'bg-blue-50' : 'hover:bg-gray-50'}
+              `}
+            >
+              <div className="flex items-center flex-1 gap-2">
+                <span
+                  className="w-4 h-4 rounded-full border border-gray-300"
+                  style={{ backgroundColor: color.hex }}
+                />
+                <span className="text-sm">{color.label}</span>
               </div>
-            ))}
-          </div>
+              {value.includes(colorKey) && (
+                <svg className="w-4 h-4 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" 
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                    clipRule="evenodd" />
+                </svg>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -2049,7 +2050,7 @@ const AdminProductApproval = () => {
   }, [editedProduct, dispatch]);
 
 
-  
+
   // Check if user has admin access
   if (!user?.role === 'admin') {
     return (

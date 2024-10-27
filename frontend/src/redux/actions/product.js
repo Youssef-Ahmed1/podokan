@@ -82,42 +82,36 @@ export const approveRejectProduct = (productId, newStatus, rejectionReason, upda
   try {
     dispatch({ type: "approveRejectProductRequest" });
 
-    // Ensure we have all required data
-    if (!productId || !newStatus) {
-      throw new Error('Missing required parameters');
-    }
-
-    const requestData = {
+    // Format the data
+    const formattedData = {
       status: newStatus,
       statusReason: rejectionReason || '',
       ...updates,
-      ProductType: updates.ProductType || 't-shirt',
-      ProductColor: updates.ProductColor || 'white',
-      ProductView: updates.ProductView || 'front',
-      DesignScale: updates.DesignScale || 1,
-      DesignPosition: updates.DesignPosition || { x: 50, y: 25 },
-      visibility: newStatus === 'public' ? 'public' : 'restricted',
+      // Convert arrays to proper format
+      Designtags: Array.isArray(updates.Designtags) ? updates.Designtags.join(',') : '',
+      mainTags: Array.isArray(updates.mainTags) ? updates.mainTags.join(',') : '',
       availableColors: Array.isArray(updates.availableColors) 
         ? updates.availableColors 
         : [updates.ProductColor || 'white'],
       availableProductTypes: Array.isArray(updates.availableProductTypes)
         ? updates.availableProductTypes
         : [updates.ProductType || 't-shirt'],
-      mainTags: Array.isArray(updates.mainTags) ? updates.mainTags : [],
-      Designtags: Array.isArray(updates.Designtags) ? updates.Designtags : [],
-      originalPrice: typeof updates.originalPrice === 'number' 
-        ? updates.originalPrice 
-        : 0,
-      discountPrice: typeof updates.discountPrice === 'number' 
-        ? updates.discountPrice 
-        : null
+      // Ensure other fields are properly formatted
+      ProductType: updates.ProductType || 't-shirt',
+      ProductColor: updates.ProductColor || 'white',
+      ProductView: updates.ProductView || 'front',
+      DesignScale: updates.DesignScale || 1,
+      DesignPosition: updates.DesignPosition || { x: 50, y: 25 },
+      visibility: newStatus === 'public' ? 'public' : 'restricted',
+      originalPrice: typeof updates.originalPrice === 'number' ? updates.originalPrice : 0,
+      discountPrice: typeof updates.discountPrice === 'number' ? updates.discountPrice : null
     };
 
-    console.log('Sending to server:', requestData); // Debug log
+    console.log('Sending to server:', formattedData);
 
     const response = await axios.put(
       `${server}/product/approve-reject-product/${productId}`,
-      requestData,
+      formattedData,
       {
         withCredentials: true,
         headers: {
@@ -139,17 +133,14 @@ export const approveRejectProduct = (productId, newStatus, rejectionReason, upda
       throw new Error(response.data.message || 'Failed to update product status');
     }
   } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message;
     console.error("Error in approveRejectProduct:", error);
     dispatch({
       type: "approveRejectProductFail",
-      payload: errorMessage,
+      payload: error.response?.data?.message || error.message,
     });
-    throw new Error(errorMessage);
+    throw error;
   }
 };
-
-
 
 export const getAllProductsShop = (id) => async (dispatch) => {
   try {
