@@ -1,4 +1,4 @@
-import React, { useEffect, useState, memo, useCallback, useMemo, useRef } from 'react';
+import React, { useEffect, useState, memo, useCallback, useMemo, useRef ,Fragment} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { fetchPendingProducts, approveRejectProduct } from '../../../redux/actions/product';
@@ -244,32 +244,53 @@ const ProductPreview = memo(({
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(false);
   const [isOutOfBounds, setIsOutOfBounds] = useState(false);
+  const [designBounds, setDesignBounds] = useState(null);
 
   const productConfig = PRODUCT_TYPES[editedProduct.ProductType];
   const colorConfig = COLOR_OPTIONS[editedProduct.ProductColor];
+  const designArea = productConfig.mockupConfig.designArea[editedProduct.ProductView];
+
+  // Calculate design boundaries
+  useEffect(() => {
+    if (containerRef.current) {
+      const container = containerRef.current.getBoundingClientRect();
+      const width = (container.width * designArea.width) / 100;
+      const height = (container.height * designArea.height) / 100;
+      const top = (container.height - height) / 2;
+      const left = (container.width - width) / 2;
+      
+      setDesignBounds({
+        width,
+        height,
+        top,
+        left,
+        right: left + width,
+        bottom: top + height
+      });
+    }
+  }, [designArea, editedProduct.ProductView]);
 
   // Check if design is out of bounds
   const checkBoundary = useCallback(() => {
-    if (!designRef.current || !containerRef.current) return;
+    if (!designRef.current || !containerRef.current || !designBounds) return;
 
-    const container = containerRef.current.getBoundingClientRect();
     const design = designRef.current.getBoundingClientRect();
-    const designArea = productConfig.mockupConfig.designArea[editedProduct.ProductView];
+    const container = containerRef.current.getBoundingClientRect();
 
-    const designCenterX = design.left + (design.width / 2);
-    const designCenterY = design.top + (design.height / 2);
-    const containerCenterX = container.left + (container.width / 2);
-    const containerCenterY = container.top + (container.height / 2);
+    const designCenter = {
+      x: design.left + (design.width / 2) - container.left,
+      y: design.top + (design.height / 2) - container.top
+    };
 
-    const maxOffsetX = (container.width * designArea.width) / 200;
-    const maxOffsetY = (container.height * designArea.height) / 200;
-
-    const isOut = Math.abs(designCenterX - containerCenterX) > maxOffsetX ||
-                 Math.abs(designCenterY - containerCenterY) > maxOffsetY;
+    const isOut = 
+      designCenter.x < designBounds.left ||
+      designCenter.x > designBounds.right ||
+      designCenter.y < designBounds.top ||
+      designCenter.y > designBounds.bottom;
 
     setIsOutOfBounds(isOut);
     return isOut;
-  }, [productConfig, editedProduct.ProductView]);
+  }, [designBounds]);
 
   // Center design functions
   const centerDesign = useCallback((axis) => {
@@ -283,30 +304,48 @@ const ProductPreview = memo(({
     onPositionChange?.(newPosition);
   }, [disabled, position, onPositionChange]);
 
-  // Grid rendering function
+  // Grid rendering function with design border
   const renderGrid = useCallback(() => {
-    if (!showGrid) return null;
+    if (!showGrid && !designBounds) return null;
 
-    const gridLines = [];
-    // Vertical center line
-    gridLines.push(
-      <div key="vertical" className="absolute top-0 bottom-0 left-1/2 w-px bg-blue-500 opacity-50" />
+    return (
+      <>
+        {/* Design Border */}
+        <div
+          className="absolute border-2 border-dashed border-blue-500 pointer-events-none"
+          style={{
+            top: `${designBounds?.top}px`,
+            left: `${designBounds?.left}px`,
+            width: `${designBounds?.width}px`,
+            height: `${designBounds?.height}px`,
+            opacity: 0.5
+          }}
+        />
+        
+        {showGrid && (
+          <>
+            {/* Center Lines */}
+            <div className="absolute top-0 bottom-0 left-1/2 w-px bg-blue-500 opacity-50 transform -translate-x-1/2" />
+            <div className="absolute left-0 right-0 top-1/2 h-px bg-blue-500 opacity-50 transform -translate-y-1/2" />
+            
+            {/* Grid Lines */}
+            {Array.from({ length: 9 }).map((_, i) => (
+              <Fragment key={i}>
+                <div 
+                  className="absolute top-0 bottom-0 w-px bg-gray-300 opacity-25"
+                  style={{ left: `${(i + 1) * 10}%` }}
+                />
+                <div 
+                  className="absolute left-0 right-0 h-px bg-gray-300 opacity-25"
+                  style={{ top: `${(i + 1) * 10}%` }}
+                />
+              </Fragment>
+            ))}
+          </>
+        )}
+      </>
     );
-    // Horizontal center line
-    gridLines.push(
-      <div key="horizontal" className="absolute left-0 right-0 top-1/2 h-px bg-blue-500 opacity-50" />
-    );
-    // Grid squares
-    for (let i = 1; i < 10; i++) {
-      gridLines.push(
-        <div key={`vertical-${i}`} className="absolute top-0 bottom-0 w-px bg-gray-300 opacity-25"
-             style={{ left: `${i * 10}%` }} />,
-        <div key={`horizontal-${i}`} className="absolute left-0 right-0 h-px bg-gray-300 opacity-25"
-             style={{ top: `${i * 10}%` }} />
-      );
-    }
-    return gridLines;
-  }, [showGrid]);
+  }, [showGrid, designBounds]);
 
   const mockupUrl = useMemo(() => {
     const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
@@ -334,6 +373,7 @@ const ProductPreview = memo(({
 
   const handleDragStart = useCallback((e) => {
     if (disabled) return;
+    e.preventDefault(); // Prevent image drag
     
     const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
     const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
@@ -343,7 +383,7 @@ const ProductPreview = memo(({
   }, [disabled]);
 
   const handleDragMove = useCallback((e) => {
-    if (!isDragging || !containerRef.current || disabled) return;
+    if (!isDragging || !containerRef.current || !designBounds || disabled) return;
 
     const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
     const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
@@ -352,14 +392,17 @@ const ProductPreview = memo(({
     const deltaX = (clientX - dragStart.x) / container.width * 100;
     const deltaY = (clientY - dragStart.y) / container.height * 100;
 
-    const newX = Math.max(0, Math.min(100, position.x + deltaX));
-    const newY = Math.max(0, Math.min(100, position.y + deltaY));
+    // Calculate new position with constraints
+    const newPosition = {
+      x: Math.max(0, Math.min(100, position.x + deltaX)),
+      y: Math.max(0, Math.min(100, position.y + deltaY))
+    };
 
-    setPosition({ x: newX, y: newY });
+    setPosition(newPosition);
     setDragStart({ x: clientX, y: clientY });
-    onPositionChange?.({ x: newX, y: newY });
+    onPositionChange?.(newPosition);
     checkBoundary();
-  }, [isDragging, dragStart, position, disabled, onPositionChange, checkBoundary]);
+  }, [isDragging, dragStart, position, disabled, onPositionChange, checkBoundary, designBounds]);
 
   const handleDragEnd = useCallback(() => {
     setIsDragging(false);
@@ -408,7 +451,7 @@ const ProductPreview = memo(({
               {['front', 'back'].map((view) => (
                 <button
                   key={view}
-                  onClick={() => onViewChange?.(view)}
+                  onClick={() => !disabled && onViewChange?.(view)}
                   disabled={disabled}
                   className={`
                     px-3 py-1 rounded-md text-sm font-medium transition-all
@@ -423,68 +466,61 @@ const ProductPreview = memo(({
               ))}
             </div>
 
-            {/* Grid Toggle */}
-            <button
-              onClick={() => setShowGrid(!showGrid)}
-              className={`
-                p-2 rounded-lg border transition-all
-                ${showGrid ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
-              `}
-              title="Toggle Grid"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                      d="M4 4h4m4 0h4m4 0h4M4 8h4m4 0h4m4 0h4M4 12h4m4 0h4m4 0h4M4 16h4m4 0h4m4 0h4M4 20h4m4 0h4m4 0h4" />
-              </svg>
-            </button>
-
-            {/* Center Controls */}
-            <div className="flex items-center space-x-2">
+            {/* Alignment Controls */}
+            <div className="flex items-center space-x-2 border-l border-r px-4">
               <button
                 onClick={() => centerDesign('x')}
                 disabled={disabled}
-                className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50"
+                className="p-2 rounded hover:bg-gray-100 disabled:opacity-50"
                 title="Center Horizontally"
               >
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                        d="M12 4v16m-6-8h12" />
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m-6-8h12" />
                 </svg>
               </button>
               <button
                 onClick={() => centerDesign('y')}
                 disabled={disabled}
-                className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50"
+                className="p-2 rounded hover:bg-gray-100 disabled:opacity-50"
                 title="Center Vertically"
               >
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                        d="M4 12h16m-8-6v12" />
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12h16m-8-6v12" />
                 </svg>
               </button>
             </div>
 
-            {/* Zoom Controls */}
-            <div className="flex items-center space-x-1">
+            {/* Grid and Zoom Controls */}
+            <div className="flex items-center space-x-2">
               <button
-                onClick={() => handleZoom('out')}
-                disabled={disabled || zoom <= productConfig.mockupConfig.minScale}
-                className="p-1 rounded-full hover:bg-gray-100 disabled:opacity-50"
-                title="Zoom Out"
+                onClick={() => setShowGrid(!showGrid)}
+                className={`p-2 rounded ${showGrid ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                title="Toggle Grid"
               >
-                <BsZoomOut size={20} />
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                        d="M4 4h4m4 0h4m4 0h4M4 8h4m4 0h4m4 0h4M4 12h4m4 0h4m4 0h4M4 16h4m4 0h4m4 0h4M4 20h4m4 0h4m4 0h4" />
+                </svg>
               </button>
-              <span className="text-sm text-gray-500">
-                {(zoom * 100).toFixed(0)}%
-              </span>
-              <button
-                onClick={() => handleZoom('in')}
-                disabled={disabled || zoom >= productConfig.mockupConfig.maxScale}
-                className="p-1 rounded-full hover:bg-gray-100 disabled:opacity-50"
-                title="Zoom In"
-              >
-                <BsZoomIn size={20} />
-              </button>
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={() => handleZoom('out')}
+                  disabled={disabled || zoom <= productConfig.mockupConfig.minScale}
+                  className="p-2 rounded hover:bg-gray-100 disabled:opacity-50"
+                >
+                  <BsZoomOut size={18} />
+                </button>
+                <span className="min-w-[3rem] text-center text-sm text-gray-600">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <button
+                  onClick={() => handleZoom('in')}
+                  disabled={disabled || zoom >= productConfig.mockupConfig.maxScale}
+                  className="p-2 rounded hover:bg-gray-100 disabled:opacity-50"
+                >
+                  <BsZoomIn size={18} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -494,24 +530,9 @@ const ProductPreview = memo(({
         ref={containerRef}
         className="relative aspect-square w-full bg-gray-50 overflow-hidden"
       >
-        {/* Grid Lines */}
         {renderGrid()}
 
-        {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
-          </div>
-        )}
-
-        {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-            <div className="text-center text-red-500">
-              <AiOutlineWarning size={32} className="mx-auto mb-2" />
-              <p>{error}</p>
-            </div>
-          </div>
-        )}
-
+        {/* Mockup Image */}
         <img
           src={mockupUrl}
           alt={`${editedProduct.ProductType} ${editedProduct.ProductColor} ${editedProduct.ProductView} view`}
@@ -523,19 +544,22 @@ const ProductPreview = memo(({
           onError={handleImageError}
         />
 
-        {!loading && !error && editedProduct.designImage && (
+        {/* Design Layer */}
+        {!loading && !error && editedProduct.designImage && designBounds && (
           <div
             ref={designRef}
             className={`
-              absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-200
+              absolute transform -translate-x-1/2 -translate-y-1/2
               ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
+              ${disabled ? 'cursor-not-allowed' : ''}
               ${isOutOfBounds ? 'opacity-50' : 'opacity-100'}
+              transition-opacity duration-200
             `}
             style={{
               left: `${position.x}%`,
               top: `${position.y}%`,
-              width: `${productConfig.mockupConfig.designArea[editedProduct.ProductView].width}px`,
-              height: `${productConfig.mockupConfig.designArea[editedProduct.ProductView].height}px`,
+              width: `${designBounds.width}px`,
+              height: `${designBounds.height}px`,
               transform: `translate(-50%, -50%) scale(${zoom})`,
               mixBlendMode: colorConfig.designBlendMode
             }}
@@ -550,17 +574,33 @@ const ProductPreview = memo(({
             />
           </div>
         )}
+
+        {/* Loading State */}
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+            <div className="text-center text-red-500">
+              <AiOutlineWarning size={32} className="mx-auto mb-2" />
+              <p>{error}</p>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="p-4 bg-gray-50 text-sm text-gray-500">
+      {/* Status Bar */}
+      <div className="p-4 bg-gray-50 border-t border-gray-200">
         <div className="flex justify-between items-center">
-          <p>
-            {disabled 
-              ? 'Preview mode: Design position is locked'
-              : 'Drag to adjust design position • Use zoom controls to resize'}
-          </p>
+          <span className="text-sm text-gray-500">
+            {disabled ? 'Preview mode' : 'Drag to adjust design position'}
+          </span>
           {isOutOfBounds && (
-            <span className="text-red-500 flex items-center">
+            <span className="text-sm text-red-500 flex items-center">
               <AiOutlineWarning className="mr-1" />
               Design is outside safe area
             </span>
@@ -587,216 +627,126 @@ ProductPreview.propTypes = {
 ProductPreview.displayName = 'ProductPreview';
 
 
-
 const PriceCalculator = memo(({ 
-  productType,
-  originalPrice,
-  discountPrice,
-  onChange,
-  disabled
+  productType, 
+  originalPrice, 
+  discountPrice, 
+  onChange, 
+  disabled = false 
 }) => {
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [priceError, setPriceError] = useState(null);
-  const productConfig = PRODUCT_TYPES[productType];
-  
-  const basePrice = useMemo(() => {
-    return productConfig.basePrice;
-  }, [productConfig]);
+  const basePrice = PRODUCT_TYPES[productType].basePrice;
+  const [errors, setErrors] = useState({});
 
-  const validatePrice = useCallback((price, isDiscount = false) => {
+  const validatePrice = useCallback((price, type) => {
     if (!price) return 'Price is required';
-    if (price < basePrice) {
-      return `Price cannot be less than base price (${CURRENCY.format(basePrice)})`;
-    }
-    if (isDiscount && price > originalPrice) {
-      return 'Discount price cannot be higher than original price';
+    if (isNaN(price)) return 'Must be a valid number';
+    if (price < basePrice) return `Minimum price is ${CURRENCY.format(basePrice)}`;
+    if (type === 'discount' && price > originalPrice) {
+      return 'Discount price must be less than original price';
     }
     return null;
   }, [basePrice, originalPrice]);
 
-  const calculateMargin = useCallback((price) => {
-    const cost = productConfig.productionCost;
-    return ((price - cost) / price * 100).toFixed(1);
-  }, [productConfig]);
-
-  const getMarginStatus = useCallback((margin) => {
-    const minMargin = productConfig.margins.min * 100;
-    const recMargin = productConfig.margins.recommended * 100;
+  const handlePriceChange = useCallback((e) => {
+    const { name, value } = e.target;
+    const numValue = parseFloat(value);
+    const error = validatePrice(numValue, name === 'discountPrice' ? 'discount' : 'original');
     
-    if (margin < minMargin) return 'error';
-    if (margin < recMargin) return 'warning';
-    return 'success';
-  }, [productConfig]);
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
 
-  const handlePriceChange = useCallback((type, value) => {
-    const numValue = parseFloat(value) || 0;
-    const error = validatePrice(numValue, type === 'discount');
-    setPriceError(error);
-    
     if (!error) {
-      if (type === 'original') {
-        onChange({
-          originalPrice: numValue,
-          discountPrice: discountPrice > numValue ? numValue : discountPrice
-        });
-      } else {
-        onChange({
-          originalPrice,
-          discountPrice: numValue > originalPrice ? originalPrice : numValue
-        });
-      }
+      onChange({
+        originalPrice: name === 'originalPrice' ? numValue : originalPrice,
+        discountPrice: name === 'discountPrice' ? numValue : discountPrice
+      });
     }
-  }, [originalPrice, discountPrice, onChange, validatePrice]);
-
-  const profitDetails = useMemo(() => {
-    const cost = productConfig.productionCost;
-    const profit = originalPrice - cost;
-    const profitMargin = (profit / originalPrice) * 100;
-    const discountedProfit = discountPrice ? (discountPrice - cost) : profit;
-    const discountedMargin = discountPrice ? (discountedProfit / discountPrice) * 100 : profitMargin;
-
-    return {
-      profit: CURRENCY.format(profit),
-      profitMargin: profitMargin.toFixed(1),
-      discountedProfit: CURRENCY.format(discountedProfit),
-      discountedMargin: discountedMargin.toFixed(1),
-      costPerUnit: CURRENCY.format(cost)
-    };
-  }, [productConfig, originalPrice, discountPrice]);
-
-  const priceStatus = useMemo(() => {
-    if (!originalPrice) return 'error';
-    const margin = calculateMargin(originalPrice);
-    return getMarginStatus(parseFloat(margin));
-  }, [originalPrice, calculateMargin, getMarginStatus]);
-
-  const renderPriceInput = (type, value, label) => (
-    <div className="space-y-1">
-      <label className="block text-sm font-medium text-gray-700">
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          type="number"
-          value={value || ''}
-          onChange={(e) => handlePriceChange(type, e.target.value)}
-          disabled={disabled}
-          min={basePrice}
-          step="1"
-          className={`
-            w-full px-3 py-2 border rounded-lg
-            ${disabled ? 'bg-gray-100' : 'bg-white'}
-            ${priceError ? 'border-red-300' : 
-              priceStatus === 'warning' ? 'border-yellow-300' : 
-              'border-gray-300'}
-            focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-          `}
-        />
-        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-          <span className="text-gray-500">{CURRENCY.code}</span>
-        </div>
-      </div>
-      {type === 'original' && priceError && (
-        <p className="text-sm text-red-600">{priceError}</p>
-      )}
-    </div>
-  );
+  }, [onChange, originalPrice, discountPrice, validatePrice]);
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       <div className="p-4 border-b border-gray-200">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-gray-800">Price Configuration</h3>
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-          >
-            {showAdvanced ? 'Simple View' : 'Advanced Options'}
-          </button>
-        </div>
+        <h3 className="text-lg font-semibold text-gray-800">
+          Price Settings
+        </h3>
       </div>
 
-      <div className="p-4 space-y-6">
-        {/* Base Price Info */}
-        <div className="bg-blue-50 p-3 rounded-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-blue-700">
-              Base Price for {productConfig.label}
-            </span>
-            <span className="text-lg font-bold text-blue-700">
-              {CURRENCY.format(basePrice)}
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {renderPriceInput('original', originalPrice, 'Original Price')}
-          {renderPriceInput('discount', discountPrice, 'Discount Price (Optional)')}
-        </div>
-
-        {showAdvanced && (
-          <div className="space-y-4">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-4">Profit Analysis</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500">Cost per unit</p>
-                  <p className="text-lg font-bold">{profitDetails.costPerUnit}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Profit per unit</p>
-                  <p className="text-lg font-bold">{profitDetails.profit}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Profit margin</p>
-                  <p className={`text-lg font-bold ${
-                    getMarginStatus(parseFloat(profitDetails.profitMargin)) === 'error' ? 'text-red-600' :
-                    getMarginStatus(parseFloat(profitDetails.profitMargin)) === 'warning' ? 'text-yellow-600' :
-                    'text-green-600'
-                  }`}>
-                    {profitDetails.profitMargin}%
-                  </p>
-                </div>
-                {discountPrice && (
-                  <div>
-                    <p className="text-sm text-gray-500">Discounted margin</p>
-                    <p className={`text-lg font-bold ${
-                      getMarginStatus(parseFloat(profitDetails.discountedMargin)) === 'error' ? 'text-red-600' :
-                      getMarginStatus(parseFloat(profitDetails.discountedMargin)) === 'warning' ? 'text-yellow-600' :
-                      'text-green-600'
-                    }`}>
-                      {profitDetails.discountedMargin}%
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="p-4 bg-gray-50 border-t border-gray-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-500">Final Price</p>
-            <p className="text-xl font-bold text-gray-900">
-              {CURRENCY.format(originalPrice || 0)}
-              {discountPrice && (
-                <span className="ml-2 text-sm text-gray-500 line-through">
-                  {CURRENCY.format(discountPrice)}
-                </span>
-              )}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-500">Profit per sale</p>
-            <p className="text-xl font-bold text-gray-900">
-              {profitDetails.profit}
-              <span className="ml-2 text-sm text-gray-500">
-                ({profitDetails.profitMargin}%)
+      <div className="p-4 space-y-4">
+        {/* Original Price */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Original Price
+          </label>
+          <div className="relative rounded-md shadow-sm">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
+              <span className="text-gray-500 sm:text-sm">
+                {CURRENCY.symbol}
               </span>
-            </p>
+            </div>
+            <input
+              type="number"
+              name="originalPrice"
+              value={originalPrice || ''}
+              onChange={handlePriceChange}
+              disabled={disabled}
+              min={basePrice}
+              step="0.01"
+              className={`
+                block w-full pl-10 pr-12 py-2 rounded-lg border
+                focus:outline-none focus:ring-2 focus:ring-blue-500
+                disabled:bg-gray-50 disabled:text-gray-500
+                ${errors.originalPrice ? 'border-red-300' : 'border-gray-300'}
+              `}
+              placeholder="0.00"
+            />
           </div>
+          {errors.originalPrice && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.originalPrice}
+            </p>
+          )}
+        </div>
+
+        {/* Discount Price (Optional) */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Discount Price (Optional)
+          </label>
+          <div className="relative rounded-md shadow-sm">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
+              <span className="text-gray-500 sm:text-sm">
+                {CURRENCY.symbol}
+              </span>
+            </div>
+            <input
+              type="number"
+              name="discountPrice"
+              value={discountPrice || ''}
+              onChange={handlePriceChange}
+              disabled={disabled}
+              min={basePrice}
+              max={originalPrice}
+              step="0.01"
+              className={`
+                block w-full pl-10 pr-12 py-2 rounded-lg border
+                focus:outline-none focus:ring-2 focus:ring-blue-500
+                disabled:bg-gray-50 disabled:text-gray-500
+                ${errors.discountPrice ? 'border-red-300' : 'border-gray-300'}
+              `}
+              placeholder="0.00"
+            />
+          </div>
+          {errors.discountPrice && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.discountPrice}
+            </p>
+          )}
+        </div>
+
+        <div className="text-sm text-gray-500">
+          Base price for {PRODUCT_TYPES[productType].label}: {CURRENCY.format(basePrice)}
         </div>
       </div>
     </div>
@@ -812,7 +762,107 @@ PriceCalculator.propTypes = {
 };
 
 PriceCalculator.displayName = 'PriceCalculator';
+const Dropdown = memo(({ 
+  options, 
+  value, 
+  onChange, 
+  label, 
+  disabled = false,
+  error = null
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const selectedOption = options.find(opt => opt.value === value);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {label && (
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {label}
+        </label>
+      )}
+      
+      <button
+        type="button"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        className={`
+          relative w-full bg-white px-4 py-2 text-left
+          border rounded-lg shadow-sm
+          focus:outline-none focus:ring-2 focus:ring-blue-500
+          disabled:bg-gray-50 disabled:text-gray-500
+          ${error ? 'border-red-300' : 'border-gray-300'}
+        `}
+      >
+        <span className="block truncate">
+          {selectedOption?.label || 'Select option'}
+        </span>
+        <span className="absolute inset-y-0 right-0 flex items-center pr-2">
+          <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fillRule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-lg overflow-auto border border-gray-200">
+          <div className="py-1">
+            {options.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+                className={`
+                  w-full text-left px-4 py-2 text-sm hover:bg-gray-100
+                  ${value === option.value ? 'bg-blue-50 text-blue-600' : 'text-gray-900'}
+                `}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <p className="mt-1 text-sm text-red-600">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+});
+
+Dropdown.propTypes = {
+  options: PropTypes.arrayOf(PropTypes.shape({
+    value: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired
+  })).isRequired,
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  label: PropTypes.string,
+  disabled: PropTypes.bool,
+  error: PropTypes.string
+};
+
+Dropdown.displayName = 'Dropdown';
 
 
 const ProductConfig = memo(({ 
@@ -895,8 +945,18 @@ const ProductConfig = memo(({
       handleAddTag();
     }
   }, [handleAddTag]);
+  
+<Dropdown
+  label="Product Type"
+  options={Object.entries(PRODUCT_TYPES).map(([value, config]) => ({
+    value,
+    label: config.label
+  }))}
+  value={editedProduct.ProductType}
+  onChange={(value) => onUpdate({ ProductType: value })}
+  disabled={disabled}
+/>
 
-  // Custom Multi-Select Dropdown Component
   const MultiSelect = ({ options, value, onChange, placeholder, disabled }) => {
     const [isOpen, setIsOpen] = useState(false);
     
