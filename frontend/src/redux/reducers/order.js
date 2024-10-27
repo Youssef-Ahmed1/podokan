@@ -5,8 +5,7 @@ const initialState = {
 };
 
 export const orderReducer = createReducer(initialState, (builder) => {
-  builder
-    .addCase("getAllOrdersUserRequest", (state) => {
+  builder.addCase("getAllOrdersUserRequest", (state) => {
       state.isLoading = true;
     })
     .addCase("getAllOrdersUserSuccess", (state, action) => {
