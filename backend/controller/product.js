@@ -11,11 +11,7 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 
-// Constants
-const VALID_COLORS = ['white', 'black', 'red', 'blue', 'gray'];
-const VALID_STATUSES = ['pending', 'public', 'restricted', 'rejected'];
-const VALID_PRODUCT_TYPES = ['t-shirt', 'hoodie', 'long-sleeve'];
-const VALID_VIEWS = ['front', 'back'];
+
 
 // Multer configuration
 const storage = multer.diskStorage({
@@ -40,48 +36,6 @@ const upload = multer({
   }
 });
 
-// Validation middleware
-const validateProductData = [
-  body('shopId')
-    .notEmpty()
-    .withMessage('Shop ID is required')
-    .custom((value) => mongoose.Types.ObjectId.isValid(value))
-    .withMessage('Invalid shop ID format'),
-  body('DesignTitle')
-    .trim()
-    .notEmpty()
-    .withMessage('Design title is required')
-    .isLength({ min: 3, max: 100 })
-    .withMessage('Design title must be between 3 and 100 characters'),
-  body('Description')
-    .trim()
-    .notEmpty()
-    .withMessage('Description is required')
-    .isLength({ min: 10, max: 1000 })
-    .withMessage('Description must be between 10 and 1000 characters'),
-  body('Maintag')
-    .trim()
-    .notEmpty()
-    .withMessage('Main tag is required'),
-  body('ProductType')
-    .isIn(VALID_PRODUCT_TYPES)
-    .withMessage('Invalid product type'),
-  body('ProductColor')
-    .isIn(VALID_COLORS)
-    .withMessage('Invalid product color'),
-  body('ProductView')
-    .isIn(VALID_VIEWS)
-    .withMessage('Invalid product view'),
-  body('DesignScale')
-    .isFloat({ min: 0.1, max: 5.0 })
-    .withMessage('Design scale must be between 0.1 and 5.0'),
-  body('availableColors')
-    .optional()
-    .isArray()
-    .withMessage('Available colors must be an array')
-    .custom((colors) => colors.every(color => VALID_COLORS.includes(color)))
-    .withMessage(`Available colors must be one of: ${VALID_COLORS.join(', ')}`)
-];
 
 // CORS preflight handling
 router.options('/approve-reject-product/:id', (req, res) => {
@@ -106,92 +60,7 @@ router.post(
           success: false, 
           errors: errors.array() 
         });
-      }// productController.js - Add these new routes
-
-// Update design position
-router.put(
-  "/update-design-position/:id",
-  isAuthenticated,
-  isAdmin("Admin"),
-  [
-    body('DesignPosition')
-      .isObject()
-      .withMessage('Design position must be an object')
-      .custom((position) => {
-        return position && 
-               typeof position.x === 'number' && 
-               typeof position.y === 'number' &&
-               position.x >= 0 && position.x <= 100 &&
-               position.y >= 0 && position.y <= 100;
-      })
-      .withMessage('Invalid position coordinates')
-  ],
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      const { DesignPosition } = req.body;
-
-      const product = await Product.findById(id);
-      if (!product) {
-        return next(new ErrorHandler("Product not found", 404));
       }
-
-      product.DesignPosition = DesignPosition;
-      await product.save();
-
-      res.status(200).json({
-        success: true,
-        message: "Design position updated successfully",
-        position: DesignPosition
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
-
-// Center design
-router.put(
-  "/center-design/:id",
-  isAuthenticated,
-  isAdmin("Admin"),
-  [
-    body('axis')
-      .isIn(['x', 'y', 'both'])
-      .withMessage('Invalid axis specified')
-  ],
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      const { axis } = req.body;
-
-      const product = await Product.findById(id);
-      if (!product) {
-        return next(new ErrorHandler("Product not found", 404));
-      }
-
-      const newPosition = { ...product.DesignPosition };
-      
-      if (axis === 'x' || axis === 'both') {
-        newPosition.x = 50; // Center horizontally
-      }
-      if (axis === 'y' || axis === 'both') {
-        newPosition.y = 50; // Center vertically
-      }
-
-      product.DesignPosition = newPosition;
-      await product.save();
-
-      res.status(200).json({
-        success: true,
-        message: "Design centered successfully",
-        position: newPosition
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
 
       const { 
         shopId, 

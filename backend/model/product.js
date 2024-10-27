@@ -1,12 +1,4 @@
 const mongoose = require("mongoose");
-
-// Constants for validation
-const VALID_COLORS = ['white', 'black', 'red', 'blue', 'gray'];
-const VALID_PRODUCT_TYPES = ['t-shirt', 'hoodie', 'long-sleeve'];
-const VALID_VIEWS = ['front', 'back'];
-const VALID_STATUSES = ['pending', 'public', 'rejected'];
-const VALID_VISIBILITY = ['restricted', 'public'];
-
 const productSchema = new mongoose.Schema({
   shopId: {
     type: mongoose.Schema.Types.ObjectId,

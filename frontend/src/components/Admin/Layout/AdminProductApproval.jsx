@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo ,useRef} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { loadUser } from '../../../redux/actions/user';
 import { 
   AiOutlineWarning, 
   AiOutlineCheckCircle,
@@ -17,6 +16,7 @@ import {
 import { BiGrid, BiRuler } from 'react-icons/bi';
 import { BsZoomIn, BsZoomOut } from 'react-icons/bs';
 import { fetchPendingProducts, approveRejectProduct } from '../../../redux/actions/product';
+import {  loadUser } from '../../../redux/actions/user';
 import PropTypes from 'prop-types'
 import { useNavigate } from 'react-router-dom';;
 
@@ -1320,16 +1320,25 @@ const AdminProductApproval = () => {
   const dispatch = useDispatch();  
   const { 
     pendingProducts, 
-    isLoading, 
-    error,
+    isLoading: productLoading, 
+    error: productError,
     filters,
     pagination 
-  }
+  } = useSelector(state => state.product);
   
-  = useSelector(state => state.product);
-  const { isAuthenticated, user, loading: userLoading ,  error: userError } = useSelector(
-    (state) => state.user
-  );
+  const { 
+    isAuthenticated, 
+    user, 
+    loading: userLoading,
+    error: userError 
+  } = useSelector((state) => state.user);
+  
+  const {
+    seller,
+    isLoading: sellerLoading,
+    error: sellerError
+  } = useSelector((state) => state.seller);
+  
   // Local state
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -1366,16 +1375,15 @@ const AdminProductApproval = () => {
           await dispatch(loadUser()).unwrap();
         }
       } catch (error) {
-        toast.error(error.message || 'Authentication failed');
+        toast.error('Authentication failed. Please login again.');
         navigate('/login', { 
           state: { from: '/admin-approval' } 
         });
       }
     };
-
+  
     checkAuth();
   }, [dispatch, isAuthenticated, navigate]);
-
   // Check admin authorization
   useEffect(() => {
     if (isAuthenticated && user && user.role !== 'Admin') {
@@ -1556,7 +1564,13 @@ const AdminProductApproval = () => {
 
 
   // Render loading state
-  if (userLoading || isLoading) {
+  if  (userLoading || productLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
+      </div>
+    );
+  }{
         return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
@@ -1565,8 +1579,18 @@ const AdminProductApproval = () => {
   }
 
   // Error state
-  const displayError = error || userError;
-  
+  const displayError = productError || userError 
+
+  if (displayError && !editMode) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto bg-red-50 p-4 rounded-lg text-red-700">
+          <AiOutlineWarning className="inline-block mr-2" />
+          {displayError}
+        </div>
+      </div>
+    );
+  }  
   if (displayError && !editMode) {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
