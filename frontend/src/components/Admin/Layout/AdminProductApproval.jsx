@@ -254,22 +254,26 @@ const ProductPreview = memo(({
   useEffect(() => {
     if (containerRef.current) {
       const container = containerRef.current.getBoundingClientRect();
-      const width = (container.width * designArea.width) / 100;
-      const height = (container.height * designArea.height) / 100;
-      const top = (container.height - height) / 2;
-      const left = (container.width - width) / 2;
+      // Convert percentage to pixels for design area
+      const width = (container.width * parseFloat(designArea.width)) / 100;
+      const height = (container.height * parseFloat(designArea.height)) / 100;
       
+      // Calculate position based on percentage values from designArea
+      const top = (container.height * parseFloat(designArea.top)) / 100;
+      const left = (container.width * parseFloat(designArea.left)) / 100;
+  
       setDesignBounds({
         width,
         height,
         top,
         left,
         right: left + width,
-        bottom: top + height
+        bottom: top + height,
+        centerX: left + (width / 2),
+        centerY: top + (height / 2)
       });
     }
   }, [designArea, editedProduct.ProductView]);
-
   // Check if design is out of bounds
   const checkBoundary = useCallback(() => {
     if (!designRef.current || !containerRef.current || !designBounds) return;
@@ -636,28 +640,40 @@ const PriceCalculator = memo(({
 }) => {
   const basePrice = PRODUCT_TYPES[productType].basePrice;
   const [errors, setErrors] = useState({});
+  const [localPrices, setLocalPrices] = useState({
+    originalPrice: originalPrice || '',
+    discountPrice: discountPrice || ''
+  });
 
   const validatePrice = useCallback((price, type) => {
     if (!price) return 'Price is required';
     if (isNaN(price)) return 'Must be a valid number';
     if (price < basePrice) return `Minimum price is ${CURRENCY.format(basePrice)}`;
-    if (type === 'discount' && price > originalPrice) {
+    if (type === 'discount' && price > localPrices.originalPrice) {
       return 'Discount price must be less than original price';
     }
     return null;
-  }, [basePrice, originalPrice]);
+  }, [basePrice, localPrices.originalPrice]);
 
   const handlePriceChange = useCallback((e) => {
     const { name, value } = e.target;
     const numValue = parseFloat(value);
-    const error = validatePrice(numValue, name === 'discountPrice' ? 'discount' : 'original');
     
+    // Update local state immediately for free typing
+    setLocalPrices(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
+    // Validate but don't block input
+    const error = validatePrice(numValue, name === 'discountPrice' ? 'discount' : 'original');
     setErrors(prev => ({
       ...prev,
       [name]: error
     }));
 
-    if (!error) {
+    // Only update parent if validation passes
+    if (!error && !isNaN(numValue)) {
       onChange({
         originalPrice: name === 'originalPrice' ? numValue : originalPrice,
         discountPrice: name === 'discountPrice' ? numValue : discountPrice
@@ -667,32 +683,22 @@ const PriceCalculator = memo(({
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-800">
-          Price Settings
-        </h3>
-      </div>
-
+      {/* ... rest of your PriceCalculator component ... */}
       <div className="p-4 space-y-4">
-        {/* Original Price */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Original Price
           </label>
           <div className="relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-              <span className="text-gray-500 sm:text-sm">
-                {CURRENCY.symbol}
-              </span>
+              <span className="text-gray-500 sm:text-sm">{CURRENCY.symbol}</span>
             </div>
             <input
               type="number"
               name="originalPrice"
-              value={originalPrice || ''}
+              value={localPrices.originalPrice}
               onChange={handlePriceChange}
               disabled={disabled}
-              min={basePrice}
-              step="0.01"
               className={`
                 block w-full pl-10 pr-12 py-2 rounded-lg border
                 focus:outline-none focus:ring-2 focus:ring-blue-500
@@ -703,32 +709,24 @@ const PriceCalculator = memo(({
             />
           </div>
           {errors.originalPrice && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.originalPrice}
-            </p>
+            <p className="mt-1 text-sm text-red-600">{errors.originalPrice}</p>
           )}
         </div>
 
-        {/* Discount Price (Optional) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Discount Price (Optional)
           </label>
           <div className="relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-              <span className="text-gray-500 sm:text-sm">
-                {CURRENCY.symbol}
-              </span>
+              <span className="text-gray-500 sm:text-sm">{CURRENCY.symbol}</span>
             </div>
             <input
               type="number"
               name="discountPrice"
-              value={discountPrice || ''}
+              value={localPrices.discountPrice}
               onChange={handlePriceChange}
               disabled={disabled}
-              min={basePrice}
-              max={originalPrice}
-              step="0.01"
               className={`
                 block w-full pl-10 pr-12 py-2 rounded-lg border
                 focus:outline-none focus:ring-2 focus:ring-blue-500
@@ -739,9 +737,7 @@ const PriceCalculator = memo(({
             />
           </div>
           {errors.discountPrice && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.discountPrice}
-            </p>
+            <p className="mt-1 text-sm text-red-600">{errors.discountPrice}</p>
           )}
         </div>
 
@@ -753,15 +749,8 @@ const PriceCalculator = memo(({
   );
 });
 
-PriceCalculator.propTypes = {
-  productType: PropTypes.string.isRequired,
-  originalPrice: PropTypes.number,
-  discountPrice: PropTypes.number,
-  onChange: PropTypes.func.isRequired,
-  disabled: PropTypes.bool
-};
 
-PriceCalculator.displayName = 'PriceCalculator';
+
 const Dropdown = memo(({ 
   options, 
   value, 
@@ -945,7 +934,7 @@ const ProductConfig = memo(({
       handleAddTag();
     }
   }, [handleAddTag]);
-  
+
 <Dropdown
   label="Product Type"
   options={Object.entries(PRODUCT_TYPES).map(([value, config]) => ({
@@ -957,52 +946,65 @@ const ProductConfig = memo(({
   disabled={disabled}
 />
 
-  const MultiSelect = ({ options, value, onChange, placeholder, disabled }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    
-    return (
-      <div className="relative">
-        <div
-          className={`
-            p-2 border rounded-lg bg-white cursor-pointer
-            ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-blue-500'}
-          `}
-          onClick={() => !disabled && setIsOpen(!isOpen)}
-        >
-          <div className="flex flex-wrap gap-1">
-            {value.length > 0 ? (
-              value.map((item) => (
-                <span
-                  key={item}
-                  className="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-sm"
-                >
-                  {options.find(opt => opt.value === item)?.label || item}
-                  {!disabled && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onChange(value.filter(v => v !== item));
-                      }}
-                      className="ml-1 hover:text-blue-900"
-                    >
-                      ×
-                    </button>
-                  )}
-                </span>
-              ))
-            ) : (
-              <span className="text-gray-500">{placeholder}</span>
-            )}
-          </div>
+const MultiSelect = ({ options, value, onChange, placeholder, disabled }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <div
+        className={`
+          p-2 border rounded-lg bg-white cursor-pointer
+          ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-blue-500'}
+        `}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+      >
+        <div className="flex flex-wrap gap-1">
+          {value.length > 0 ? (
+            value.map((item) => (
+              <span
+                key={item}
+                className="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-sm"
+              >
+                {options.find(opt => opt.value === item)?.label || item}
+                {!disabled && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onChange(value.filter(v => v !== item));
+                    }}
+                    className="ml-1 hover:text-blue-900"
+                  >
+                    ×
+                  </button>
+                )}
+              </span>
+            ))
+          ) : (
+            <span className="text-gray-500">{placeholder}</span>
+          )}
         </div>
-        
-        {isOpen && !disabled && (
-          <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-auto">
+      </div>
+      
+      {isOpen && !disabled && (
+        <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg overflow-hidden">
+          <div className="max-h-60 overflow-y-auto">
             {options.map((option) => (
               <div
                 key={option.value}
                 className={`
-                  p-2 cursor-pointer hover:bg-blue-50
+                  p-2 cursor-pointer hover:bg-blue-50 flex items-center space-x-2
                   ${value.includes(option.value) ? 'bg-blue-50' : ''}
                 `}
                 onClick={() => {
@@ -1010,17 +1012,23 @@ const ProductConfig = memo(({
                     ? value.filter(v => v !== option.value)
                     : [...value, option.value];
                   onChange(newValue);
-                  setIsOpen(false);
                 }}
               >
-                {option.label}
+                {option.color && (
+                  <span 
+                    className="w-4 h-4 rounded-full border border-gray-300"
+                    style={{ backgroundColor: option.color }}
+                  />
+                )}
+                <span>{option.label}</span>
               </div>
             ))}
           </div>
-        )}
-      </div>
-    );
-  };
+        </div>
+      )}
+    </div>
+  );
+};
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
