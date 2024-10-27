@@ -40,8 +40,8 @@ const PRODUCT_TYPES = {
     },
     mockupConfig: {
       version: 'v1',
-      folder: '/hoodie',
-      getFilename: (color, view) => `hoodies-${color}-${view}`,
+      folder: '/hoodies',
+      getFilename: (color, view) => `hoodie-${color}-${view}`,
       designArea: {
         front: { width: 280, height: 380, top: '30%', left: '50%' },
         back: { width: 300, height: 400, top: '25%', left: '50%' }
