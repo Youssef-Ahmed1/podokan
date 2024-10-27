@@ -251,15 +251,22 @@ const ProductPreview = memo(({
 
   // Design area calculation
   const getDesignAreaStyle = useCallback(() => {
-    const containerWidth = containerRef.current?.clientWidth || 0;
-    const containerHeight = containerRef.current?.clientHeight || 0;
-
-    // Convert design area dimensions to pixels
-    const width = Math.min(containerWidth * 0.4, 300); // 40% of container width or max 300px
-    const height = (width * designArea.height) / designArea.width;
-    const top = containerHeight * 0.3; // 30% from top
-    const left = containerWidth / 2; // center horizontally
-
+    if (!containerRef.current) return {};
+    
+    const container = containerRef.current.getBoundingClientRect();
+    
+    // Calculate dimensions based on container size
+    const containerWidth = container.width;
+    const containerHeight = container.height;
+    
+    // Use percentage values from designArea
+    const width = (containerWidth * parseFloat(designArea.width)) / 100;
+    const height = (containerHeight * parseFloat(designArea.height)) / 100;
+    
+    // Calculate position
+    const top = (containerHeight * parseFloat(designArea.top)) / 100;
+    const left = (containerWidth * parseFloat(designArea.left)) / 100;
+  
     return {
       position: 'absolute',
       top: `${top}px`,
@@ -269,10 +276,10 @@ const ProductPreview = memo(({
       transform: 'translate(-50%, -50%)',
       border: '2px dashed rgba(59, 130, 246, 0.5)',
       pointerEvents: 'none',
-      zIndex: 10
+      zIndex: 10,
+      backgroundColor: 'rgba(59, 130, 246, 0.1)'
     };
   }, [designArea]);
-
   // Check boundaries
   const checkBoundary = useCallback(() => {
     if (!designRef.current || !containerRef.current) return;
@@ -855,7 +862,6 @@ const ColorMultiSelect = memo(({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -867,37 +873,19 @@ const ColorMultiSelect = memo(({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleToggleColor = useCallback((colorKey) => {
-    if (disabled) return;
-    
-    const newValue = value.includes(colorKey)
-      ? value.filter(v => v !== colorKey)
-      : [...value, colorKey];
-    
-    onChange(newValue);
-  }, [value, onChange, disabled]);
-
-  const handleRemoveColor = useCallback((e, colorKey) => {
-    e.stopPropagation();
-    if (disabled) return;
-    
-    const newValue = value.filter(v => v !== colorKey);
-    onChange(newValue);
-  }, [value, onChange, disabled]);
-
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Selected Colors Display */}
       <div
         onClick={() => !disabled && setIsOpen(!isOpen)}
         className={`
           min-h-[2.5rem] p-2 border rounded-lg bg-white
           ${disabled 
             ? 'bg-gray-50 cursor-not-allowed' 
-            : 'cursor-pointer hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500'}
+            : 'cursor-pointer hover:border-blue-500'}
         `}
       >
-        <div className="flex flex-wrap gap-2">
+        {/* Selected Colors Display */}
+        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
           {value.length > 0 ? (
             value.map((colorKey) => {
               const color = COLOR_OPTIONS[colorKey];
@@ -914,7 +902,10 @@ const ColorMultiSelect = memo(({
                   <span>{color.label}</span>
                   {!disabled && (
                     <button
-                      onClick={(e) => handleRemoveColor(e, colorKey)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onChange(value.filter(v => v !== colorKey));
+                      }}
                       className="ml-1 text-gray-400 hover:text-gray-600"
                     >
                       ×
@@ -931,41 +922,45 @@ const ColorMultiSelect = memo(({
 
       {/* Dropdown Menu */}
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 py-1 bg-white rounded-lg shadow-lg 
-                      border border-gray-200 max-h-64 overflow-y-auto">
-          {Object.entries(COLOR_OPTIONS).map(([colorKey, color]) => (
-            <div
-              key={colorKey}
-              onClick={() => handleToggleColor(colorKey)}
-              className={`
-                flex items-center gap-2 px-3 py-2 cursor-pointer
-                ${value.includes(colorKey) 
-                  ? 'bg-blue-50 text-blue-700' 
-                  : 'hover:bg-gray-50 text-gray-700'}
-              `}
-            >
-              <div className="flex items-center flex-1 gap-2">
-                <span
-                  className="w-4 h-4 rounded-full border border-gray-300"
-                  style={{ backgroundColor: color.hex }}
-                />
-                <span className="text-sm">{color.label}</span>
+        <div className="fixed z-50 w-full max-w-[calc(100vw-2rem)] left-1/2 transform -translate-x-1/2
+                      mt-1 py-1 bg-white rounded-lg shadow-lg border border-gray-200">
+          <div className="max-h-64 overflow-y-auto">
+            {Object.entries(COLOR_OPTIONS).map(([colorKey, color]) => (
+              <div
+                key={colorKey}
+                onClick={() => {
+                  const newValue = value.includes(colorKey)
+                    ? value.filter(v => v !== colorKey)
+                    : [...value, colorKey];
+                  onChange(newValue);
+                }}
+                className={`
+                  flex items-center gap-2 px-3 py-2 cursor-pointer
+                  ${value.includes(colorKey) ? 'bg-blue-50' : 'hover:bg-gray-50'}
+                `}
+              >
+                <div className="flex items-center flex-1 gap-2">
+                  <span
+                    className="w-4 h-4 rounded-full border border-gray-300"
+                    style={{ backgroundColor: color.hex }}
+                  />
+                  <span className="text-sm">{color.label}</span>
+                </div>
+                {value.includes(colorKey) && (
+                  <svg className="w-4 h-4 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" 
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                      clipRule="evenodd" />
+                  </svg>
+                )}
               </div>
-              {value.includes(colorKey) && (
-                <svg className="w-4 h-4 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" 
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
-                        clipRule="evenodd" />
-                </svg>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>
   );
 });
-
 ColorMultiSelect.propTypes = {
   value: PropTypes.arrayOf(PropTypes.string),
   onChange: PropTypes.func.isRequired,
@@ -2007,32 +2002,44 @@ const AdminProductApproval = () => {
 
   // Handle status change
   const handleStatusChange = useCallback(async (newStatus) => {
-    if (!editedProduct) return;
-
+    if (!editedProduct) {
+      console.error('No product selected');
+      toast.error('No product selected');
+      return;
+    }
+  
     try {
       setIsSubmitting(true);
-      
-      const updates = {
-        ...editedProduct,
-        status: newStatus,
-        originalPrice: parseFloat(editedProduct.originalPrice),
-        discountPrice: editedProduct.discountPrice ? parseFloat(editedProduct.discountPrice) : null,
-        availableColors: editedProduct.availableColors || [editedProduct.ProductColor],
-        availableProductTypes: editedProduct.availableProductTypes || [editedProduct.ProductType],
-        mainTags: editedProduct.mainTags || []
-      };
-
-      await dispatch(approveRejectProduct(
-        editedProduct._id,
-        newStatus,
-        editedProduct.rejectionReason,
-        updates
-      ));
-
-      toast.success(`Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully`);
-      setSelectedProduct(null);
-      setEditedProduct(null);
-      dispatch(fetchPendingProducts());
+  
+      const result = await dispatch(
+        approveRejectProduct(
+          editedProduct._id,
+          newStatus,
+          editedProduct.rejectionReason || '',
+          {
+            ...editedProduct,
+            // Ensure these fields exist
+            ProductType: editedProduct.ProductType || 't-shirt',
+            ProductColor: editedProduct.ProductColor || 'white',
+            ProductView: editedProduct.ProductView || 'front',
+            DesignScale: editedProduct.DesignScale || 1,
+            DesignPosition: editedProduct.DesignPosition || { x: 50, y: 25 },
+            availableColors: editedProduct.availableColors || [editedProduct.ProductColor || 'white'],
+            availableProductTypes: editedProduct.availableProductTypes || [editedProduct.ProductType || 't-shirt'],
+            mainTags: editedProduct.mainTags || [],
+            Designtags: editedProduct.Designtags || [],
+            originalPrice: editedProduct.originalPrice || 0,
+            discountPrice: editedProduct.discountPrice || null
+          }
+        )
+      );
+  
+      if (result.success) {
+        toast.success(result.message);
+        setSelectedProduct(null);
+        setEditedProduct(null);
+        dispatch(fetchPendingProducts());
+      }
     } catch (error) {
       console.error('Status change failed:', error);
       toast.error(error.message || 'Failed to update product status');
@@ -2041,6 +2048,8 @@ const AdminProductApproval = () => {
     }
   }, [editedProduct, dispatch]);
 
+
+  
   // Check if user has admin access
   if (!user?.role === 'admin') {
     return (
