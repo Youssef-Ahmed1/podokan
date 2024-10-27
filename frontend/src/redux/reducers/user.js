@@ -5,8 +5,7 @@ const initialState = {
 };
 
 export const userReducer = createReducer(initialState, (builder) => {
-  builder
-    .addCase("LoadUserRequest", (state) => {
+  builder.addCase("LoadUserRequest", (state) => {
       state.loading = true;
     })
     .addCase("LoadUserSuccess", (state, action) => {
