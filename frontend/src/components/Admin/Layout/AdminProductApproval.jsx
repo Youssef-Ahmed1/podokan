@@ -630,7 +630,6 @@ ProductPreview.propTypes = {
 
 ProductPreview.displayName = 'ProductPreview';
 
-
 const PriceCalculator = memo(({ 
   productType, 
   originalPrice, 
@@ -748,9 +747,15 @@ const PriceCalculator = memo(({
     </div>
   );
 });
+PriceCalculator.propTypes = {
+  productType: PropTypes.string.isRequired,
+  originalPrice: PropTypes.number,
+  discountPrice: PropTypes.number,
+  onChange: PropTypes.func.isRequired,
+  disabled: PropTypes.bool
+};
 
-
-
+PriceCalculator.displayName = 'PriceCalculator';
 const Dropdown = memo(({ 
   options, 
   value, 
