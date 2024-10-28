@@ -14,6 +14,7 @@ router.post("/create-user", async (req, res, next) => {
   let uploadedImage = null;
 
   try {
+    console.log("Received registration request:", req.body);
     const { name, email, password, avatar } = req.body;
 
     // Validate input
@@ -24,8 +25,6 @@ router.post("/create-user", async (req, res, next) => {
       });
     }
 
-    console.log("Processing registration for:", email);
-
     // Check existing user
     const userExists = await User.findOne({ email: email.toLowerCase() });
     if (userExists) {
@@ -35,7 +34,7 @@ router.post("/create-user", async (req, res, next) => {
       });
     }
 
-    // Upload avatar with error handling
+    // Upload avatar
     try {
       console.log("Uploading avatar...");
       uploadedImage = await cloudinary.v2.uploader.upload(avatar, {
@@ -43,7 +42,7 @@ router.post("/create-user", async (req, res, next) => {
         width: 150,
         crop: "scale"
       });
-      console.log("Avatar uploaded successfully");
+      console.log("Avatar uploaded successfully:", uploadedImage.secure_url);
     } catch (cloudinaryError) {
       console.error("Cloudinary Error:", cloudinaryError);
       return res.status(500).json({
@@ -52,7 +51,7 @@ router.post("/create-user", async (req, res, next) => {
       });
     }
 
-    // Create activation token
+    // Create user object
     const user = {
       name: name.trim(),
       email: email.toLowerCase(),
@@ -63,7 +62,8 @@ router.post("/create-user", async (req, res, next) => {
       },
     };
 
-    console.log("Creating activation token...");
+    // Generate activation token
+    console.log("Generating activation token...");
     const activationToken = createActivationToken(user);
     const activationUrl = `https://testpodokan.store/activation/${activationToken}`;
 
@@ -96,26 +96,22 @@ router.post("/create-user", async (req, res, next) => {
         message: `Please check your email (${user.email}) to activate your account!`
       });
     } catch (emailError) {
+      console.error("Email Error:", emailError);
       // Clean up uploaded image if email fails
       if (uploadedImage) {
-        console.log("Cleaning up uploaded image due to email error...");
         await cloudinary.v2.uploader.destroy(uploadedImage.public_id);
       }
-      
-      console.error("Email Error:", emailError);
       return res.status(500).json({
         success: false,
         message: "Failed to send activation email"
       });
     }
   } catch (error) {
+    console.error("Registration Error:", error);
     // Clean up uploaded image if anything else fails
     if (uploadedImage) {
-      console.log("Cleaning up uploaded image due to general error...");
       await cloudinary.v2.uploader.destroy(uploadedImage.public_id);
     }
-    
-    console.error("Registration Error:", error);
     return res.status(500).json({
       success: false,
       message: "Registration failed",
