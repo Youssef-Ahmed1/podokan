@@ -41,48 +41,31 @@ const Singup = () => {
     };
     reader.readAsDataURL(file);
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
-
-    // Basic validation
-    if (!name || !email || !password) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
-    if (!avatar) {
-      toast.error('Please upload a profile picture');
-      return;
-    }
-
+  
     try {
       setLoading(true);
       const res = await axios.post(`${server}/user/create-user`, {
-        name: name.trim(),
-        email: email.toLowerCase().trim(),
+        name,
+        email: email.toLowerCase(),
         password,
         avatar
       });
-
+  
       toast.success(res.data.message);
       setName("");
       setEmail("");
       setPassword("");
       setAvatar(null);
-      
     } catch (error) {
-      console.error('Signup Error:', error);
-      toast.error(
-        error.response?.data?.message || 
-        'Something went wrong. Please try again.'
-      );
+      console.error("Signup Error:", error);
+      toast.error(error.response?.data?.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
