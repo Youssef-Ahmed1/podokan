@@ -5,7 +5,7 @@ const cloudinary = require("cloudinary");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const jwt = require("jsonwebtoken");
-const sendMail = require("../utils/sendMail");
+const { sendMail } = require("../utils/sendMail");
 const sendToken = require("../utils/jwtToken");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
 
@@ -34,26 +34,40 @@ router.post("/create-user", async (req, res, next) => {
     };
 
     const activationToken = createActivationToken(user);
-
     const activationUrl = `https://testpodokan.store/activation/${activationToken}`;
+
     try {
       await sendMail({
         email: user.email,
         subject: "Activate your account",
-        message: `Hello ${user.name}, please click on the link to activate your account:${activationUrl}`,
+        message: `Hello ${user.name}, please click on the link to activate your account: ${activationUrl}`,
+        html: `
+          <h2>Hello ${user.name}!</h2>
+          <p>Please click on the link below to activate your account:</p>
+          <a href="${activationUrl}" style="padding: 10px 20px; background-color: #4e64df; color: white; text-decoration: none; border-radius: 5px;">
+            Activate Account
+          </a>
+          <p>If the button doesn't work, copy and paste this link in your browser:</p>
+          <p>${activationUrl}</p>
+          <p>This link will expire in 5 minutes.</p>
+        `
       });
+
       res.status(201).json({
         success: true,
-        message: `please check your email:-${user.email} to activate your account!`,
+        message: `Please check your email: ${user.email} to activate your account!`,
       });
     } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
+      // Delete uploaded image if email fails
+      await cloudinary.v2.uploader.destroy(myCloud.public_id);
+      console.error("Email error:", error);
+      return next(new ErrorHandler(`Failed to send activation email: ${error.message}`, 500));
     }
   } catch (error) {
+    console.error("Registration error:", error);
     return next(new ErrorHandler(error.message, 400));
   }
 });
-
 // create activation token
 const createActivationToken = (user) => {
   return jwt.sign(user, process.env.ACTIVATION_SECRET, {
