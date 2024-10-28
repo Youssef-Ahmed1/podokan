@@ -83,7 +83,7 @@ const Header = ({ activeHeading }) => {
       {/* Desktop Header */}
       <div 
         className={`
-          ${active === true ? "shadow-sm fixed top-0 left-0 z-50" : "relative z-50"} 
+          ${active === true ? "shadow-sm absolute top-0 left-0 z-50" : "relative z-50"} 
           w-full bg-[#151523] transition-all duration-300
           hidden lg:block
         `}
@@ -101,7 +101,7 @@ const Header = ({ activeHeading }) => {
                 <img 
                   src={siteLogo} 
                   alt="Site Logo" 
-                  className="h-[100px] w-[150px] object-contain"
+                  className="h-[180px] w-[150px] object-contain"
                 />
               </Link>
             </div>
@@ -203,81 +203,97 @@ const Header = ({ activeHeading }) => {
       </div>
 
        {/* Mobile Header */}
-      <div className={`
-        ${active ? "shadow-sm fixed top-0 left-0 z-50" : "relative z-50"}
-        w-full bg-[#151523] lg:hidden
-      `}>
-        <div className="px-4 py-4">
-          <div className="flex items-center justify-between min-h-[120px]">
-            <GiHamburgerMenu
-              size={32}
-              className="text-[#4e64df]"
-              onClick={() => setOpen(true)}
-            />
-            
-            <Link to="/" className="flex-shrink-0">
-              <img
-                src={siteLogo}
-                alt="Site Logo"
-                className="h-[100px] w-[150px] object-contain"
-              />
-            </Link>
+     {/* Mobile Header */}
+<div className={`
+  ${active ? "shadow-sm fixed top-0 left-0 z-50" : "relative z-50"}
+   w-full bg-[#151523] lg:hidden
+`}>
+  {/* Top Bar */}
+  <div className="px-4 py-2 flex items-center justify-between h-[70px] border-b border-white/10">
+    {/* Left - Menu Button */}
+    <button
+      onClick={() => setOpen(true)}
+      className="p-2 -ml-2"
+    >
+      <GiHamburgerMenu size={24} className="text-white" />
+    </button>
 
-            <div className="relative cursor-pointer" onClick={() => setOpenCart(true)}>
-              <AiOutlineShoppingCart
-                size={28}
-                className="text-white/80"
-              />
-              {cart?.length > 0 && (
-                <span className="absolute -right-2 -top-2 bg-[#f6b92e] w-5 h-5 rounded-full flex items-center justify-center text-white text-xs">
-                  {cart.length}
-                </span>
-              )}
-            </div>
+    {/* Center - Logo */}
+    <Link to="/" className="flex-shrink-0">
+      <img
+        src={siteLogo}
+        alt="Site Logo"
+        className="h-[45px] object-contain"
+      />
+    </Link>
+
+    {/* Right - Icons */}
+    <div className="flex items-center space-x-4">
+      {isAuthenticated ? (
+        <Link to="/profile">
+          <img
+            src={user?.avatar?.url}
+            alt="Profile"
+            className="w-8 h-8 rounded-full border border-white/20"
+          />
+        </Link>
+      ) : (
+        <Link to="/login">
+          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+            <span className="text-white text-sm">?</span>
           </div>
-
-          {/* Mobile Search */}
-          <div className="mt-3">
-            <div className="relative">
-              <div className="w-full relative animate-border inline-block bg-gradient-to-r from-[#551c2c] via-[#b131ea] to-[#f2ad55] bg-[length:400%_400%] p-[2px] rounded-md">
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  className="w-full h-12 px-4 rounded-md bg-[#151523] text-white focus:outline-none"
-                />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                  <AiOutlineSearch 
-                    size={20} 
-                    className="text-white"
-                  />
-                </div>
-              </div>
-
-              {/* Mobile Search Results */}
-              {searchData && searchData.length > 0 && (
-                <div className="absolute w-full mt-2 bg-white rounded-md shadow-lg z-50 max-h-[50vh] overflow-y-auto">
-                  {searchData.map((item, index) => (
-                    <Link 
-                      key={index} 
-                      to={`/product/${item._id}`}
-                      className="flex items-center p-3 hover:bg-gray-50"
-                    >
-                      <img
-                        src={item.designImage?.url}
-                        alt=""
-                        className="w-10 h-10 object-cover rounded-md mr-3"
-                      />
-                      <span className="text-gray-800 text-sm">{item.DesignTitle}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        </Link>
+      )}
+      
+      <div className="relative" onClick={() => setOpenCart(true)}>
+        <AiOutlineShoppingCart size={24} className="text-white" />
+        {cart?.length > 0 && (
+          <span className="absolute -right-2 -top-2 bg-[#f6b92e] w-5 h-5 rounded-full flex items-center justify-center text-white text-xs">
+            {cart.length}
+          </span>
+        )}
       </div>
+    </div>
+  </div>
+
+  {/* Search Bar */}
+  <div className="px-4 py-2">
+    <div className="relative">
+      <input
+        type="text"
+        placeholder={placeholders[placeholderIndex]}
+        value={searchTerm}
+        onChange={handleSearchChange}
+        className="w-full h-[42px] pl-10 pr-4 rounded-full bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+      <AiOutlineSearch 
+        size={20} 
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60"
+      />
+    </div>
+
+    {/* Mobile Search Results */}
+    {searchData && searchData.length > 0 && (
+      <div className="absolute left-0 right-0 mt-2 mx-4 bg-white rounded-lg shadow-lg z-50 max-h-[50vh] overflow-y-auto">
+        {searchData.map((item, index) => (
+          <Link 
+            key={index} 
+            to={`/product/${item._id}`}
+            className="flex items-center p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+          >
+            <img
+              src={item.designImage?.url}
+              alt=""
+              className="w-12 h-12 object-cover rounded-md mr-3"
+            />
+            <span className="text-gray-800 text-sm line-clamp-2">{item.DesignTitle}</span>
+          </Link>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
+      
 
       {/* Sliding Menu */}
       <div
