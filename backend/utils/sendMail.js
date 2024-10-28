@@ -1,6 +1,8 @@
 const nodemailer = require("nodemailer");
 
+// Create the sendMail function
 const sendMail = async (options) => {
+  // Create transporter
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,
@@ -11,24 +13,26 @@ const sendMail = async (options) => {
     },
   });
 
+  // Define mail options
   const mailOptions = {
     from: process.env.SMTP_MAIL,
     to: options.email,
     subject: options.subject,
     text: options.message,
-    html: options.html, // Add this line to support HTML content
+    html: options.html,
   };
 
   try {
+    // Send mail
     await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully");
+    console.log("Email sent successfully to:", options.email);
   } catch (error) {
     console.error("Error sending email:", error);
-    throw error; // Rethrow the error so it can be handled by the calling function
+    throw new Error(`Failed to send email: ${error.message}`);
   }
 };
 
-// New function for sending product rejection emails
+// Create the product rejection email function
 const sendProductRejectionEmail = async (sellerEmail, productName, rejectionReason) => {
   const subject = "Product Submission Rejected";
   const message = `Your product "${productName}" has been rejected. Reason: ${rejectionReason}`;
@@ -47,4 +51,7 @@ const sendProductRejectionEmail = async (sellerEmail, productName, rejectionReas
   });
 };
 
-module.exports = { sendMail, sendProductRejectionEmail };
+module.exports = {
+  sendMail,
+  sendProductRejectionEmail
+};
