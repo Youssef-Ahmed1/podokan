@@ -93,6 +93,7 @@ export const productReducer = createReducer(initialState, (builder) => {
       state.allProducts = action.payload;
       state.error = null;
       state.lastUpdated = new Date().toISOString();
+      console.log('Products in store:', action.payload.length); // Debug log
       // Update pagination
       state.pagination.totalPages = Math.ceil(action.payload.length / state.pagination.itemsPerPage);
     })

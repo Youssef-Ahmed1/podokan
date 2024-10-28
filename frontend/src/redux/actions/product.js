@@ -198,19 +198,15 @@ export const deleteProduct = (id) => async (dispatch) => {
   }
 };
 
-
 export const getAllProducts = () => async (dispatch) => {
   try {
     dispatch({ type: "getAllProductsRequest" });
 
     const { data } = await axios.get(`${server}/product/get-all-products`);
 
-    // Filter only public products and ensure they have the correct status
-    const approvedProducts = data.products
-      .filter(product => 
-        product.status === 'public' && 
-        product.visibility === 'public'
-      )
+    // Only filter by status, not visibility
+    const publicProducts = data.products
+      .filter(product => product.status === 'public')
       .map(product => ({
         ...product,
         DesignScale: product.DesignScale || 1,
@@ -219,20 +215,14 @@ export const getAllProducts = () => async (dispatch) => {
         discountPrice: product.discountPrice || null,
         availableColors: Array.isArray(product.availableColors) 
           ? product.availableColors 
-          : [product.ProductColor || 'white'],
-        availableProductTypes: Array.isArray(product.availableProductTypes)
-          ? product.availableProductTypes
-          : [product.ProductType || 't-shirt'],
-        // Ensure these fields are set
-        status: 'public',
-        visibility: 'public'
+          : [product.ProductColor || 'white']
       }));
 
-    console.log('Filtered products:', approvedProducts); // Debug log
+    console.log('Fetched products:', publicProducts.length); // Debug log
 
     dispatch({ 
       type: "getAllProductsSuccess", 
-      payload: approvedProducts 
+      payload: publicProducts
     });
   } catch (error) {
     console.error("Error fetching all products:", error);
