@@ -2004,13 +2004,13 @@ const AdminProductApproval = () => {
   // Handle status change
   const handleStatusChange = useCallback(async (newStatus) => {
     if (!editedProduct) {
-      console.error('No product selected');
       toast.error('No product selected');
       return;
     }
   
     try {
       setIsSubmitting(true);
+      console.log('Starting approval process for:', editedProduct._id);
   
       const result = await dispatch(
         approveRejectProduct(
@@ -2018,38 +2018,24 @@ const AdminProductApproval = () => {
           newStatus,
           editedProduct.rejectionReason || '',
           {
-            ...editedProduct,
-            ProductType: editedProduct.ProductType || 't-shirt',
-            ProductColor: editedProduct.ProductColor || 'white',
-            ProductView: editedProduct.ProductView || 'front',
-            DesignScale: editedProduct.DesignScale || 1,
-            DesignPosition: editedProduct.DesignPosition || { x: 50, y: 25 },
-            availableColors: editedProduct.availableColors || [editedProduct.ProductColor || 'white'],
-            availableProductTypes: editedProduct.availableProductTypes || [editedProduct.ProductType || 't-shirt'],
-            mainTags: editedProduct.mainTags || [],
-            Designtags: editedProduct.Designtags || [],
-            originalPrice: editedProduct.originalPrice || 0,
-            discountPrice: editedProduct.discountPrice || null,
-            visibility: newStatus === 'public' ? 'public' : 'restricted'
+            originalPrice: editedProduct.originalPrice,
+            discountPrice: editedProduct.discountPrice,
+            ProductType: editedProduct.ProductType,
+            ProductColor: editedProduct.ProductColor,
+            ProductView: editedProduct.ProductView,
+            availableColors: editedProduct.availableColors
           }
         )
       );
   
       if (result.success) {
         toast.success(result.message);
-        // Clear selected product and edited product
         setSelectedProduct(null);
         setEditedProduct(null);
-        // Refresh the pending products list
-        await dispatch(fetchPendingProducts());
-        // If approved, also refresh all products
-        if (newStatus === 'public') {
-          await dispatch(getAllProducts());
-        }
       }
     } catch (error) {
       console.error('Status change failed:', error);
-      toast.error(error.message || 'Failed to update product status');
+      toast.error(error.response?.data?.message || 'Failed to update product status');
     } finally {
       setIsSubmitting(false);
     }

@@ -145,27 +145,68 @@ router.post(
     }
   })
 );// Approve/Reject Product route
-router.put('/approve-reject-product/:id', isAuthenticated, isAdmin("Admin"), 
+router.put(
+  '/approve-reject-product/:id',
+  isAuthenticated,
+  isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { id } = req.params;
-      const { status, statusReason, ...updates } = req.body;
+      console.log('Product ID:', id);
+      console.log('Request body:', req.body);
 
-      // Prepare update data
+      // Validate product ID
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return next(new ErrorHandler("Invalid product ID", 400));
+      }
+
+      // Find product
+      const product = await Product.findById(id);
+      if (!product) {
+        return next(new ErrorHandler("Product not found", 404));
+      }
+
+      const { status, statusReason } = req.body;
+
+      // Basic validation
+      if (!status || !['public', 'pending', 'rejected'].includes(status)) {
+        return next(new ErrorHandler("Invalid status value", 400));
+      }
+
+      // Prepare update data with required fields
       const updateData = {
-        ...updates,
         status,
-        visibility: 'public', // Always set visibility to public when approving
-        rejectionReason: status === 'rejected' ? statusReason : undefined,
+        visibility: status === 'public' ? 'public' : 'restricted',
+        rejectionReason: status === 'rejected' ? statusReason || '' : '',
         lastModified: new Date(),
-        lastModifiedBy: req.user._id
+        lastModifiedBy: req.user._id,
+        originalPrice: req.body.originalPrice || product.originalPrice,
+        discountPrice: req.body.discountPrice || product.discountPrice,
+        availableColors: Array.isArray(req.body.availableColors) 
+          ? req.body.availableColors 
+          : [product.ProductColor],
+        ProductType: req.body.ProductType || product.ProductType,
+        ProductColor: req.body.ProductColor || product.ProductColor,
+        ProductView: req.body.ProductView || 'front'
       };
 
+      console.log('Update data:', updateData);
+
+      // Update product
       const updatedProduct = await Product.findByIdAndUpdate(
         id,
         { $set: updateData },
-        { new: true, runValidators: true }
+        { 
+          new: true,
+          runValidators: true
+        }
       );
+
+      if (!updatedProduct) {
+        return next(new ErrorHandler("Failed to update product", 500));
+      }
+
+      console.log('Updated product:', updatedProduct);
 
       res.status(200).json({
         success: true,
@@ -174,7 +215,8 @@ router.put('/approve-reject-product/:id', isAuthenticated, isAdmin("Admin"),
       });
 
     } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
+      console.error('Server Error:', error);
+      return next(new ErrorHandler(error.message || 'Internal Server Error', 500));
     }
   })
 );
