@@ -17,8 +17,8 @@ router.post("/create-user", async (req, res, next) => {
     const { name, email, password, avatar } = req.body;
 
     // Check existing user
-    const userExists = await User.findOne({ email: email.toLowerCase() });
-    if (userExists) {
+    const userEmail = await User.findOne({ email: email.toLowerCase() });
+    if (userEmail) {
       return res.status(400).json({
         success: false,
         message: "Email already registered"
@@ -30,9 +30,8 @@ router.post("/create-user", async (req, res, next) => {
       folder: "avatars"
     });
 
-    // Create activation token
     const user = {
-      name,
+      name: name.trim(),
       email: email.toLowerCase(),
       password,
       avatar: {
@@ -41,48 +40,53 @@ router.post("/create-user", async (req, res, next) => {
       },
     };
 
+    // Generate activation token
     const activationToken = createActivationToken(user);
     const activationUrl = `https://testpodokan.store/activation/${activationToken}`;
 
-    // Send activation email
+    // Simple HTML email
+    const emailHtml = `
+      <div style="padding: 20px; font-family: Arial;">
+        <h2>Welcome to PODokan!</h2>
+        <p>Hello ${user.name},</p>
+        <p>Please click the link below to activate your account:</p>
+        <a href="${activationUrl}">${activationUrl}</a>
+      </div>
+    `;
+
     try {
+      // Send activation email
       await sendMail({
         email: user.email,
-        subject: "Activate Your PODokan Account",
-        html: `
-          <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
-            <h2>Welcome to PODokan!</h2>
-            <p>Hello ${user.name},</p>
-            <p>Please click the link below to activate your account:</p>
-            <a href="${activationUrl}">${activationUrl}</a>
-            <p>This link will expire in 5 minutes.</p>
-          </div>
-        `
+        subject: "Activate your PODokan Account",
+        html: emailHtml
       });
 
       return res.status(201).json({
         success: true,
         message: `Please check your email (${user.email}) to activate your account!`
       });
-    } catch (error) {
-      // Cleanup on email error
+
+    } catch (emailError) {
+      // Clean up uploaded image if email fails
       if (uploadedImage) {
         await cloudinary.v2.uploader.destroy(uploadedImage.public_id);
       }
       
-      console.error("Email error:", error);
+      console.error('Email Error:', emailError);
       return res.status(500).json({
         success: false,
         message: "Failed to send activation email"
       });
     }
+
   } catch (error) {
-    // Cleanup on any other error
+    // Clean up uploaded image if anything else fails
     if (uploadedImage) {
       await cloudinary.v2.uploader.destroy(uploadedImage.public_id);
     }
 
-    console.error("Registration error:", error);
+    console.error('Registration Error:', error);
     return res.status(500).json({
       success: false,
       message: "Registration failed"
