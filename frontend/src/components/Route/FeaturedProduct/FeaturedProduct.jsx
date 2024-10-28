@@ -6,6 +6,9 @@ import ProductCard from "../ProductCard/ProductCard";
 const FeaturedProduct = () => {
   const {allProducts} = useSelector((state) => state.products);
    
+  // Filter only public products
+  const publicProducts = allProducts.filter(product => product.status === 'public');
+  
   return (
     <div>
       <div className={`${styles.section}`}>
@@ -14,16 +17,15 @@ const FeaturedProduct = () => {
         </div>
         <div className="grid grid-cols-1 gap-[20px] md:grid-cols-2 md:gap-[25px] lg:grid-cols-4 lg:gap-[25px] xl:grid-cols-5 xl:gap-[30px] mb-12 border-0">
         {
-            allProducts && allProducts.length !== 0 &&(
-              <>
-               {allProducts && allProducts.map((i, index) => <ProductCard data={i} key={index} />)}
-              </>
+            publicProducts && publicProducts.length !== 0 ? (
+              publicProducts.map((i, index) => <ProductCard data={i} key={index} />)
+            ) : (
+              <h1 className="text-center w-full">No Products Found!</h1>
             )
-           }
+        }
         </div>
       </div>
     </div>
   );
 };
-
 export default FeaturedProduct;

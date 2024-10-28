@@ -15,14 +15,17 @@ const ProductsPage = () => {
 
   useEffect(() => {
     if (categoryData === null) {
+      // Show all products with 'public' status, regardless of visibility
       const publicProducts = allProducts.filter(product => 
-        ['public', 'approved'].includes(product.status)
+        product.status === 'public'
       );
+      console.log('Filtered products:', publicProducts); // Debug log
       setData(publicProducts);
     } else {
       const publicProductsInCategory = allProducts.filter(product => 
-        ['public', 'approved'].includes(product.status) && product.category === categoryData
+        product.status === 'public' && product.category === categoryData
       );
+      console.log('Filtered products in category:', publicProductsInCategory); // Debug log
       setData(publicProductsInCategory);
     }
   }, [allProducts, categoryData]);
