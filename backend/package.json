@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "test:email": "node scripts/test-email.js"
   },
   "author": "youssef-ah",
   "license": "ISC",
