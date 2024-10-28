@@ -82,25 +82,28 @@ export const approveRejectProduct = (productId, newStatus, rejectionReason, upda
   try {
     dispatch({ type: "approveRejectProductRequest" });
 
-    const formattedData = {
+    // Create a clean updates object
+    const cleanUpdates = {
       status: newStatus,
       statusReason: rejectionReason || '',
-      visibility: newStatus === 'public' ? 'public' : 'restricted',
-      ...updates,
-      // Ensure arrays are properly formatted
+      originalPrice: parseFloat(updates.originalPrice) || 0,
+      discountPrice: updates.discountPrice ? parseFloat(updates.discountPrice) : null,
+      ProductType: updates.ProductType || 't-shirt',
+      ProductColor: updates.ProductColor || 'white',
+      ProductView: updates.ProductView || 'front',
       availableColors: Array.isArray(updates.availableColors) 
         ? updates.availableColors 
-        : [updates.ProductColor || 'white'],
-      availableProductTypes: Array.isArray(updates.availableProductTypes)
-        ? updates.availableProductTypes
-        : [updates.ProductType || 't-shirt'],
-      mainTags: Array.isArray(updates.mainTags) ? updates.mainTags : [],
-      Designtags: Array.isArray(updates.Designtags) ? updates.Designtags : [],
+        : [updates.ProductColor || 'white']
     };
+
+    console.log('Sending data:', {
+      productId,
+      cleanUpdates
+    });
 
     const response = await axios.put(
       `${server}/product/approve-reject-product/${productId}`,
-      formattedData,
+      cleanUpdates,
       {
         withCredentials: true,
         headers: {
@@ -109,36 +112,35 @@ export const approveRejectProduct = (productId, newStatus, rejectionReason, upda
       }
     );
 
+    console.log('Server response:', response.data);
+
     if (response.data.success) {
       dispatch({ 
         type: "approveRejectProductSuccess", 
-        payload: response.data.message 
+        payload: {
+          message: response.data.message,
+          product: response.data.product
+        }
       });
 
-      // Refresh both pending and all products lists
-      dispatch(fetchPendingProducts());
-      if (newStatus === 'public') {
-        dispatch(getAllProducts());
-      }
+      // Refresh products lists
+      await dispatch(fetchPendingProducts());
+      await dispatch(getAllProducts());
 
-      return { 
-        success: true, 
-        message: `Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully` 
-      };
-    } else {
-      throw new Error(response.data.message || 'Failed to update product status');
+      return { success: true, message: response.data.message };
     }
   } catch (error) {
-    console.error("Error in approveRejectProduct:", error);
+    console.error('Action Error:', error);
+    console.error('Error response:', error.response?.data);
+    
     dispatch({
       type: "approveRejectProductFail",
-      payload: error.response?.data?.message || error.message,
+      payload: error.response?.data?.message || error.message
     });
+
     throw error;
   }
 };
-
-
 
 export const getAllProductsShop = (id) => async (dispatch) => {
   try {
