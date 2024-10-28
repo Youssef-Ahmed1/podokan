@@ -194,13 +194,26 @@ export const productReducer = createReducer(initialState, (builder) => {
       state.message = action.payload;
       state.success = true;
       state.error = null;
-      // Remove approved/rejected product from pending list
+    
+      // Remove the product from pending list
       if (state.selectedProduct) {
         state.pendingProducts = state.pendingProducts.filter(
           p => p._id !== state.selectedProduct._id
         );
+    
+        // If product was approved, add it to allProducts with public status
+        if (state.selectedProduct.status === 'public') {
+          state.allProducts = state.allProducts.filter(p => p._id !== state.selectedProduct._id);
+          state.allProducts.push({
+            ...state.selectedProduct,
+            status: 'public',
+            visibility: 'public'
+          });
+        }
+    
         state.selectedProduct = null;
       }
+    
       state.lastUpdated = new Date().toISOString();
     })
     .addCase("approveRejectProductFail", (state, action) => {
