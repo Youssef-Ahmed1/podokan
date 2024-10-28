@@ -10,38 +10,27 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [avatar, setAvatar] = useState(null);
   const [loading, setLoading] = useState(false);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
   
     try {
       setLoading(true);
+      console.log("Sending registration request...");
   
-      // Validation
       if (!name || !email || !password || !avatar) {
         toast.error("Please fill all fields");
         return;
       }
   
-      console.log("Sending registration request...");
+      const config = { headers: { "Content-Type": "application/json" } };
       const response = await axios.post(
         `${server}/user/create-user`,
-        {
-          name,
-          email: email.toLowerCase(),
-          password,
-          avatar
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          validateStatus: function (status) {
-            return status < 500; // Handle all status codes except 500
-          }
-        }
+        { name, email, password, avatar },
+        config
       );
+  
+      console.log("Registration response:", response.data);
   
       if (response.data.success) {
         toast.success(response.data.message);
@@ -53,11 +42,7 @@ const Signup = () => {
         toast.error(response.data.message);
       }
     } catch (error) {
-      console.error("Registration error:", {
-        message: error.message,
-        response: error.response?.data
-      });
-  
+      console.error("Registration error:", error.response?.data || error.message);
       toast.error(
         error.response?.data?.message || 
         "Registration failed. Please try again."
