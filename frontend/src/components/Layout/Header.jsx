@@ -83,7 +83,7 @@ const Header = ({ activeHeading }) => {
       {/* Desktop Header */}
       <div 
         className={`
-          ${active === true ? "shadow-sm absolute top-0 left-0 z-50" : "relative z-50"} 
+         "shadow-sm  top-0 left-0 z-50 relative"
           w-full bg-[#151523] transition-all duration-300
           hidden lg:block
         `}
@@ -202,10 +202,9 @@ const Header = ({ activeHeading }) => {
         </div>
       </div>
 
-       {/* Mobile Header */}
    {/* Mobile Header */}
 <div className={`
-  ${active ? "shadow-sm absolute top-0 left-0 z-50" : "relative z-50"}
+   "shadow-sm  top-0 left-0 " : "relative "
   w-full bg-[#151523] lg:hidden
 `}>
   {/* Top Bar */}
@@ -277,7 +276,7 @@ const Header = ({ activeHeading }) => {
 
       {/* Mobile Search Results */}
       {searchData && searchData.length > 0 && (
-        <div className="absolute left-0 right-0 mt-2 mx-4 bg-white rounded-lg shadow-lg z-50 max-h-[50vh] overflow-y-auto">
+        <div className="absolute left-0 right-0 mt-2 mx-4 bg-white rounded-lg shadow-lg max-h-[50vh] overflow-y-auto">
           {searchData.map((item, index) => (
             <Link 
               key={index} 
@@ -300,14 +299,14 @@ const Header = ({ activeHeading }) => {
       {/* Sliding Menu */}
       <div
         className={`
-          fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300
+          absolute inset-0 bg-black/50 z-[60] transition-opacity duration-300
           ${open ? "opacity-100 visible" : "opacity-0 invisible"}
         `}
         onClick={() => setOpen(false)}
       >
         <div
           className={`
-            fixed top-0 left-0 h-full w-[280px] lg:w-[320px] bg-[#151523] 
+            absolute top-0 left-0 h-full w-[280px] lg:w-[320px] bg-[#151523] 
             transform transition-transform duration-300 ease-out
             ${open ? "translate-x-0" : "-translate-x-full"}
           `}
