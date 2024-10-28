@@ -16,26 +16,16 @@ router.post("/create-user", async (req, res, next) => {
   try {
     const { name, email, password, avatar } = req.body;
 
-    // Input validation
-    if (!name || !email || !password || !avatar) {
-      return next(new ErrorHandler("Please provide all required fields", 400));
-    }
-
-    // Check existing user
+    // Check for existing user
     const userEmail = await User.findOne({ email });
     if (userEmail) {
       return next(new ErrorHandler("User already exists", 400));
     }
 
     // Upload avatar
-    try {
-      uploadedImage = await cloudinary.v2.uploader.upload(avatar, {
-        folder: "avatars",
-      });
-    } catch (error) {
-      console.error("Avatar upload failed:", error);
-      return next(new ErrorHandler("Failed to upload avatar", 500));
-    }
+    uploadedImage = await cloudinary.v2.uploader.upload(avatar, {
+      folder: "avatars",
+    });
 
     const user = {
       name: name,
@@ -50,27 +40,22 @@ router.post("/create-user", async (req, res, next) => {
     const activationToken = createActivationToken(user);
     const activationUrl = `https://testpodokan.store/activation/${activationToken}`;
 
-    const emailHtml = `
-      <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
-        <h2 style="color: #4e64df;">Welcome to PODokan!</h2>
-        <p>Hello ${user.name},</p>
-        <p>Please click the button below to activate your account:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${activationUrl}" 
-             style="background-color: #4e64df; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
-            Activate Account
-          </a>
-        </div>
-        <p>If the button doesn't work, copy this link: ${activationUrl}</p>
-        <p>This link will expire in 5 minutes.</p>
-      </div>
-    `;
-
     try {
       await sendMail({
         email: user.email,
         subject: "Activate your PODokan Account",
-        html: emailHtml
+        html: `
+          <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
+            <h2 style="color: #4e64df;">Welcome to PODokan!</h2>
+            <p>Hello ${user.name},</p>
+            <p>Please click the link below to activate your account:</p>
+            <a href="${activationUrl}" style="display: inline-block; padding: 10px 20px; background-color: #4e64df; color: white; text-decoration: none; border-radius: 5px;">
+              Activate Account
+            </a>
+            <p>If the button doesn't work, copy this link: ${activationUrl}</p>
+            <p>This link will expire in 5 minutes.</p>
+          </div>
+        `
       });
 
       res.status(201).json({
@@ -78,23 +63,22 @@ router.post("/create-user", async (req, res, next) => {
         message: `Please check your email: ${user.email} to activate your account!`,
       });
     } catch (error) {
-      // Cleanup uploaded image
+      // Cleanup uploaded image if email fails
       if (uploadedImage) {
         await cloudinary.v2.uploader.destroy(uploadedImage.public_id);
       }
-      console.error("Email sending failed:", error);
-      return next(new ErrorHandler("Failed to send activation email. Please try again.", 500));
+      console.error("Failed to send email:", error);
+      return next(new ErrorHandler("Failed to send activation email", 500));
     }
   } catch (error) {
-    // Cleanup uploaded image
+    // Cleanup uploaded image if anything else fails
     if (uploadedImage) {
       await cloudinary.v2.uploader.destroy(uploadedImage.public_id);
     }
-    console.error("User creation failed:", error);
-    return next(new ErrorHandler(error.message, 500));
+    console.error("User creation error:", error);
+    return next(new ErrorHandler("User creation failed", 500));
   }
 });
-
 // create activation token
 const createActivationToken = (user) => {
   return jwt.sign(user, process.env.ACTIVATION_SECRET, {
