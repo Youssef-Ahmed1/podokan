@@ -14,54 +14,54 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
-
+  
     try {
       setLoading(true);
-
-      // Validate inputs
+  
+      // Validation
       if (!name || !email || !password || !avatar) {
-        toast.error("Please fill in all fields");
+        toast.error("Please fill all fields");
         return;
       }
-
-      // Create form data
-      const config = {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      };
-
-      const userData = {
-        name,
-        email: email.toLowerCase(),
-        password,
-        avatar
-      };
-
+  
       console.log("Sending registration request...");
       const response = await axios.post(
         `${server}/user/create-user`,
-        userData,
-        config
+        {
+          name,
+          email: email.toLowerCase(),
+          password,
+          avatar
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          validateStatus: function (status) {
+            return status < 500; // Handle all status codes except 500
+          }
+        }
       );
-
+  
       if (response.data.success) {
         toast.success(response.data.message);
         setName("");
         setEmail("");
         setPassword("");
         setAvatar(null);
+      } else {
+        toast.error(response.data.message);
       }
     } catch (error) {
       console.error("Registration error:", {
         message: error.message,
         response: error.response?.data
       });
-
-      // Show appropriate error message
-      const errorMessage = error.response?.data?.message || 
-                          "Registration failed. Please try again.";
-      toast.error(errorMessage);
+  
+      toast.error(
+        error.response?.data?.message || 
+        "Registration failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }

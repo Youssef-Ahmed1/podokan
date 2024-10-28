@@ -16,29 +16,43 @@ router.post("/create-user", async (req, res, next) => {
   try {
     const { name, email, password, avatar } = req.body;
 
+    // Validate input
+    if (!name || !email || !password || !avatar) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required"
+      });
+    }
+
+    console.log("Processing registration for:", email);
+
     // Check existing user
-    const userEmail = await User.findOne({ email: email.toLowerCase() });
-    if (userEmail) {
+    const userExists = await User.findOne({ email: email.toLowerCase() });
+    if (userExists) {
       return res.status(400).json({
         success: false,
         message: "Email already registered"
       });
     }
 
-    // Upload avatar
+    // Upload avatar with error handling
     try {
+      console.log("Uploading avatar...");
       uploadedImage = await cloudinary.v2.uploader.upload(avatar, {
-        folder: "avatars"
+        folder: "avatars",
+        width: 150,
+        crop: "scale"
       });
-    } catch (error) {
-      console.error('Avatar upload failed:', error);
+      console.log("Avatar uploaded successfully");
+    } catch (cloudinaryError) {
+      console.error("Cloudinary Error:", cloudinaryError);
       return res.status(500).json({
         success: false,
         message: "Failed to upload profile picture"
       });
     }
 
-    // Create user object
+    // Create activation token
     const user = {
       name: name.trim(),
       email: email.toLowerCase(),
@@ -49,10 +63,13 @@ router.post("/create-user", async (req, res, next) => {
       },
     };
 
+    console.log("Creating activation token...");
     const activationToken = createActivationToken(user);
     const activationUrl = `https://testpodokan.store/activation/${activationToken}`;
 
+    // Send activation email
     try {
+      console.log("Sending activation email...");
       await sendMail({
         email: user.email,
         subject: "Activate your PODokan Account",
@@ -69,21 +86,23 @@ router.post("/create-user", async (req, res, next) => {
             </div>
             <p style="color: #666; font-size: 14px;">If the button doesn't work, copy this link:</p>
             <p style="color: #666; font-size: 14px; word-break: break-all;">${activationUrl}</p>
-            <p style="color: #666; font-size: 14px;">This link will expire in 5 minutes.</p>
           </div>
         `
       });
+      console.log("Activation email sent successfully");
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         message: `Please check your email (${user.email}) to activate your account!`
       });
-    } catch (error) {
+    } catch (emailError) {
       // Clean up uploaded image if email fails
       if (uploadedImage) {
+        console.log("Cleaning up uploaded image due to email error...");
         await cloudinary.v2.uploader.destroy(uploadedImage.public_id);
       }
-      console.error('Email sending failed:', error);
+      
+      console.error("Email Error:", emailError);
       return res.status(500).json({
         success: false,
         message: "Failed to send activation email"
@@ -92,12 +111,15 @@ router.post("/create-user", async (req, res, next) => {
   } catch (error) {
     // Clean up uploaded image if anything else fails
     if (uploadedImage) {
+      console.log("Cleaning up uploaded image due to general error...");
       await cloudinary.v2.uploader.destroy(uploadedImage.public_id);
     }
-    console.error('Registration failed:', error);
+    
+    console.error("Registration Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Registration failed"
+      message: "Registration failed",
+      error: error.message
     });
   }
 });
