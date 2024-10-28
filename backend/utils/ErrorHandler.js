@@ -1,8 +1,18 @@
-class ErrorHandler extends Error {
-    constructor(message, statusCode) {
-      super(message);
-      this.statusCode = statusCode;
+const errorHandler = (err, req, res, next) => {
+  console.error('Error:', {
+    path: req.path,
+    method: req.method,
+    error: {
+      message: err.message,
+      stack: err.stack,
+      status: err.statusCode
     }
-  }
-  
-  module.exports = ErrorHandler;
+  });
+
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || "Internal server error"
+  });
+};
+
+module.exports = errorHandler;
