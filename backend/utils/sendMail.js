@@ -4,31 +4,35 @@ const sendMail = async (options) => {
   try {
     // Create transporter
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true, // use SSL
       auth: {
-        user: 'moropass1212@gmail.com', // Your gmail address
-        pass: 'zqkxjfttywkzisss'       // Your app password
+        user: 'moropass1212@gmail.com',
+        pass: 'zqkxjfttywkzisss'
+      },
+      tls: {
+        rejectUnauthorized: false // Only if you're having certificate issues
       }
     });
 
-    // Set up email data
+    // Email content
     const mailOptions = {
-      from: '"PODokan" <moropass1212@gmail.com>',
+      from: '"PODokan Support" <moropass1212@gmail.com>',
       to: options.email,
       subject: options.subject,
       html: options.html
     };
 
-    // Send mail and return info
+    // Send email
     const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent:", info.messageId);
     return info;
   } catch (error) {
-    console.error("Email error details:", {
-      message: error.message,
+    console.error("Email Error:", {
       code: error.code,
-      command: error.command,
-      response: error.response
+      message: error.message,
+      stack: error.stack,
+      command: error.command
     });
     throw error;
   }
