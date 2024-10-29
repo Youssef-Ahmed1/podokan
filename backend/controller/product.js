@@ -2,14 +2,7 @@ const express = require("express");
 const { isSeller, isAuthenticated, isAdmin } = require("../middleware/auth");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const router = express.Router();
-const { 
-  Product, 
-  VALID_COLORS, 
-  VALID_PRODUCT_TYPES, 
-  VALID_VIEWS, 
-  VALID_STATUSES, 
-  VALID_VISIBILITY 
-} = require("../model/product");
+const Product= require("../model/product");
 const Order = require("../model/order");
 const Shop = require("../model/shop");
 const cloudinary = require("cloudinary").v2;
