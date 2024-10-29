@@ -10,7 +10,6 @@ const { body, validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 
 // Constants
-const SERVICE_CHARGE_PERCENTAGE = 0.10;
 const ORDER_STATUSES = {
   PENDING: 'Pending',
   PROCESSING: 'Processing',
@@ -20,6 +19,8 @@ const ORDER_STATUSES = {
   REFUND_SUCCESS: 'Refund Success',
   CANCELLED: 'Cancelled'
 };
+
+const SERVICE_CHARGE_PERCENTAGE = 0.10; // 10% service charge
 
 // Validation middleware
 const validateOrderData = [
@@ -42,11 +43,6 @@ const validateOrderData = [
     .withMessage('Shipping address is required')
     .isObject()
     .withMessage('Shipping address must be an object'),
-  body('user')
-    .notEmpty()
-    .withMessage('User information is required')
-    .isObject()
-    .withMessage('User must be an object'),
   body('totalPrice')
     .isNumeric()
     .withMessage('Total price must be a number')
@@ -67,22 +63,22 @@ const validateMongoId = (id) => {
   return true;
 };
 
-const updateProductStock = async (id, qty, increase = false) => {
+const updateProductStock = async (productId, quantity, action = 'decrease') => {
   try {
-    const product = await Product.findById(id);
+    const product = await Product.findById(productId);
     if (!product) {
-      throw new Error(`Product not found with id: ${id}`);
+      throw new Error(`Product not found with id: ${productId}`);
     }
 
-    if (increase) {
-      product.stock += qty;
-      product.sold_out = Math.max(0, product.sold_out - qty);
-    } else {
-      if (product.stock < qty) {
+    if (action === 'decrease') {
+      if (product.stock < quantity) {
         throw new Error(`Insufficient stock for product: ${product.DesignTitle}`);
       }
-      product.stock -= qty;
-      product.sold_out += qty;
+      product.stock -= quantity;
+      product.sold_out += quantity;
+    } else {
+      product.stock += quantity;
+      product.sold_out = Math.max(0, product.sold_out - quantity);
     }
 
     await product.save();
@@ -107,9 +103,7 @@ const updateSellerBalance = async (sellerId, amount) => {
     console.error('Error updating seller balance:', error);
     throw error;
   }
-};
-
-// Create order
+};// Create order
 router.post(
   "/create-order",
   isAuthenticated,
@@ -155,7 +149,9 @@ router.post(
       return next(new ErrorHandler(error.message, error.statusCode || 500));
     }
   })
-);// Get all orders of a user
+);
+
+// Get all orders of a user
 router.get(
   "/get-all-orders/:userId",
   isAuthenticated,
@@ -294,9 +290,6 @@ router.put(
 
       await order.save();
 
-      // Send notification or email about status update
-      await sendOrderStatusNotification(order, previousStatus);
-
       res.status(200).json({
         success: true,
         message: `Order status updated to ${req.body.status}`,
@@ -308,14 +301,67 @@ router.put(
   })
 );
 
-// Utility function for sending notifications
-const sendOrderStatusNotification = async (order, previousStatus) => {
-  // Implementation for sending notifications (email, push, etc.)
-  // This is a placeholder for the actual implementation
-  try {
-    console.log(`Order ${order._id} status changed from ${previousStatus} to ${order.status}`);
-    // Add your notification logic here
-  } catch (error) {
-    console.error('Error sending notification:', error);
-  }
-};
+// Admin: Get all orders
+router.get(
+  "/admin-all-orders",
+  isAuthenticated,
+  isAdmin,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const orders = await Order.find()
+        .sort({ createdAt: -1 })
+        .select('-paymentInfo.cardDetails');
+
+      const totalAmount = orders.reduce((sum, order) => sum + order.totalPrice, 0);
+      const totalOrders = orders.length;
+
+      res.status(200).json({
+        success: true,
+        totalAmount,
+        totalOrders,
+        orders,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Refund order
+router.put(
+  "/refund-order/:id",
+  isAuthenticated,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      validateMongoId(req.params.id);
+
+      const order = await Order.findById(req.params.id);
+
+      if (!order) {
+        return next(new ErrorHandler("Order not found", 404));
+      }
+
+      // Verify user owns this order
+      if (order.user._id.toString() !== req.user._id.toString()) {
+        return next(new ErrorHandler("Unauthorized access to this order", 403));
+      }
+
+      if (order.status !== ORDER_STATUSES.DELIVERED) {
+        return next(new ErrorHandler("Order must be delivered before requesting refund", 400));
+      }
+
+      order.status = ORDER_STATUSES.REFUND_PROCESSING;
+      await order.save();
+
+      res.status(200).json({
+        success: true,
+        message: "Refund request submitted successfully",
+        order,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, error.statusCode || 500));
+    }
+  })
+);
+
+module.exports = router;
