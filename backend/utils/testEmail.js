@@ -23,7 +23,7 @@ const testEmail = async () => {
     });
 
     console.log('Test email sent successfully!');
-  } catch (error) {
+  } catch (error) {a
     console.error('Test failed:', error);
   }
   process.exit();
