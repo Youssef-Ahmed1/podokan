@@ -10,10 +10,42 @@ const mongoose = require("mongoose");
 const ErrorHandler = require("../utils/ErrorHandler");
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
-
-const VALID_STATUSES = ['pending', 'public', 'rejected'];
-const VALID_COLORS = ['white', 'black', 'gray', 'red', 'blue'];
-const VALID_PRODUCT_TYPES = ['t-shirt', 'hoodie', 'long-sleeves'];
+const validateProductData = [
+  body('DesignTitle')
+    .trim()
+    .isLength({ min: 3, max: 100 })
+    .withMessage('Design title must be between 3 and 100 characters'),
+  
+  body('Description')
+    .trim()
+    .isLength({ min: 10, max: 1000 })
+    .withMessage('Description must be between 10 and 1000 characters'),
+  
+  body('Maintag')
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Main tag must be between 2 and 50 characters'),
+  
+  body('ProductType')
+    .isIn(VALID_PRODUCT_TYPES)
+    .withMessage(`Product type must be one of: ${VALID_PRODUCT_TYPES.join(', ')}`),
+  
+  body('ProductColor')
+    .isIn(VALID_COLORS)
+    .withMessage(`Product color must be one of: ${VALID_COLORS.join(', ')}`),
+  
+  body('ProductView')
+    .isIn(['front', 'back'])
+    .withMessage('Product view must be either front or back'),
+  
+  body('DesignScale')
+    .isFloat({ min: 0.1, max: 5.0 })
+    .withMessage('Design scale must be between 0.1 and 5.0'),
+  
+  body('shopId')
+    .custom(value => mongoose.Types.ObjectId.isValid(value))
+    .withMessage('Invalid shop ID')
+];
 
 // Multer configuration
 const storage = multer.diskStorage({
@@ -479,18 +511,18 @@ router.delete(
   })
 );
 
-// Get all products (public)
 router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    // Build query - include both public and restricted visibility
     let query = {
-      status: 'public'  // Only get products with public status
-      // Remove the visibility filter to show both public and restricted products
+      status: 'public'
     };
+
+    // Get total count first
+    const totalProducts = await Product.countDocuments(query);
 
     // Get products
     const products = await Product.find(query)
@@ -500,7 +532,7 @@ router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
       .limit(limit)
       .populate('shopId', 'name email avatar');
 
-    console.log('Found products:', products.length); // Debug log
+    console.log('Found products:', products.length);
 
     res.status(200).json({
       success: true,
