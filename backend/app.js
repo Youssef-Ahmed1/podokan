@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const multer = require('multer');
 const path = require('path');
-const sendMail = require('./utils/sendMail');
+const emailService = require('./utils/sendMail');  // Renamed to avoid conflicts
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
@@ -14,7 +14,8 @@ const compression = require('compression');
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: false
 }));
 
 // CORS configuration
@@ -44,18 +45,18 @@ const createRateLimiter = (windowMs, max, message) => rateLimit({
 
 // API rate limiter
 app.use('/api/', createRateLimiter(
-  15 * 60 * 1000, // 15 minutes
-  100, // 100 requests per window
+  15 * 60 * 1000,
+  100,
   'Too many requests, please try again later.'
 ));
 
-// Compression and parsing middleware
+// Middleware
 app.use(compression());
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 app.use(cookieParser());
 
-// Request logging middleware
+// Request logging
 app.use((req, res, next) => {
   const start = Date.now();
   const timestamp = new Date().toISOString();
@@ -70,12 +71,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// Multer configuration
+// File upload configuration
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   limits: {
-    fileSize: 100 * 2048 * 2048, // 100MB
+    fileSize: 100 * 2048 * 2048,
     files: 5
   },
   fileFilter: (req, file, cb) => {
@@ -88,7 +89,7 @@ const upload = multer({
   }
 }).array('files', 5);
 
-// Endpoints
+// Basic routes
 app.get('/', (req, res) => {
   res.json({
     message: 'PODokan Backend API',
@@ -109,13 +110,12 @@ app.get('/health', (req, res) => {
 
 // Email test endpoint
 app.get('/test-email', createRateLimiter(
-  60 * 60 * 1000, // 1 hour
-  5, // 5 requests per hour
+  60 * 60 * 1000,
+  5,
   'Too many email test requests'
 ), async (req, res) => {
   try {
-    console.log('Sending test email...');
-    await sendMail({
+    await emailService({
       email: 'moropass1212@gmail.com',
       subject: 'PODokan Test Email',
       html: `
@@ -142,7 +142,7 @@ app.get('/test-email', createRateLimiter(
   }
 });
 
-// Import and configure routes
+// API routes
 const routes = {
   user: require("./controller/user"),
   shop: require("./controller/shop"),
@@ -156,41 +156,8 @@ const routes = {
   withdraw: require("./controller/withdraw")
 };
 
-// Mount API routes
 Object.entries(routes).forEach(([name, router]) => {
   app.use(`/api/v2/${name}`, router);
-});
-
-// Token refresh endpoint
-app.post('/api/v2/refresh-token', async (req, res, next) => {
-  try {
-    const oldToken = req.cookies.token || req.body.token;
-    
-    if (!oldToken) {
-      return res.status(401).json({
-        success: false,
-        message: 'No token provided'
-      });
-    }
-
-    const newToken = await refreshToken(oldToken);
-    
-    res.cookie('token', newToken, {
-      expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      path: '/',
-      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
-    });
-
-    res.json({
-      success: true,
-      token: newToken
-    });
-  } catch (error) {
-    next(error);
-  }
 });
 
 // Error Handlers
@@ -211,7 +178,6 @@ app.use((err, req, res, next) => {
     timestamp: new Date().toISOString()
   });
 
-  // Error type handling
   const errorHandlers = {
     PayloadTooLargeError: () => ({
       status: 413,
@@ -238,7 +204,6 @@ app.use((err, req, res, next) => {
     });
   }
 
-  // Default error response
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({
     success: false,
@@ -247,15 +212,6 @@ app.use((err, req, res, next) => {
       stack: err.stack,
       details: err
     })
-  });
-});
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received. Performing graceful shutdown...');
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
   });
 });
 
