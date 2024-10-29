@@ -1,3 +1,4 @@
+// utils/sendMail.js
 const nodemailer = require("nodemailer");
 
 const sendMail = async (options) => {
@@ -9,24 +10,22 @@ const sendMail = async (options) => {
       auth: {
         user: process.env.SMTP_MAIL,
         pass: process.env.SMTP_PASSWORD,
-      }
+      },
     });
 
     const mailOptions = {
-      from: `${process.env.SMTP_FROM_NAME} <${process.env.SMTP_MAIL}>`,
+      from: process.env.SMTP_MAIL,
       to: options.email,
       subject: options.subject,
-      html: options.html
+      html: options.html,
     };
 
-    console.log('Sending email...');
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent:', info.messageId);
-    return info;
+    await transporter.sendMail(mailOptions);
+    return true;
   } catch (error) {
-    console.error('Email error:', error);
+    console.error("SendMail Error:", error);
     throw error;
   }
 };
 
-module.exports = sendMail;  // Remove any other requires or exports
+module.exports = sendMail;  // Export as default
