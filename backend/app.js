@@ -60,14 +60,11 @@ app.use(cookieParser());
 app.use((req, res, next) => {
   const start = Date.now();
   const timestamp = new Date().toISOString();
-  
   console.log(`[${timestamp}] ${req.method} ${req.url}`);
-  
   res.on('finish', () => {
     const duration = Date.now() - start;
     console.log(`[${timestamp}] ${req.method} ${req.url} ${res.statusCode} ${duration}ms`);
   });
-  
   next();
 });
 
@@ -83,7 +80,6 @@ const upload = multer({
     const allowedTypes = /jpeg|jpg|png|gif/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
-
     if (mimetype && extname) return cb(null, true);
     cb(new Error("Only images (jpeg, jpg, png, gif) are allowed"));
   }
@@ -115,7 +111,6 @@ app.get('/test-email', createRateLimiter(
   'Too many email test requests'
 ), async (req, res) => {
   try {
-    const emailService = require('./utils/sendMail');
     await emailService({
       email: 'moropass1212@gmail.com',
       subject: 'PODokan Test Email',
@@ -141,25 +136,20 @@ app.get('/test-email', createRateLimiter(
     });
   }
 });
+
 // API routes
-const routes = {
-  user: require("./controller/user"),
-  shop: require("./controller/shop"),
-  product: require("./controller/product"),
-  event: require("./controller/event"),
-  coupon: require("./controller/coupounCode"),
-  payment: require("./controller/payment"),
-  order: require("./controller/order"),
-  conversation: require("./controller/conversation"),
-  message: require("./controller/message"),
-  withdraw: require("./controller/withdraw")
-};
+app.use("/api/v2/user", require("./controller/user"));
+app.use("/api/v2/shop", require("./controller/shop"));
+app.use("/api/v2/product", require("./controller/product"));
+app.use("/api/v2/event", require("./controller/event"));
+app.use("/api/v2/coupon", require("./controller/coupounCode"));
+app.use("/api/v2/payment", require("./controller/payment"));
+app.use("/api/v2/order", require("./controller/order"));
+app.use("/api/v2/conversation", require("./controller/conversation"));
+app.use("/api/v2/message", require("./controller/message"));
+app.use("/api/v2/withdraw", require("./controller/withdraw"));
 
-Object.entries(routes).forEach(([name, router]) => {
-  app.use(`/api/v2/${name}`, router);
-});
-
-// Error Handlers
+// 404 Handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -168,6 +158,7 @@ app.use((req, res) => {
   });
 });
 
+// Error Handler
 app.use((err, req, res, next) => {
   console.error('Error occurred:', {
     message: err.message,
