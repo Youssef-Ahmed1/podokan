@@ -61,10 +61,12 @@ app.use((req, res, next) => {
   const start = Date.now();
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] ${req.method} ${req.url}`);
+  
   res.on('finish', () => {
     const duration = Date.now() - start;
     console.log(`[${timestamp}] ${req.method} ${req.url} ${res.statusCode} ${duration}ms`);
   });
+  
   next();
 });
 
@@ -80,6 +82,7 @@ const upload = multer({
     const allowedTypes = /jpeg|jpg|png|gif/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
+
     if (mimetype && extname) return cb(null, true);
     cb(new Error("Only images (jpeg, jpg, png, gif) are allowed"));
   }
@@ -137,17 +140,28 @@ app.get('/test-email', createRateLimiter(
   }
 });
 
-// API routes
-app.use("/api/v2/user", require("./controller/user"));
-app.use("/api/v2/shop", require("./controller/shop"));
-app.use("/api/v2/product", require("./controller/product"));
-app.use("/api/v2/event", require("./controller/event"));
-app.use("/api/v2/coupon", require("./controller/coupounCode"));
-app.use("/api/v2/payment", require("./controller/payment"));
-app.use("/api/v2/order", require("./controller/order"));
-app.use("/api/v2/conversation", require("./controller/conversation"));
-app.use("/api/v2/message", require("./controller/message"));
-app.use("/api/v2/withdraw", require("./controller/withdraw"));
+// Route definitions
+const routes = {
+  user: require("./controller/user"),
+  shop: require("./controller/shop"),
+  product: require("./controller/product"),
+  event: require("./controller/event"),
+  coupon: require("./controller/coupounCode"),
+  payment: require("./controller/payment"),
+  order: require("./controller/order"),
+  conversation: require("./controller/conversation"),
+  message: require("./controller/message"),
+  withdraw: require("./controller/withdraw")
+};
+
+// Mount routes with validation
+for (const [name, handler] of Object.entries(routes)) {
+  if (!handler || typeof handler.use !== 'function') {
+    console.error(`Invalid router for ${name}`);
+    continue;
+  }
+  app.use(`/api/v2/${name}`, handler);
+}
 
 // 404 Handler
 app.use((req, res) => {
@@ -158,17 +172,18 @@ app.use((req, res) => {
   });
 });
 
-// Error Handler
-app.use((err, req, res, next) => {
+// Enhanced Error Handler
+const errorHandler = (err, req, res, next) => {
   console.error('Error occurred:', {
     message: err.message,
-    stack: err.stack,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
     path: req.originalUrl,
     method: req.method,
     timestamp: new Date().toISOString()
   });
 
-  const errorHandlers = {
+  // Define error types and their handlers
+  const errorTypes = {
     PayloadTooLargeError: () => ({
       status: 413,
       message: 'File size exceeds the limit (100MB)'
@@ -176,16 +191,36 @@ app.use((err, req, res, next) => {
     ValidationError: () => ({
       status: 400,
       message: 'Validation Error',
-      errors: Object.values(err.errors).map(e => e.message)
+      errors: Object.values(err.errors || {}).map(e => e.message)
     }),
     MulterError: () => ({
       status: 400,
       message: 'File upload error',
       error: err.message
+    }),
+    TypeError: () => ({
+      status: 400,
+      message: err.message || 'Invalid input type'
+    }),
+    JsonWebTokenError: () => ({
+      status: 401,
+      message: 'Invalid token'
+    }),
+    TokenExpiredError: () => ({
+      status: 401,
+      message: 'Token expired'
+    }),
+    MongooseError: () => ({
+      status: 500,
+      message: 'Database error'
+    }),
+    CastError: () => ({
+      status: 400,
+      message: 'Invalid ID format'
     })
   };
 
-  const handler = errorHandlers[err.name];
+  const handler = errorTypes[err.name];
   if (handler) {
     const { status, ...response } = handler();
     return res.status(status).json({
@@ -194,6 +229,7 @@ app.use((err, req, res, next) => {
     });
   }
 
+  // Default error response
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({
     success: false,
@@ -203,6 +239,20 @@ app.use((err, req, res, next) => {
       details: err
     })
   });
+};
+
+app.use(errorHandler);
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Rejection:', err);
+  process.exit(1);
 });
 
 module.exports = app;
