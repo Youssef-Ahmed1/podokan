@@ -2,7 +2,14 @@ const express = require("express");
 const { isSeller, isAuthenticated, isAdmin } = require("../middleware/auth");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const router = express.Router();
-const Product = require("../model/product");
+const { 
+  Product, 
+  VALID_COLORS, 
+  VALID_PRODUCT_TYPES, 
+  VALID_VIEWS, 
+  VALID_STATUSES, 
+  VALID_VISIBILITY 
+} = require("../model/product");
 const Order = require("../model/order");
 const Shop = require("../model/shop");
 const cloudinary = require("cloudinary").v2;
@@ -10,6 +17,9 @@ const mongoose = require("mongoose");
 const ErrorHandler = require("../utils/ErrorHandler");
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
+
+
+
 const validateProductData = [
   body('DesignTitle')
     .trim()

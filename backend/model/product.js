@@ -331,4 +331,12 @@ const exports = {
 };
 
 // Export model
-module.exports.Product = mongoose.model("Product", productSchema);
+module.exports = {
+  Product,
+  VALID_COLORS,
+  VALID_PRODUCT_TYPES,
+  VALID_VIEWS,
+  VALID_STATUSES,
+  VALID_VISIBILITY
+};
+  
