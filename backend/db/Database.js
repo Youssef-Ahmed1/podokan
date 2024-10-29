@@ -1,25 +1,26 @@
 const mongoose = require("mongoose");
 
 const connectDatabase = () => {
+  const dbUrl = process.env.DB_URL;
+  
+  if (!dbUrl) {
+    console.error('DB_URL is not defined in environment variables');
+    process.exit(1);
+  }
+
+  console.log('Attempting to connect to MongoDB...');
+  
   mongoose
-    .connect(process.env.DB_URL, {
+    .connect(dbUrl, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     })
     .then((data) => {
       console.log(`MongoDB connected with server: ${data.connection.host}`);
-      // Log the available collections
-      mongoose.connection.db.listCollections().toArray((err, collections) => {
-        if (err) {
-          console.log('Error getting collections:', err);
-        } else {
-          console.log('Available collections:', collections.map(c => c.name));
-        }
-      });
     })
     .catch((error) => {
       console.error("Database connection error:", error);
-      console.error("Error stack:", error.stack);
+      process.exit(1);
     });
 };
 
