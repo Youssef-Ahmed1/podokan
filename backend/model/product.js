@@ -321,16 +321,8 @@ productSchema.methods.canBePurchased = function() {
 };
 
 // Export constants for use in other files
-const exports = {
-  VALID_COLORS,
-  VALID_PRODUCT_TYPES,
-  VALID_VIEWS,
-  VALID_STATUSES,
-  VALID_VISIBILITY,
-  Product: mongoose.model("Product", productSchema)
-};
+const Product = mongoose.model("Product", productSchema);
 
-// Export model
 module.exports = {
   Product,
   VALID_COLORS,
@@ -339,4 +331,3 @@ module.exports = {
   VALID_STATUSES,
   VALID_VISIBILITY
 };
-  
