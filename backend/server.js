@@ -5,19 +5,15 @@ const https = require('https');
 const http = require('http');
 const fs = require('fs');
 
+// Load environment variables first
+require("dotenv").config();
+
 // Handling uncaught Exception
 process.on("uncaughtException", (err) => {
   console.log(`Error: ${err.message}`);
   console.log(`Shutting down the server due to uncaught exception`);
   process.exit(1);
 });
-
-// Config
-if (process.env.NODE_ENV !== "PRODUCTION") {
-  require("dotenv").config({
-    path: "config/.env",
-  });
-}
 
 // Connect to database
 connectDatabase();
@@ -32,16 +28,19 @@ cloudinary.config({
 let server;
 
 if (process.env.NODE_ENV === "PRODUCTION") {
-  const options = {
-    key: fs.readFileSync('/etc/letsencrypt/live/testpodokan.store/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/testpodokan.store/fullchain.pem')
-  };
-  server = https.createServer(options, app);
-  server.listen(8000, '0.0.0.0', () => {
-    console.log(`HTTPS Server is running on port 8000`);
-  });
-
-  // We'll let Nginx handle the HTTP to HTTPS redirect
+  try {
+    const options = {
+      key: fs.readFileSync('/etc/letsencrypt/live/testpodokan.store/privkey.pem'),
+      cert: fs.readFileSync('/etc/letsencrypt/live/testpodokan.store/fullchain.pem')
+    };
+    server = https.createServer(options, app);
+    server.listen(8000, '0.0.0.0', () => {
+      console.log(`HTTPS Server is running on port 8000`);
+    });
+  } catch (error) {
+    console.error('SSL certificate error:', error);
+    process.exit(1);
+  }
 } else {
   server = app.listen(8000, '0.0.0.0', () => {
     console.log(`HTTP Server is running on port 8000`);
