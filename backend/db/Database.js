@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 
 const connectDatabase = () => {
+  // Debug log
+  console.log('Attempting to connect to MongoDB...');
+  console.log('DB URL:', process.env.DB_URL);
+  
   mongoose
     .connect(process.env.DB_URL, {
       useNewUrlParser: true,
@@ -20,6 +24,8 @@ const connectDatabase = () => {
     .catch((error) => {
       console.error("Database connection error:", error);
       console.error("Error stack:", error.stack);
+      // Don't exit process here, let the error propagate
+      throw error;
     });
 };
 
