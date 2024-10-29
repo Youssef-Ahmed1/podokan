@@ -1,4 +1,11 @@
 const mongoose = require("mongoose");
+
+const VALID_COLORS = ['white', 'black', 'gray', 'red', 'blue'];
+const VALID_PRODUCT_TYPES = ['t-shirt', 'hoodie', 'long-sleeves'];
+const VALID_VIEWS = ['front', 'back'];
+const VALID_STATUSES = ['pending', 'public', 'rejected'];
+const VALID_VISIBILITY = ['public', 'restricted'];
+
 const productSchema = new mongoose.Schema({
   shopId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -262,11 +269,11 @@ const productSchema = new mongoose.Schema({
     }
   }
 }, {
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
-});
-
+  
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  });
 // Indexes for better query performance
 productSchema.index({ DesignTitle: 'text', Description: 'text', Maintag: 'text', Designtags: 'text' });
 productSchema.index({ status: 1, visibility: 1 });
@@ -314,11 +321,14 @@ productSchema.methods.canBePurchased = function() {
 };
 
 // Export constants for use in other files
-module.exports.VALID_COLORS = VALID_COLORS;
-module.exports.VALID_PRODUCT_TYPES = VALID_PRODUCT_TYPES;
-module.exports.VALID_VIEWS = VALID_VIEWS;
-module.exports.VALID_STATUSES = VALID_STATUSES;
-module.exports.VALID_VISIBILITY = VALID_VISIBILITY;
+const exports = {
+  VALID_COLORS,
+  VALID_PRODUCT_TYPES,
+  VALID_VIEWS,
+  VALID_STATUSES,
+  VALID_VISIBILITY,
+  Product: mongoose.model("Product", productSchema)
+};
 
 // Export model
 module.exports.Product = mongoose.model("Product", productSchema);
