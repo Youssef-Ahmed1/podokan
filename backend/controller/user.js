@@ -5,10 +5,11 @@ const cloudinary = require("cloudinary");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const jwt = require("jsonwebtoken");
-const { sendMail } = require("../utils/sendMail");
+const sendMail = require("../utils/sendMail");
 const sendToken = require("../utils/jwtToken");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
 
+// create user
 // create user
 router.post("/create-user", async (req, res, next) => {
   let uploadedImage = null;
@@ -22,6 +23,15 @@ router.post("/create-user", async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: "All fields are required"
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email format"
       });
     }
 
@@ -47,10 +57,12 @@ router.post("/create-user", async (req, res, next) => {
       console.error("Avatar upload failed:", error);
       return res.status(500).json({
         success: false,
-        message: "Failed to upload profile picture"
+        message: "Failed to upload profile picture",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
 
+    // Create user object
     const user = {
       name: name.trim(),
       email: email.toLowerCase(),
@@ -61,11 +73,19 @@ router.post("/create-user", async (req, res, next) => {
       },
     };
 
+    // Create activation token
     const activationToken = createActivationToken(user);
     const activationUrl = `https://testpodokan.store/activation/${activationToken}`;
 
+    // Send activation email
     try {
-      console.log("Sending activation email...");
+      console.log("Preparing to send activation email...");
+      console.log("Email service configuration:", {
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        email: process.env.SMTP_MAIL
+      });
+
       await sendMail({
         email: user.email,
         subject: "Activate your PODokan Account",
@@ -82,41 +102,59 @@ router.post("/create-user", async (req, res, next) => {
             </div>
             <p style="color: #666; font-size: 14px;">If the button doesn't work, copy this link:</p>
             <p style="color: #666; font-size: 14px; word-break: break-all;">${activationUrl}</p>
+            <p style="color: #666; font-size: 14px;">This link will expire in 5 minutes.</p>
           </div>
         `
       });
 
-      console.log("Email sent successfully");
+      console.log("Activation email sent successfully");
 
       return res.status(201).json({
         success: true,
         message: `Please check your email (${user.email}) to activate your account!`
       });
     } catch (error) {
-      console.error("Email sending failed:", error);
+      console.error("Email sending failed:", {
+        error: error.message,
+        stack: error.stack
+      });
       
       // Cleanup uploaded image
       if (uploadedImage) {
-        await cloudinary.v2.uploader.destroy(uploadedImage.public_id);
+        try {
+          await cloudinary.v2.uploader.destroy(uploadedImage.public_id);
+          console.log("Cleaned up uploaded image after email failure");
+        } catch (cleanupError) {
+          console.error("Failed to cleanup image:", cleanupError);
+        }
       }
 
       return res.status(500).json({
         success: false,
         message: "Failed to send activation email",
-        error: error.message
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   } catch (error) {
-    console.error("Registration failed:", error);
+    console.error("Registration failed:", {
+      error: error.message,
+      stack: error.stack
+    });
 
     // Cleanup uploaded image
     if (uploadedImage) {
-      await cloudinary.v2.uploader.destroy(uploadedImage.public_id);
+      try {
+        await cloudinary.v2.uploader.destroy(uploadedImage.public_id);
+        console.log("Cleaned up uploaded image after registration failure");
+      } catch (cleanupError) {
+        console.error("Failed to cleanup image:", cleanupError);
+      }
     }
 
     return res.status(500).json({
       success: false,
-      message: error.message || "Registration failed"
+      message: "Registration failed",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
