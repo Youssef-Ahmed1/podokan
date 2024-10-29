@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const multer = require('multer');
 const path = require('path');
-const emailService = require('./utils/sendMail');  // Renamed to avoid conflicts
+const emailService = require('./utils/sendMail');  
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
@@ -115,6 +115,7 @@ app.get('/test-email', createRateLimiter(
   'Too many email test requests'
 ), async (req, res) => {
   try {
+    const emailService = require('./utils/sendMail');
     await emailService({
       email: 'moropass1212@gmail.com',
       subject: 'PODokan Test Email',
@@ -129,8 +130,7 @@ app.get('/test-email', createRateLimiter(
     
     res.json({
       success: true,
-      message: 'Test email sent successfully',
-      timestamp: new Date().toISOString()
+      message: 'Test email sent successfully'
     });
   } catch (error) {
     console.error('Test email failed:', error);
@@ -141,7 +141,6 @@ app.get('/test-email', createRateLimiter(
     });
   }
 });
-
 // API routes
 const routes = {
   user: require("./controller/user"),

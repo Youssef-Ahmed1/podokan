@@ -2,18 +2,12 @@ const express = require("express");
 const User = require("../model/user");
 const sendMail = require("../utils/sendMail");  
 const router = express.Router();
-
 const cloudinary = require("cloudinary");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 const sendToken = require("../utils/jwtToken");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
-
-// create user
-// create user
-// In your user.js controller
-const sendMail = require("../utils/sendMail");
 
 // create user
 router.post("/create-user", async (req, res, next) => {
