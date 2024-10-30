@@ -10,66 +10,67 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [avatar, setAvatar] = useState(null);
   const [loading, setLoading] = useState(false);
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (loading) return;
-  
-    try {
-      setLoading(true);
-      console.log("Sending registration request...");
-  
-      if (!name || !email || !password || !avatar) {
-        toast.error("Please fill all fields");
-        return;
-      }
-  
-      const config = { headers: { "Content-Type": "application/json" } };
-      const response = await axios.post(
-        `${server}/user/create-user`,
-        { name, email, password, avatar },
-        config
-      );
-  
-      console.log("Registration response:", response.data);
-  
-      if (response.data.success) {
-        toast.success(response.data.message);
-        setName("");
-        setEmail("");
-        setPassword("");
-        setAvatar(null);
-      } else {
-        toast.error(response.data.message);
-      }
-    } catch (error) {
-      console.error("Registration error:", error.response?.data || error.message);
-      toast.error(
-        error.response?.data?.message || 
-        "Registration failed. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleFileInput = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (reader.readyState === 2) {
-          setAvatar(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
+
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (loading) return;
+
+  try {
+    setLoading(true);
+
+    if (!name || !email || !password || !avatar) {
+      toast.error("Please fill all fields");
+      return;
     }
-  };
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('password', password);
+    formData.append('avatar', avatar);
+
+    const { data } = await axios.post(
+      `${server}/user/create-user`,
+      formData,
+      {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+        },
+        withCredentials: true
+      }
+    );
+
+    if (data.success) {
+      // Set token in localStorage
+      localStorage.setItem('token', data.token);
+      
+      // Set axios default header
+      axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+      
+      toast.success("Registration successful!");
+      navigate("/");
+      
+      setName("");
+      setEmail("");
+      setPassword("");
+      setAvatar(null);
+    }
+  } catch (error) {
+    console.error("Registration error:", error);
+    toast.error(error.response?.data?.message || "Registration failed");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Register with PODokan
+          make your design come to life!
         </h2>
       </div>
 
