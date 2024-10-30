@@ -94,13 +94,21 @@ export const loadUser = () => async (dispatch) => {
 export const loadSeller = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadSellerRequest" });
+    
     const { data } = await axios.get(`${server}/shop/getSeller`, {
       withCredentials: true,
+      headers: {
+        'Content-Type': 'application/json',
+      }
     });
-    dispatch({ type: "LoadSellerSuccess", payload: data.seller });
+
+    if (data.success) {
+      dispatch({ type: "LoadSellerSuccess", payload: data.seller });
+    } else {
+      throw new Error(data.message);
+    }
   } catch (error) {
     console.error("Error in loadSeller:", error);
-    console.error("Error response:", error.response);
     dispatch({
       type: "LoadSellerFail",
       payload: error.response?.data?.message || error.message,
