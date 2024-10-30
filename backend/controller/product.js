@@ -5,7 +5,8 @@ const router = express.Router();
 const { 
     Product, 
     VALID_COLORS,
-    VALID_PRODUCT_TYPES
+    VALID_PRODUCT_TYPES,
+    VALID_STATUSES = ['pending', 'public', 'rejected']
 } = require("../model/product");
 const Order = require("../model/order");
 const Shop = require("../model/shop");
@@ -15,7 +16,9 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 
-// Validation middleware
+// =========================================
+// Validation Middleware
+// =========================================
 const validateProductData = [
   body('DesignTitle')
     .trim()
@@ -53,7 +56,9 @@ const validateProductData = [
     .withMessage('Invalid shop ID')
 ];
 
-// Multer configuration
+// =========================================
+// File Upload Configuration
+// =========================================
 const storage = multer.diskStorage({
   destination: 'uploads/',
   filename: function (req, file, cb) {
@@ -81,7 +86,9 @@ router.options('/approve-reject-product/:id', (req, res) => {
   res.header('Access-Control-Allow-Methods', 'PUT');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.sendStatus(204);
-});
+});// =========================================
+// POST Routes
+// =========================================
 
 // Create product
 router.post(
@@ -113,6 +120,7 @@ router.post(
         availableColors
       } = req.body;
 
+      // Verify shop ownership
       const shop = await Shop.findById(shopId);
       if (!shop) {
         return next(new ErrorHandler("Shop not found", 404));
@@ -121,10 +129,12 @@ router.post(
         return next(new ErrorHandler("Unauthorized access to this shop", 403));
       }
 
+      // Validate image
       if (!req.file) {
         return next(new ErrorHandler("Design image is required", 400));
       }
 
+      // Upload image to cloudinary
       let designImage;
       try {
         const result = await cloudinary.uploader.upload(req.file.path, {
@@ -142,6 +152,7 @@ router.post(
         return next(new ErrorHandler("Error uploading image to cloud storage", 500));
       }
 
+      // Create product data
       const productData = {
         DesignTitle: DesignTitle.trim(),
         Description: Description.trim(),
@@ -155,9 +166,11 @@ router.post(
         shopId,
         status: 'pending',
         availableColors: availableColors || [ProductColor],
-        createdBy: req.seller._id
+        createdBy: req.seller._id,
+        createdAt: new Date()
       };
 
+      // Create product
       const product = await Product.create(productData);
 
       res.status(201).json({
@@ -166,6 +179,7 @@ router.post(
         product,
       });
     } catch (error) {
+      // Cleanup uploaded file if exists
       if (req.file) {
         try {
           await cloudinary.uploader.destroy(req.file.filename);
@@ -177,25 +191,11 @@ router.post(
     }
   })
 );
-// Get all products (before the module.exports line)
-router.get(
-  "/get-all-products", 
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const products = await Product.find({ status: 'public' })
-        .select('-__v')
-        .sort({ createdAt: -1 })
-        .populate('shopId', 'name email avatar');
 
-      res.status(200).json({
-        success: true,
-        products,
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
+// =========================================
+// PUT Routes
+// =========================================
+
 // Approve/Reject Product route
 router.put(
   '/approve-reject-product/:id',
@@ -206,8 +206,14 @@ router.put(
       const { id } = req.params;
       const { status, rejectionReason } = req.body;
 
+      // Validate product ID
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return next(new ErrorHandler("Invalid product ID", 400));
+      }
+
+      // Validate status
+      if (!status || !VALID_STATUSES.includes(status)) {
+        return next(new ErrorHandler(`Status must be one of: ${VALID_STATUSES.join(', ')}`, 400));
       }
 
       const product = await Product.findById(id);
@@ -217,13 +223,15 @@ router.put(
 
       product.status = status;
       if (status === 'rejected') {
+        if (!rejectionReason) {
+          return next(new ErrorHandler("Rejection reason is required", 400));
+        }
         product.rejectionReason = rejectionReason;
       }
       product.lastModified = new Date();
+      product.lastModifiedBy = req.user._id;
 
       await product.save();
-
-      // Notify shop owner (implement this function separately)
       await notifyShopOwner(product, status);
 
       res.status(200).json({
@@ -254,6 +262,7 @@ router.put(
     try {
       const { id } = req.params;
 
+      // Validate request
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ 
@@ -262,6 +271,7 @@ router.put(
         });
       }
 
+      // Validate ID and find product
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return next(new ErrorHandler("Invalid product ID", 400));
       }
@@ -271,11 +281,13 @@ router.put(
         return next(new ErrorHandler("Product not found", 404));
       }
 
+      // Verify ownership
       const shop = await Shop.findById(product.shopId);
       if (!shop || shop.owner.toString() !== req.seller._id.toString()) {
         return next(new ErrorHandler("Unauthorized access to this product", 403));
       }
 
+      // Handle image update if provided
       let designImage = product.designImage;
       if (req.file) {
         try {
@@ -299,10 +311,11 @@ router.put(
         }
       }
 
+      // Update product data
       const updateData = {
         ...req.body,
         designImage,
-        status: 'pending',
+        status: 'pending', // Reset to pending for re-approval
         lastModified: new Date(),
         lastModifiedBy: req.seller._id
       };
@@ -320,6 +333,7 @@ router.put(
       });
 
     } catch (error) {
+      // Cleanup uploaded file if exists
       if (req.file) {
         try {
           await cloudinary.uploader.destroy(req.file.filename);
@@ -332,107 +346,91 @@ router.put(
   })
 );
 
-// Utility function to notify shop owner
-async function notifyShopOwner(product, status) {
-  try {
-    const shop = await Shop.findById(product.shopId);
-    if (shop) {
-      // Implement your notification logic here
-      console.log(`Notifying shop owner (${shop.owner}) about product ${product._id} status: ${status}`);
-    }
-  } catch (error) {
-    console.error('Error notifying shop owner:', error);
-  }
-}
-
-// Get all products of a shop
-router.get(
-  "/get-all-products-shop/:id",
+// Create/Update review
+router.put(
+  "/create-new-review",
+  isAuthenticated,
+  [
+    body('rating').isFloat({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
+    body('comment').trim().isLength({ min: 5, max: 500 }).withMessage('Comment must be between 5 and 500 characters'),
+    body('productId').custom(value => mongoose.Types.ObjectId.isValid(value)).withMessage('Invalid product ID'),
+    body('orderId').custom(value => mongoose.Types.ObjectId.isValid(value)).withMessage('Invalid order ID')
+  ],
   catchAsyncErrors(async (req, res, next) => {
     try {
-      if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-        return next(new ErrorHandler("Invalid shop ID", 400));
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ 
+          success: false, 
+          errors: errors.array() 
+        });
       }
 
-      const shop = await Shop.findById(req.params.id);
-      if (!shop) {
-        return next(new ErrorHandler("Shop not found", 404));
+      const { rating, comment, productId, orderId } = req.body;
+
+      // Find product and verify purchase
+      const product = await Product.findById(productId);
+      if (!product) {
+        return next(new ErrorHandler("Product not found", 404));
       }
 
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 20;
-      const skip = (page - 1) * limit;
+      const hasOrdered = await Order.findOne({
+        _id: orderId,
+        "cart.productId": productId,
+        "user._id": req.user._id
+      });
 
-      const query = {
-        shopId: req.params.id,
-        status: { $in: ['public', 'restricted'] }
+      if (!hasOrdered) {
+        return next(new ErrorHandler("You must purchase this product to review it", 403));
+      }
+
+      // Create/Update review
+      const review = {
+        user: req.user._id,
+        name: req.user.name,
+        rating: Number(rating),
+        comment,
+        productId
       };
 
-      if (req.query.productType) {
-        if (VALID_PRODUCT_TYPES.includes(req.query.productType)) {
-          query.ProductType = req.query.productType;
-        }
+      const existingReviewIndex = product.reviews.findIndex(
+        rev => rev.user.toString() === req.user._id.toString()
+      );
+
+      if (existingReviewIndex !== -1) {
+        product.reviews[existingReviewIndex] = review;
+      } else {
+        product.reviews.push(review);
       }
 
-      if (req.query.color) {
-        if (VALID_COLORS.includes(req.query.color)) {
-          query.availableColors = req.query.color;
+      // Update product rating
+      product.ratings = product.reviews.reduce((acc, item) => item.rating + acc, 0) 
+        / product.reviews.length;
+
+      await product.save({ validateBeforeSave: false });
+
+      // Mark product as reviewed in order
+      await Order.updateOne(
+        { 
+          _id: orderId,
+          "cart.productId": productId 
+        },
+        { 
+          $set: { "cart.$.isReviewed": true }
         }
-      }
-
-      const totalProducts = await Product.countDocuments(query);
-
-      const products = await Product.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .select('-__v');
+      );
 
       res.status(200).json({
         success: true,
-        products,
-        currentPage: page,
-        totalPages: Math.ceil(totalProducts / limit),
-        totalProducts,
+        message: "Review added successfully"
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
   })
-);
-
-// Get pending products (admin)
-router.get(
-  "/admin/pending-products",
-  isAuthenticated,
-  isAdmin("Admin"),
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 20;
-      const skip = (page - 1) * limit;
-
-      const totalPending = await Product.countDocuments({ status: 'pending' });
-
-      const pendingProducts = await Product.find({ status: 'pending' })
-        .select('DesignTitle Description Maintag Designtags ProductType ProductColor ProductView DesignScale designImage status availableColors createdAt shopId')
-        .populate('shopId', 'name email')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit);
-
-      res.status(200).json({
-        success: true,
-        products: pendingProducts,
-        currentPage: page,
-        totalPages: Math.ceil(totalPending / limit),
-        totalPending,
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
+);// =========================================
+// DELETE Routes
+// =========================================
 
 // Delete product
 router.delete(
@@ -441,20 +439,24 @@ router.delete(
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
+      // Validate product ID
       if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
         return next(new ErrorHandler("Invalid product ID", 400));
       }
 
+      // Find product
       const product = await Product.findById(req.params.id);
       if (!product) {
         return next(new ErrorHandler("Product not found", 404));
       }
 
+      // Verify ownership
       const shop = await Shop.findById(product.shopId);
       if (!shop || shop.owner.toString() !== req.seller._id.toString()) {
         return next(new ErrorHandler("Unauthorized access to this product", 403));
       }
 
+      // Check for active orders
       const activeOrders = await Order.countDocuments({
         'cart.productId': product._id,
         status: { $nin: ['delivered', 'cancelled', 'refunded'] }
@@ -464,20 +466,93 @@ router.delete(
         return next(new ErrorHandler("Cannot delete product with active orders", 400));
       }
 
+      // Delete image from cloudinary
       if (product.designImage?.public_id) {
-        await cloudinary.uploader.destroy(product.designImage.public_id);
+        try {
+          await cloudinary.uploader.destroy(product.designImage.public_id);
+        } catch (error) {
+          console.error('Error deleting image from cloudinary:', error);
+          // Continue with product deletion even if image deletion fails
+        }
       }
 
-      await product.remove();
+      // Delete product
+      await Product.findByIdAndDelete(req.params.id);
 
       res.status(200).json({
         success: true,
-        message: "Product deleted successfully!",
+        message: "Product deleted successfully!"
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
+
+// =========================================
+// Utility Functions
+// =========================================
+
+/**
+ * Notify shop owner about product status changes
+ * @param {Object} product - The product object
+ * @param {String} status - The new status
+ * @returns {Promise<void>}
+ */
+async function notifyShopOwner(product, status) {
+  try {
+    const shop = await Shop.findById(product.shopId);
+    if (!shop) {
+      console.error('Shop not found for notification:', product.shopId);
+      return;
+    }
+
+    // TODO: Implement your notification logic here
+    // Example: Send email, push notification, etc.
+    console.log(`Notifying shop owner (${shop.owner}) about product ${product._id} status: ${status}`);
+
+    // You could add your email service call here
+    // await emailService({
+    //   email: shop.email,
+    //   subject: `Product Status Update - ${status}`,
+    //   message: `Your product ${product.DesignTitle} has been ${status}`
+    // });
+
+  } catch (error) {
+    console.error('Error in notifyShopOwner:', error);
+    // Don't throw the error as this is a background task
+  }
+}
+
+/**
+ * Validate product data helper function
+ * @param {Object} data - The product data to validate
+ * @returns {Array} Array of error messages or empty array if valid
+ */
+function validateProduct(data) {
+  const errors = [];
+  
+  if (!data.DesignTitle || data.DesignTitle.length < 3) {
+    errors.push('Invalid design title');
+  }
+  
+  if (!data.Description || data.Description.length < 10) {
+    errors.push('Invalid description');
+  }
+  
+  if (!VALID_PRODUCT_TYPES.includes(data.ProductType)) {
+    errors.push('Invalid product type');
+  }
+  
+  if (!VALID_COLORS.includes(data.ProductColor)) {
+    errors.push('Invalid product color');
+  }
+  
+  return errors;
+}
+
+// =========================================
+// Export Router
+// =========================================
 
 module.exports = router;
