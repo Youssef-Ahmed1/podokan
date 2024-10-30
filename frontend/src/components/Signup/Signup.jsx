@@ -2,7 +2,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { server } from "../../server";
-import { toast } from "react-toastify";
+import { toast , navigate } from "react-toastify";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -62,6 +62,18 @@ const handleSubmit = async (e) => {
     toast.error(error.response?.data?.message || "Registration failed");
   } finally {
     setLoading(false);
+  }
+};
+const handleFileInput = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (reader.readyState === 2) {
+        setAvatar(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
   }
 };
 
