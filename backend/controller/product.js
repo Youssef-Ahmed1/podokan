@@ -177,7 +177,25 @@ router.post(
     }
   })
 );
+// Get all products (before the module.exports line)
+router.get(
+  "/get-all-products", 
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const products = await Product.find({ status: 'public' })
+        .select('-__v')
+        .sort({ createdAt: -1 })
+        .populate('shopId', 'name email avatar');
 
+      res.status(200).json({
+        success: true,
+        products,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
 // Approve/Reject Product route
 router.put(
   '/approve-reject-product/:id',
