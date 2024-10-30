@@ -13,6 +13,7 @@ const { body, validationResult } = require('express-validator');
 
 console.log('Loading routes...');
 
+// Validation middleware
 const validateProductData = [
   body('DesignTitle').trim().isLength({ min: 3, max: 100 }).withMessage('Design title must be between 3 and 100 characters'),
   body('Description').trim().isLength({ min: 10, max: 1000 }).withMessage('Description must be between 10 and 1000 characters'),
@@ -24,9 +25,10 @@ const validateProductData = [
   body('shopId').custom(value => mongoose.Types.ObjectId.isValid(value)).withMessage('Invalid shop ID')
 ];
 
+// File upload configuration
 const storage = multer.diskStorage({
   destination: 'uploads/',
-  filename: function (req, file, cb) {
+  filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix);
   }
@@ -44,18 +46,31 @@ const upload = multer({
   }
 });
 
+// Routes
 router.options('/approve-reject-product/:id', (req, res) => {
   res.header('Access-Control-Allow-Methods', 'PUT');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.sendStatus(204);
 });
 
+// GET routes
+router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
+  try {
+    const products = await Product.find({ status: 'public' });
+    res.status(200).json({ success: true, products });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+}));
+
+// POST routes
 router.post("/create-product", isAuthenticated, isSeller, upload.single('designImage'), validateProductData, catchAsyncErrors(async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ success: false, errors: errors.array() });
     }
+
     const { shopId, DesignTitle, Description, Maintag, Designtags, ProductType, ProductColor, ProductView, DesignScale, availableColors } = req.body;
     const shop = await Shop.findById(shopId);
     if (!shop) {
@@ -94,25 +109,20 @@ router.post("/create-product", isAuthenticated, isSeller, upload.single('designI
     });
     res.status(201).json({
       success: true,
-      message: "Product created successfully and is awaiting inspection!",
-      product,
+      message: "Product created successfully!",
+      product
     });
   } catch (error) {
-    if (req.file) {
-      try {
-        await cloudinary.uploader.destroy(req.file.filename);
-      } catch (cleanupError) {
-        console.error("Error cleaning up uploaded file:", cleanupError);
-      }
-    }
     return next(new ErrorHandler(error.message, 500));
   }
 }));
 
+// PUT routes
 router.put('/approve-reject-product/:id', isAuthenticated, isAdmin("Admin"), catchAsyncErrors(async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status, rejectionReason } = req.body;
+
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return next(new ErrorHandler("Invalid product ID", 400));
     }
@@ -136,14 +146,13 @@ router.put('/approve-reject-product/:id', isAuthenticated, isAdmin("Admin"), cat
     await notifyShopOwner(product, status);
     res.status(200).json({
       success: true,
-      message: `Product ${status === 'public' ? 'approved' : 'rejected'} successfully`,
+      message: `Product ${status} successfully`,
       product
     });
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
 }));
-
 router.put("/update-product-design/:id", isAuthenticated, isSeller, upload.single('designImage'), [...validateProductData, body('status').not().exists().withMessage('Status cannot be updated through this endpoint')], catchAsyncErrors(async (req, res, next) => {
   try {
     const { id } = req.params;
