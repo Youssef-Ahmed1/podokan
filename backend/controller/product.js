@@ -2,7 +2,12 @@ const express = require("express");
 const { isSeller, isAuthenticated, isAdmin } = require("../middleware/auth");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const router = express.Router();
-const { Product, VALID_COLORS, VALID_PRODUCT_TYPES, VALID_STATUSES = ['pending', 'public', 'rejected'] } = require("../model/product");
+const { 
+  Product, 
+  VALID_COLORS, 
+  VALID_PRODUCT_TYPES, 
+  VALID_STATUSES 
+} = require("../model/product");
 const Order = require("../model/order");
 const Shop = require("../model/shop");
 const cloudinary = require("cloudinary").v2;
@@ -11,8 +16,8 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 
-console.log('Loading routes...');
 
+console.log('Loading routes...');
 // Validation middleware
 const validateProductData = [
   body('DesignTitle').trim().isLength({ min: 3, max: 100 }).withMessage('Design title must be between 3 and 100 characters'),
@@ -46,6 +51,28 @@ const upload = multer({
   }
 });
 
+function validateProduct(data) {
+  const errors = [];
+  if (!data.DesignTitle || data.DesignTitle.length < 3) errors.push('Invalid design title');
+  if (!data.Description || data.Description.length < 10) errors.push('Invalid description');
+  if (!VALID_PRODUCT_TYPES.includes(data.ProductType)) errors.push('Invalid product type');
+  if (!VALID_COLORS.includes(data.ProductColor)) errors.push('Invalid product color');
+  return errors;
+}
+async function notifyShopOwner(product, status) {
+  try {
+    const shop = await Shop.findById(product.shopId);
+    if (!shop) {
+      console.error('Shop not found for notification:', product.shopId);
+      return;
+    }
+    console.log(`Notifying shop owner (${shop.owner}) about product ${product._id} status: ${status}`);
+  } catch (error) {
+    console.error('Error in notifyShopOwner:', error);
+  }
+}
+
+
 // Routes
 router.options('/approve-reject-product/:id', (req, res) => {
   res.header('Access-Control-Allow-Methods', 'PUT');
@@ -53,7 +80,7 @@ router.options('/approve-reject-product/:id', (req, res) => {
   res.sendStatus(204);
 });
 
-// GET routes
+// GET route
 router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
   try {
     const products = await Product.find({ status: 'public' });
@@ -63,13 +90,15 @@ router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
   }
 }));
 
+
 // POST routes
-router.post("/create-product", isAuthenticated, isSeller, upload.single('designImage'), validateProductData, catchAsyncErrors(async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
-    }
+router.post("/create-product", 
+  isAuthenticated, 
+  isSeller, 
+  upload.single('designImage'), 
+  validateProductData, 
+  catchAsyncErrors(async (req, res, next) => {
+    try {
 
     const { shopId, DesignTitle, Description, Maintag, Designtags, ProductType, ProductColor, ProductView, DesignScale, availableColors } = req.body;
     const shop = await Shop.findById(shopId);
@@ -115,11 +144,15 @@ router.post("/create-product", isAuthenticated, isSeller, upload.single('designI
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
-}));
+})
+);
 
 // PUT routes
-router.put('/approve-reject-product/:id', isAuthenticated, isAdmin("Admin"), catchAsyncErrors(async (req, res, next) => {
-  try {
+router.put('/approve-reject-product/:id',
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
     const { id } = req.params;
     const { status, rejectionReason } = req.body;
 
@@ -149,12 +182,18 @@ router.put('/approve-reject-product/:id', isAuthenticated, isAdmin("Admin"), cat
       message: `Product ${status} successfully`,
       product
     });
-  } catch (error) {
+  }  catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
-}));
-router.put("/update-product-design/:id", isAuthenticated, isSeller, upload.single('designImage'), [...validateProductData, body('status').not().exists().withMessage('Status cannot be updated through this endpoint')], catchAsyncErrors(async (req, res, next) => {
-  try {
+})
+);
+router.put("/update-product-design/:id",
+  isAuthenticated,
+  isSeller,
+  upload.single('designImage'),
+  validateProductData,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
     const { id } = req.params;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -199,25 +238,22 @@ router.put("/update-product-design/:id", isAuthenticated, isSeller, upload.singl
       message: "Product design updated successfully and awaiting re-approval",
       product: updatedProduct
     });
-  } catch (error) {
-    if (req.file) {
-      try {
-        await cloudinary.uploader.destroy(req.file.filename);
-      } catch (cleanupError) {
-        console.error("Error cleaning up uploaded file:", cleanupError);
-      }
-    }
+  }catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
-}));
+})
+);
 
-router.put("/create-new-review", isAuthenticated, [
-  body('rating').isFloat({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
-  body('comment').trim().isLength({ min: 5, max: 500 }).withMessage('Comment must be between 5 and 500 characters'),
-  body('productId').custom(value => mongoose.Types.ObjectId.isValid(value)).withMessage('Invalid product ID'),
-  body('orderId').custom(value => mongoose.Types.ObjectId.isValid(value)).withMessage('Invalid order ID')
-], catchAsyncErrors(async (req, res, next) => {
-  try {
+router.put("/create-new-review",
+  isAuthenticated,
+  [
+    body('rating').isFloat({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
+    body('comment').trim().isLength({ min: 5, max: 500 }).withMessage('Comment must be between 5 and 500 characters'),
+    body('productId').custom(value => mongoose.Types.ObjectId.isValid(value)).withMessage('Invalid product ID'),
+    body('orderId').custom(value => mongoose.Types.ObjectId.isValid(value)).withMessage('Invalid order ID')
+  ],
+  catchAsyncErrors(async (req, res, next) => {
+    try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ success: false, errors: errors.array() });
@@ -263,10 +299,14 @@ router.put("/create-new-review", isAuthenticated, [
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
-}));
+})
+);
 
-router.delete("/delete-shop-product/:id", isAuthenticated, isSeller, catchAsyncErrors(async (req, res, next) => {
-  try {
+router.delete("/delete-shop-product/:id",
+  isAuthenticated,
+  isSeller,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return next(new ErrorHandler("Invalid product ID", 400));
     }
@@ -300,28 +340,9 @@ router.delete("/delete-shop-product/:id", isAuthenticated, isSeller, catchAsyncE
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
-}));
+})
+);
 
-async function notifyShopOwner(product, status) {
-  try {
-    const shop = await Shop.findById(product.shopId);
-    if (!shop) {
-      console.error('Shop not found for notification:', product.shopId);
-      return;
-    }
-    console.log(`Notifying shop owner (${shop.owner}) about product ${product._id} status: ${status}`);
-  } catch (error) {
-    console.error('Error in notifyShopOwner:', error);
-  }
-}
 
-function validateProduct(data) {
-  const errors = [];
-  if (!data.DesignTitle || data.DesignTitle.length < 3) errors.push('Invalid design title');
-  if (!data.Description || data.Description.length < 10) errors.push('Invalid description');
-  if (!VALID_PRODUCT_TYPES.includes(data.ProductType)) errors.push('Invalid product type');
-  if (!VALID_COLORS.includes(data.ProductColor)) errors.push('Invalid product color');
-  return errors;
-}
 
 module.exports = router;
