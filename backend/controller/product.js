@@ -187,11 +187,14 @@ router.put('/approve-reject-product/:id',
   }
 })
 );
-router.put("/update-product-design/:id",
+router.put("/update-product-design/:id", 
   isAuthenticated,
   isSeller,
   upload.single('designImage'),
-  validateProductData,
+  [
+    ...validateProductData,
+    body('status').not().exists().withMessage('Status cannot be updated through this endpoint')
+  ],
   catchAsyncErrors(async (req, res, next) => {
     try {
     const { id } = req.params;
