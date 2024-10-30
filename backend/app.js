@@ -1,6 +1,6 @@
 const express = require("express");
-const ErrorHandler = require("./middleware/error");
-const app = express();
+const ErrorHandler = require("./utils/ErrorHandler");
+const errorMiddleware = require("./middleware/error");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -10,6 +10,8 @@ const emailService = require('./utils/sendMail');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
+
+const app = express();
 
 // Security middleware
 app.use(helmet({
@@ -56,7 +58,7 @@ app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 app.use(cookieParser());
 
-// Request logging
+// Request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const timestamp = new Date().toISOString();
@@ -75,7 +77,7 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   limits: {
-    fileSize: 100 * 2048 * 2048,
+    fileSize: 100 * 2048 * 2048, // 100MB
     files: 5
   },
   fileFilter: (req, file, cb) => {
@@ -84,9 +86,17 @@ const upload = multer({
     const mimetype = allowedTypes.test(file.mimetype);
 
     if (mimetype && extname) return cb(null, true);
-    cb(new Error("Only images (jpeg, jpg, png, gif) are allowed"));
+    cb(new ErrorHandler("Only images (jpeg, jpg, png, gif) are allowed", 400));
   }
 }).array('files', 5);
+
+// Handle file upload errors
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return next(new ErrorHandler(err.message, 400));
+  }
+  next(err);
+});
 
 // Basic routes
 app.get('/', (req, res) => {
@@ -112,7 +122,7 @@ app.get('/test-email', createRateLimiter(
   60 * 60 * 1000,
   5,
   'Too many email test requests'
-), async (req, res) => {
+), async (req, res, next) => {
   try {
     await emailService({
       email: 'moropass1212@gmail.com',
@@ -131,12 +141,7 @@ app.get('/test-email', createRateLimiter(
       message: 'Test email sent successfully'
     });
   } catch (error) {
-    console.error('Test email failed:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to send test email',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
+    next(new ErrorHandler(error.message, 500));
   }
 });
 
@@ -155,13 +160,13 @@ const routes = {
 };
 
 // Mount routes with validation
-for (const [name, handler] of Object.entries(routes)) {
+Object.entries(routes).forEach(([name, handler]) => {
   if (!handler || typeof handler.use !== 'function') {
     console.error(`Invalid router for ${name}`);
-    continue;
+    return;
   }
   app.use(`/api/v2/${name}`, handler);
-}
+});
 
 // 404 Handler
 app.use((req, res) => {
@@ -172,87 +177,28 @@ app.use((req, res) => {
   });
 });
 
-// Enhanced Error Handler
-const errorHandler = (err, req, res, next) => {
-  console.error('Error occurred:', {
-    message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    path: req.originalUrl,
-    method: req.method,
-    timestamp: new Date().toISOString()
-  });
-
-  // Define error types and their handlers
-  const errorTypes = {
-    PayloadTooLargeError: () => ({
-      status: 413,
-      message: 'File size exceeds the limit (100MB)'
-    }),
-    ValidationError: () => ({
-      status: 400,
-      message: 'Validation Error',
-      errors: Object.values(err.errors || {}).map(e => e.message)
-    }),
-    MulterError: () => ({
-      status: 400,
-      message: 'File upload error',
-      error: err.message
-    }),
-    TypeError: () => ({
-      status: 400,
-      message: err.message || 'Invalid input type'
-    }),
-    JsonWebTokenError: () => ({
-      status: 401,
-      message: 'Invalid token'
-    }),
-    TokenExpiredError: () => ({
-      status: 401,
-      message: 'Token expired'
-    }),
-    MongooseError: () => ({
-      status: 500,
-      message: 'Database error'
-    }),
-    CastError: () => ({
-      status: 400,
-      message: 'Invalid ID format'
-    })
-  };
-
-  const handler = errorTypes[err.name];
-  if (handler) {
-    const { status, ...response } = handler();
-    return res.status(status).json({
-      success: false,
-      ...response
-    });
-  }
-
-  // Default error response
-  const statusCode = err.statusCode || 500;
-  res.status(statusCode).json({
-    success: false,
-    message: err.message || 'Internal Server Error',
-    ...(process.env.NODE_ENV === 'development' && {
-      stack: err.stack,
-      details: err
-    })
-  });
-};
-
-app.use(errorHandler);
+// Error handling middleware
+app.use(errorMiddleware);
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
+  console.error('Uncaught Exception:', {
+    message: err.message,
+    stack: err.stack,
+    timestamp: new Date().toISOString()
+  });
   process.exit(1);
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Rejection:', err);
+  console.error('Unhandled Rejection:', {
+    message: err.message,
+    stack: err.stack,
+    timestamp: new Date().toISOString()
+  });
   process.exit(1);
 });
 
+// Export app
 module.exports = app;
