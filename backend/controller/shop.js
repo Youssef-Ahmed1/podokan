@@ -142,10 +142,6 @@ router.get(
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      if (!req.seller || !req.seller._id) {
-        return next(new ErrorHandler("Seller information not available", 404));
-      }
-
       const seller = await Shop.findById(req.seller._id);
 
       if (!seller) {
@@ -161,7 +157,6 @@ router.get(
     }
   })
 );
-
 // log out from shop
 router.get(
   "/logout",
