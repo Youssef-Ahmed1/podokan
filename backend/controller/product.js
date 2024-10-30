@@ -5,9 +5,7 @@ const router = express.Router();
 const { 
     Product, 
     VALID_COLORS,
-    VALID_PRODUCT_TYPES,
-    VALID_VIEWS,
-    VALID_STATUSES
+    VALID_PRODUCT_TYPES
 } = require("../model/product");
 const Order = require("../model/order");
 const Shop = require("../model/shop");
@@ -17,6 +15,7 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 
+// Validation middleware
 const validateProductData = [
   body('DesignTitle')
     .trim()
@@ -66,7 +65,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 100 * 2048 * 2048, // 50MB limit
+    fileSize: 50 * 1024 * 1024, // 50MB limit
   },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
@@ -76,7 +75,6 @@ const upload = multer({
     }
   }
 });
-
 
 // CORS preflight handling
 router.options('/approve-reject-product/:id', (req, res) => {
@@ -94,7 +92,6 @@ router.post(
   validateProductData,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      // Validate request
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ 
@@ -116,7 +113,6 @@ router.post(
         availableColors
       } = req.body;
 
-      // Verify shop ownership
       const shop = await Shop.findById(shopId);
       if (!shop) {
         return next(new ErrorHandler("Shop not found", 404));
@@ -125,7 +121,6 @@ router.post(
         return next(new ErrorHandler("Unauthorized access to this shop", 403));
       }
 
-      // Handle image upload
       if (!req.file) {
         return next(new ErrorHandler("Design image is required", 400));
       }
@@ -147,7 +142,6 @@ router.post(
         return next(new ErrorHandler("Error uploading image to cloud storage", 500));
       }
 
-      // Create product
       const productData = {
         DesignTitle: DesignTitle.trim(),
         Description: Description.trim(),
@@ -172,7 +166,6 @@ router.post(
         product,
       });
     } catch (error) {
-      // Cleanup uploaded file if exists
       if (req.file) {
         try {
           await cloudinary.uploader.destroy(req.file.filename);
@@ -183,7 +176,9 @@ router.post(
       return next(new ErrorHandler(error.message, 500));
     }
   })
-);// Approve/Reject Product route
+);
+
+// Approve/Reject Product route
 router.put(
   '/approve-reject-product/:id',
   isAuthenticated,
@@ -191,74 +186,39 @@ router.put(
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { id } = req.params;
-      console.log('Product ID:', id);
-      console.log('Request body:', req.body);
+      const { status, rejectionReason } = req.body;
 
-      // Validate product ID
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return next(new ErrorHandler("Invalid product ID", 400));
       }
 
-      // Find product
       const product = await Product.findById(id);
       if (!product) {
         return next(new ErrorHandler("Product not found", 404));
       }
 
-      const { status, statusReason } = req.body;
-
-      // Basic validation
-      if (!status || !['public', 'pending', 'rejected'].includes(status)) {
-        return next(new ErrorHandler("Invalid status value", 400));
+      product.status = status;
+      if (status === 'rejected') {
+        product.rejectionReason = rejectionReason;
       }
+      product.lastModified = new Date();
 
-      // Prepare update data with required fields
-      const updateData = {
-        status,
-        visibility: status === 'public' ? 'public' : 'restricted',
-        rejectionReason: status === 'rejected' ? statusReason || '' : '',
-        lastModified: new Date(),
-        lastModifiedBy: req.user._id,
-        originalPrice: req.body.originalPrice || product.originalPrice,
-        discountPrice: req.body.discountPrice || product.discountPrice,
-        availableColors: Array.isArray(req.body.availableColors) 
-          ? req.body.availableColors 
-          : [product.ProductColor],
-        ProductType: req.body.ProductType || product.ProductType,
-        ProductColor: req.body.ProductColor || product.ProductColor,
-        ProductView: req.body.ProductView || 'front'
-      };
+      await product.save();
 
-      console.log('Update data:', updateData);
-
-      // Update product
-      const updatedProduct = await Product.findByIdAndUpdate(
-        id,
-        { $set: updateData },
-        { 
-          new: true,
-          runValidators: true
-        }
-      );
-
-      if (!updatedProduct) {
-        return next(new ErrorHandler("Failed to update product", 500));
-      }
-
-      console.log('Updated product:', updatedProduct);
+      // Notify shop owner (implement this function separately)
+      await notifyShopOwner(product, status);
 
       res.status(200).json({
         success: true,
         message: `Product ${status === 'public' ? 'approved' : 'rejected'} successfully`,
-        product: updatedProduct
+        product
       });
-
     } catch (error) {
-      console.error('Server Error:', error);
-      return next(new ErrorHandler(error.message || 'Internal Server Error', 500));
+      return next(new ErrorHandler(error.message, 500));
     }
   })
 );
+
 // Update product design
 router.put(
   "/update-product-design/:id",
@@ -276,7 +236,6 @@ router.put(
     try {
       const { id } = req.params;
 
-      // Validate request
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ 
@@ -285,12 +244,10 @@ router.put(
         });
       }
 
-      // Validate product ID
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return next(new ErrorHandler("Invalid product ID", 400));
       }
 
-      // Find product and verify ownership
       const product = await Product.findById(id);
       if (!product) {
         return next(new ErrorHandler("Product not found", 404));
@@ -301,16 +258,13 @@ router.put(
         return next(new ErrorHandler("Unauthorized access to this product", 403));
       }
 
-      // Handle new image upload if provided
       let designImage = product.designImage;
       if (req.file) {
         try {
-          // Delete old image
           if (product.designImage?.public_id) {
             await cloudinary.uploader.destroy(product.designImage.public_id);
           }
 
-          // Upload new image
           const result = await cloudinary.uploader.upload(req.file.path, {
             folder: "products",
             transformation: [
@@ -327,11 +281,10 @@ router.put(
         }
       }
 
-      // Update product
       const updateData = {
         ...req.body,
         designImage,
-        status: 'pending', // Reset to pending for re-approval
+        status: 'pending',
         lastModified: new Date(),
         lastModifiedBy: req.seller._id
       };
@@ -349,7 +302,6 @@ router.put(
       });
 
     } catch (error) {
-      // Cleanup uploaded file if exists
       if (req.file) {
         try {
           await cloudinary.uploader.destroy(req.file.filename);
@@ -373,23 +325,22 @@ async function notifyShopOwner(product, status) {
   } catch (error) {
     console.error('Error notifying shop owner:', error);
   }
-}// Get all products of a shop
+}
+
+// Get all products of a shop
 router.get(
   "/get-all-products-shop/:id",
   catchAsyncErrors(async (req, res, next) => {
     try {
-      // Validate shop ID
       if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
         return next(new ErrorHandler("Invalid shop ID", 400));
       }
 
-      // Check if shop exists
       const shop = await Shop.findById(req.params.id);
       if (!shop) {
         return next(new ErrorHandler("Shop not found", 404));
       }
 
-      // Get products with pagination
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 20;
       const skip = (page - 1) * limit;
@@ -399,7 +350,6 @@ router.get(
         status: { $in: ['public', 'restricted'] }
       };
 
-      // Add filters if provided
       if (req.query.productType) {
         if (VALID_PRODUCT_TYPES.includes(req.query.productType)) {
           query.ProductType = req.query.productType;
@@ -412,10 +362,8 @@ router.get(
         }
       }
 
-      // Get total count for pagination
       const totalProducts = await Product.countDocuments(query);
 
-      // Get products
       const products = await Product.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -480,18 +428,15 @@ router.delete(
       }
 
       const product = await Product.findById(req.params.id);
-
       if (!product) {
         return next(new ErrorHandler("Product not found", 404));
       }
 
-      // Verify ownership
       const shop = await Shop.findById(product.shopId);
       if (!shop || shop.owner.toString() !== req.seller._id.toString()) {
         return next(new ErrorHandler("Unauthorized access to this product", 403));
       }
 
-      // Check if product can be deleted (not in active orders)
       const activeOrders = await Order.countDocuments({
         'cart.productId': product._id,
         status: { $nin: ['delivered', 'cancelled', 'refunded'] }
@@ -501,7 +446,6 @@ router.delete(
         return next(new ErrorHandler("Cannot delete product with active orders", 400));
       }
 
-      // Delete image from cloudinary
       if (product.designImage?.public_id) {
         await cloudinary.uploader.destroy(product.designImage.public_id);
       }
@@ -511,138 +455,6 @@ router.delete(
       res.status(200).json({
         success: true,
         message: "Product deleted successfully!",
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
-
-router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-    const skip = (page - 1) * limit;
-
-    let query = {
-      status: 'public'
-    };
-
-    // Get total count first
-    const totalProducts = await Product.countDocuments(query);
-
-    // Get products
-    const products = await Product.find(query)
-      .select('-__v')
-      .sort(req.query.sort || '-createdAt')
-      .skip(skip)
-      .limit(limit)
-      .populate('shopId', 'name email avatar');
-
-    console.log('Found products:', products.length);
-
-    res.status(200).json({
-      success: true,
-      products,
-      currentPage: page,
-      totalPages: Math.ceil(totalProducts / limit),
-      totalProducts,
-    });
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
-  }
-}));
-
-// Create/Update review
-router.put(
-  "/create-new-review",
-  isAuthenticated,
-  [
-    body('rating')
-      .isFloat({ min: 1, max: 5 })
-      .withMessage('Rating must be between 1 and 5'),
-    body('comment')
-      .trim()
-      .isLength({ min: 5, max: 500 })
-      .withMessage('Comment must be between 5 and 500 characters'),
-    body('productId')
-      .custom(value => mongoose.Types.ObjectId.isValid(value))
-      .withMessage('Invalid product ID'),
-    body('orderId')
-      .custom(value => mongoose.Types.ObjectId.isValid(value))
-      .withMessage('Invalid order ID')
-  ],
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ 
-          success: false, 
-          errors: errors.array() 
-        });
-      }
-
-      const { rating, comment, productId, orderId } = req.body;
-
-      // Verify product exists
-      const product = await Product.findById(productId);
-      if (!product) {
-        return next(new ErrorHandler("Product not found", 404));
-      }
-
-      // Verify order exists and user purchased the product
-      const order = await Order.findOne({
-        _id: orderId,
-        "user._id": req.user._id,
-        "cart.productId": productId
-      });
-
-      if (!order) {
-        return next(new ErrorHandler("You must purchase this product to review it", 403));
-      }
-
-      // Create review object
-      const review = {
-        user: req.user._id,
-        name: req.user.name,
-        rating: Number(rating),
-        comment,
-        productId
-      };
-
-      // Check if user already reviewed
-      const existingReviewIndex = product.reviews.findIndex(
-        rev => rev.user.toString() === req.user._id.toString()
-      );
-
-      if (existingReviewIndex !== -1) {
-        // Update existing review
-        product.reviews[existingReviewIndex] = review;
-      } else {
-        // Add new review
-        product.reviews.push(review);
-      }
-
-      // Update product rating
-      product.ratings = product.reviews.reduce((acc, item) => item.rating + acc, 0) 
-        / product.reviews.length;
-
-      await product.save({ validateBeforeSave: false });
-
-      // Mark product as reviewed in order
-      await Order.updateOne(
-        { 
-          _id: orderId,
-          "cart.productId": productId 
-        },
-        { 
-          $set: { "cart.$.isReviewed": true }
-        }
-      );
-
-      res.status(200).json({
-        success: true,
-        message: "Review submitted successfully!",
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
