@@ -171,48 +171,56 @@ app.get('/test-email', createRateLimiter(
 });
 
 // Route definitions with proper prefixes
-const routes = {
-  user: {
-    path: '/api/v2/user',
-    router: require("./controller/user")
-  },
-  shop: {
-    path: '/api/v2/shop',
-    router: require("./controller/shop")
-  },
-  product: {
-    path: '/api/v2/product',
-    router: require("./controller/product")
-  },
-  event: {
-    path: '/api/v2/event',
-    router: require("./controller/event")
-  },
-  coupon: {
-    path: '/api/v2/coupon',
-    router: require("./controller/coupounCode")
-  },
-  payment: {
-    path: '/api/v2/payment',
-    router: require("./controller/payment")
-  },
-  order: {
-    path: '/api/v2/order',
-    router: require("./controller/order")
-  },
-  conversation: {
-    path: '/api/v2/conversation',
-    router: require("./controller/conversation")
-  },
-  message: {
-    path: '/api/v2/message',
-    router: require("./controller/message")
-  },
-  withdraw: {
-    path: '/api/v2/withdraw',
-    router: require("./controller/withdraw")
+const API_BASE = '/api/v2';
+
+// Mount routes with validation and logging
+app.use(`${API_BASE}/user`, require("./controller/user"));
+app.use(`${API_BASE}/shop`, require("./controller/shop"));
+app.use(`${API_BASE}/product`, require("./controller/product"));
+app.use(`${API_BASE}/event`, require("./controller/event"));
+app.use(`${API_BASE}/coupon`, require("./controller/coupounCode"));
+app.use(`${API_BASE}/payment`, require("./controller/payment"));
+app.use(`${API_BASE}/order`, require("./controller/order"));
+app.use(`${API_BASE}/conversation`, require("./controller/conversation"));
+app.use(`${API_BASE}/message`, require("./controller/message"));
+app.use(`${API_BASE}/withdraw`, require("./controller/withdraw"));
+
+// Debug middleware to log all requests
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`, {
+    body: req.method !== 'GET' ? req.body : undefined,
+    query: req.query,
+    params: req.params
+  });
+  next();
+});
+
+// CORS middleware update
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
   }
-};
+  next();
+});
+
+// 404 Handler
+app.use((req, res) => {
+  console.log(`404 Not Found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({
+    success: false,
+    message: 'Route not found',
+    path: req.originalUrl.replace(API_BASE, '')
+  });
+});
+
+// Error handling middleware
+app.use(errorMiddleware);
 
 // Mount routes with validation and logging
 Object.entries(routes).forEach(([name, { path, router }]) => {
