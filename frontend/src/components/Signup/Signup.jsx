@@ -2,7 +2,9 @@
 import { useState } from "react";
 import axios from "axios";
 import { server } from "../../server";
-import { toast , navigate } from "react-toastify";
+import { toast  } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -10,6 +12,7 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [avatar, setAvatar] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
 
 
