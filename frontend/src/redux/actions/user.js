@@ -2,6 +2,16 @@ import axios from "axios";
 import { createReducer } from "@reduxjs/toolkit";
 import { server } from "../../server";
 
+axios.defaults.withCredentials = true;
+
+// Set auth token
+const setAuthToken = (token) => {
+  if (token) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete axios.defaults.headers.common['Authorization'];
+  }
+};
 
 const initialState = {
   isAuthenticated: false,
@@ -78,40 +88,40 @@ export const userReducer = createReducer(initialState, (builder) => {
 export const loadUser = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadUserRequest" });
+    
     const { data } = await axios.get(`${server}/user/getuser`, {
-      withCredentials: true,
+      withCredentials: true
     });
-    dispatch({ type: "LoadUserSuccess", payload: data.user });
+    
+    if (data.success) {
+      setAuthToken(data.token);
+      dispatch({ type: "LoadUserSuccess", payload: data.user });
+    }
   } catch (error) {
     dispatch({
       type: "LoadUserFail",
-      payload: error.response?.data?.message || error.message,
+      payload: error.response?.data?.message || "Authentication failed"
     });
   }
 };
 
-// load seller
+// Load seller
 export const loadSeller = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadSellerRequest" });
     
     const { data } = await axios.get(`${server}/shop/getSeller`, {
-      withCredentials: true,
-      headers: {
-        'Content-Type': 'application/json',
-      }
+      withCredentials: true
     });
-
+    
     if (data.success) {
+      setAuthToken(data.token);
       dispatch({ type: "LoadSellerSuccess", payload: data.seller });
-    } else {
-      throw new Error(data.message);
     }
   } catch (error) {
-    console.error("Error in loadSeller:", error);
     dispatch({
       type: "LoadSellerFail",
-      payload: error.response?.data?.message || error.message,
+      payload: error.response?.data?.message || "Authentication failed"
     });
   }
 };
@@ -163,7 +173,25 @@ export const updateUserAddress =
       });
     }
   };
-
+  export const logout = () => async (dispatch) => {
+    try {
+      await axios.get(`${server}/user/logout`, { withCredentials: true });
+      
+      // Clear localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('seller_token');
+      
+      // Clear axios default header
+      delete axios.defaults.headers.common['Authorization'];
+      
+      dispatch({ type: "LoadUserFail" });
+      
+      toast.success("Logout successful");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+  
 // delete user address
 export const deleteUserAddress = (id) => async (dispatch) => {
   try {

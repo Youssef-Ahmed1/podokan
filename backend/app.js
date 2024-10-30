@@ -96,6 +96,20 @@ app.use((req, res, next) => {
   
   next();
 });
+useEffect(() => {
+  const token = localStorage.getItem('token');
+  const sellerToken = localStorage.getItem('seller_token');
+  
+  if (token) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    dispatch(loadUser());
+  }
+  
+  if (sellerToken) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${sellerToken}`;
+    dispatch(loadSeller());
+  }
+}, [dispatch]);
 
 // File upload configuration
 const storage = multer.memoryStorage();
