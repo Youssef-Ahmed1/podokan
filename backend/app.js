@@ -170,7 +170,6 @@ app.get('/test-email', createRateLimiter(
   }
 });
 
-// Route definitions with proper prefixes
 const API_BASE = '/api/v2';
 
 // Mount routes with validation and logging
@@ -222,29 +221,6 @@ app.use((req, res) => {
 // Error handling middleware
 app.use(errorMiddleware);
 
-// Mount routes with validation and logging
-Object.entries(routes).forEach(([name, { path, router }]) => {
-  if (!router || typeof router.use !== 'function') {
-    console.error(`Invalid router for ${name}`);
-    return;
-  }
-  app.use(path, router);
-  console.log(`Mounted ${name} routes on ${path}`);
-});
-
-// 404 Handler
-app.use((req, res) => {
-  console.log(`404 Not Found: ${req.method} ${req.originalUrl}`);
-  res.status(404).json({
-    success: false,
-    message: 'Route not found',
-    path: req.originalUrl.replace('/api/v2', '')
-  });
-});
-
-// Error handling middleware
-app.use(errorMiddleware);
-
 // Global error handlers
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', {
@@ -265,3 +241,4 @@ process.on('unhandledRejection', (err) => {
 });
 
 module.exports = app;
+
