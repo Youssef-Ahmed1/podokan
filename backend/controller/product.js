@@ -16,6 +16,7 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 
+console.log('Loading routes...');
 // =========================================
 // Validation Middleware
 // =========================================
