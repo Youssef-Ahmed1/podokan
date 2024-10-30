@@ -14,26 +14,31 @@ const ShopLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    await axios
-      .post(
+  
+    try {
+      const { data } = await axios.post(
         `${server}/shop/login-shop`,
-        {
-          email,
-          password,
-        },
-        { withCredentials: true }
-      )
-      .then((res) => {
-        toast.success("Login Success!");
+        { email, password },
+        { 
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+  
+      if (data.success) {
+        // Set seller token in localStorage
+        localStorage.setItem('seller_token', data.token);
+        
+        // Set axios default header
+        axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+        
+        toast.success("Login successful!");
         navigate("/dashboard");
-        window.location.reload(true); 
-      })
-      .catch((err) => {
-        toast.error(err.response.data.message);
-      });
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Login failed");
+    }
   };
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">

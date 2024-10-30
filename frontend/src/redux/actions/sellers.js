@@ -16,3 +16,20 @@ export const getAllSellers = () => async (dispatch) => {
     });
   }
 };
+export const logoutSeller = () => async (dispatch) => {
+  try {
+    await axios.get(`${server}/shop/logout`, { withCredentials: true });
+    
+    // Clear localStorage
+    localStorage.removeItem('seller_token');
+    
+    // Clear axios default header
+    delete axios.defaults.headers.common['Authorization'];
+    
+    dispatch({ type: "LoadSellerFail" });
+    
+    toast.success("Seller logout successful");
+  } catch (error) {
+    console.error("Seller logout error:", error);
+  }
+};
