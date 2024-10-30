@@ -29,12 +29,33 @@ const corsOptions = {
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Access-Control-Allow-Headers',
+    'Access-Control-Request-Method',
+    'Access-Control-Request-Headers'
+  ],
   exposedHeaders: ['Set-Cookie', 'Date', 'ETag'],
-  maxAge: 86400
+  maxAge: 86400,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+// Additional headers
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,UPDATE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
+  next();
+});
 
 // Rate limiting configuration
 const createRateLimiter = (windowMs, max, message) => rateLimit({
@@ -58,15 +79,19 @@ app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 app.use(cookieParser());
 
-// Request logging middleware
+// Request logging
 app.use((req, res, next) => {
   const start = Date.now();
   const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${req.method} ${req.url}`);
+  console.log(`[${timestamp}] ${req.method} ${req.originalUrl}`, {
+    headers: req.headers,
+    query: req.query,
+    body: req.method !== 'GET' ? req.body : undefined
+  });
   
   res.on('finish', () => {
     const duration = Date.now() - start;
-    console.log(`[${timestamp}] ${req.method} ${req.url} ${res.statusCode} ${duration}ms`);
+    console.log(`[${timestamp}] ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`);
   });
   
   next();
@@ -77,7 +102,7 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   limits: {
-    fileSize: 100 * 2048 * 2048, // 100MB
+    fileSize: 100 * 2048 * 2048,
     files: 5
   },
   fileFilter: (req, file, cb) => {
@@ -145,42 +170,74 @@ app.get('/test-email', createRateLimiter(
   }
 });
 
-// Route definitions
+// Route definitions with proper prefixes
 const routes = {
-  user: require("./controller/user"),
-  shop: require("./controller/shop"),
-  product: require("./controller/product"),
-  event: require("./controller/event"),
-  coupon: require("./controller/coupounCode"),
-  payment: require("./controller/payment"),
-  order: require("./controller/order"),
-  conversation: require("./controller/conversation"),
-  message: require("./controller/message"),
-  withdraw: require("./controller/withdraw")
+  user: {
+    path: '/api/v2/user',
+    router: require("./controller/user")
+  },
+  shop: {
+    path: '/api/v2/shop',
+    router: require("./controller/shop")
+  },
+  product: {
+    path: '/api/v2/product',
+    router: require("./controller/product")
+  },
+  event: {
+    path: '/api/v2/event',
+    router: require("./controller/event")
+  },
+  coupon: {
+    path: '/api/v2/coupon',
+    router: require("./controller/coupounCode")
+  },
+  payment: {
+    path: '/api/v2/payment',
+    router: require("./controller/payment")
+  },
+  order: {
+    path: '/api/v2/order',
+    router: require("./controller/order")
+  },
+  conversation: {
+    path: '/api/v2/conversation',
+    router: require("./controller/conversation")
+  },
+  message: {
+    path: '/api/v2/message',
+    router: require("./controller/message")
+  },
+  withdraw: {
+    path: '/api/v2/withdraw',
+    router: require("./controller/withdraw")
+  }
 };
 
-// Mount routes with validation
-Object.entries(routes).forEach(([name, handler]) => {
-  if (!handler || typeof handler.use !== 'function') {
+// Mount routes with validation and logging
+Object.entries(routes).forEach(([name, { path, router }]) => {
+  if (!router || typeof router.use !== 'function') {
     console.error(`Invalid router for ${name}`);
     return;
   }
-  app.use(`/api/v2/${name}`, handler);
+  app.use(path, router);
+  console.log(`Mounted ${name} routes on ${path}`);
 });
 
 // 404 Handler
 app.use((req, res) => {
+  console.log(`404 Not Found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({
     success: false,
     message: 'Route not found',
-    path: req.originalUrl
+    path: req.originalUrl.replace('/api/v2', '')
   });
 });
 
 // Error handling middleware
 app.use(errorMiddleware);
 
-// Handle uncaught exceptions
+// Global error handlers
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', {
     message: err.message,
@@ -190,7 +247,6 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', {
     message: err.message,
@@ -200,5 +256,4 @@ process.on('unhandledRejection', (err) => {
   process.exit(1);
 });
 
-// Export app
 module.exports = app;
