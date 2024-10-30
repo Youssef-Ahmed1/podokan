@@ -263,16 +263,17 @@ router.put(
 );
 
 // all sellers --- for admin
+// controller/shop.js
+
+// Get all sellers -- admin only
 router.get(
   "/admin-all-sellers",
   isAuthenticated,
-  isAdmin("Admin"),
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const sellers = await Shop.find().sort({
-        createdAt: -1,
-      });
-      res.status(201).json({
+      const sellers = await Shop.find().sort({ createdAt: -1 });
+      res.status(200).json({
         success: true,
         sellers,
       });
@@ -282,26 +283,24 @@ router.get(
   })
 );
 
-// delete seller ---admin
+// Delete seller -- admin only
 router.delete(
   "/delete-seller/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const seller = await Shop.findById(req.params.id);
 
       if (!seller) {
-        return next(
-          new ErrorHandler("Seller is not available with this id", 400)
-        );
+        return next(new ErrorHandler("Seller not found", 404));
       }
 
       await Shop.findByIdAndDelete(req.params.id);
 
-      res.status(201).json({
+      res.status(200).json({
         success: true,
-        message: "Seller deleted successfully!",
+        message: "Seller deleted successfully",
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
