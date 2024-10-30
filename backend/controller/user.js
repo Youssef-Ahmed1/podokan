@@ -410,16 +410,17 @@ router.get(
 );
 
 // all users --- for admin
+// controller/user.js
+
+// Get all users -- admin only
 router.get(
   "/admin-all-users",
   isAuthenticated,
-  isAdmin("Admin"),
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const users = await User.find().sort({
-        createdAt: -1,
-      });
-      res.status(201).json({
+      const users = await User.find().sort({ createdAt: -1 });
+      res.status(200).json({
         success: true,
         users,
       });
@@ -429,35 +430,28 @@ router.get(
   })
 );
 
-// delete users --- admin
+// Delete user -- admin only
 router.delete(
   "/delete-user/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const user = await User.findById(req.params.id);
 
       if (!user) {
-        return next(
-          new ErrorHandler("User is not available with this id", 400)
-        );
+        return next(new ErrorHandler("User not found", 404));
       }
-
-      const imageId = user.avatar.public_id;
-
-      await cloudinary.v2.uploader.destroy(imageId);
 
       await User.findByIdAndDelete(req.params.id);
 
-      res.status(201).json({
+      res.status(200).json({
         success: true,
-        message: "User deleted successfully!",
+        message: "User deleted successfully",
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
-
 module.exports = router;

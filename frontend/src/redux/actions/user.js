@@ -192,11 +192,9 @@ export const deleteUserAddress = (id) => async (dispatch) => {
 export const getAllUsers = () => async (dispatch) => {
   try {
     dispatch({ type: "getAllUsersRequest" });
-
-    const { data } = await axios.get(`${server}/user/admin-all-users`, {
+    const { data } = await axios.get(`${server}/api/v2/user/admin-all-users`, {
       withCredentials: true,
     });
-
     dispatch({ type: "getAllUsersSuccess", payload: data.users });
   } catch (error) {
     dispatch({
