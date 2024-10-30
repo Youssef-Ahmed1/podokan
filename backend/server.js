@@ -1,12 +1,17 @@
 const app = require("./app");
 const connectDatabase = require("./db/Database");
 const cloudinary = require("cloudinary").v2;
-const https = require('https');
 const http = require('http');
-const fs = require('fs');
 
 // Load environment variables first
 require("dotenv").config();
+
+// Debug logging
+console.log('Environment:', {
+  NODE_ENV: process.env.NODE_ENV,
+  DB_URL: process.env.DB_URL ? 'Set' : 'Not set',
+  PORT: process.env.PORT || 8000
+});
 
 // Handling uncaught Exception
 process.on("uncaughtException", (err) => {
@@ -25,27 +30,12 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-let server;
+// Create HTTP server - Let Nginx handle SSL
+const server = http.createServer(app);
 
-if (process.env.NODE_ENV === "PRODUCTION") {
-  try {
-    const options = {
-      key: fs.readFileSync('/etc/letsencrypt/live/testpodokan.store/privkey.pem'),
-      cert: fs.readFileSync('/etc/letsencrypt/live/testpodokan.store/fullchain.pem')
-    };
-    server = https.createServer(options, app);
-    server.listen(8000, '0.0.0.0', () => {
-      console.log(`HTTPS Server is running on port 8000`);
-    });
-  } catch (error) {
-    console.error('SSL certificate error:', error);
-    process.exit(1);
-  }
-} else {
-  server = app.listen(8000, '0.0.0.0', () => {
-    console.log(`HTTP Server is running on port 8000`);
-  });
-}
+server.listen(8000, '127.0.0.1', () => {
+  console.log(`Server is running on port 8000`);
+});
 
 // Unhandled promise rejection
 process.on("unhandledRejection", (err) => {
