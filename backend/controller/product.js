@@ -356,6 +356,7 @@ router.put("/update-product-design/:id",
       }
       return next(new ErrorHandler(error.message, 500));
     }
+<<<<<<< HEAD
   }));
 
 <<<<<<< HEAD
@@ -369,6 +370,11 @@ router.put("/approve-reject-product/:id",
       const { status, statusReason } = req.body;
 
 =======
+=======
+  })
+);
+//s
+>>>>>>> refs/remotes/origin/main
 // Update product design
 router.put(
   "/update-product-design/:id",
