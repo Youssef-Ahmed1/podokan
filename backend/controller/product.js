@@ -197,7 +197,7 @@ router.put(
   '/approve-reject-product/:id',
   isAuthenticated,
   isAdmin("Admin"),
-  catchAsyncErrors(async (req, res, next) => {
+  catchAsyncErrors(async (req, res, next) => {  // Make sure this callback is present
     try {
       const { id } = req.params;
       const { status, statusReason } = req.body;
