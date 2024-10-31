@@ -1,3 +1,4 @@
+
 const express = require("express");
 const { isSeller, isAuthenticated, isAdmin } = require("../middleware/auth");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
@@ -19,22 +20,14 @@ const { body, validationResult } = require('express-validator');
 
 // Validation middleware
 const validateProductData = [
-  body('DesignTitle').trim().isLength({ min: 3, max: 100 })
-    .withMessage('Design title must be between 3 and 100 characters'),
-  body('Description').trim().isLength({ min: 10, max: 1000 })
-    .withMessage('Description must be between 10 and 1000 characters'),
-  body('Maintag').trim().isLength({ min: 2, max: 50 })
-    .withMessage('Main tag must be between 2 and 50 characters'),
-  body('ProductType').isIn(VALID_PRODUCT_TYPES)
-    .withMessage(`Product type must be one of: ${VALID_PRODUCT_TYPES.join(', ')}`),
-  body('ProductColor').isIn(VALID_COLORS)
-    .withMessage(`Product color must be one of: ${VALID_COLORS.join(', ')}`),
-  body('ProductView').isIn(['front', 'back'])
-    .withMessage('Product view must be either front or back'),
-  body('DesignScale').isFloat({ min: 0.1, max: 5.0 })
-    .withMessage('Design scale must be between 0.1 and 5.0'),
+  body('DesignTitle').trim().isLength({ min: 3, max: 100 }),
+  body('Description').trim().isLength({ min: 10, max: 1000 }),
+  body('Maintag').trim().isLength({ min: 2, max: 50 }),
+  body('ProductType').isIn(VALID_PRODUCT_TYPES),
+  body('ProductColor').isIn(VALID_COLORS),
+  body('ProductView').isIn(['front', 'back']),
+  body('DesignScale').isFloat({ min: 0.1, max: 5.0 }),
   body('shopId').custom(value => mongoose.Types.ObjectId.isValid(value))
-    .withMessage('Invalid shop ID')
 ];
 
 // File upload configuration
@@ -49,7 +42,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 100 * 2048 * 2048,
+    fileSize: 100 * 2048 * 2048
   },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
@@ -72,14 +65,7 @@ async function notifyShopOwner(product, status) {
   }
 }
 
-// CORS preflight
-router.options('/approve-reject-product/:id', (req, res) => {
-  res.header('Access-Control-Allow-Methods', 'PUT');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.sendStatus(204);
-});
-
-// Routes start here
+// Get all products
 router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -106,8 +92,10 @@ router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
-}));router.post(
-  "/create-product",
+}));
+
+// Create product
+router.post("/create-product", 
   isAuthenticated,
   isSeller,
   upload.single('designImage'),
@@ -116,10 +104,7 @@ router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({ 
-          success: false, 
-          errors: errors.array() 
-        });
+        return res.status(400).json({ success: false, errors: errors.array() });
       }
 
       const { 
@@ -139,6 +124,7 @@ router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
       if (!shop) {
         return next(new ErrorHandler("Shop not found", 404));
       }
+
       if (shop.owner.toString() !== req.seller._id.toString()) {
         return next(new ErrorHandler("Unauthorized access to this shop", 403));
       }
@@ -189,20 +175,13 @@ router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
       }
       return next(new ErrorHandler(error.message, 500));
     }
-  })
-);
+  }));
 
-router.put('/approve-reject-product/:id', (req, res) => {
-  res.json({ message: 'Test route' });
-});
-
-// If that works, then try this version
-router.put(
-  '/approve-reject-product/:id',
+// Approve/reject product
+router.put("/approve-reject-product/:id",
   isAuthenticated,
   isAdmin("Admin"),
-<<<<<<< HEAD
-  catchAsyncErrors(async (req, res, next) => {  // Make sure this callback is present
+  catchAsyncErrors(async (req, res, next) => {
     try {
       const { id } = req.params;
       const { status, statusReason } = req.body;
@@ -256,15 +235,8 @@ router.put(
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
-  })
-=======
-  (req, res, next) => {
-    res.json({ message: 'Test route with middleware' });
-  }
->>>>>>> refs/remotes/origin/main
-);
+  }));
 
-// Get all products of a shop
 router.get(
   "/get-all-products-shop/:id",
   catchAsyncErrors(async (req, res, next) => {
