@@ -20,11 +20,14 @@ const { body, validationResult } = require('express-validator');
 // Validation middleware
 const validateProductData = [
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> refs/remotes/origin/main
+>>>>>>> refs/remotes/origin/main
+=======
 >>>>>>> refs/remotes/origin/main
   body('DesignTitle').trim().isLength({ min: 3, max: 100 }),
   body('Description').trim().isLength({ min: 10, max: 1000 }),
@@ -34,6 +37,7 @@ const validateProductData = [
   body('ProductView').isIn(['front', 'back']),
   body('DesignScale').isFloat({ min: 0.1, max: 5.0 }),
   body('shopId').custom(value => mongoose.Types.ObjectId.isValid(value))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -76,6 +80,8 @@ const validateProductData = [
 >>>>>>> refs/remotes/origin/main
 >>>>>>> refs/remotes/origin/main
 >>>>>>> refs/remotes/origin/main
+=======
+>>>>>>> refs/remotes/origin/main
 ];
 
 // File upload configuration
@@ -92,6 +98,7 @@ const upload = multer({
   limits: {
     fileSize: 100 * 2048 * 2048
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -100,6 +107,8 @@ const upload = multer({
     fileSize: 100 * 2048 * 2048, // 50MB limit
 >>>>>>> refs/remotes/origin/main
 >>>>>>> refs/remotes/origin/main
+>>>>>>> refs/remotes/origin/main
+=======
 >>>>>>> refs/remotes/origin/main
   },
   fileFilter: (req, file, cb) => {
@@ -124,11 +133,14 @@ async function notifyShopOwner(product, status) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> refs/remotes/origin/main
+>>>>>>> refs/remotes/origin/main
+=======
 >>>>>>> refs/remotes/origin/main
 // Get all products
 router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
@@ -158,10 +170,10 @@ router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler(error.message, 500));
   }
 }));
-<<<<<<< HEAD
 
 // Create product
 router.post("/create-product", 
+<<<<<<< HEAD
 =======
 
 // Create product
@@ -181,6 +193,8 @@ router.post(
   "/create-product",
 >>>>>>> refs/remotes/origin/main
 >>>>>>> refs/remotes/origin/main
+>>>>>>> refs/remotes/origin/main
+=======
 >>>>>>> refs/remotes/origin/main
   isAuthenticated,
   isSeller,
@@ -389,6 +403,7 @@ router.put("/update-product-design/:id",
   })
 );
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -562,6 +577,8 @@ async function notifyShopOwner(product, status) {
 }// Get all products of a shop
 >>>>>>> refs/remotes/origin/main
 >>>>>>> refs/remotes/origin/main
+>>>>>>> refs/remotes/origin/main
+=======
 >>>>>>> refs/remotes/origin/main
 router.get(
   "/get-all-products-shop/:id",
