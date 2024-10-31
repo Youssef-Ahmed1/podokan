@@ -192,152 +192,20 @@ router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
   })
 );
 
-// Approve/Reject Product
+router.put('/approve-reject-product/:id', (req, res) => {
+  res.json({ message: 'Test route' });
+});
+
+// If that works, then try this version
 router.put(
   '/approve-reject-product/:id',
   isAuthenticated,
   isAdmin("Admin"),
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      const { status, statusReason } = req.body;
-
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        return next(new ErrorHandler("Invalid product ID", 400));
-      }
-
-      const product = await Product.findById(id);
-      if (!product) {
-        return next(new ErrorHandler("Product not found", 404));
-      }
-
-      if (!status || !['public', 'pending', 'rejected'].includes(status)) {
-        return next(new ErrorHandler("Invalid status value", 400));
-      }
-
-      const updateData = {
-        status,
-        visibility: status === 'public' ? 'public' : 'restricted',
-        rejectionReason: status === 'rejected' ? statusReason || '' : '',
-        lastModified: new Date(),
-        lastModifiedBy: req.user._id,
-        originalPrice: req.body.originalPrice || product.originalPrice,
-        discountPrice: req.body.discountPrice || product.discountPrice,
-        availableColors: Array.isArray(req.body.availableColors) 
-          ? req.body.availableColors 
-          : [product.ProductColor],
-        ProductType: req.body.ProductType || product.ProductType,
-        ProductColor: req.body.ProductColor || product.ProductColor,
-        ProductView: req.body.ProductView || 'front'
-      };
-
-      const updatedProduct = await Product.findByIdAndUpdate(
-        id,
-        { $set: updateData },
-        { new: true, runValidators: true }
-      );
-
-      if (!updatedProduct) {
-        return next(new ErrorHandler("Failed to update product", 500));
-      }
-
-      await notifyShopOwner(updatedProduct, status);
-
-      res.status(200).json({
-        success: true,
-        message: `Product ${status === 'public' ? 'approved' : 'rejected'} successfully`,
-        product: updatedProduct
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
+  (req, res, next) => {
+    res.json({ message: 'Test route with middleware' });
+  }
 );
 
-// Update product design
-router.put(
-  "/update-product-design/:id",
-  isAuthenticated,
-  isSeller,
-  upload.single('designImage'),
-  validateProductData,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      const errors = validationResult(req);
-      
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ 
-          success: false, 
-          errors: errors.array() 
-        });
-      }
-
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        return next(new ErrorHandler("Invalid product ID", 400));
-      }
-
-      const product = await Product.findById(id);
-      if (!product) {
-        return next(new ErrorHandler("Product not found", 404));
-      }
-
-      const shop = await Shop.findById(product.shopId);
-      if (!shop || shop.owner.toString() !== req.seller._id.toString()) {
-        return next(new ErrorHandler("Unauthorized access to this product", 403));
-      }
-
-      let designImage = product.designImage;
-      if (req.file) {
-        if (product.designImage?.public_id) {
-          await cloudinary.uploader.destroy(product.designImage.public_id);
-        }
-
-        const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: "products",
-          transformation: [
-            { quality: "auto:best" },
-            { fetch_format: "auto" }
-          ]
-        });
-        
-        designImage = {
-          public_id: result.public_id,
-          url: result.secure_url,
-        };
-      }
-
-      const updateData = {
-        ...req.body,
-        designImage,
-        status: 'pending',
-        lastModified: new Date(),
-        lastModifiedBy: req.seller._id
-      };
-
-      const updatedProduct = await Product.findByIdAndUpdate(
-        id,
-        { $set: updateData },
-        { new: true, runValidators: true }
-      );
-
-      res.status(200).json({
-        success: true,
-        message: "Product design updated successfully and awaiting re-approval",
-        product: updatedProduct
-      });
-    } catch (error) {
-      if (req.file?.path) {
-        try {
-          await cloudinary.uploader.destroy(req.file.filename);
-        } catch (cleanupError) {
-          console.error("Error cleaning up uploaded file:", cleanupError);
-        }
-      }
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
 // Get all products of a shop
 router.get(
   "/get-all-products-shop/:id",
