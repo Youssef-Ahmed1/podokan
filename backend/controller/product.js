@@ -373,7 +373,11 @@ router.put("/approve-reject-product/:id",
 =======
   })
 );
+<<<<<<< HEAD
 //s
+>>>>>>> refs/remotes/origin/main
+=======
+
 >>>>>>> refs/remotes/origin/main
 // Update product design
 router.put(
