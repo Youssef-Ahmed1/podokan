@@ -107,46 +107,69 @@ router.post(
 
 // login shop
 // shop login
-router.post("/login-shop", async (req, res, next) => {
+router.post("/login-shop", async (req, res) => {
   try {
-      const { email, password } = req.body;
+    const { email, password } = req.body;
 
-      if (!email || !password) {
-          return res.status(400).json({
-              success: false,
-              message: "Please provide email and password"
-          });
-      }
-
-      const shop = await Shop.findOne({ email }).select("+password");
-
-      if (!shop) {
-          return res.status(400).json({
-              success: false,
-              message: "Shop not found"
-          });
-      }
-
-      const isPasswordValid = await shop.comparePassword(password);
-
-      if (!isPasswordValid) {
-          return res.status(400).json({
-              success: false,
-              message: "Invalid credentials"
-          });
-      }
-
-      sendShopToken(shop, 200, res);
-  } catch (error) {
-      console.error("Shop login error:", error);
-      res.status(500).json({
-          success: false,
-          message: "An error occurred during login",
-          error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide email and password"
       });
+    }
+
+    // Find shop with email and include password
+    const shop = await Shop.findOne({ email }).select("+password");
+
+    if (!shop) {
+      return res.status(401).json({
+        success: false,
+        message: "Shop not found"
+      });
+    }
+
+    // Compare password
+    const isPasswordValid = await shop.comparePassword(password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials"
+      });
+    }
+
+    // Generate token
+    const token = shop.getJwtToken();
+
+    // Cookie options
+    const cookieOptions = {
+      expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      path: '/',
+      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
+    };
+
+    shop.password = undefined;
+
+    res.status(200)
+      .cookie("seller_token", token, cookieOptions)
+      .json({
+        success: true,
+        token,
+        seller: shop
+      });
+
+  } catch (error) {
+    console.error("Shop login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
-
 router.get(
   "/getSeller",
   isSeller,

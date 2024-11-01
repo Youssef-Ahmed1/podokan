@@ -29,12 +29,16 @@ const corsOptions = {
   origin: ['https://testpodokan.store', 'https://www.testpodokan.store', 'http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Seller-Authorization',
+    'X-Requested-With'
+  ],
   exposedHeaders: ['Set-Cookie'],
   maxAge: 86400
 };
 
-app.use(cors(corsOptions));
 app.use(cors(corsOptions));
 
 // Token verification middleware
