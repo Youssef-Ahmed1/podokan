@@ -26,13 +26,15 @@ app.use(helmet({
 
 // CORS configuration
 const corsOptions = {
-    origin: ['https://testpodokan.store', 'https://www.testpodokan.store', 'http://localhost:3000'],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-    exposedHeaders: ['Set-Cookie']
+  origin: ['https://testpodokan.store', 'https://www.testpodokan.store', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Set-Cookie'],
+  maxAge: 86400
 };
 
+app.use(cors(corsOptions));
 app.use(cors(corsOptions));
 
 // Token verification middleware
