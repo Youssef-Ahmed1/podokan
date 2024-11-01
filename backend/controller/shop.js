@@ -219,8 +219,6 @@ router.post("/login-shop", async (req, res) => {
   }
 });
 
-
-
 router.get(
   "/getSeller",
   isSeller,
@@ -242,27 +240,26 @@ router.get(
   })
 );
 // log out from shop
-router.get("/logout", catchAsyncErrors(async (req, res, next) => {
-  try {
-    const cookieOptions = {
-      expires: new Date(0),
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      path: '/',
-      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
-    };
+router.get(
+  "/logout",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      res.cookie("seller_token", "", {
+        expires: new Date(0),
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+      });
 
-    res.cookie("seller_token", "", cookieOptions);
-    
-    res.status(200).json({
-      success: true,
-      message: "Logout successful!"
-    });
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
-  }
-}));
+      res.status(200).json({
+        success: true,
+        message: "Logout successful!",
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
 
 // get shop info
 router.get(
@@ -354,7 +351,7 @@ router.put(
 router.get(
   "/admin-all-sellers",
   isAuthenticated,
-  isAdmin,
+  isAdmin("Admin"),  
   catchAsyncErrors(async (req, res, next) => {
     try {
       const sellers = await Shop.find().sort({ createdAt: -1 });
