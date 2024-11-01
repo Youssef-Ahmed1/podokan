@@ -52,11 +52,11 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
+// In your auth.js middleware file
 exports.isAdmin = catchAsyncErrors(async (req, res, next) => {
-  if (req.user.role !== "Admin") {
-    return next(new ErrorHandler("Access denied", 403));
+  if (!req.user || req.user.role !== "Admin") {
+    return next(new ErrorHandler("Access denied. Admin only.", 403));
   }
   next();
 });
-
 module.exports = exports;
