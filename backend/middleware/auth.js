@@ -28,25 +28,29 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 });
 
 // Seller authentication middleware
-exports.isSeller = catchAsyncErrors(async (req, res, next) => {
-    const token = req.cookies.seller_token || req.headers['seller-authorization']?.split(' ')[1];
+// middleware/auth.js
+const isSeller = catchAsyncErrors(async (req, res, next) => {
+  try {
+      const token = 
+          req.cookies.seller_token || 
+          req.headers["seller-authorization"]?.split(" ")[1];
 
-    if (!token) {
-        return next(new ErrorHandler("Please login as seller", 401));
-    }
+      if (!token) {
+          return next(new ErrorHandler("Please login as seller", 401));
+      }
 
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-        req.seller = await Shop.findById(decoded.id).select('-password');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      
+      const seller = await Shop.findById(decoded.id);
+      if (!seller) {
+          return next(new ErrorHandler("Seller not found", 404));
+      }
 
-        if (!req.seller) {
-            return next(new ErrorHandler("Seller not found", 404));
-        }
-
-        next();
-    } catch (error) {
-        return next(new ErrorHandler("Seller authentication failed", 401));
-    }
+      req.seller = seller;
+      next();
+  } catch (error) {
+      return next(new ErrorHandler("Authentication failed", 401));
+  }
 });
 
 // Admin role check middleware
