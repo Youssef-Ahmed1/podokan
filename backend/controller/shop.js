@@ -106,7 +106,6 @@ router.post(
 );
 
 // login shop
-// shop login
 router.post("/login-shop", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -118,7 +117,6 @@ router.post("/login-shop", async (req, res) => {
       });
     }
 
-    // Find shop with email and include password
     const shop = await Shop.findOne({ email }).select("+password");
 
     if (!shop) {
@@ -128,7 +126,6 @@ router.post("/login-shop", async (req, res) => {
       });
     }
 
-    // Compare password
     const isPasswordValid = await shop.comparePassword(password);
 
     if (!isPasswordValid) {
@@ -138,23 +135,25 @@ router.post("/login-shop", async (req, res) => {
       });
     }
 
-    // Generate token
     const token = shop.getJwtToken();
 
-    // Cookie options
+    // Modified cookie options
     const cookieOptions = {
       expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
       httpOnly: true,
       sameSite: "none",
       secure: true,
       path: '/',
-      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
+      domain: process.env.NODE_ENV === 'PRODUCTION' ? 'testpodokan.store' : 'localhost'
     };
 
+    // Remove password from response
     shop.password = undefined;
 
+    // Set both cookie and authorization header
     res.status(200)
       .cookie("seller_token", token, cookieOptions)
+      .header('Seller-Authorization', `Bearer ${token}`)
       .json({
         success: true,
         token,
@@ -165,7 +164,7 @@ router.post("/login-shop", async (req, res) => {
     console.error("Shop login error:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Login failed",
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
