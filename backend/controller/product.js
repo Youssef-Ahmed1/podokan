@@ -179,7 +179,7 @@ router.post("/create-product",
 // Approve/reject product - This was likely the problematic route
 router.put("/approve-reject-product/:id", 
   isAuthenticated, 
-  isAdmin, // Changed from isAdmin("Admin") to just isAdmin
+  isAdmin, 
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -359,7 +359,7 @@ router.get(
 router.get(
   "/admin/pending-products",
   isAuthenticated,
-  isAdmin
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const page = parseInt(req.query.page) || 1;
