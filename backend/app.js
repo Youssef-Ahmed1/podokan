@@ -10,10 +10,14 @@ const User = require('./model/user');
 const Shop = require('./model/shop');
 
 const app = express();
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 // Basic middleware
 =======
+=======
+//.
+>>>>>>> refs/remotes/origin/main
 // Essential middleware
 >>>>>>> refs/remotes/origin/main
 app.use(compression());
