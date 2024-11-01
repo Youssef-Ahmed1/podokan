@@ -106,8 +106,18 @@ router.post(
 );
 
 // login shop
+// login shop
 router.post("/login-shop", async (req, res) => {
   try {
+    console.log('Login request received:', {
+      body: req.body,
+      cookies: req.cookies,
+      headers: {
+        'content-type': req.headers['content-type'],
+        'seller-authorization': req.headers['seller-authorization']
+      }
+    });
+
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -117,7 +127,13 @@ router.post("/login-shop", async (req, res) => {
       });
     }
 
-    const shop = await Shop.findOne({ email }).select("+password");
+    // Find shop and verify password
+    const shop = await Shop.findOne({ email }).select('+password');
+    console.log('Shop lookup result:', {
+      found: !!shop,
+      email: email,
+      shopId: shop?._id
+    });
 
     if (!shop) {
       return res.status(401).json({
@@ -127,6 +143,10 @@ router.post("/login-shop", async (req, res) => {
     }
 
     const isPasswordValid = await shop.comparePassword(password);
+    console.log('Password validation:', {
+      isValid: isPasswordValid,
+      shopId: shop._id
+    });
 
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -135,40 +155,72 @@ router.post("/login-shop", async (req, res) => {
       });
     }
 
-    const token = shop.getJwtToken();
+    // Generate token
+    const token = jwt.sign(
+      { id: shop._id },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: '7d' }
+    );
 
-    // Modified cookie options
+    console.log('Token generated:', {
+      tokenExists: !!token,
+      shopId: shop._id
+    });
+
+    // Cookie options
     const cookieOptions = {
-      expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       httpOnly: true,
       sameSite: "none",
       secure: true,
       path: '/',
-      domain: process.env.NODE_ENV === 'PRODUCTION' ? 'testpodokan.store' : 'localhost'
+      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
     };
 
-    // Remove password from response
-    shop.password = undefined;
+    // Prepare response object
+    const shopResponse = shop.toObject();
+    delete shopResponse.password;
 
-    // Set both cookie and authorization header
-    res.status(200)
+    console.log('Preparing response:', {
+      success: true,
+      hasSeller: !!shopResponse,
+      hasToken: !!token
+    });
+
+    // Set cookie and send response
+    return res
+      .status(200)
       .cookie("seller_token", token, cookieOptions)
       .header('Seller-Authorization', `Bearer ${token}`)
       .json({
         success: true,
-        token,
-        seller: shop
+        seller: shopResponse,
+        token
       });
 
   } catch (error) {
-    console.error("Shop login error:", error);
-    res.status(500).json({
+    console.error("Login error:", {
+      message: error.message,
+      stack: error.stack,
+      type: error.name,
+      env: {
+        nodeEnv: process.env.NODE_ENV,
+        jwtSecret: !!process.env.JWT_SECRET_KEY,
+        jwtExpires: process.env.JWT_EXPIRES
+      }
+    });
+
+    return res.status(500).json({
       success: false,
-      message: "Login failed",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: process.env.NODE_ENV === 'PRODUCTION' ? 
+        "Login failed" : 
+        `Login failed: ${error.message}`
     });
   }
 });
+
+
+
 router.get(
   "/getSeller",
   isSeller,
@@ -190,26 +242,27 @@ router.get(
   })
 );
 // log out from shop
-router.get(
-  "/logout",
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      res.cookie("seller_token", "", {
-        expires: new Date(0),
-        httpOnly: true,
-        sameSite: "none",
-        secure: true,
-      });
+router.get("/logout", catchAsyncErrors(async (req, res, next) => {
+  try {
+    const cookieOptions = {
+      expires: new Date(0),
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      path: '/',
+      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
+    };
 
-      res.status(200).json({
-        success: true,
-        message: "Logout successful!",
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
+    res.cookie("seller_token", "", cookieOptions);
+    
+    res.status(200).json({
+      success: true,
+      message: "Logout successful!"
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+}));
 
 // get shop info
 router.get(
