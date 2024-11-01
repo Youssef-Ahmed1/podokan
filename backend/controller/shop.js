@@ -106,36 +106,46 @@ router.post(
 );
 
 // login shop
-router.post(
-  "/login-shop",
-  catchAsyncErrors(async (req, res, next) => {
-    try {
+// shop login
+router.post("/login-shop", async (req, res, next) => {
+  try {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return next(new ErrorHandler("Please provide the all fields!", 400));
+          return res.status(400).json({
+              success: false,
+              message: "Please provide email and password"
+          });
       }
 
-      const user = await Shop.findOne({ email }).select("+password");
+      const shop = await Shop.findOne({ email }).select("+password");
 
-      if (!user) {
-        return next(new ErrorHandler("User doesn't exists!", 400));
+      if (!shop) {
+          return res.status(400).json({
+              success: false,
+              message: "Shop not found"
+          });
       }
 
-      const isPasswordValid = await user.comparePassword(password);
+      const isPasswordValid = await shop.comparePassword(password);
 
       if (!isPasswordValid) {
-        return next(
-          new ErrorHandler("Please provide the correct information", 400)
-        );
+          return res.status(400).json({
+              success: false,
+              message: "Invalid credentials"
+          });
       }
 
-      sendShopToken(user, 201, res);
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
+      sendShopToken(shop, 200, res);
+  } catch (error) {
+      console.error("Shop login error:", error);
+      res.status(500).json({
+          success: false,
+          message: "An error occurred during login",
+          error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+  }
+});
 
 router.get(
   "/getSeller",
