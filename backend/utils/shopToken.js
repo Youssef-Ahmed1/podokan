@@ -1,19 +1,35 @@
-const sendShopToken = (user, statusCode, res) => {
-  const token = user.getJwtToken();
 
-  // Options for cookie
-  const options = {
-    expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-    httpOnly: true,
-    sameSite: "none",
-    secure: true,
+const sendShopToken = (shop, statusCode, res) => {
+  const token = shop.getJwtToken();
+  
+  // Options for cookies
+  const cookieOptions = {
+      expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      path: '/',
+      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
   };
 
-  res.status(statusCode).cookie("seller_token", token, options).json({
-    success: true,
-    user,
-    token,
-  });
-};
+  // Set seller authorization header
+  const authHeader = `Bearer ${token}`;
+  
+  // Remove password from response
+  if (shop.toJSON) {
+      shop = shop.toJSON();
+  }
+  if (shop.password) {
+      delete shop.password;
+  }
 
-module.exports = sendShopToken;
+  return res
+      .status(statusCode)
+      .cookie("seller_token", token, cookieOptions)
+      .set('Seller-Authorization', authHeader)
+      .json({
+          success: true,
+          shop,
+          token,
+      });
+};
