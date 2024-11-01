@@ -15,11 +15,6 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    
-    if (!decoded) {
-      return next(new ErrorHandler("Invalid token", 401));
-    }
-
     req.seller = await Shop.findById(decoded.id);
 
     if (!req.seller) {
@@ -55,15 +50,14 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-exports.isAdmin = catchAsyncErrors(async (req, res, next) => {
-  try {
-    if (!req.user || req.user.role !== "Admin") {
-      return next(new ErrorHandler("Access denied. Admin only.", 403));
+// Change back to the original format
+exports.isAdmin = (role) => {
+  return (req, res, next) => {
+    if (!req.user || req.user.role !== role) {
+      return next(new ErrorHandler(`${role} access denied`, 403));
     }
     next();
-  } catch (error) {
-    return next(new ErrorHandler("Admin authentication failed", 403));
-  }
-});
+  };
+};
 
 module.exports = exports;
