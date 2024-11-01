@@ -17,7 +17,7 @@ const Shop = require('./model/shop');
 
 const app = express();
 
-// Basic security headers
+// Security middleware
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
@@ -34,6 +34,9 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+// Trust proxy
+app.set('trust proxy', 1);
 
 // Token verification middleware
 app.use(async (req, res, next) => {
@@ -66,39 +69,13 @@ app.use(async (req, res, next) => {
   }
 });
 
-// Rate limiting
-const createRateLimiter = (windowMs, max, message) => rateLimit({
-  windowMs,
-  max,
-  message: { success: false, message },
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => req.ip
-});
-
-// API rate limiters
-const generalLimiter = createRateLimiter(15 * 60 * 1000, 100, 'Too many requests');
-const authLimiter = createRateLimiter(60 * 60 * 1000, 5, 'Too many auth attempts');
-
-app.use('/api/v2/', generalLimiter);
-app.use('/api/v2/user/login', authLimiter);
-app.use('/api/v2/shop/login', authLimiter);
-
 // Middleware
 app.use(compression());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
-// Basic security headers
-app.use((req, res, next) => {
-  res.header('X-Content-Type-Options', 'nosniff');
-  res.header('X-Frame-Options', 'DENY');
-  res.header('X-XSS-Protection', '1; mode=block');
-  next();
-});
-
-// Routes
+// API routes
 const API_BASE = '/api/v2';
 
 app.use(`${API_BASE}/user`, require("./controller/user"));
@@ -114,6 +91,13 @@ app.use(`${API_BASE}/withdraw`, require("./controller/withdraw"));
 
 // Error handling
 app.use((err, req, res, next) => {
+  console.error('Error:', {
+    message: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method
+  });
+
   if (err.name === 'JsonWebTokenError') {
     return res.status(401).json({
       success: false,
