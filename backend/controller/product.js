@@ -176,55 +176,58 @@ router.post("/create-product",
     }
   }));
 // Approve/reject product
-router.put("/approve-reject-product/:id", isAuthenticated, isAdmin("Admin"), catchAsyncErrors(async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { status, statusReason } = req.body;
+// Approve/reject product - This was likely the problematic route
+router.put("/approve-reject-product/:id", 
+  isAuthenticated, 
+  isAdmin, // Changed from isAdmin("Admin") to just isAdmin
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { status, statusReason } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return next(new ErrorHandler("Invalid product ID", 400));
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return next(new ErrorHandler("Invalid product ID", 400));
+      }
+
+      const product = await Product.findById(id);
+      if (!product) {
+        return next(new ErrorHandler("Product not found", 404));
+      }
+
+      if (!status || !['public', 'pending', 'rejected'].includes(status)) {
+        return next(new ErrorHandler("Invalid status value", 400));
+      }
+
+      const updateData = {
+        status,
+        visibility: status === 'public' ? 'public' : 'restricted',
+        rejectionReason: status === 'rejected' ? statusReason || '' : '',
+        lastModified: new Date(),
+        lastModifiedBy: req.user._id
+      };
+
+      const updatedProduct = await Product.findByIdAndUpdate(
+        id,
+        { $set: updateData },
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedProduct) {
+        return next(new ErrorHandler("Failed to update product", 500));
+      }
+
+      await notifyShopOwner(updatedProduct, status);
+
+      res.status(200).json({
+        success: true,
+        message: `Product ${status === 'public' ? 'approved' : 'rejected'} successfully`,
+        product: updatedProduct
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
     }
-
-    const product = await Product.findById(id);
-    if (!product) {
-      return next(new ErrorHandler("Product not found", 404));
-    }
-
-    if (!status || !['public', 'pending', 'rejected'].includes(status)) {
-      return next(new ErrorHandler("Invalid status value", 400));
-    }
-
-    const updateData = {
-      status,
-      visibility: status === 'public' ? 'public' : 'restricted',
-      rejectionReason: status === 'rejected' ? statusReason || '' : '',
-      lastModified: new Date(),
-      lastModifiedBy: req.user._id
-    };
-
-    const updatedProduct = await Product.findByIdAndUpdate(
-      id,
-      { $set: updateData },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedProduct) {
-      return next(new ErrorHandler("Failed to update product", 500));
-    }
-
-    await notifyShopOwner(updatedProduct, status);
-
-    res.status(200).json({
-      success: true,
-      message: `Product ${status === 'public' ? 'approved' : 'rejected'} successfully`,
-      product: updatedProduct
-    });
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
-  }
-}));
-
-
+  })
+);
 
 // Update product design
 router.put("/update-product-design/:id", 
@@ -356,7 +359,7 @@ router.get(
 router.get(
   "/admin/pending-products",
   isAuthenticated,
-  isAdmin("Admin"),
+  isAdmin
   catchAsyncErrors(async (req, res, next) => {
     try {
       const page = parseInt(req.query.page) || 1;
