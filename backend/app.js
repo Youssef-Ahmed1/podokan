@@ -10,7 +10,7 @@ const User = require('./model/user');
 const Shop = require('./model/shop');
 
 const app = express();
-
+//.
 // Essential middleware
 app.use(compression());
 app.use(express.json({ limit: '50mb' }));
