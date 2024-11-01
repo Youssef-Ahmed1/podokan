@@ -16,65 +16,75 @@ const Signup = () => {
 
 
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (loading) return;
-
-  try {
-    setLoading(true);
-
-    if (!name || !email || !password || !avatar) {
-      toast.error("Please fill all fields");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('email', email);
-    formData.append('password', password);
-    formData.append('avatar', avatar);
-
-    const { data } = await axios.post(
-      `${server}/user/create-user`,
-      formData,
-      {
-        headers: { 
-          'Content-Type': 'multipart/form-data',
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (loading) return;
+  
+    try {
+      setLoading(true);
+  
+      if (!name || !email || !password || !avatar) {
+        toast.error("Please fill all fields");
+        setLoading(false);
+        return;
+      }
+  
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
         },
         withCredentials: true
+      };
+  
+      const userData = {
+        name,
+        email,
+        password,
+        avatar
+      };
+  
+      const { data } = await axios.post(
+        `${server}/user/create-user`,
+        userData,
+        config
+      );
+  
+      if (data.success) {
+        toast.success(data.message);
+        setName("");
+        setEmail("");
+        setPassword("");
+        setAvatar(null);
+        
+        // Wait for 2 seconds before redirecting
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
       }
-    );
-
-    if (data.success) {
-      // Set token in localStorage
-      localStorage.setItem('token', data.token);
-      
-      // Set axios default header
-      axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-      
-      toast.success("Registration successful!");
-      navigate("/");
-      
-      setName("");
-      setEmail("");
-      setPassword("");
-      setAvatar(null);
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast.error(error.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Registration error:", error);
-    toast.error(error.response?.data?.message || "Registration failed");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 const handleFileInput = (e) => {
   const file = e.target.files[0];
   if (file) {
+    if (file.size > 10*1024 * 1024) { // MB limit
+      toast.error("File size should be less than 1MB");
+      return;
+    }
+    
     const reader = new FileReader();
     reader.onload = () => {
       if (reader.readyState === 2) {
         setAvatar(reader.result);
       }
+    };
+    reader.onerror = (error) => {
+      toast.error("Error reading file");
+      console.error("File reading error:", error);
     };
     reader.readAsDataURL(file);
   }

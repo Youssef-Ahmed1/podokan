@@ -9,28 +9,30 @@ const jwt = require("jsonwebtoken");
 const sendToken = require("../utils/jwtToken");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
 
-// create user
+// controller/user.js - update the create-user route
 router.post("/create-user", async (req, res, next) => {
-  let uploadedImage = null;
-
   try {
     const { name, email, password, avatar } = req.body;
 
+    // Validation
     if (!name || !email || !password || !avatar) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required"
+        message: "Please provide all required fields"
       });
     }
 
-    const userExists = await User.findOne({ email: email.toLowerCase() });
-    if (userExists) {
+    // Check if user exists
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
       return res.status(400).json({
         success: false,
         message: "Email already registered"
       });
     }
 
+    // Upload avatar
+    let uploadedImage;
     try {
       uploadedImage = await cloudinary.v2.uploader.upload(avatar, {
         folder: "avatars",
@@ -38,13 +40,15 @@ router.post("/create-user", async (req, res, next) => {
         crop: "scale"
       });
     } catch (error) {
-      return res.status(500).json({
+      console.error("Cloudinary upload error:", error);
+      return res.status(400).json({
         success: false,
         message: "Failed to upload profile picture"
       });
     }
 
-    const user = {
+    // Create user object
+    const userData = {
       name: name.trim(),
       email: email.toLowerCase(),
       password,
@@ -54,17 +58,19 @@ router.post("/create-user", async (req, res, next) => {
       },
     };
 
-    const activationToken = createActivationToken(user);
+    // Create activation token
+    const activationToken = createActivationToken(userData);
     const activationUrl = `https://testpodokan.store/activation/${activationToken}`;
 
+    // Send activation email
     try {
       await sendMail({
-        email: user.email,
+        email: userData.email,
         subject: "Activate your PODokan Account",
         html: `
           <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
             <h2 style="color: #4e64df; text-align: center;">Welcome to PODokan!</h2>
-            <p>Hello ${user.name},</p>
+            <p>Hello ${userData.name},</p>
             <p>Click the button below to activate your account:</p>
             <div style="text-align: center; margin: 30px 0;">
               <a href="${activationUrl}" 
@@ -79,23 +85,20 @@ router.post("/create-user", async (req, res, next) => {
 
       return res.status(201).json({
         success: true,
-        message: `Please check your email (${user.email}) to activate your account!`
+        message: `Please check your email (${userData.email}) to activate your account!`
       });
     } catch (error) {
+      console.error("Email send error:", error);
       if (uploadedImage) {
         await cloudinary.v2.uploader.destroy(uploadedImage.public_id);
       }
-
       return res.status(500).json({
         success: false,
         message: "Failed to send activation email"
       });
     }
   } catch (error) {
-    if (uploadedImage) {
-      await cloudinary.v2.uploader.destroy(uploadedImage.public_id);
-    }
-
+    console.error("Registration error:", error);
     return res.status(500).json({
       success: false,
       message: "Registration failed"
