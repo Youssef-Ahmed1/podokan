@@ -110,6 +110,8 @@ router.post("/login-shop", async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('Login attempt:', { email, envCheck: process.env.JWT_SECRET_KEY ? 'present' : 'missing' });
+
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -117,7 +119,8 @@ router.post("/login-shop", async (req, res) => {
       });
     }
 
-    const shop = await Shop.findOne({ email }).select("+password");
+    const shop = await Shop.findOne({ email }).select('+password');
+    console.log('Shop found:', shop ? 'yes' : 'no');
 
     if (!shop) {
       return res.status(401).json({
@@ -127,6 +130,7 @@ router.post("/login-shop", async (req, res) => {
     }
 
     const isPasswordValid = await shop.comparePassword(password);
+    console.log('Password valid:', isPasswordValid);
 
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -135,37 +139,53 @@ router.post("/login-shop", async (req, res) => {
       });
     }
 
-    const token = shop.getJwtToken();
+    // Generate token with explicit secret key
+    const token = jwt.sign(
+      { id: shop._id },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: process.env.JWT_EXPIRES || '7d' }
+    );
 
-    // Modified cookie options
     const cookieOptions = {
-      expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       httpOnly: true,
       sameSite: "none",
       secure: true,
       path: '/',
-      domain: process.env.NODE_ENV === 'PRODUCTION' ? 'testpodokan.store' : 'localhost'
+      domain: 'testpodokan.store'
     };
 
-    // Remove password from response
-    shop.password = undefined;
+    // Remove sensitive data
+    const shopResponse = shop.toObject();
+    delete shopResponse.password;
 
-    // Set both cookie and authorization header
-    res.status(200)
+    console.log('Sending response with token');
+
+    return res
+      .status(200)
       .cookie("seller_token", token, cookieOptions)
       .header('Seller-Authorization', `Bearer ${token}`)
       .json({
         success: true,
-        token,
-        seller: shop
+        seller: shopResponse,
+        token
       });
 
   } catch (error) {
-    console.error("Shop login error:", error);
-    res.status(500).json({
+    console.error("Login error:", {
+      message: error.message,
+      stack: error.stack,
+      env: {
+        nodeEnv: process.env.NODE_ENV,
+        jwtSecret: process.env.JWT_SECRET_KEY ? 'present' : 'missing',
+        jwtExpires: process.env.JWT_EXPIRES
+      }
+    });
+
+    return res.status(500).json({
       success: false,
       message: "Login failed",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'PRODUCTION' ? 'Internal server error' : error.message
     });
   }
 });
