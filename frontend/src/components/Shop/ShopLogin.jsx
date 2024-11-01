@@ -25,55 +25,36 @@ const ShopLogin = () => {
     e.preventDefault();
     
     if (loading) return;
-
+  
     try {
       setLoading(true);
-
-      if (!email || !password) {
-        toast.error("Please fill all fields");
-        return;
-      }
-
+  
       const config = {
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         withCredentials: true
       };
-
+  
       const { data } = await axios.post(
         `${server}/shop/login-shop`,
         { email, password },
         config
       );
-
+  
       if (data.success) {
-        // Store token
         localStorage.setItem('seller_token', data.token);
         
-        // Set axios default headers for future requests
+        // Set default header for future requests
         axios.defaults.headers.common['Seller-Authorization'] = `Bearer ${data.token}`;
-        
-        // Store seller info if needed
-        localStorage.setItem('seller_info', JSON.stringify(data.seller));
-
+        axios.defaults.withCredentials = true;
+  
         toast.success("Login successful!");
-        
-        // Clear form
-        setEmail("");
-        setPassword("");
-        
-        // Redirect after a short delay
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 500);
+        navigate("/dashboard");
       }
     } catch (error) {
       console.error("Login error:", error);
-      toast.error(
-        error.response?.data?.message || 
-        "Login failed. Please check your credentials."
-      );
+      toast.error(error.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }

@@ -29,17 +29,18 @@ const corsOptions = {
   origin: ['https://testpodokan.store', 'https://www.testpodokan.store', 'http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'Seller-Authorization',
-    'X-Requested-With'
-  ],
-  exposedHeaders: ['Set-Cookie'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Seller-Authorization'],
+  exposedHeaders: ['Seller-Authorization'],
   maxAge: 86400
 };
 
 app.use(cors(corsOptions));
+
+// Add this before your routes
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 
 // Token verification middleware
 app.use(async (req, res, next) => {
@@ -87,22 +88,23 @@ app.use(`${API_BASE}/message`, require("./controller/message"));
 app.use(`${API_BASE}/withdraw`, require("./controller/withdraw"));
 
 // Error handling middleware
+// Add this to your app.js after your routes
 app.use((err, req, res, next) => {
-    if (err.name === 'JsonWebTokenError') {
-        return res.status(401).json({
-            success: false,
-            message: 'Invalid token'
-        });
-    }
-    
-    if (err.name === 'TokenExpiredError') {
-        return res.status(401).json({
-            success: false,
-            message: 'Token expired'
-        });
-    }
-    
-    next(err);
+  if (err.name === 'JsonWebTokenError') {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid token'
+    });
+  }
+  
+  if (err.name === 'TokenExpiredError') {
+    return res.status(401).json({
+      success: false,
+      message: 'Token expired'
+    });
+  }
+  
+  next(err);
 });
 
 // 404 Handler
