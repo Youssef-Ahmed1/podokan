@@ -12,13 +12,13 @@ const Shop = require('./model/shop');
 
 const app = express();
 
-// Essential middleware - Move these BEFORE token verification
+// Basic middleware
 app.use(compression());
+app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(cookieParser()); // This needs to be BEFORE token verification
 
-// Security middleware
+// Security headers
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
@@ -26,46 +26,55 @@ app.use(helmet({
 }));
 
 // CORS configuration
-const corsOptions = {
-  origin: ['https://testpodokan.store', 'https://www.testpodokan.store', 'http://localhost:3000'],
+app.use(cors({
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      'https://testpodokan.store',
+      'https://www.testpodokan.store',
+      'http://localhost:3000'
+    ];
+    callback(null, true); // Allow all origins temporarily for debugging
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  exposedHeaders: ['Set-Cookie']
-};
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+}));
 
-app.use(cors(corsOptions));
+// Handle preflight requests
+app.options('*', cors());
 
-// Token verification middleware - AFTER cookieParser
-app.use(async (req, res, next) => {
-  try {
-    // Safely check for cookies
-    if (req.cookies) {
-      // User token verification
-      if (req.cookies.token) {
-        try {
-          const decoded = jwt.verify(req.cookies.token, process.env.JWT_SECRET_KEY);
-          req.user = await User.findById(decoded.id).select('-password');
-        } catch (error) {
-          console.log('User token verification failed:', error.message);
-        }
-      }
+// Add headers for all responses
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 
-      // Seller token verification
-      if (req.cookies.seller_token) {
-        try {
-          const decoded = jwt.verify(req.cookies.seller_token, process.env.JWT_SECRET_KEY);
-          req.seller = await Shop.findById(decoded.id).select('-password');
-        } catch (error) {
-          console.log('Seller token verification failed:', error.message);
-        }
-      }
+// Simplified token verification
+app.use((req, res, next) => {
+  const verifyToken = async (token, Model) => {
+    try {
+      if (!token) return null;
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      return await Model.findById(decoded.id).select('-password');
+    } catch (error) {
+      console.log('Token verification failed:', error.message);
+      return null;
     }
-    next();
-  } catch (error) {
-    console.log('Token verification error:', error);
-    next();
-  }
+  };
+
+  Promise.all([
+    verifyToken(req.cookies?.token, User),
+    verifyToken(req.cookies?.seller_token, Shop)
+  ])
+    .then(([user, seller]) => {
+      req.user = user;
+      req.seller = seller;
+      next();
+    })
+    .catch(error => {
+      console.log('Token verification error:', error);
+      next();
+    });
 });
 
 // API routes
@@ -82,8 +91,15 @@ app.use(`${API_BASE}/conversation`, require("./controller/conversation"));
 app.use(`${API_BASE}/message`, require("./controller/message"));
 app.use(`${API_BASE}/withdraw`, require("./controller/withdraw"));
 
-// Error handling middleware
+// Error handling
 app.use((err, req, res, next) => {
+  console.error('Error:', {
+    message: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method
+  });
+
   if (err.name === 'JsonWebTokenError') {
     return res.status(401).json({
       success: false,
