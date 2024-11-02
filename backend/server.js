@@ -25,8 +25,18 @@ process.on("uncaughtException", (err) => {
     process.exit(1);
 });
 
-// Connect database
-connectDatabase();
+// Connect database with retry mechanism
+const connectWithRetry = async () => {
+    try {
+        await connectDatabase();
+        console.log('Database connected successfully');
+    } catch (err) {
+        console.log('Database connection failed, retrying in 5 seconds...');
+        setTimeout(connectWithRetry, 5000);
+    }
+};
+
+connectWithRetry();
 
 // Cloudinary config
 cloudinary.config({
@@ -35,11 +45,12 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Create HTTP server
+// Create HTTP server with timeout
 const server = http.createServer(app);
+server.timeout = 300000; // 5 minutes timeout
 
 // Start server
-server.listen(process.env.PORT || 8000, '127.0.0.1', () => {
+server.listen(process.env.PORT || 8000, () => {
     console.log(`Server is running on port ${process.env.PORT || 8000}`);
 });
 
