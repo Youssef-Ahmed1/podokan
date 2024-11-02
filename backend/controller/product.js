@@ -94,6 +94,7 @@ router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
 }));
 
 // Create product
+// Create product
 router.post("/create-product", 
   isAuthenticated,
   isSeller,
@@ -101,25 +102,20 @@ router.post("/create-product",
   validateProductData,
   catchAsyncErrors(async (req, res, next) => {
     try {
+      // Log incoming request data
+      console.log('Request body:', req.body);
+      console.log('Request file:', req.file);
+
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, errors: errors.array() });
+        return res.status(400).json({ 
+          success: false, 
+          errors: errors.array() 
+        });
       }
 
-      const { 
-        shopId, 
-        DesignTitle, 
-        Description, 
-        Maintag, 
-        Designtags, 
-        ProductType, 
-        ProductColor, 
-        ProductView, 
-        DesignScale,
-        availableColors
-      } = req.body;
-
-      const shop = await Shop.findById(shopId);
+      // Validate shop ownership
+      const shop = await Shop.findById(req.body.shopId);
       if (!shop) {
         return next(new ErrorHandler("Shop not found", 404));
       }
@@ -128,43 +124,64 @@ router.post("/create-product",
         return next(new ErrorHandler("Unauthorized access to this shop", 403));
       }
 
+      // Validate file
       if (!req.file) {
         return next(new ErrorHandler("Design image is required", 400));
       }
 
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "products",
-        transformation: [
-          { quality: "auto:best" },
-          { fetch_format: "auto" }
-        ]
-      });
+      try {
+        // Upload to cloudinary with error handling
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "products",
+          transformation: [
+            { quality: "auto:best" },
+            { fetch_format: "auto" }
+          ]
+        });
 
-      const product = await Product.create({
-        DesignTitle: DesignTitle.trim(),
-        Description: Description.trim(),
-        Maintag: Maintag.trim(),
-        Designtags: Designtags ? Designtags.split(',').map(tag => tag.trim()) : [],
-        ProductType,
-        ProductColor,
-        ProductView,
-        DesignScale: parseFloat(DesignScale),
-        designImage: {
-          public_id: result.public_id,
-          url: result.secure_url,
-        },
-        shopId,
-        status: 'pending',
-        availableColors: availableColors || [ProductColor],
-        createdBy: req.seller._id
-      });
+        // Process and validate form data
+        const productData = {
+          DesignTitle: req.body.DesignTitle?.trim(),
+          Description: req.body.Description?.trim(),
+          Maintag: req.body.Maintag?.trim(),
+          Designtags: req.body.Designtags ? 
+            req.body.Designtags.split(',').map(tag => tag.trim()) : [],
+          ProductType: req.body.ProductType,
+          ProductColor: req.body.ProductColor,
+          ProductView: req.body.ProductView || 'front',
+          DesignScale: parseFloat(req.body.DesignScale) || 1,
+          designImage: {
+            public_id: result.public_id,
+            url: result.secure_url,
+          },
+          shopId: req.body.shopId,
+          shop: req.body.shopId, // Required by your schema
+          status: 'pending',
+          availableColors: req.body.availableColors ? 
+            JSON.parse(req.body.availableColors) : [req.body.ProductColor],
+          createdBy: req.seller._id,
+          originalPrice: parseFloat(req.body.originalPrice) || 0,
+          discountPrice: req.body.discountPrice ? 
+            parseFloat(req.body.discountPrice) : 0
+        };
 
-      res.status(201).json({
-        success: true,
-        message: "Product created successfully and is awaiting inspection!",
-        product,
-      });
+        // Create product with explicit error handling
+        const product = await Product.create(productData);
+
+        // Send success response
+        res.status(201).json({
+          success: true,
+          message: "Product created successfully and is awaiting inspection!",
+          product,
+        });
+
+      } catch (uploadError) {
+        console.error("Cloudinary upload error:", uploadError);
+        return next(new ErrorHandler("Failed to upload design image", 500));
+      }
+
     } catch (error) {
+      // Clean up uploaded file if exists
       if (req.file?.path) {
         try {
           await cloudinary.uploader.destroy(req.file.filename);
@@ -172,11 +189,33 @@ router.post("/create-product",
           console.error("Error cleaning up uploaded file:", cleanupError);
         }
       }
-      return next(new ErrorHandler(error.message, 500));
+
+      // Log the full error
+      console.error("Product creation error:", {
+        message: error.message,
+        stack: error.stack,
+        code: error.code
+      });
+
+      // Handle mongoose validation errors
+      if (error.name === 'ValidationError') {
+        return next(new ErrorHandler(
+          Object.values(error.errors)
+            .map(err => err.message)
+            .join(', '), 
+          400
+        ));
+      }
+
+      // Handle other errors
+      return next(new ErrorHandler(
+        error.message || "Failed to create product", 
+        error.status || 500
+      ));
     }
-  }));
+  })
+);
 // Approve/reject product
-// Approve/reject product - This was likely the problematic route
 router.put("/approve-reject-product/:id", 
   isAuthenticated, 
   isAdmin, 
