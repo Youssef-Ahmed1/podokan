@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import axios from "axios";
+import { createBrowserHistory } from "history";
+
 // import { Elements } from "@stripe/react-stripe-js";
 // import { loadStripe } from "@stripe/stripe-js";
 import { server } from "./server";
@@ -61,25 +63,37 @@ import { getAllProducts } from "./redux/actions/product";
 import { getAllEvents } from "./redux/actions/event";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
+const history = createBrowserHistory({
+  getUserConfirmation: (message, callback) => {
+    setTimeout(() => callback(true), 100);
+  }
+});
+
+let navigationTimeout;
+history.listen(() => {
+  if (navigationTimeout) {
+    clearTimeout(navigationTimeout);
+  }
+  navigationTimeout = setTimeout(() => {
+  }, 300);
+});
 
 const App = () => {
-  // const [stripeApikey, setStripeApiKey] = useState("");
-
-  // async function getStripeApikey() {
-  //   try {
-  //     const { data } = await axios.get(`${server}/payment/stripeapikey`);
-  //     setStripeApiKey(data.stripeApikey);
-  //   } catch (error) {
-  //     // console.error("Error fetching Stripe API key:", error);
-  //   }
-  // }
-
   useEffect(() => {
-    Store.dispatch(loadUser());
-    Store.dispatch(loadSeller());
-    Store.dispatch(getAllProducts());
-    Store.dispatch(getAllEvents());
-    // getStripeApikey();
+    const loadInitialData = async () => {
+      try {
+        await Promise.all([
+          Store.dispatch(loadUser()),
+          Store.dispatch(loadSeller()),
+          Store.dispatch(getAllProducts()),
+          Store.dispatch(getAllEvents())
+        ]);
+      } catch (error) {
+        console.error("Error loading initial data:", error);
+      }
+    };
+
+    loadInitialData();
   }, []);
 
   return (
