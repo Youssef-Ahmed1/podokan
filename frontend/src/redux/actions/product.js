@@ -1,61 +1,63 @@
+// redux/actions/product.js
+
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
 
 // create product
-// In redux/actions/product.js
-  export const createProduct = (formData) => async (dispatch) => {
-    try {
-      dispatch({ type: "productCreateRequest" });
-  
-      const config = {
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('seller_token')}`,
-        },
-        withCredentials: true
-      };
-  
-      const { data } = await axios.post(
-        `${server}/product/create-product`,
-        formData,
-        config
-      );
-  
-      dispatch({ 
-        type: "productCreateSuccess", 
-        payload: data.product 
-      });
-  
-      return { 
-        success: true, 
-        product: data.product,
-        message: data.message || "Product created successfully!"
-      };
-  
-    } catch (error) {
-      console.error("Product creation error:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
-  
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data?.error || 
-                          error.message || 
-                          "Failed to create product";
-  
-      dispatch({
-        type: "productCreateFail",
-        payload: errorMessage
-      });
-  
-      return { 
-        success: false, 
-        message: errorMessage 
-      };
-    }
-  };
+export const createProduct = (formData) => async (dispatch) => {
+  try {
+    dispatch({ type: "productCreateRequest" });
+
+    const config = {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('seller_token')}`,
+      },
+      withCredentials: true
+    };
+
+    const { data } = await axios.post(
+      `${server}/product/create-product`,
+      formData,
+      config
+    );
+
+    dispatch({ 
+      type: "productCreateSuccess", 
+      payload: data.product 
+    });
+
+    return { 
+      success: true, 
+      product: data.product,
+      message: data.message || "Product created successfully!"
+    };
+
+  } catch (error) {
+    console.error("Product creation error:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+
+    const errorMessage = error.response?.data?.message || 
+                        error.response?.data?.error || 
+                        error.message || 
+                        "Failed to create product";
+
+    dispatch({
+      type: "productCreateFail",
+      payload: errorMessage
+    });
+
+    return { 
+      success: false, 
+      message: errorMessage 
+    };
+  }
+};
+
 export const fetchPendingProducts = () => async (dispatch) => {
   try {
     dispatch({ type: "fetchPendingProductsRequest" });
@@ -67,7 +69,6 @@ export const fetchPendingProducts = () => async (dispatch) => {
       throw new Error('Invalid response format');
     }
 
-    // Ensure we have an array and transform the data
     const products = Array.isArray(data.products) ? data.products.map(product => ({
       ...product,
       _id: product._id || '',
@@ -95,13 +96,10 @@ export const fetchPendingProducts = () => async (dispatch) => {
   }
 };
 
-
-
 export const approveRejectProduct = (productId, newStatus, rejectionReason, updates) => async (dispatch) => {
   try {
     dispatch({ type: "approveRejectProductRequest" });
 
-    // Create a clean updates object
     const cleanUpdates = {
       status: newStatus,
       statusReason: rejectionReason || '',
@@ -167,7 +165,6 @@ export const getAllProductsShop = (id) => async (dispatch) => {
 
     const { data } = await axios.get(`${server}/product/get-all-products-shop/${id}`);
     
-    // Add availableColors to each product
     const products = data.products.map(product => ({
       ...product,
       availableColors: product.availableColors || ['white']
@@ -182,7 +179,6 @@ export const getAllProductsShop = (id) => async (dispatch) => {
   }
 };
 
-// update product design
 export const updateProductDesign = (productId) => async (dispatch) => {
   try {
     dispatch({ type: "updateProductDesignRequest" });
@@ -201,7 +197,6 @@ export const updateProductDesign = (productId) => async (dispatch) => {
   }
 };
 
-// delete product of a shop
 export const deleteProduct = (id) => async (dispatch) => {
   try {
     dispatch({ type: "deleteProductRequest" });
@@ -225,7 +220,6 @@ export const getAllProducts = () => async (dispatch) => {
 
     const { data } = await axios.get(`${server}/product/get-all-products`);
 
-    // Only filter by status, not visibility
     const publicProducts = data.products
       .filter(product => product.status === 'public')
       .map(product => ({
@@ -239,7 +233,7 @@ export const getAllProducts = () => async (dispatch) => {
           : [product.ProductColor || 'white']
       }));
 
-    console.log('Fetched products:', publicProducts.length); // Debug log
+    console.log('Fetched products:', publicProducts.length);
 
     dispatch({ 
       type: "getAllProductsSuccess", 
