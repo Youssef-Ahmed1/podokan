@@ -37,6 +37,7 @@ const COLOR_OPTIONS = {
   green: { value: 'green', label: 'Green', hex: '#008000', textColor: 'text-white' },
   yellow: { value: 'yellow', label: 'Yellow', hex: '#ffff00', textColor: 'text-gray-800' }
 };
+
 const PRODUCT_TYPES = {
   't-shirt': {
     label: 'T-Shirt',
@@ -51,18 +52,18 @@ const PRODUCT_TYPES = {
   },
   'long-sleeve': {
     label: 'Long Sleeve',
-    basePrice: 390, // 300 (cost) + 90 (design)
+    basePrice: 390,
     productionCost: 300,
     designCost: 90,
     mockupConfig: {
       version: "v1728394665",
       folder: "long-sleeves",
-      getFilename: (color, view) => `long-sleeve-${color}-${view}` // Fixed typo
+      getFilename: (color, view) => `long-sleeve-${color}-${view}`
     }
   },
   'hoodie': {
     label: 'Hoodie',
-    basePrice: 490, // 400 (cost) + 90 (design)
+    basePrice: 490,
     productionCost: 400,
     designCost: 90,
     mockupConfig: {
@@ -72,6 +73,7 @@ const PRODUCT_TYPES = {
     }
   }
 };
+
 const FORM_FIELDS = {
   DesignTitle: {
     label: "Design Title",
@@ -103,9 +105,20 @@ const FORM_FIELDS = {
   }
 };
 
-// Utility Functions
+const calculateMinimumPrice = (productType) => {
+  const config = PRODUCT_TYPES[productType];
+  const baseCost = config.productionCost + config.designCost;
+  return Math.ceil(baseCost * 1.15);
+};
+
+const calculateRecommendedPrice = (productType) => {
+  const config = PRODUCT_TYPES[productType];
+  const baseCost = config.productionCost + config.designCost;
+  return Math.ceil(baseCost * 1.25);
+};
+
 const calculateDPI = (width, height) => {
-  const PRINT_SIZE = 12; // 12 inches reference size
+  const PRINT_SIZE = 12;
   return Math.min(width, height) / PRINT_SIZE;
 };
 
@@ -226,8 +239,122 @@ const checkTransparency = async (file) => {
 
     img.src = URL.createObjectURL(file);
   });
-};// Components
-const ScaleControl = ({ scale, onChange, disabled }) => (
+};
+
+const checkBoundariesAndUpdate = (position, productType, setIsDesignVisible, setFormState) => {
+  const boundaries = BOUNDARY_LIMITS[productType];
+  if (!boundaries) return false;
+
+  const isWithinBounds = 
+    position.x >= boundaries.left && 
+    position.x <= boundaries.right && 
+    position.y >= boundaries.top && 
+    position.y <= boundaries.bottom;
+
+  setIsDesignVisible(isWithinBounds);
+  
+  setFormState(prev => ({
+    ...prev,
+    designPosition: position
+  }));
+
+  return isWithinBounds;
+};
+
+const calculateDesignQualityScore = (imageInfo) => {
+  let score = 100;
+  let feedback = [];
+
+  const dpiScore = Math.min(40, (imageInfo.dpi / 300) * 40);
+  score -= (40 - dpiScore);
+  if (imageInfo.dpi < 300) {
+    feedback.push({
+      type: 'warning',
+      message: `DPI is ${Math.round(imageInfo.dpi)}. Higher DPI recommended for best print quality.`
+    });
+  }
+
+  const sizeScore = Math.min(30, (Math.min(imageInfo.compressedSize, 500000) / 500000) * 30);
+  score -= (30 - sizeScore);
+  if (imageInfo.compressedSize > 500000) {
+    feedback.push({
+      type: 'info',
+      message: 'File will be optimized for web display and printing.'
+    });
+  }
+
+  if (!imageInfo.hasTransparency) {
+    score -= 20;
+    feedback.push({
+      type: 'error',
+      message: 'Design requires a transparent background for proper display.'
+    });
+  }
+
+  const minDimension = Math.min(imageInfo.width, imageInfo.height);
+  const maxDimension = Math.max(imageInfo.width, imageInfo.height);
+  if (minDimension < 1000 || maxDimension > 4000) {
+    score -= 10;
+    feedback.push({
+      type: 'warning',
+      message: 'Optimal dimensions are between 1000px and 4000px.'
+    });
+  }
+
+  return {
+    score: Math.max(0, Math.round(score)),
+    feedback,
+    details: {
+      dpi: imageInfo.dpi,
+      size: imageInfo.compressedSize,
+      dimensions: `${imageInfo.width}x${imageInfo.height}`,
+      transparency: imageInfo.hasTransparency
+    }
+  };
+};
+
+const validateForm = (formState, designFile) => {
+  const errors = {};
+
+  if (!formState.DesignTitle?.trim()) {
+    errors.DesignTitle = "Design title is required";
+  } else if (formState.DesignTitle.length < 3 || formState.DesignTitle.length > 100) {
+    errors.DesignTitle = "Design title must be between 3 and 100 characters";
+  }
+
+  if (!formState.Description?.trim()) {
+    errors.Description = "Description is required";
+  } else if (formState.Description.length < 10 || formState.Description.length > 1000) {
+    errors.Description = "Description must be between 10 and 1000 characters";
+  }
+
+  if (!formState.Maintag?.trim()) {
+    errors.Maintag = "Main tag is required";
+  } else if (formState.Maintag.length < 2 || formState.Maintag.length > 50) {
+    errors.Maintag = "Main tag must be between 2 and 50 characters";
+  }
+
+  if (!designFile.file) {
+    errors.design = "Please upload a design image";
+  }
+
+  const originalPrice = Number(formState.price?.original);
+  const discountPrice = Number(formState.price?.discount);
+
+  if (!originalPrice || originalPrice <= 0) {
+    errors.price = "Please set a valid original price";
+  }
+
+  if (discountPrice && discountPrice >= originalPrice) {
+    errors.discount = "Discount price must be less than original price";
+  }
+
+  if (formState.DesignScale < 0.1 || formState.DesignScale > 5.0) {
+    errors.scale = "Design scale must be between 0.1 and 5.0";
+  }
+
+  return errors;
+};const ScaleControl = ({ scale, onChange, disabled }) => (
   <div className="w-full max-w-xs mx-auto">
     <div className="flex items-center justify-between mb-2">
       <span className="text-sm font-medium text-gray-700">
@@ -266,136 +393,12 @@ const ScaleControl = ({ scale, onChange, disabled }) => (
     />
   </div>
 );
-const validateForm = (formState, designFile) => {
-  const errors = {};
 
-  // Basic field validation
-  if (!formState.DesignTitle?.trim()) {
-    errors.DesignTitle = "Design title is required";
-  } else if (formState.DesignTitle.length < 3 || formState.DesignTitle.length > 100) {
-    errors.DesignTitle = "Design title must be between 3 and 100 characters";
-  }
-
-  if (!formState.Description?.trim()) {
-    errors.Description = "Description is required";
-  } else if (formState.Description.length < 10 || formState.Description.length > 1000) {
-    errors.Description = "Description must be between 10 and 1000 characters";
-  }
-
-  if (!formState.Maintag?.trim()) {
-    errors.Maintag = "Main tag is required";
-  } else if (formState.Maintag.length < 2 || formState.Maintag.length > 50) {
-    errors.Maintag = "Main tag must be between 2 and 50 characters";
-  }
-
-  // Design file validation
-  if (!designFile.file) {
-    errors.design = "Please upload a design image";
-  }
-
-  // Price validation
-  const originalPrice = Number(formState.price?.original);
-  const discountPrice = Number(formState.price?.discount);
-
-  if (!originalPrice || originalPrice <= 0) {
-    errors.price = "Please set a valid original price";
-  }
-
-  if (discountPrice && discountPrice >= originalPrice) {
-    errors.discount = "Discount price must be less than original price";
-  }
-
-  // Scale validation
-  if (formState.DesignScale < 0.1 || formState.DesignScale > 5.0) {
-    errors.scale = "Design scale must be between 0.1 and 5.0";
-  }
-
-  return errors;
-};
-
-const calculateDesignQualityScore = (imageInfo) => {
-  let score = 100;
-  let feedback = [];
-
-  // DPI Scoring (40 points)
-  const dpiScore = Math.min(40, (imageInfo.dpi / 300) * 40);
-  score -= (40 - dpiScore);
-  if (imageInfo.dpi < 300) {
-    feedback.push({
-      type: 'warning',
-      message: `DPI is ${Math.round(imageInfo.dpi)}. Higher DPI recommended for best print quality.`
-    });
-  }
-
-  // Size Scoring (30 points)
-  const sizeScore = Math.min(30, (Math.min(imageInfo.compressedSize, 500000) / 500000) * 30);
-  score -= (30 - sizeScore);
-  if (imageInfo.compressedSize > 500000) {
-    feedback.push({
-      type: 'info',
-      message: 'File will be optimized for web display and printing.'
-    });
-  }
-
-  // Transparency Check (20 points)
-  if (!imageInfo.hasTransparency) {
-    score -= 20;
-    feedback.push({
-      type: 'error',
-      message: 'Design requires a transparent background for proper display.'
-    });
-  }
-
-  // Dimension Check (10 points)
-  const minDimension = Math.min(imageInfo.width, imageInfo.height);
-  const maxDimension = Math.max(imageInfo.width, imageInfo.height);
-  if (minDimension < 1000 || maxDimension > 4000) {
-    score -= 10;
-    feedback.push({
-      type: 'warning',
-      message: 'Optimal dimensions are between 1000px and 4000px.'
-    });
-  }
-
-  return {
-    score: Math.max(0, Math.round(score)),
-    feedback,
-    details: {
-      dpi: imageInfo.dpi,
-      size: imageInfo.compressedSize,
-      dimensions: `${imageInfo.width}x${imageInfo.height}`,
-      transparency: imageInfo.hasTransparency
-    }
-  };
-};
-
-const checkBoundariesAndUpdate = (position, productType, setIsDesignVisible, setFormState) => {
-  const boundaries = BOUNDARY_LIMITS[productType];
-  if (!boundaries) return false;
-
-  const isWithinBounds = 
-    position.x >= boundaries.left && 
-    position.x <= boundaries.right && 
-    position.y >= boundaries.top && 
-    position.y <= boundaries.bottom;
-
-  setIsDesignVisible(isWithinBounds);
-  
-  setFormState(prev => ({
-    ...prev,
-    designPosition: position
-  }));
-
-  return isWithinBounds;
-};
-
-// Main Component
 const CreateProduct = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { seller } = useSelector((state) => state.seller);
 
-  // Refs
   const designPreviewRef = useRef(null);
   const mockupContainerRef = useRef(null);
   const designPositionRef = useRef({ x: 0, y: 0 });
@@ -404,7 +407,6 @@ const CreateProduct = () => {
   const lastScaleRef = useRef(1);
   const formRef = useRef(null);
 
-  // All state declarations
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -418,7 +420,6 @@ const CreateProduct = () => {
   const [compressionProgress, setCompressionProgress] = useState(0);
   const [isScaling, setIsScaling] = useState(false);
 
-  // Form State
   const [formState, setFormState] = useState({
     DesignTitle: "",
     Description: "",
@@ -436,7 +437,6 @@ const CreateProduct = () => {
     }
   });
 
-  // Design File State
   const [designFile, setDesignFile] = useState({
     preview: null,
     file: null,
@@ -445,18 +445,7 @@ const CreateProduct = () => {
     error: null,
     isCompressing: false
   });
-  const calculateMinimumPrice = (productType) => {
-    const config = PRODUCT_TYPES[productType];
-    const baseCost = config.productionCost + config.designCost;
-    return Math.ceil(baseCost * 1.15);
-  };
-  
-  const calculateRecommendedPrice = (productType) => {
-    const config = PRODUCT_TYPES[productType];
-    const baseCost = config.productionCost + config.designCost;
-    return Math.ceil(baseCost * 1.25);
-  };
-  // Form Field Component
+
   const FormField = useCallback(({ name, value, onChange, error }) => {
     const config = FORM_FIELDS[name];
     const Icon = config.icon;
@@ -507,7 +496,6 @@ const CreateProduct = () => {
     );
   }, []);
 
-  // Price Input Component
   const PriceInput = useCallback(({ type, value, onChange, error }) => {
     const handleChange = (e) => {
       const numValue = Math.max(0, parseFloat(e.target.value) || 0);
@@ -544,13 +532,13 @@ const CreateProduct = () => {
         )}
       </div>
     );
-  }, []);// Handlers
+  }, []);
+
   const handleFieldChange = useCallback((fieldName, value) => {
     setFormState(prev => ({
       ...prev,
       [fieldName]: value
     }));
-    // Clear validation error when field is modified
     if (validationErrors[fieldName]) {
       setValidationErrors(prev => {
         const newErrors = { ...prev };
@@ -569,7 +557,6 @@ const CreateProduct = () => {
         [type]: numValue
       }
     }));
-    // Clear price-related validation errors
     if (validationErrors.price || validationErrors.discount) {
       setValidationErrors(prev => {
         const newErrors = { ...prev };
@@ -637,7 +624,6 @@ const CreateProduct = () => {
       setDesignStats(compressionResult);
       setShowRequirements(false);
 
-      // Clear design-related validation errors
       setValidationErrors(prev => {
         const newErrors = { ...prev };
         delete newErrors.design;
@@ -665,7 +651,7 @@ const CreateProduct = () => {
       setIsLoading(false);
       setCompressionProgress(0);
     }
-  }, [formState.ProductColor, calculateDesignQualityScore]);
+  }, [formState.ProductColor]);
 
   const handleDrag = useCallback((e) => {
     e.preventDefault();
@@ -786,6 +772,7 @@ const CreateProduct = () => {
       setIsSubmitting(false);
     }
   };
+
   useEffect(() => {
     if (seller && seller._id) {
       setFormState(prev => ({ ...prev, shopId: seller._id }));
@@ -795,6 +782,7 @@ const CreateProduct = () => {
       navigate("/login");
     }
   }, [seller, navigate]);
+
 
   // Return/Render JSX
   return (
