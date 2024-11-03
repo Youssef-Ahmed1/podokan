@@ -1,156 +1,136 @@
 const express = require("express");
-const ErrorHandler = require("./utils/ErrorHandler");
+const ErrorHandler = require("./middleware/error");
+const app = express();
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const helmet = require('helmet');
-const compression = require('compression');
-const jwt = require('jsonwebtoken');
-const User = require('./model/user');
-const Shop = require('./model/shop');
-
-const app = express();
-
-// Essential middleware
-app.use(compression());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(cookieParser());
-
-// Security middleware
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            connectSrc: ["'self'", "https://testpodokan.store", "https://www.testpodokan.store", "http://localhost:3000"],
-            imgSrc: ["'self'", "data:", "https:", "blob:"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https:"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-            fontSrc: ["'self'", "https:", "data:"],
-        }
-    },
-    crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: { policy: "cross-origin" }
-}));
+const multer = require('multer');
+const path = require('path');
+const appConfig = require('../backend/server');
 
 // CORS configuration
-const corsOptions = {
-    origin: (origin, callback) => {
-        const allowedOrigins = ['https://testpodokan.store', 'https://www.testpodokan.store', 'http://localhost:3000'];
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Seller-Authorization'],
-    exposedHeaders: ['Seller-Authorization'],
-    maxAge: 86400
-};
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://testpodokan.store'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Seller-Authorization'],
+  credentials: true,
+  exposedHeaders: ['Seller-Authorization']
+}));
 
-app.use(cors(corsOptions));
+// Essential middleware
+app.use(express.json({ limit: '50mb' }));
+app.use(cookieParser());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-// Add headers middleware
+// Load environment variables
+if (process.env.NODE_ENV !== "PRODUCTION") {
+  require("dotenv").config({
+    path: "config/.env",
+  });
+}
+
+// Configure multer
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(appConfig.fileUploadPath));
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: function (req, file, cb) {
+    const filetypes = /jpeg|jpg|png|gif/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb(new Error("Error: Images Only!"));
+  },
+});
+
+// Import routes
+const user = require("./controller/user");
+const shop = require("./controller/shop");
+const product = require("./controller/product");
+const event = require("./controller/event");
+const coupon = require("./controller/coupounCode");
+const payment = require("./controller/payment");
+const order = require("./controller/order");
+const conversation = require("./controller/conversation");
+const message = require("./controller/message");
+const withdraw = require("./controller/withdraw");
+
+// API Routes
+const API_PREFIX = "/api/v2";
+
+app.use(`${API_PREFIX}/user`, user);
+app.use(`${API_PREFIX}/shop`, shop);
+app.use(`${API_PREFIX}/product`, product);
+app.use(`${API_PREFIX}/event`, event);
+app.use(`${API_PREFIX}/coupon`, coupon);
+app.use(`${API_PREFIX}/payment`, payment);
+app.use(`${API_PREFIX}/order`, order);
+app.use(`${API_PREFIX}/conversation`, conversation);
+app.use(`${API_PREFIX}/message`, message);
+app.use(`${API_PREFIX}/withdraw`, withdraw);
+
+// Timeout middleware
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Origin', req.headers.origin);
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,UPDATE,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization, Seller-Authorization');
-    next();
+  res.setTimeout(30000, () => {
+    res.status(504).json({
+      success: false,
+      message: "Request timeout"
+    });
+  });
+  next();
 });
 
-// Token verification middleware with better error handling
-app.use(async (req, res, next) => {
-    try {
-        // User token verification
-        const userToken = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
-        if (userToken) {
-            try {
-                const decoded = jwt.verify(userToken, process.env.JWT_SECRET_KEY);
-                req.user = await User.findById(decoded.id).select('-password');
-            } catch (error) {
-                console.log('User token verification failed:', error.message);
-            }
-        }
-
-        // Seller token verification
-        const sellerToken = req.cookies?.seller_token || req.headers['seller-authorization']?.replace('Bearer ', '');
-        if (sellerToken) {
-            try {
-                const decoded = jwt.verify(sellerToken, process.env.JWT_SECRET_KEY);
-                req.seller = await Shop.findById(decoded.id).select('-password');
-            } catch (error) {
-                console.log('Seller token verification failed:', error.message);
-            }
-        }
-        next();
-    } catch (error) {
-        console.log('Token verification error:', error);
-        next();
-    }
-});
-
-// API routes
-const API_BASE = '/api/v2';
-
-// Route handlers
-app.use(`${API_BASE}/user`, require("./controller/user"));
-app.use(`${API_BASE}/shop`, require("./controller/shop"));
-app.use(`${API_BASE}/product`, require("./controller/product"));
-app.use(`${API_BASE}/event`, require("./controller/event"));
-app.use(`${API_BASE}/coupon`, require("./controller/coupounCode"));
-app.use(`${API_BASE}/payment`, require("./controller/payment"));
-app.use(`${API_BASE}/order`, require("./controller/order"));
-app.use(`${API_BASE}/conversation`, require("./controller/conversation"));
-app.use(`${API_BASE}/message`, require("./controller/message"));
-app.use(`${API_BASE}/withdraw`, require("./controller/withdraw"));
-
-// Error handling middleware
+// Global error handling
 app.use((err, req, res, next) => {
-    console.error('Error:', {
-        message: err.message,
-        stack: err.stack,
-        path: req.path
+  console.error('Error:', {
+    message: err.message,
+    stack: err.stack,
+    path: req.path
+  });
+
+  if (err.name === 'PayloadTooLargeError') {
+    return res.status(413).json({
+      success: false,
+      message: 'Request entity too large'
     });
+  }
 
-    if (err.name === 'JsonWebTokenError') {
-        return res.status(401).json({
-            success: false,
-            message: 'Invalid token'
-        });
-    }
-
-    if (err.name === 'TokenExpiredError') {
-        return res.status(401).json({
-            success: false,
-            message: 'Token expired'
-        });
-    }
-
-    if (err.code === 'ETIMEDOUT' || err.code === 'ECONNABORTED') {
-        return res.status(504).json({
-            success: false,
-            message: 'Request timeout'
-        });
-    }
-
-    res.status(err.status || 500).json({
-        success: false,
-        message: process.env.NODE_ENV === 'PRODUCTION' 
-            ? 'Internal server error' 
-            : err.message
+  if (err.code === 'ETIMEDOUT' || err.code === 'ECONNABORTED') {
+    return res.status(504).json({
+      success: false,
+      message: 'Request timeout'
     });
+  }
+
+  const statusCode = err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+
+  res.status(statusCode).json({
+    success: false,
+    message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    path: req.originalUrl
+  });
 });
 
 // 404 Handler
 app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        message: 'Route not found',
-        path: req.originalUrl
-    });
+  res.status(404).json({
+    success: false,
+    message: 'Route not found',
+    path: req.originalUrl
+  });
 });
 
 module.exports = app;
