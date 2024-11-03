@@ -351,19 +351,35 @@ router.put(
 router.get(
   "/admin-all-sellers",
   isAuthenticated,
-  isAdmin("Admin"),  
+  isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const sellers = await Shop.find().sort({ createdAt: -1 });
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 20;
+      const skip = (page - 1) * limit;
+
+      const totalSellers = await Shop.countDocuments();
+
+      const sellers = await Shop.find()
+        .select('-password -__v')
+        .sort('-createdAt')
+        .skip(skip)
+        .limit(limit)
+        .lean()
+        .maxTimeMS(30000);
+
       res.status(200).json({
         success: true,
         sellers,
+        currentPage: page,
+        totalPages: Math.ceil(totalSellers / limit),
+        totalSellers,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
   })
-);
+)
 
 // Delete seller -- admin only
 router.delete(
