@@ -299,14 +299,14 @@ const Header = ({ activeHeading }) => {
       {/* Sliding Menu */}
       <div
         className={`
-          absolute inset-0 bg-black/50 z-[60] transition-opacity duration-300
+          fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300
           ${open ? "opacity-100 visible" : "opacity-0 invisible"}
         `}
         onClick={() => setOpen(false)}
       >
         <div
           className={`
-            absolute top-0 left-0 h-full w-[280px] lg:w-[320px] bg-[#151523] 
+            fixed top-0 left-0 h-full w-[280px] lg:w-[320px] bg-[#151523] 
             transform transition-transform duration-300 ease-out
             ${open ? "translate-x-0" : "-translate-x-full"}
           `}
