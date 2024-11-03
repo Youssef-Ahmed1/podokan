@@ -269,20 +269,24 @@ const ScaleControl = ({ scale, onChange, disabled }) => (
 const validateForm = (formState, designFile) => {
   const errors = {};
 
-  // Form fields validation
-  Object.entries(FORM_FIELDS).forEach(([fieldName, config]) => {
-    const error = config.validation(formState[fieldName]);
-    if (error) errors[fieldName] = error;
-  });
-
-  // Design file validation
-  if (!designFile.file) {
-    errors.design = "Please upload a design";
+  if (!formState.DesignTitle?.trim()) {
+    errors.DesignTitle = "Design title is required";
   }
 
-  // Price validation
-  if (formState.price.original <= 0) {
-    errors.price = "Please set a valid price";
+  if (!formState.Description?.trim()) {
+    errors.Description = "Description is required";
+  }
+
+  if (!formState.Maintag?.trim()) {
+    errors.Maintag = "Main tag is required";
+  }
+
+  if (!designFile.file) {
+    errors.design = "Please upload a design image";
+  }
+
+  if (!formState.price.original || formState.price.original <= 0) {
+    errors.price = "Please set a valid original price";
   }
 
   if (formState.price.discount >= formState.price.original) {
@@ -399,7 +403,7 @@ const CreateProduct = () => {
 
   // Form State
   const [formState, setFormState] = useState({
-    DesignTitle: "",
+        DesignTitle: "",
     Description: "",
     Maintag: "",
     Designtags: "",
@@ -489,6 +493,11 @@ const CreateProduct = () => {
 
   // Price Input Component
   const PriceInput = useCallback(({ type, value, onChange, error }) => {
+    const handleChange = (e) => {
+      const numValue = parseFloat(e.target.value) || 0;
+      onChange(type, numValue);
+    };
+  
     return (
       <div className="space-y-1">
         <label className="block text-sm font-medium text-gray-700">
@@ -504,7 +513,7 @@ const CreateProduct = () => {
             min="0"
             step="0.01"
             value={value}
-            onChange={(e) => onChange(type, e.target.value)}
+            onChange={handleChange}
             className={`block w-full pl-10 pr-3 py-2 sm:text-sm rounded-md
               ${error 
                 ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' 
@@ -694,9 +703,8 @@ const CreateProduct = () => {
   
     try {
       setIsSubmitting(true);
-      setValidationErrors({});
-  
-      // Validate form data
+      
+      // Validate form
       const errors = validateForm(formState, designFile);
       if (Object.keys(errors).length > 0) {
         setValidationErrors(errors);
@@ -704,46 +712,62 @@ const CreateProduct = () => {
         return;
       }
   
-      // Create FormData
+      // Create FormData with proper structure
       const formData = new FormData();
-  
-      // Add all text fields
+      
+      // Basic fields
       formData.append('DesignTitle', formState.DesignTitle);
       formData.append('Description', formState.Description);
       formData.append('Maintag', formState.Maintag);
-      formData.append('Designtags', formState.Designtags);
+      
+      // Handle Designtags as array
+      const tags = formState.Designtags.split(',').map(tag => tag.trim()).filter(Boolean);
+      formData.append('Designtags', JSON.stringify(tags));
+      
+      // Product configuration
       formData.append('ProductType', formState.ProductType);
       formData.append('ProductColor', formState.ProductColor);
       formData.append('ProductView', formState.ProductView);
       formData.append('DesignScale', formState.DesignScale.toString());
       
-      // Add design position
-      formData.append('designPosition', JSON.stringify(formState.designPosition));
-      
-      // Add prices
-      formData.append('originalPrice', formState.price.original.toString());
-      formData.append('discountPrice', formState.price.discount.toString());
-      
-      // Add available colors
-      formData.append('availableColors', JSON.stringify(formState.availableColors));
-      
-      // Add shop ID
+      // Shop reference
       formData.append('shopId', seller._id);
       formData.append('shop', seller._id);
-  
-      // Add design file
+      
+      // Design position
+      formData.append('designPosition', JSON.stringify(formState.designPosition));
+      
+      // Pricing
+      formData.append('originalPrice', formState.price.original.toString());
+      if (formState.price.discount) {
+        formData.append('discountPrice', formState.price.discount.toString());
+      }
+      
+      // Available colors
+      formData.append('availableColors', JSON.stringify([formState.ProductColor]));
+      
+      // Design file - must be last
       if (designFile.file) {
         formData.append('designImage', designFile.file);
       }
   
-      // Log the FormData contents for debugging
-      console.log('Creating product with data:', Object.fromEntries(formData));
+      console.log('Creating product with data:', {
+        DesignTitle: formState.DesignTitle,
+        Description: formState.Description,
+        Maintag: formState.Maintag,
+        Designtags: tags,
+        ProductType: formState.ProductType,
+        ProductColor: formState.ProductColor,
+        ProductView: formState.ProductView,
+        DesignScale: formState.DesignScale,
+        shopId: seller._id,
+        hasFile: !!designFile.file
+      });
   
-      // Dispatch create product action
       const response = await dispatch(createProduct(formData));
   
       if (response.success) {
-        toast.success("Product created successfully!");
+        toast.success(response.message || "Product created successfully!");
         navigate("/dashboard");
       } else {
         throw new Error(response.message || "Failed to create product");
@@ -753,16 +777,18 @@ const CreateProduct = () => {
       console.error("Submit error:", error);
       toast.error(error.message || "Failed to create product");
       
-      // Additional error logging
+      // Log detailed error information
       if (error.response) {
-        console.error("Server response:", error.response.data);
+        console.error('Server response:', {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers
+        });
       }
     } finally {
       setIsSubmitting(false);
     }
   };
-  
-  
   useEffect(() => {
     if (seller && seller._id) {
       setFormState(prev => ({ ...prev, shopId: seller._id }));
