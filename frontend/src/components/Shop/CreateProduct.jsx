@@ -269,26 +269,27 @@ const ScaleControl = ({ scale, onChange, disabled }) => (
 const validateForm = (formState, designFile) => {
   const errors = {};
 
-  // Form fields validation
-  Object.entries(FORM_FIELDS).forEach(([fieldName, config]) => {
-    const error = config.validation(formState[fieldName]);
-    if (error) errors[fieldName] = error;
-  });
-
-  // Design file validation
-  if (!designFile.file) {
-    errors.design = "Please upload a design";
+  if (!formState.DesignTitle?.trim()) {
+    errors.DesignTitle = "Design title is required";
   }
 
-  // Price validation
-  const originalPrice = Number(formState.price.original);
-  const discountPrice = Number(formState.price.discount);
+  if (!formState.Description?.trim()) {
+    errors.Description = "Description is required";
+  }
 
-  if (!originalPrice || originalPrice <= 0) {
+  if (!formState.Maintag?.trim()) {
+    errors.Maintag = "Main tag is required";
+  }
+
+  if (!designFile.file) {
+    errors.design = "Please upload a design image";
+  }
+
+  if (!formState.price.original || formState.price.original <= 0) {
     errors.price = "Please set a valid original price";
   }
 
-  if (discountPrice && discountPrice >= originalPrice) {
+  if (formState.price.discount >= formState.price.original) {
     errors.discount = "Discount price must be less than original price";
   }
 
@@ -702,8 +703,7 @@ const CreateProduct = () => {
   
     try {
       setIsSubmitting(true);
-      setValidationErrors({});
-  
+      
       // Validate form
       const errors = validateForm(formState, designFile);
       if (Object.keys(errors).length > 0) {
@@ -712,44 +712,58 @@ const CreateProduct = () => {
         return;
       }
   
-      // Create FormData
+      // Create FormData with proper structure
       const formData = new FormData();
-  
-      // Add all required fields
+      
+      // Basic fields
       formData.append('DesignTitle', formState.DesignTitle);
       formData.append('Description', formState.Description);
       formData.append('Maintag', formState.Maintag);
-      formData.append('Designtags', formState.Designtags);
+      
+      // Handle Designtags as array
+      const tags = formState.Designtags.split(',').map(tag => tag.trim()).filter(Boolean);
+      formData.append('Designtags', JSON.stringify(tags));
+      
+      // Product configuration
       formData.append('ProductType', formState.ProductType);
       formData.append('ProductColor', formState.ProductColor);
       formData.append('ProductView', formState.ProductView);
       formData.append('DesignScale', formState.DesignScale.toString());
-      formData.append('shopId', seller._id);
-  
-      // Add design position as JSON string
-      formData.append('designPosition', JSON.stringify(formState.designPosition));
-  
-      // Add prices - ensure they're numbers
-      const originalPrice = Number(formState.price.original);
-      const discountPrice = Number(formState.price.discount) || null;
       
-      formData.append('originalPrice', originalPrice.toString());
-      if (discountPrice) {
-        formData.append('discountPrice', discountPrice.toString());
+      // Shop reference
+      formData.append('shopId', seller._id);
+      formData.append('shop', seller._id);
+      
+      // Design position
+      formData.append('designPosition', JSON.stringify(formState.designPosition));
+      
+      // Pricing
+      formData.append('originalPrice', formState.price.original.toString());
+      if (formState.price.discount) {
+        formData.append('discountPrice', formState.price.discount.toString());
       }
-  
-      // Add available colors
-      formData.append('availableColors', JSON.stringify(formState.availableColors));
-  
-      // Add design file
+      
+      // Available colors
+      formData.append('availableColors', JSON.stringify([formState.ProductColor]));
+      
+      // Design file - must be last
       if (designFile.file) {
         formData.append('designImage', designFile.file);
       }
   
-      // Log the data being sent
-      console.log('Creating product with data:', Object.fromEntries(formData));
+      console.log('Creating product with data:', {
+        DesignTitle: formState.DesignTitle,
+        Description: formState.Description,
+        Maintag: formState.Maintag,
+        Designtags: tags,
+        ProductType: formState.ProductType,
+        ProductColor: formState.ProductColor,
+        ProductView: formState.ProductView,
+        DesignScale: formState.DesignScale,
+        shopId: seller._id,
+        hasFile: !!designFile.file
+      });
   
-      // Submit the form
       const response = await dispatch(createProduct(formData));
   
       if (response.success) {
@@ -762,6 +776,15 @@ const CreateProduct = () => {
     } catch (error) {
       console.error("Submit error:", error);
       toast.error(error.message || "Failed to create product");
+      
+      // Log detailed error information
+      if (error.response) {
+        console.error('Server response:', {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
