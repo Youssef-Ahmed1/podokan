@@ -10,12 +10,12 @@ export const createProduct = (formData) => async (dispatch) => {
 
     const config = {
       headers: {
+        'Accept': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('seller_token')}`,
       },
       withCredentials: true
     };
 
-    // Remove duplicate api/v2 from URL
     const { data } = await axios.post(
       `${server}/product/create-product`,
       formData,
@@ -27,7 +27,11 @@ export const createProduct = (formData) => async (dispatch) => {
       payload: data.product 
     });
 
-    return { success: true, product: data.product };
+    return { 
+      success: true, 
+      product: data.product,
+      message: data.message || "Product created successfully!" 
+    };
 
   } catch (error) {
     console.error("Product creation error:", {
@@ -36,14 +40,22 @@ export const createProduct = (formData) => async (dispatch) => {
       message: error.message
     });
 
+    let errorMessage = "Failed to create product";
+    
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.response?.data?.errors) {
+      errorMessage = Object.values(error.response.data.errors)[0];
+    }
+
     dispatch({
       type: "productCreateFail",
-      payload: error.response?.data?.message || "Failed to create product"
+      payload: errorMessage
     });
 
     return { 
       success: false, 
-      message: error.response?.data?.message || "Failed to create product" 
+      message: errorMessage
     };
   }
 };
