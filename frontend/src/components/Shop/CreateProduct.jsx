@@ -707,23 +707,37 @@ const CreateProduct = () => {
       // Create FormData
       const formData = new FormData();
   
-      // Add basic fields
-      Object.entries(formState).forEach(([key, value]) => {
-        if (key === 'designPosition' || key === 'availableColors' || key === 'price') {
-          formData.append(key, JSON.stringify(value));
-        } else if (value !== null && value !== undefined) {
-          formData.append(key, value);
-        }
-      });
+      // Add all text fields
+      formData.append('DesignTitle', formState.DesignTitle);
+      formData.append('Description', formState.Description);
+      formData.append('Maintag', formState.Maintag);
+      formData.append('Designtags', formState.Designtags);
+      formData.append('ProductType', formState.ProductType);
+      formData.append('ProductColor', formState.ProductColor);
+      formData.append('ProductView', formState.ProductView);
+      formData.append('DesignScale', formState.DesignScale.toString());
+      
+      // Add design position
+      formData.append('designPosition', JSON.stringify(formState.designPosition));
+      
+      // Add prices
+      formData.append('originalPrice', formState.price.original.toString());
+      formData.append('discountPrice', formState.price.discount.toString());
+      
+      // Add available colors
+      formData.append('availableColors', JSON.stringify(formState.availableColors));
+      
+      // Add shop ID
+      formData.append('shopId', seller._id);
+      formData.append('shop', seller._id);
   
       // Add design file
       if (designFile.file) {
         formData.append('designImage', designFile.file);
       }
   
-      // Add required fields
-      formData.append('shopId', seller._id);
-      formData.append('status', 'pending');
+      // Log the FormData contents for debugging
+      console.log('Creating product with data:', Object.fromEntries(formData));
   
       // Dispatch create product action
       const response = await dispatch(createProduct(formData));
@@ -738,10 +752,17 @@ const CreateProduct = () => {
     } catch (error) {
       console.error("Submit error:", error);
       toast.error(error.message || "Failed to create product");
+      
+      // Additional error logging
+      if (error.response) {
+        console.error("Server response:", error.response.data);
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
+  
+  
   useEffect(() => {
     if (seller && seller._id) {
       setFormState(prev => ({ ...prev, shopId: seller._id }));
