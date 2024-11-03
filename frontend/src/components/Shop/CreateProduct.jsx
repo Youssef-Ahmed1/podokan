@@ -40,7 +40,7 @@ const COLOR_OPTIONS = {
 const PRODUCT_TYPES = {
   't-shirt': {
     label: 'T-Shirt',
-    basePrice: 295, // 205 (cost) + 90 (design)
+    basePrice: 295,
     productionCost: 205,
     designCost: 90,
     mockupConfig: {
@@ -448,13 +448,13 @@ const CreateProduct = () => {
   const calculateMinimumPrice = (productType) => {
     const config = PRODUCT_TYPES[productType];
     const baseCost = config.productionCost + config.designCost;
-    return Math.ceil(baseCost * 1.15); // 15% minimum margin
+    return Math.ceil(baseCost * 1.15);
   };
   
   const calculateRecommendedPrice = (productType) => {
     const config = PRODUCT_TYPES[productType];
     const baseCost = config.productionCost + config.designCost;
-    return Math.ceil(baseCost * 1.25); // 25% recommended margin
+    return Math.ceil(baseCost * 1.25);
   };
   // Form Field Component
   const FormField = useCallback(({ name, value, onChange, error }) => {
@@ -510,7 +510,7 @@ const CreateProduct = () => {
   // Price Input Component
   const PriceInput = useCallback(({ type, value, onChange, error }) => {
     const handleChange = (e) => {
-      const numValue = parseFloat(e.target.value) || 0;
+      const numValue = Math.max(0, parseFloat(e.target.value) || 0);
       onChange(type, numValue);
     };
   
@@ -525,14 +525,13 @@ const CreateProduct = () => {
           </div>
           <input
             type="number"
-            name={`price-${type}`}
             min="0"
             step="0.01"
             value={value}
             onChange={handleChange}
             className={`block w-full pl-10 pr-3 py-2 sm:text-sm rounded-md
               ${error 
-                ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' 
+                ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
                 : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
               }`}
             placeholder="0.00"
@@ -732,43 +731,30 @@ const CreateProduct = () => {
       // Create FormData
       const formData = new FormData();
   
-      // Basic fields
+      // Add basic fields
       formData.append('DesignTitle', formState.DesignTitle);
       formData.append('Description', formState.Description);
       formData.append('Maintag', formState.Maintag);
-      
-      // Handle Designtags properly
-      const tags = Array.isArray(formState.Designtags) 
-        ? formState.Designtags 
-        : formState.Designtags.split(',').map(tag => tag.trim()).filter(Boolean);
-      formData.append('Designtags', JSON.stringify(tags));
-      
-      // Product configuration
+      formData.append('Designtags', JSON.stringify(formState.Designtags.split(',').map(tag => tag.trim())));
       formData.append('ProductType', formState.ProductType);
       formData.append('ProductColor', formState.ProductColor);
       formData.append('ProductView', formState.ProductView);
       formData.append('DesignScale', formState.DesignScale.toString());
-      
+      formData.append('shopId', seller._id);
+  
       // Design position
       formData.append('designPosition', JSON.stringify(formState.designPosition));
-      
-      // Handle prices
-      const originalPrice = Number(formState.price.original);
-      const discountPrice = Number(formState.price.discount) || null;
-      
-      formData.append('originalPrice', originalPrice.toString());
-      if (discountPrice) {
-        formData.append('discountPrice', discountPrice.toString());
+  
+      // Prices
+      formData.append('originalPrice', formState.price.original.toString());
+      if (formState.price.discount > 0) {
+        formData.append('discountPrice', formState.price.discount.toString());
       }
-      
+  
       // Available colors
       formData.append('availableColors', JSON.stringify([formState.ProductColor]));
-      
-      // Shop ID
-      formData.append('shopId', seller._id);
-      formData.append('createdBy', seller._id);
-      
-      // Design file must be last
+  
+      // Design file
       if (designFile.file) {
         formData.append('designImage', designFile.file);
       }
@@ -784,7 +770,6 @@ const CreateProduct = () => {
       });
       console.log('Creating product with data:', formDataObj);
   
-      // Submit the form
       const response = await dispatch(createProduct(formData));
   
       if (response.success) {
@@ -796,16 +781,6 @@ const CreateProduct = () => {
   
     } catch (error) {
       console.error("Submit error:", error);
-      
-      // Enhanced error logging
-      if (error.response) {
-        console.error('Server response:', {
-          status: error.response.status,
-          data: error.response.data,
-          headers: error.response.headers
-        });
-      }
-      
       toast.error(error.message || "Failed to create product");
     } finally {
       setIsSubmitting(false);
