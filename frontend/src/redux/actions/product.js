@@ -7,33 +7,49 @@ export const createProduct = (formData) => async (dispatch) => {
   try {
     dispatch({ type: "productCreateRequest" });
 
-    const { data } = await axios.post(`${server}/product/create-product`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+    const config = {
+      headers: {
+        'Accept': 'application/json',
+        'Seller-Authorization': `Bearer ${localStorage.getItem('seller_token')}`,
+      },
       withCredentials: true
+    };
+
+    // Log the formData for debugging
+    console.log('Creating product with data:', Object.fromEntries(formData));
+
+    const { data } = await axios.post(
+      `${server}/api/v2/product/create-product`,
+      formData,
+      config
+    );
+
+    dispatch({ 
+      type: "productCreateSuccess", 
+      payload: data.product 
     });
 
-    dispatch({ type: "productCreateSuccess", payload: data.product });
-    return { success: true, message: "Product created successfully!" };
+    return { success: true, product: data.product };
+
   } catch (error) {
-    console.error("Error creating product:", error);
-    let errorMessage = "An error occurred while creating the product.";
-    if (error.response) {
-      if (error.response.status === 413) {
-        errorMessage = "File size exceeds the limit (50MB). Please choose a smaller file.";
-      } else {
-        errorMessage = error.response.data.message || errorMessage;
-      }
-      console.error("Error status:", error.response.status);
-    } else if (error.request) {
-      console.error("No response received:", error.request);
-    } else {
-      console.error("Error setting up request:", error.message);
-    }
+    console.error("Product creation error:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+
+    const errorMessage = error.response?.data?.message || 
+                        "Failed to create product";
+
     dispatch({
       type: "productCreateFail",
-      payload: errorMessage,
+      payload: errorMessage
     });
-    return { success: false, message: errorMessage };
+
+    return { 
+      success: false, 
+      message: errorMessage 
+    };
   }
 };
 

@@ -691,62 +691,57 @@ const CreateProduct = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
-
+  
     try {
+      setIsSubmitting(true);
+      setValidationErrors({});
+  
+      // Validate form data
       const errors = validateForm(formState, designFile);
-            if (Object.keys(errors).length > 0) {
+      if (Object.keys(errors).length > 0) {
         setValidationErrors(errors);
-        // Scroll to the first error
-        const firstErrorField = Object.keys(errors)[0];
-        const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
-        if (errorElement) {
-          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
         toast.error("Please fix all validation errors");
         return;
       }
-
-      setIsSubmitting(true);
-
-      if (designQualityScore?.score < 60) {
-        const proceed = window.confirm(
-          "Design quality is low. This might affect print quality. Do you want to proceed?"
-        );
-        if (!proceed) {
-          setIsSubmitting(false);
-          return;
-        }
-      }
-
+  
+      // Create FormData
       const formData = new FormData();
+  
+      // Add basic fields
       Object.entries(formState).forEach(([key, value]) => {
         if (key === 'designPosition' || key === 'availableColors' || key === 'price') {
           formData.append(key, JSON.stringify(value));
-        } else {
+        } else if (value !== null && value !== undefined) {
           formData.append(key, value);
         }
       });
-
+  
+      // Add design file
       if (designFile.file) {
-        formData.append("designImage", designFile.file);
+        formData.append('designImage', designFile.file);
       }
-
+  
+      // Add required fields
+      formData.append('shopId', seller._id);
+      formData.append('status', 'pending');
+  
+      // Dispatch create product action
       const response = await dispatch(createProduct(formData));
-      
-      if (response?.success) {
+  
+      if (response.success) {
         toast.success("Product created successfully!");
         navigate("/dashboard");
       } else {
-        throw new Error(response?.message || "Failed to create product");
+        throw new Error(response.message || "Failed to create product");
       }
-
+  
     } catch (error) {
       console.error("Submit error:", error);
       toast.error(error.message || "Failed to create product");
     } finally {
       setIsSubmitting(false);
     }
-  };// Effects
+  };
   useEffect(() => {
     if (seller && seller._id) {
       setFormState(prev => ({ ...prev, shopId: seller._id }));
