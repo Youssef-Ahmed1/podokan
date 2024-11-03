@@ -4,61 +4,58 @@ import { toast } from "react-toastify";
 
 // create product
 // In redux/actions/product.js
-export const createProduct = (formData) => async (dispatch) => {
-  try {
-    dispatch({ type: "productCreateRequest" });
-
-    const config = {
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('seller_token')}`,
-      },
-      withCredentials: true
-    };
-
-    const { data } = await axios.post(
-      `${server}/product/create-product`,
-      formData,
-      config
-    );
-
-    dispatch({ 
-      type: "productCreateSuccess", 
-      payload: data.product 
-    });
-
-    return { 
-      success: true, 
-      product: data.product,
-      message: data.message || "Product created successfully!" 
-    };
-
-  } catch (error) {
-    console.error("Product creation error:", {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message
-    });
-
-    let errorMessage = "Failed to create product";
-    
-    if (error.response?.data?.message) {
-      errorMessage = error.response.data.message;
-    } else if (error.response?.data?.errors) {
-      errorMessage = Object.values(error.response.data.errors)[0];
+  export const createProduct = (formData) => async (dispatch) => {
+    try {
+      dispatch({ type: "productCreateRequest" });
+  
+      const config = {
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('seller_token')}`,
+        },
+        withCredentials: true
+      };
+  
+      const { data } = await axios.post(
+        `${server}/product/create-product`,
+        formData,
+        config
+      );
+  
+      dispatch({ 
+        type: "productCreateSuccess", 
+        payload: data.product 
+      });
+  
+      return { 
+        success: true, 
+        product: data.product,
+        message: data.message || "Product created successfully!"
+      };
+  
+    } catch (error) {
+      console.error("Product creation error:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+  
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          error.message || 
+                          "Failed to create product";
+  
+      dispatch({
+        type: "productCreateFail",
+        payload: errorMessage
+      });
+  
+      return { 
+        success: false, 
+        message: errorMessage 
+      };
     }
-
-    dispatch({
-      type: "productCreateFail",
-      payload: errorMessage
-    });
-
-    return { 
-      success: false, 
-      message: errorMessage
-    };
-  }
-};
+  };
 export const fetchPendingProducts = () => async (dispatch) => {
   try {
     dispatch({ type: "fetchPendingProductsRequest" });
