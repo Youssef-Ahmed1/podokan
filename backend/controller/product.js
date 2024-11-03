@@ -19,14 +19,40 @@ const { body, validationResult } = require('express-validator');
 
 // Validation middleware
 const validateProductData = [
-  body('DesignTitle').trim().isLength({ min: 3, max: 100 }),
-  body('Description').trim().isLength({ min: 10, max: 1000 }),
-  body('Maintag').trim().isLength({ min: 2, max: 50 }),
-  body('ProductType').isIn(VALID_PRODUCT_TYPES),
-  body('ProductColor').isIn(VALID_COLORS),
-  body('ProductView').isIn(['front', 'back']),
-  body('DesignScale').isFloat({ min: 0.1, max: 5.0 }),
-  body('shopId').custom(value => mongoose.Types.ObjectId.isValid(value))
+  body('DesignTitle')
+    .trim()
+    .isLength({ min: 3, max: 100 })
+    .withMessage('Design title must be between 3 and 100 characters'),
+  
+  body('Description')
+    .trim()
+    .isLength({ min: 10, max: 1000 })
+    .withMessage('Description must be between 10 and 1000 characters'),
+  
+  body('Maintag')
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Main tag must be between 2 and 50 characters'),
+  
+  body('ProductType')
+    .isIn(VALID_PRODUCT_TYPES)
+    .withMessage(`Product type must be one of: ${VALID_PRODUCT_TYPES.join(', ')}`),
+  
+  body('ProductColor')
+    .isIn(VALID_COLORS)
+    .withMessage(`Product color must be one of: ${VALID_COLORS.join(', ')}`),
+  
+  body('ProductView')
+    .isIn(['front', 'back'])
+    .withMessage('Product view must be either front or back'),
+  
+  body('DesignScale')
+    .isFloat({ min: 0.1, max: 5.0 })
+    .withMessage('Design scale must be between 0.1 and 5.0'),
+  
+  body('shopId')
+    .custom(value => mongoose.Types.ObjectId.isValid(value))
+    .withMessage('Invalid shop ID')
 ];
 
 // File upload configuration
@@ -94,7 +120,6 @@ router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
 }));
 
 // Create product
-// Create product
 router.post("/create-product", 
   isAuthenticated,
   isSeller,
@@ -102,10 +127,14 @@ router.post("/create-product",
   validateProductData,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      // Log incoming request data
-      console.log('Request body:', req.body);
-      console.log('Request file:', req.file);
+      // Log incoming request
+      console.log('Create product request:', {
+        body: req.body,
+        file: req.file ? 'Present' : 'Missing',
+        seller: req.seller._id
+      });
 
+      // Validate request
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ 
@@ -114,74 +143,52 @@ router.post("/create-product",
         });
       }
 
-      // Validate shop ownership
-      const shop = await Shop.findById(req.body.shopId);
-      if (!shop) {
-        return next(new ErrorHandler("Shop not found", 404));
-      }
-
-      if (shop.owner.toString() !== req.seller._id.toString()) {
-        return next(new ErrorHandler("Unauthorized access to this shop", 403));
-      }
-
-      // Validate file
+      // Check file
       if (!req.file) {
         return next(new ErrorHandler("Design image is required", 400));
       }
 
-      try {
-        // Upload to cloudinary with error handling
-        const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: "products",
-          transformation: [
-            { quality: "auto:best" },
-            { fetch_format: "auto" }
-          ]
-        });
+      // Process product data
+      const productData = {
+        ...req.body,
+        DesignTitle: req.body.DesignTitle?.trim(),
+        Description: req.body.Description?.trim(),
+        Maintag: req.body.Maintag?.trim(),
+        Designtags: req.body.Designtags ? 
+          req.body.Designtags.split(',').map(tag => tag.trim()) : [],
+        DesignScale: parseFloat(req.body.DesignScale) || 1,
+        shopId: req.seller._id,
+        shop: req.seller._id,
+        status: 'pending',
+        createdBy: req.seller._id
+      };
 
-        // Process and validate form data
-        const productData = {
-          DesignTitle: req.body.DesignTitle?.trim(),
-          Description: req.body.Description?.trim(),
-          Maintag: req.body.Maintag?.trim(),
-          Designtags: req.body.Designtags ? 
-            req.body.Designtags.split(',').map(tag => tag.trim()) : [],
-          ProductType: req.body.ProductType,
-          ProductColor: req.body.ProductColor,
-          ProductView: req.body.ProductView || 'front',
-          DesignScale: parseFloat(req.body.DesignScale) || 1,
-          designImage: {
-            public_id: result.public_id,
-            url: result.secure_url,
-          },
-          shopId: req.body.shopId,
-          shop: req.body.shopId, // Required by your schema
-          status: 'pending',
-          availableColors: req.body.availableColors ? 
-            JSON.parse(req.body.availableColors) : [req.body.ProductColor],
-          createdBy: req.seller._id,
-          originalPrice: parseFloat(req.body.originalPrice) || 0,
-          discountPrice: req.body.discountPrice ? 
-            parseFloat(req.body.discountPrice) : 0
-        };
+      // Upload image
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "products",
+        transformation: [
+          { quality: "auto:best" },
+          { fetch_format: "auto" }
+        ]
+      });
 
-        // Create product with explicit error handling
-        const product = await Product.create(productData);
+      productData.designImage = {
+        public_id: result.public_id,
+        url: result.secure_url
+      };
 
-        // Send success response
-        res.status(201).json({
-          success: true,
-          message: "Product created successfully and is awaiting inspection!",
-          product,
-        });
+      // Create product
+      const product = await Product.create(productData);
 
-      } catch (uploadError) {
-        console.error("Cloudinary upload error:", uploadError);
-        return next(new ErrorHandler("Failed to upload design image", 500));
-      }
+      // Send response
+      res.status(201).json({
+        success: true,
+        message: "Product created successfully and is awaiting inspection!",
+        product
+      });
 
     } catch (error) {
-      // Clean up uploaded file if exists
+      // Cleanup on error
       if (req.file?.path) {
         try {
           await cloudinary.uploader.destroy(req.file.filename);
@@ -190,28 +197,12 @@ router.post("/create-product",
         }
       }
 
-      // Log the full error
       console.error("Product creation error:", {
         message: error.message,
-        stack: error.stack,
-        code: error.code
+        stack: error.stack
       });
 
-      // Handle mongoose validation errors
-      if (error.name === 'ValidationError') {
-        return next(new ErrorHandler(
-          Object.values(error.errors)
-            .map(err => err.message)
-            .join(', '), 
-          400
-        ));
-      }
-
-      // Handle other errors
-      return next(new ErrorHandler(
-        error.message || "Failed to create product", 
-        error.status || 500
-      ));
+      return next(new ErrorHandler(error.message, 500));
     }
   })
 );
