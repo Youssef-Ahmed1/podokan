@@ -398,7 +398,7 @@ router.get(
 router.get(
   "/admin/pending-products",
   isAuthenticated,
-  isAdmin,
+  isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const page = parseInt(req.query.page) || 1;
