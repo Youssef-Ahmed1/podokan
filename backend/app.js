@@ -9,16 +9,39 @@ const path = require('path');
 const appConfig = require('../backend/server');
 
 // CORS configuration
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
+// Update CORS configuration
 app.use(cors({
   origin: ['http://localhost:3000', 'https://testpodokan.store'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Seller-Authorization'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'Seller-Authorization',
+    'X-Requested-With'
+  ],
   credentials: true,
-  exposedHeaders: ['Seller-Authorization']
+  exposedHeaders: ['Seller-Authorization'],
+  maxAge: 86400 // 24 hours
 }));
 
+
 // Essential middleware
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ 
+  limit: '50mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf.toString();
+  }
+}));
+
+
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
@@ -95,9 +118,15 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   console.error('Error:', {
     message: err.message,
-    stack: err.stack,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
     path: req.path
   });
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid JSON'
+    });
+  }
 
   if (err.name === 'PayloadTooLargeError') {
     return res.status(413).json({
