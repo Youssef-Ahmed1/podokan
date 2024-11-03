@@ -3,9 +3,14 @@ import { server } from "../../server";
 import { toast } from "react-toastify";
 
 // create product
+// In redux/actions/product.js
+
 export const createProduct = (formData) => async (dispatch) => {
   try {
     dispatch({ type: "productCreateRequest" });
+
+    // Log formData for debugging
+    console.log('Creating product with data:', Object.fromEntries(formData));
 
     const config = {
       headers: {
@@ -15,11 +20,9 @@ export const createProduct = (formData) => async (dispatch) => {
       withCredentials: true
     };
 
-    // Log the formData for debugging
-    console.log('Creating product with data:', Object.fromEntries(formData));
-
+    // Fix the URL by removing the duplicate api/v2
     const { data } = await axios.post(
-      `${server}/api/v2/product/create-product`,
+      `${server}/product/create-product`, // Remove duplicate api/v2
       formData,
       config
     );
@@ -38,21 +41,17 @@ export const createProduct = (formData) => async (dispatch) => {
       message: error.message
     });
 
-    const errorMessage = error.response?.data?.message || 
-                        "Failed to create product";
-
     dispatch({
       type: "productCreateFail",
-      payload: errorMessage
+      payload: error.response?.data?.message || "Failed to create product"
     });
 
     return { 
       success: false, 
-      message: errorMessage 
+      message: error.response?.data?.message || "Failed to create product" 
     };
   }
 };
-
 export const fetchPendingProducts = () => async (dispatch) => {
   try {
     dispatch({ type: "fetchPendingProductsRequest" });
