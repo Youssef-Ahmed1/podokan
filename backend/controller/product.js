@@ -215,6 +215,41 @@ router.post("/create-product",
     }
   })
 );
+
+router.get(
+  "/admin-all-products",
+  isAuthenticated,
+  isAdmin,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 20;
+      const skip = (page - 1) * limit;
+
+      const query = {};
+      const totalProducts = await Product.countDocuments(query);
+
+      const products = await Product.find(query)
+        .select('-__v')
+        .sort('-createdAt')
+        .skip(skip)
+        .limit(limit)
+        .populate('shopId', 'name email avatar')
+        .lean()
+        .maxTimeMS(30000); // Set maximum execution time
+
+      res.status(200).json({
+        success: true,
+        products,
+        currentPage: page,
+        totalPages: Math.ceil(totalProducts / limit),
+        totalProducts,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
 // Approve/reject product
 router.put("/approve-reject-product/:id", 
   isAuthenticated, 
@@ -398,7 +433,7 @@ router.get(
 router.get(
   "/admin/pending-products",
   isAuthenticated,
-  isAdmin("Admin"),
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const page = parseInt(req.query.page) || 1;
@@ -410,9 +445,11 @@ router.get(
       const pendingProducts = await Product.find({ status: 'pending' })
         .select('DesignTitle Description Maintag Designtags ProductType ProductColor ProductView DesignScale designImage status availableColors createdAt shopId')
         .populate('shopId', 'name email')
-        .sort({ createdAt: -1 })
+        .sort('-createdAt')
         .skip(skip)
-        .limit(limit);
+        .limit(limit)
+        .lean()
+        .maxTimeMS(30000);
 
       res.status(200).json({
         success: true,
@@ -422,6 +459,9 @@ router.get(
         totalPending,
       });
     } catch (error) {
+      if (error.name === 'MongooseError' && error.message.includes('timeout')) {
+        return next(new ErrorHandler("Request timeout. Please try again.", 504));
+      }
       return next(new ErrorHandler(error.message, 500));
     }
   })

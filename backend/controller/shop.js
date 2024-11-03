@@ -351,7 +351,7 @@ router.put(
 router.get(
   "/admin-all-sellers",
   isAuthenticated,
-  isAdmin("Admin"),
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const page = parseInt(req.query.page) || 1;
@@ -379,7 +379,7 @@ router.get(
       return next(new ErrorHandler(error.message, 500));
     }
   })
-)
+);
 
 // Delete seller -- admin only
 router.delete(
