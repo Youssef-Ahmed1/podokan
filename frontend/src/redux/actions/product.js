@@ -4,25 +4,20 @@ import { toast } from "react-toastify";
 
 // create product
 // In redux/actions/product.js
-
 export const createProduct = (formData) => async (dispatch) => {
   try {
     dispatch({ type: "productCreateRequest" });
 
-    // Log formData for debugging
-    console.log('Creating product with data:', Object.fromEntries(formData));
-
     const config = {
       headers: {
-        'Accept': 'application/json',
-        'Seller-Authorization': `Bearer ${localStorage.getItem('seller_token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('seller_token')}`,
       },
       withCredentials: true
     };
 
-    // Fix the URL by removing the duplicate api/v2
+    // Remove duplicate api/v2 from URL
     const { data } = await axios.post(
-      `${server}/product/create-product`, // Remove duplicate api/v2
+      `${server}/product/create-product`,
       formData,
       config
     );
