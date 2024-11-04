@@ -4,27 +4,24 @@ module.exports = {
     script: "server.js",
     instances: 1,
     exec_mode: "cluster",
+    watch: ["./"], // Enable watch mode
+    ignore_watch: [
+      "node_modules",
+      "uploads",
+      "logs",
+      ".git",
+      "*.log"
+    ],
+    max_memory_restart: "1G",
     env_production: {
-      NODE_ENV: "PRODUCTION",
-      PORT: 8000,
-      DB_URL: "mongodb+srv://youssefahmed:zxczxcZXC123@cluster0.iv8sqpb.mongodb.net/podShop",
-      JWT_SECRET_KEY: "a3ea75cf2028f52e821215ff6b02b24029b48554f0de85da847bdb755bd88641",
-      JWT_EXPIRES: "7d",
-      ACTIVATION_SECRET: "PWj0fI#&DsZY9w$8tHe11*yr9F45K*j2xj&fceGZ!tEnMNZcEN",
-      SMTP_SERVICE: "gmail",
-      SMTP_HOST: "smtp.gmail.com",
-      SMTP_PORT: "465",
-      SMTP_PASSWORD: "uuvyloyqzdxmawvt",
-      SMTP_MAIL: "moropass1212@gmail.com",
-      SMTP_FROM_NAME: "PODokan",
-      STRIPE_API_KEY: "pk_test_51N8wSIIgVdZ3fy8KtfIGuiGbTptdEltd8tHzhx6CrwIuslzoyzq2Fy49bBLkzp19FACzgN1F4v4BZ9d6bFq3E6wC00AcYZR3Ya",
-      STRIPE_SECRET_KEY: "sk_test_51N8wSIIgVdZ3fy8KJMneUWY0XjnSBwWrZw8sMvbqQXWbuRgIdRbwX5V5cFM4kkyQi3NQr60Z7EycsG8lYXq3JqT300wniHQrdx",
-      CLOUDINARY_NAME: "dkot9tyjm",
-      CLOUDINARY_API_KEY: "411713446345318",
-      CLOUDINARY_API_SECRET: "s01XENodwewxd9U4OuuzUB5-ij8"
+      NODE_ENV: "PRODUCTION"
     },
-    env: {
-      NODE_ENV: "development"
-    }
+    error_file: "logs/error.log",
+    out_file: "logs/out.log",
+    time: true,
+    max_restarts: 10,
+    restart_delay: 4000,
+    listen_timeout: 50000,
+    kill_timeout: 5000
   }]
 };
