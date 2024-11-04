@@ -5,17 +5,32 @@ import { server } from "../../server";
 import { toast } from "react-toastify";
 
 // create product
+// redux/actions/product.js
+
 export const createProduct = (formData) => async (dispatch) => {
   try {
     dispatch({ type: "productCreateRequest" });
 
+    // Ensure formData has the correct content type
     const config = {
       headers: {
         'Accept': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('seller_token')}`,
       },
-      withCredentials: true
+      withCredentials: true,
+      timeout: 30000 // 30 second timeout
     };
+
+    // Log formData contents for debugging
+    const formDataObj = {};
+    formData.forEach((value, key) => {
+      try {
+        formDataObj[key] = value instanceof Blob ? 'File' : value;
+      } catch (err) {
+        formDataObj[key] = value;
+      }
+    });
+    console.log('Creating product with data:', formDataObj);
 
     const { data } = await axios.post(
       `${server}/product/create-product`,
@@ -51,10 +66,7 @@ export const createProduct = (formData) => async (dispatch) => {
       payload: errorMessage
     });
 
-    return { 
-      success: false, 
-      message: errorMessage 
-    };
+    throw new Error(errorMessage);
   }
 };
 
