@@ -128,12 +128,12 @@ router.post("/create-product",
   validateProductData,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      console.log('Create product request:', {
-        body: req.body,
-        file: req.file ? 'Present' : 'Missing',
-        seller: req.seller._id
-      });
+      // Verify seller
+      if (!req.seller?._id) {
+        return next(new ErrorHandler("Seller authentication required", 401));
+      }
 
+      // Validate request
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ 
@@ -146,32 +146,8 @@ router.post("/create-product",
         return next(new ErrorHandler("Design image is required", 400));
       }
 
-      // Ensure all required fields are present and properly formatted
-      const designTags = Array.isArray(req.body.Designtags) 
-        ? req.body.Designtags 
-        : (typeof req.body.Designtags === 'string' 
-          ? JSON.parse(req.body.Designtags) 
-          : []);
-
-      const productData = {
-        DesignTitle: req.body.DesignTitle?.trim(),
-        Description: req.body.Description?.trim(),
-        Maintag: req.body.Maintag?.trim(),
-        Designtags: designTags,
-        ProductType: req.body.ProductType,
-        ProductColor: req.body.ProductColor,
-        ProductView: req.body.ProductView || 'front',
-        DesignScale: parseFloat(req.body.DesignScale) || 1,
-        originalPrice: parseFloat(req.body.originalPrice) || 0,
-        discountPrice: req.body.discountPrice ? parseFloat(req.body.discountPrice) : null,
-        shopId: req.seller._id,
-        shop: req.seller._id,
-        status: 'pending',
-        createdBy: req.seller._id
-      };
-
-      // Upload image to cloudinary
-      const result = await cloudinary.uploader.upload(req.file.path, {
+      // Upload to cloudinary
+      const result = await cloudinary.v2.uploader.upload(req.file.path, {
         folder: "products",
         transformation: [
           { quality: "auto:best" },
@@ -179,18 +155,40 @@ router.post("/create-product",
         ]
       });
 
-      productData.designImage = {
-        public_id: result.public_id,
-        url: result.secure_url
+      // Create product data
+      const productData = {
+        shopId: req.seller._id,
+        shop: req.seller._id,  // Both fields need same value
+        DesignTitle: req.body.DesignTitle?.trim(),
+        Description: req.body.Description?.trim(),
+        Maintag: req.body.Maintag?.trim(),
+        Designtags: JSON.parse(req.body.Designtags || '[]'),
+        ProductType: req.body.ProductType,
+        ProductColor: req.body.ProductColor,
+        ProductView: req.body.ProductView || 'front',
+        DesignScale: parseFloat(req.body.DesignScale) || 1,
+        designPosition: JSON.parse(req.body.designPosition || '{"x":50,"y":50}'),
+        availableColors: [req.body.ProductColor],
+        designImage: {
+          public_id: result.public_id,
+          url: result.secure_url
+        },
+        status: 'pending',
+        visibility: 'restricted',
+        createdBy: req.seller._id
       };
-
-      // Validate available colors
-      productData.availableColors = [productData.ProductColor];
 
       // Create product
       const product = await Product.create(productData);
 
-      // Send response
+      // Clean up uploaded file
+      if (req.file?.path) {
+        await fs.promises.unlink(req.file.path).catch(console.error);
+      }
+
+      // Populate shop data
+      await product.populate('shopId', 'name email avatar');
+
       res.status(201).json({
         success: true,
         message: "Product created successfully and is awaiting inspection!",
@@ -198,28 +196,20 @@ router.post("/create-product",
       });
 
     } catch (error) {
-      console.error("Product creation error:", {
-        message: error.message,
-        stack: error.stack
-      });
-
-      // Cleanup uploaded file if exists
+      // Cleanup on error
       if (req.file?.path) {
         try {
-          await fs.unlink(req.file.path);
-        } catch (cleanupError) {
-          console.error("Error cleaning up uploaded file:", cleanupError);
+          await fs.promises.unlink(req.file.path);
+        } catch (err) {
+          console.error("Error cleaning up file:", err);
         }
       }
 
-      // Cleanup cloudinary upload if exists
-      if (productData?.designImage?.public_id) {
-        try {
-          await cloudinary.uploader.destroy(productData.designImage.public_id);
-        } catch (cleanupError) {
-          console.error("Error cleaning up cloudinary image:", cleanupError);
-        }
-      }
+      console.error("Product creation error:", {
+        message: error.message,
+        stack: error.stack,
+        body: req.body
+      });
 
       return next(new ErrorHandler(error.message, 500));
     }
