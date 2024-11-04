@@ -120,7 +120,7 @@ router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
   }
 }));
 
-// Create product
+// controller/product.js
 router.post("/create-product", 
   isAuthenticated,
   isSeller,
@@ -128,14 +128,12 @@ router.post("/create-product",
   validateProductData,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      // Log incoming request
       console.log('Create product request:', {
         body: req.body,
         file: req.file ? 'Present' : 'Missing',
         seller: req.seller._id
       });
 
-      // Validate request
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ 
@@ -144,20 +142,28 @@ router.post("/create-product",
         });
       }
 
-      // Check file
       if (!req.file) {
         return next(new ErrorHandler("Design image is required", 400));
       }
 
-      // Process product data
+      // Ensure all required fields are present and properly formatted
+      const designTags = Array.isArray(req.body.Designtags) 
+        ? req.body.Designtags 
+        : (typeof req.body.Designtags === 'string' 
+          ? JSON.parse(req.body.Designtags) 
+          : []);
+
       const productData = {
-        ...req.body,
         DesignTitle: req.body.DesignTitle?.trim(),
         Description: req.body.Description?.trim(),
         Maintag: req.body.Maintag?.trim(),
-        Designtags: req.body.Designtags ? 
-          JSON.parse(req.body.Designtags) : [],
+        Designtags: designTags,
+        ProductType: req.body.ProductType,
+        ProductColor: req.body.ProductColor,
+        ProductView: req.body.ProductView || 'front',
         DesignScale: parseFloat(req.body.DesignScale) || 1,
+        originalPrice: parseFloat(req.body.originalPrice) || 0,
+        discountPrice: req.body.discountPrice ? parseFloat(req.body.discountPrice) : null,
         shopId: req.seller._id,
         shop: req.seller._id,
         status: 'pending',
@@ -173,7 +179,13 @@ router.post("/create-product",
         ]
       });
 
-      productData.designImage = result.secure_url;
+      productData.designImage = {
+        public_id: result.public_id,
+        url: result.secure_url
+      };
+
+      // Validate available colors
+      productData.availableColors = [productData.ProductColor];
 
       // Create product
       const product = await Product.create(productData);
@@ -186,25 +198,33 @@ router.post("/create-product",
       });
 
     } catch (error) {
-      // Cleanup on error
-      if (req.file?.path) {
-        try {
-          await cloudinary.uploader.destroy(req.file.filename);
-        } catch (cleanupError) {
-          console.error("Error cleaning up uploaded file:", cleanupError);
-        }
-      }
-
       console.error("Product creation error:", {
         message: error.message,
         stack: error.stack
       });
 
+      // Cleanup uploaded file if exists
+      if (req.file?.path) {
+        try {
+          await fs.unlink(req.file.path);
+        } catch (cleanupError) {
+          console.error("Error cleaning up uploaded file:", cleanupError);
+        }
+      }
+
+      // Cleanup cloudinary upload if exists
+      if (productData?.designImage?.public_id) {
+        try {
+          await cloudinary.uploader.destroy(productData.designImage.public_id);
+        } catch (cleanupError) {
+          console.error("Error cleaning up cloudinary image:", cleanupError);
+        }
+      }
+
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
-
 // Get all products for admin
 router.get(
   "/admin-all-products",
