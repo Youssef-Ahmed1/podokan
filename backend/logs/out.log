@@ -1,48 +1,29 @@
-2024-11-05T18:03:53: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
-2024-11-05T18:03:53: Attempting to connect to MongoDB...
-2024-11-05T18:03:53: Database connected successfully
-2024-11-05T18:03:53: Server is running on port 8000
-2024-11-05T18:03:54: MongoDB connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
-2024-11-05T18:04:27: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
-2024-11-05T18:04:27: Attempting to connect to MongoDB...
-2024-11-05T18:04:27: Database connected successfully
-2024-11-05T18:04:27: Server is running on port 8000
-2024-11-05T18:04:28: MongoDB connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
-2024-11-05T18:06:28: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
-2024-11-05T18:06:28: Attempting to connect to MongoDB...
-2024-11-05T18:06:28: Database connected successfully
-2024-11-05T18:06:28: Server is running on port 8000
-2024-11-05T18:06:29: MongoDB connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
-2024-11-05T18:06:38: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
-2024-11-05T18:06:38: Attempting to connect to MongoDB...
-2024-11-05T18:06:38: Database connected successfully
-2024-11-05T18:06:38: Server is running on port 8000
-2024-11-05T18:06:39: MongoDB connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
-2024-11-05T20:07:44: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
-2024-11-05T20:07:44: Attempting to connect to MongoDB...
-2024-11-05T20:07:44: Database connected successfully
-2024-11-05T20:07:44: Server is running on port 8000
-2024-11-05T20:07:45: MongoDB connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
-2024-11-05T20:26:47: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
-2024-11-05T20:26:47: Attempting to connect to MongoDB...
-2024-11-05T20:26:47: Database connected successfully
-2024-11-05T20:26:47: Server is running on port 8000
-2024-11-05T20:26:48: MongoDB connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
-2024-11-05T20:27:16: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
-2024-11-05T20:27:16: Attempting to connect to MongoDB...
-2024-11-05T20:27:16: Database connected successfully
-2024-11-05T20:27:16: Server is running on port 8000
-2024-11-05T20:27:17: MongoDB connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
-2024-11-05T20:38:15: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
-2024-11-05T20:38:15: Attempting to connect to MongoDB...
-2024-11-05T20:38:15: Database connected successfully
-2024-11-05T20:38:15: Server is running on port 8000
-2024-11-05T20:38:15: MongoDB connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
-2024-11-05T21:00:44: MongoDB disconnected
-2024-11-05T21:00:49: Attempting to connect to MongoDB...
-2024-11-05T21:00:49: MongoDB connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
-2024-11-05T21:48:38: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
-2024-11-05T21:48:38: Attempting to connect to MongoDB...
-2024-11-05T21:48:38: Database connected successfully
-2024-11-05T21:48:38: Server is running on port 8000
-2024-11-05T21:48:39: MongoDB connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-05T22:50:20: Attempting to connect to MongoDB...
+2024-11-05T22:50:20: Database connected successfully
+2024-11-05T22:50:20: Server running on port 8000 in PRODUCTION mode
+2024-11-05T22:50:21: MongoDB connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-05T22:54:05: Auth check: {
+  cookies: {
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+    seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+  },
+  headers: { auth: undefined, sellerAuth: undefined },
+  token: 'eyJhbGciOiJIUzI1NiIs...'
+}
+2024-11-05T22:54:05: [2024-11-05T22:54:05.893Z] GET /get-all-events 200 87ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-05T22:54:05: [2024-11-05T22:54:05.961Z] GET /getuser 200 184ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-05T22:54:05: [2024-11-05T22:54:05.963Z] GET /getSeller 200 177ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-05T22:54:06: [2024-11-05T22:54:06.069Z] GET /get-all-products 200 276ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-05T22:54:13: [2024-11-05T22:54:13.066Z] GET /api/v2/api/v2/shop/admin-all-sellers 404 1ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-05T22:54:13: [2024-11-05T22:54:13.235Z] GET /admin-all-orders 200 174ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-05T22:54:17: [2024-11-05T22:54:17.880Z] GET /admin/pending-products 200 254ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-05T22:54:22: [2024-11-05T22:54:22.455Z] GET /api/v2/api/v2/shop/admin-all-sellers 404 1ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-05T22:54:22: [2024-11-05T22:54:22.620Z] GET /admin-all-orders 304 169ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-05T23:06:14: [2024-11-05T23:06:14.722Z] GET /get-all-products 200 253ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-05T23:06:14: Auth check: {
+  cookies: [Object: null prototype] {},
+  headers: { auth: undefined, sellerAuth: undefined },
+  token: 'missing'
+}
+2024-11-05T23:06:14: [2024-11-05T23:06:14.983Z] GET /api/v2/shop/getSeller 401 3ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-05T23:06:15: [2024-11-05T23:06:15.236Z] GET /api/v2/user/getuser 401 2ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
