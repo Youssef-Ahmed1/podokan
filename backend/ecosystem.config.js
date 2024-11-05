@@ -22,9 +22,10 @@ module.exports = {
     log_date_format: "YYYY-MM-DD HH:mm:ss Z",
     combine_logs: true,
     merge_logs: true,
-    max_restarts: 5,
+    max_restarts: 10,
     restart_delay: 4000,
     listen_timeout: 50000,
-    kill_timeout: 5000
+    kill_timeout: 10000,
+    max_memory_restart: '1G'
   }]
 };
