@@ -17,29 +17,47 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(cors({
-  origin: function(origin, callback) {
-    const allowedOrigins = ['http://localhost:3000', 'https://testpodokan.store'];
-    callback(null, allowedOrigins.includes(origin));
-  },
+const corsOptions = {
+  origin: ['http://localhost:3000', 'https://testpodokan.store'],
   credentials: true,
-  exposedHeaders: ['Seller-Authorization']
-}));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Seller-Authorization',
+    'x-requested-with',
+    'Accept'
+  ],
+  exposedHeaders: ['Seller-Authorization'],
+  maxAge: 86400
+};
+
+app.use(cors(corsOptions));
+
+// Add security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
 
 // Cookie settings
-app.use(cookieParser());
 app.use((req, res, next) => {
   res.cookie = function(name, value, options = {}) {
     return res.cookie(name, value, {
       ...options,
-      httpOnly: true,
       secure: true,
+      httpOnly: true,
       sameSite: 'none',
       domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
     });
   };
   next();
-}); 
+});
+
+
 // Essential middleware
 app.use(express.json({ 
   limit: '50mb',
@@ -83,14 +101,15 @@ const upload = multer({
     cb(new Error("Error: Images Only!"));
   },
 });
-// app.js (add this before your routes)
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`, {
-    cookies: req.cookies,
+  console.log(`${new Date().toISOString()} ${req.method} ${req.path}`, {
+    query: req.query,
+    body: req.method === 'POST' ? '<<BODY>>' : undefined,
+    cookies: req.cookies ? Object.keys(req.cookies) : [],
     headers: {
-      origin: req.headers.origin,
-      auth: req.headers.authorization,
-      sellerAuth: req.headers['seller-authorization']
+      'content-type': req.headers['content-type'],
+      authorization: req.headers.authorization ? 'present' : 'missing',
+      'seller-authorization': req.headers['seller-authorization'] ? 'present' : 'missing'
     }
   });
   next();
