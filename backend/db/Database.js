@@ -2,22 +2,15 @@
 const mongoose = require("mongoose");
 
 const connectDatabase = () => {
-  const dbUrl = process.env.DB_URL;
-  
-  if (!dbUrl) {
-    console.error('DB_URL is not defined in environment variables');
-    process.exit(1);
-  }
-
-  const options = {
+  mongoose.connect(process.env.DB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    autoIndex: true,
-    connectTimeoutMS: 10000,
+    serverSelectionTimeoutMS: 30000,
     socketTimeoutMS: 45000,
-    serverSelectionTimeoutMS: 5000,
-    family: 4
-  };
+    connectTimeoutMS: 30000,
+    maxTimeMS: 30000
+  });
+};
 
   console.log('Attempting to connect to MongoDB...');
   

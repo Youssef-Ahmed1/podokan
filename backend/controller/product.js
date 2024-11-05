@@ -257,6 +257,7 @@ router.get(
 );
 
 // Approve/reject product
+
 router.put("/approve-reject-product/:id", 
   isAuthenticated, 
   isAdmin, 
@@ -265,50 +266,59 @@ router.put("/approve-reject-product/:id",
       const { id } = req.params;
       const { status, statusReason } = req.body;
 
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        return next(new ErrorHandler("Invalid product ID", 400));
-      }
+      // Add timeout promise
+      const timeout = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), 25000);
+      });
 
-      const product = await Product.findById(id);
-      if (!product) {
-        return next(new ErrorHandler("Product not found", 404));
-      }
+      // Product update promise
+      const updateProduct = new Promise(async (resolve, reject) => {
+        try {
+          const product = await Product.findById(id);
+          if (!product) {
+            reject(new ErrorHandler("Product not found", 404));
+            return;
+          }
 
-      if (!status || !['public', 'pending', 'rejected'].includes(status)) {
-        return next(new ErrorHandler("Invalid status value", 400));
-      }
+          const updateData = {
+            status,
+            statusReason: statusReason || '',
+            lastModified: new Date(),
+            lastModifiedBy: req.user._id
+          };
 
-      const updateData = {
-        status,
-        visibility: status === 'public' ? 'public' : 'restricted',
-        rejectionReason: status === 'rejected' ? statusReason || '' : '',
-        lastModified: new Date(),
-        lastModifiedBy: req.user._id
-      };
+          const updatedProduct = await Product.findByIdAndUpdate(
+            id,
+            { $set: updateData },
+            { new: true }
+          );
 
-      const updatedProduct = await Product.findByIdAndUpdate(
-        id,
-        { $set: updateData },
-        { new: true, runValidators: true }
-      );
+          resolve(updatedProduct);
+        } catch (err) {
+          reject(err);
+        }
+      });
 
-      if (!updatedProduct) {
-        return next(new ErrorHandler("Failed to update product", 500));
-      }
-
-      await notifyShopOwner(updatedProduct, status);
+      // Race between timeout and update
+      const updatedProduct = await Promise.race([updateProduct, timeout]);
 
       res.status(200).json({
         success: true,
-        message: `Product ${status === 'public' ? 'approved' : 'rejected'} successfully`,
+        message: `Product ${status} successfully`,
         product: updatedProduct
       });
+
     } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
+      if (error.message === 'Request timeout') {
+        return res.status(504).json({
+          success: false,
+          message: 'Operation timed out'
+        });
+      }
+      return next(new ErrorHandler(error.message, error.statusCode || 500));
     }
   })
 );
-
 // Update product design
 router.put("/update-product-design/:id", 
   isAuthenticated,
