@@ -39,7 +39,7 @@ app.use((req, res, next) => {
     });
   };
   next();
-});
+}); 
 // Essential middleware
 app.use(express.json({ 
   limit: '50mb',
