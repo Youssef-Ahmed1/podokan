@@ -1,4 +1,6 @@
 const express = require("express");
+const fs = require('fs').promises; 
+const path = require('path');
 const { isSeller, isAuthenticated, isAdmin } = require("../middleware/auth");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const router = express.Router();
@@ -16,6 +18,19 @@ const mongoose = require("mongoose");
 const ErrorHandler = require("../utils/ErrorHandler");
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
+
+
+
+(async function createUploadsDir() {
+  try {
+    await fs.access('uploads');
+  } catch {
+    await fs.mkdir('uploads', { recursive: true });
+    console.log('Created uploads directory');
+  }
+})().catch(console.error);
+
+
 
 // Validation middleware
 const validateProductData = [
@@ -54,92 +69,72 @@ const validateProductData = [
     .custom(value => mongoose.Types.ObjectId.isValid(value))
     .withMessage('Invalid shop ID')
 ];
-
-// File upload configuration
-const storage = multer.diskStorage({
-  destination: 'uploads/',
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix);
-  }
-});
-
-const upload = multer({ 
-  storage: storage,
-  limits: {
-    fileSize: 100 * 2048 * 2048 // 100MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed!'), false);
-    }
-  }
-});
-
-// Utility function for shop owner notifications
 async function notifyShopOwner(product, status) {
   try {
     const shop = await Shop.findById(product.shopId);
     if (shop) {
-      console.log(`Notifying shop owner (${shop.owner}) about product ${product._id} status: ${status}`);
-      // Implement actual notification logic here
+      // TODO: Implement actual notification logic here
+      console.log(`Notifying shop owner (${shop._id}) about product ${product._id} status: ${status}`);
     }
   } catch (error) {
     console.error('Error notifying shop owner:', error);
   }
 }
+// File upload configuration
 
-// Get all products
-router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-    const skip = (page - 1) * limit;
-
-    const query = { status: 'public' };
-    const totalProducts = await Product.countDocuments(query);
-
-    const products = await Product.find(query)
-      .select('-__v')
-      .sort(req.query.sort || '-createdAt')
-      .skip(skip)
-      .limit(limit)
-      .populate('shopId', 'name email avatar');
-
-    res.status(200).json({
-      success: true,
-      products,
-      currentPage: page,
-      totalPages: Math.ceil(totalProducts / limit),
-      totalProducts,
-    });
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
-  }
-}));
 
 // controller/product.js
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, 'uploads/');
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  }),
+  limits: {
+    fileSize: 100 * 1024 * 1024 // 100MB
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images are allowed'));
+    }
+  }
+}).single('designImage');
 router.post("/create-product", 
   isAuthenticated,
   isSeller,
-  upload.single('designImage'),
+  (req, res, next) => {
+    upload.single('designImage')(req, res, function(err) {
+      if (err instanceof multer.MulterError) {
+        return next(new ErrorHandler(err.message, 400));
+      } else if (err) {
+        return next(new ErrorHandler(err.message, 400));
+      }
+      next();
+    });
+  },
   validateProductData,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      // Verify seller
-      if (!req.seller?._id) {
-        return next(new ErrorHandler("Seller authentication required", 401));
+      // Parse design position
+      let designPosition;
+      try {
+        designPosition = req.body.designPosition ? JSON.parse(req.body.designPosition) : { x: 50, y: 50 };
+      } catch (e) {
+        designPosition = { x: 50, y: 50 };
       }
 
-      // Validate request
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ 
-          success: false, 
-          errors: errors.array() 
-        });
+      // Parse design tags
+      let designTags;
+      try {
+        designTags = req.body.Designtags ? JSON.parse(req.body.Designtags) : [];
+      } catch (e) {
+        designTags = [];
       }
 
       if (!req.file) {
@@ -147,7 +142,7 @@ router.post("/create-product",
       }
 
       // Upload to cloudinary
-      const result = await cloudinary.v2.uploader.upload(req.file.path, {
+      const result = await cloudinary.uploader.upload(req.file.path, {
         folder: "products",
         transformation: [
           { quality: "auto:best" },
@@ -155,62 +150,38 @@ router.post("/create-product",
         ]
       });
 
-      // Create product data
-      const productData = {
+      // Create product
+      const product = await Product.create({
+        ...req.body,
         shopId: req.seller._id,
-        shop: req.seller._id,  // Both fields need same value
-        DesignTitle: req.body.DesignTitle?.trim(),
-        Description: req.body.Description?.trim(),
-        Maintag: req.body.Maintag?.trim(),
-        Designtags: JSON.parse(req.body.Designtags || '[]'),
-        ProductType: req.body.ProductType,
-        ProductColor: req.body.ProductColor,
-        ProductView: req.body.ProductView || 'front',
-        DesignScale: parseFloat(req.body.DesignScale) || 1,
-        designPosition: JSON.parse(req.body.designPosition || '{"x":50,"y":50}'),
-        availableColors: [req.body.ProductColor],
+        shop: req.seller._id,
+        Designtags: designTags,
+        designPosition,
         designImage: {
           public_id: result.public_id,
           url: result.secure_url
         },
         status: 'pending',
-        visibility: 'restricted',
         createdBy: req.seller._id
-      };
+      });
 
-      // Create product
-      const product = await Product.create(productData);
-
-      // Clean up uploaded file
-      if (req.file?.path) {
-        await fs.promises.unlink(req.file.path).catch(console.error);
-      }
-
-      // Populate shop data
-      await product.populate('shopId', 'name email avatar');
+      // Clean up local file
+      await fs.unlink(req.file.path).catch(err => 
+        console.error('Error deleting local file:', err)
+      );
 
       res.status(201).json({
         success: true,
-        message: "Product created successfully and is awaiting inspection!",
+        message: "Product created successfully and awaiting approval",
         product
       });
 
     } catch (error) {
-      // Cleanup on error
+      // Clean up on error
       if (req.file?.path) {
-        try {
-          await fs.promises.unlink(req.file.path);
-        } catch (err) {
-          console.error("Error cleaning up file:", err);
-        }
+        await fs.unlink(req.file.path).catch(() => {});
       }
-
-      console.error("Product creation error:", {
-        message: error.message,
-        stack: error.stack,
-        body: req.body
-      });
-
+      console.error('Product creation error:', error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
@@ -720,6 +691,7 @@ router.get(
             break;
         }
       }
+      
 
       // Get total count for pagination
       const total = await Product.countDocuments(searchQuery);
