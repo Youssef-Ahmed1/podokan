@@ -84,6 +84,7 @@ async function notifyShopOwner(product, status) {
 
 
 // controller/product.js
+// First, define the upload middleware (keep this part)
 const upload = multer({
   storage: multer.diskStorage({
     destination: function (req, file, cb) {
@@ -104,20 +105,13 @@ const upload = multer({
       cb(new Error('Only images are allowed'));
     }
   }
-}).single('designImage');
+});
+
+// Then modify the create product route
 router.post("/create-product", 
   isAuthenticated,
   isSeller,
-  (req, res, next) => {
-    upload.single('designImage')(req, res, function(err) {
-      if (err instanceof multer.MulterError) {
-        return next(new ErrorHandler(err.message, 400));
-      } else if (err) {
-        return next(new ErrorHandler(err.message, 400));
-      }
-      next();
-    });
-  },
+  upload.single('designImage'), // Use upload middleware directly
   validateProductData,
   catchAsyncErrors(async (req, res, next) => {
     try {
@@ -186,6 +180,7 @@ router.post("/create-product",
     }
   })
 );
+
 // Get all products for admin
 router.get(
   "/admin-all-products",
