@@ -145,8 +145,9 @@ const withdraw = require("./controller/withdraw");
 // API Routes
 const API_PREFIX = "/api/v2";
 
+// Routes
 app.use(`${API_PREFIX}/user`, user);
-app.use(`${API_PREFIX}/shop`, shop);
+app.use(`${API_PREFIX}/shop`, shop);  
 app.use(`${API_PREFIX}/product`, product);
 app.use(`${API_PREFIX}/event`, event);
 app.use(`${API_PREFIX}/coupon`, coupon);

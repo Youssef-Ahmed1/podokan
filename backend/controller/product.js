@@ -474,40 +474,30 @@ router.get(
   })
 );
 
-router.get("/admin/pending-products",
+router.get("/admin/pending-products", // Remove extra api/v2 prefix
   isAuthenticated,
   isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 20;
-      const skip = (page - 1) * limit;
-
-      // Use lean() for better performance
       const [totalPending, pendingProducts] = await Promise.all([
         Product.countDocuments({ status: 'pending' }),
         Product.find({ status: 'pending' })
-          .select('DesignTitle Description Maintag Designtags ProductType ProductColor ProductView DesignScale designImage status availableColors createdAt shopId')
           .populate('shopId', 'name email')
           .sort('-createdAt')
-          .skip(skip)
-          .limit(limit)
           .lean()
       ]);
 
       res.status(200).json({
         success: true,
         products: pendingProducts,
-        currentPage: page,
-        totalPages: Math.ceil(totalPending / limit),
-        totalPending,
+        totalPending
       });
     } catch (error) {
-      console.error('Pending products error:', error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
+
 router.put(
   "/create-new-review",
   isAuthenticated,
