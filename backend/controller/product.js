@@ -58,33 +58,29 @@ const validateProductData = [
     .withMessage(`Product color must be one of: ${VALID_COLORS.join(', ')}`),
   
   body('ProductView')
+    .optional()
     .isIn(['front', 'back'])
     .withMessage('Product view must be either front or back'),
   
   body('DesignScale')
+    .optional()
     .isFloat({ min: 0.1, max: 5.0 })
     .withMessage('Design scale must be between 0.1 and 5.0'),
   
-  body('shopId')
-    .custom(value => mongoose.Types.ObjectId.isValid(value))
-    .withMessage('Invalid shop ID')
-];
-async function notifyShopOwner(product, status) {
-  try {
-    const shop = await Shop.findById(product.shopId);
-    if (shop) {
-      // TODO: Implement actual notification logic here
-      console.log(`Notifying shop owner (${shop._id}) about product ${product._id} status: ${status}`);
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false, 
+        errors: errors.array() 
+      });
     }
-  } catch (error) {
-    console.error('Error notifying shop owner:', error);
+    next();
   }
-}
-// File upload configuration
+];
 
 
-// controller/product.js
-// First, define the upload middleware (keep this part)
+
 const multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -121,23 +117,46 @@ const upload = multer({
 })();
 
 // Product routes
-router.post("/create-product",
+router.post("/create-product", 
   isAuthenticated,
   isSeller,
   upload.single('designImage'),
   validateProductData,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      console.log('Create product request:', {
+      console.log('Request data:', {
         body: req.body,
         file: req.file,
         seller: req.seller?._id
       });
 
+      // Parse design position and tags
+      let designPosition = { x: 50, y: 50 };
+      try {
+        if (req.body.designPosition) {
+          designPosition = JSON.parse(req.body.designPosition);
+        }
+      } catch (e) {
+        console.error('Error parsing designPosition:', e);
+      }
+
+      let designTags = [];
+      try {
+        if (req.body.Designtags) {
+          designTags = JSON.parse(req.body.Designtags);
+        }
+      } catch (e) {
+        console.error('Error parsing Designtags:', e);
+      }
+
+      // Validate required data
       if (!req.file) {
         return next(new ErrorHandler("Design image is required", 400));
       }
 
+      if (!req.body.ProductColor || !VALID_COLORS.includes(req.body.ProductColor)) {
+        return next(new ErrorHandler(`Invalid color. Must be one of: ${VALID_COLORS.join(', ')}`, 400));
+      }
 
       // Upload to cloudinary
       const result = await cloudinary.uploader.upload(req.file.path, {
@@ -148,25 +167,37 @@ router.post("/create-product",
         ]
       });
 
-      // Create product
-      const product = await Product.create({
-        ...req.body,
+      // Create product data object
+      const productData = {
+        DesignTitle: req.body.DesignTitle,
+        Description: req.body.Description,
+        Maintag: req.body.Maintag,
+        Designtags: designTags,
+        ProductType: req.body.ProductType,
+        ProductColor: req.body.ProductColor,
+        ProductView: req.body.ProductView || 'front',
+        DesignScale: parseFloat(req.body.DesignScale) || 1,
+        designPosition,
         shopId: req.seller._id,
         shop: req.seller._id,
-        Designtags: designTags,
-        designPosition,
         designImage: {
           public_id: result.public_id,
           url: result.secure_url
         },
+        availableColors: [req.body.ProductColor],
         status: 'pending',
         createdBy: req.seller._id
-      });
+      };
 
-      // Clean up local file
-      await fs.unlink(req.file.path).catch(err => 
-        console.error('Error deleting local file:', err)
-      );
+      // Create product
+      const product = await Product.create(productData);
+
+      // Clean up uploaded file
+      if (req.file.path) {
+        await fs.unlink(req.file.path).catch(err => 
+          console.error('Error deleting file:', err)
+        );
+      }
 
       res.status(201).json({
         success: true,
@@ -179,8 +210,12 @@ router.post("/create-product",
       if (req.file?.path) {
         await fs.unlink(req.file.path).catch(() => {});
       }
-      console.error('Product creation error:', error);
-      return next(new ErrorHandler(error.message, 500));
+      console.error('Product creation error:', {
+        message: error.message,
+        stack: error.stack,
+        body: req.body
+      });
+      return next(new ErrorHandler(error.message || "Failed to create product", 500));
     }
   })
 );
