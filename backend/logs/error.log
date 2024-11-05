@@ -1,0 +1,20 @@
+2024-11-05T17:28:07: Error: {
+  message: 'Please login to continue',
+  stack: undefined,
+  path: '/api/v2/user/getuser'
+}
+2024-11-05T17:28:08: Error: {
+  message: 'Please login to continue',
+  stack: undefined,
+  path: '/api/v2/shop/getSeller'
+}
+2024-11-05T17:39:19: Error: {
+  message: 'Please login to continue',
+  stack: undefined,
+  path: '/api/v2/user/getuser'
+}
+2024-11-05T17:39:19: Error: {
+  message: 'Please login to continue',
+  stack: undefined,
+  path: '/api/v2/shop/getSeller'
+}

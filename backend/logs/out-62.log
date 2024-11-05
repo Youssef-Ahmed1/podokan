@@ -1,5 +1,0 @@
-2024-11-05T00:16:43: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
-2024-11-05T00:16:43: Attempting to connect to MongoDB...
-2024-11-05T00:16:43: Database connected successfully
-2024-11-05T00:16:43: Server is running on port 8000
-2024-11-05T00:16:44: MongoDB connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
