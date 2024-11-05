@@ -1,47 +1,38 @@
 // db/Database.js
 const mongoose = require("mongoose");
 
-const connectDatabase = () => {
-  const dbUrl = process.env.DB_URL || process.env.MONGO_URI;
-  
-  if (!dbUrl) {
-    console.error('Database URL is not defined in environment variables');
-    process.exit(1);
-  }
+const connectDatabase = async () => {
+  try {
+    if (!process.env.DB_URL) {
+      console.error('DB_URL is not defined');
+      process.exit(1);
+    }
 
-  console.log('Attempting to connect to MongoDB...');
-  
-  const options = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    connectTimeoutMS: 30000,
-    socketTimeoutMS: 45000,
-    serverSelectionTimeoutMS: 30000,
-    family: 4,
-    retryWrites: true,
-    w: 'majority'
-  };
+    console.log('Attempting to connect to MongoDB...');
+    
+    const options = {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      retryWrites: true,
+      w: 'majority'
+    };
 
-  return mongoose
-    .connect(dbUrl, options)
-    .then((data) => {
-      console.log(`MongoDB connected with server: ${data.connection.host}`);
-      
-      // Handle connection events
-      mongoose.connection.on('error', (err) => {
-        console.error('MongoDB connection error:', err);
-      });
+    const conn = await mongoose.connect(process.env.DB_URL, options);
+    console.log(`MongoDB connected with server: ${conn.connection.host}`);
 
-      mongoose.connection.on('disconnected', () => {
-        console.log('MongoDB disconnected');
-      });
-
-      return data;
-    })
-    .catch((error) => {
-      console.error("Database connection error:", error);
-      throw error; // Let the server handle the error
+    mongoose.connection.on('error', (err) => {
+      console.error('MongoDB connection error:', err);
     });
+
+    mongoose.connection.on('disconnected', () => {
+      console.log('MongoDB disconnected');
+    });
+
+    return conn;
+  } catch (error) {
+    console.error("Database connection error:", error);
+    throw error;
+  }
 };
 
 module.exports = connectDatabase;
