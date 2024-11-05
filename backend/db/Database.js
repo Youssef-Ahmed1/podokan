@@ -1,20 +1,28 @@
-
+// db/Database.js
 const mongoose = require("mongoose");
 
 const connectDatabase = () => {
-  mongoose.connect(process.env.DB_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 30000,
-    socketTimeoutMS: 45000,
-    connectTimeoutMS: 30000,
-    maxTimeMS: 30000
-  });
-
+  const dbUrl = process.env.DB_URL || process.env.MONGO_URI;
+  
+  if (!dbUrl) {
+    console.error('Database URL is not defined in environment variables');
+    process.exit(1);
+  }
 
   console.log('Attempting to connect to MongoDB...');
   
-  mongoose
+  const options = {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    connectTimeoutMS: 30000,
+    socketTimeoutMS: 45000,
+    serverSelectionTimeoutMS: 30000,
+    family: 4,
+    retryWrites: true,
+    w: 'majority'
+  };
+
+  return mongoose
     .connect(dbUrl, options)
     .then((data) => {
       console.log(`MongoDB connected with server: ${data.connection.host}`);
@@ -26,12 +34,13 @@ const connectDatabase = () => {
 
       mongoose.connection.on('disconnected', () => {
         console.log('MongoDB disconnected');
-        setTimeout(connectDatabase, 5000);
       });
+
+      return data;
     })
     .catch((error) => {
       console.error("Database connection error:", error);
-      process.exit(1);
+      throw error; // Let the server handle the error
     });
 };
 
