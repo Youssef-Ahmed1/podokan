@@ -10,7 +10,7 @@ const connectDatabase = () => {
     connectTimeoutMS: 30000,
     maxTimeMS: 30000
   });
-};
+
 
   console.log('Attempting to connect to MongoDB...');
   
