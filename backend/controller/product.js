@@ -474,27 +474,26 @@ router.get(
   })
 );
 
-// Get pending products (admin)
-router.get(
-  "/admin/pending-products",
+router.get("/admin/pending-products",
   isAuthenticated,
-  isAdmin,
+  isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 20;
       const skip = (page - 1) * limit;
 
-      const totalPending = await Product.countDocuments({ status: 'pending' });
-
-      const pendingProducts = await Product.find({ status: 'pending' })
-        .select('DesignTitle Description Maintag Designtags ProductType ProductColor ProductView DesignScale designImage status availableColors createdAt shopId')
-        .populate('shopId', 'name email')
-        .sort('-createdAt')
-        .skip(skip)
-        .limit(limit)
-        .lean()
-        .maxTimeMS(30000);
+      // Use lean() for better performance
+      const [totalPending, pendingProducts] = await Promise.all([
+        Product.countDocuments({ status: 'pending' }),
+        Product.find({ status: 'pending' })
+          .select('DesignTitle Description Maintag Designtags ProductType ProductColor ProductView DesignScale designImage status availableColors createdAt shopId')
+          .populate('shopId', 'name email')
+          .sort('-createdAt')
+          .skip(skip)
+          .limit(limit)
+          .lean()
+      ]);
 
       res.status(200).json({
         success: true,
@@ -504,13 +503,11 @@ router.get(
         totalPending,
       });
     } catch (error) {
-      if (error.name === 'MongooseError' && error.message.includes('timeout')) {
-        return next(new ErrorHandler("Request timeout. Please try again.", 504));
-      }
+      console.error('Pending products error:', error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
-);// Create/Update review
+);
 router.put(
   "/create-new-review",
   isAuthenticated,
