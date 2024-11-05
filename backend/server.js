@@ -20,10 +20,27 @@ console.log('Environment:', {
 
 // Error handlers
 process.on("uncaughtException", (err) => {
-    console.log(`Error: ${err.message}`);
-    console.log(`Shutting down the server due to uncaught exception`);
+    console.error("Uncaught Exception:", err);
     process.exit(1);
-});
+  });
+  
+  process.on("unhandledRejection", (err) => {
+    console.error("Unhandled Rejection:", err);
+    server.close(() => process.exit(1));
+  });
+  
+  // Add request logging
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`, {
+      query: req.query,
+      cookies: req.cookies,
+      headers: {
+        authorization: req.headers.authorization ? 'present' : 'missing',
+        'seller-authorization': req.headers['seller-authorization'] ? 'present' : 'missing'
+      }
+    });
+    next();
+  });
 
 // Connect database with retry mechanism
 const connectWithRetry = async () => {
