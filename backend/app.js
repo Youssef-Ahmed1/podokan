@@ -18,20 +18,35 @@ app.use((req, res, next) => {
 });
 
 // Update CORS configuration
+// app.js
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://testpodokan.store'],
+  origin: ['http://localhost:3000', 'https://testpodokan.store' , 'http://testpodokan.store'],
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
+    'Content-Type',
+    'Authorization',
     'Seller-Authorization',
-    'X-Requested-With'
-  ],
-  credentials: true,
-  exposedHeaders: ['Seller-Authorization'],
-  maxAge: 86400 // 24 hours
+    'x-requested-with'
+  ]
 }));
 
+app.use(cookieParser());
+
+// Add cookie options middleware
+app.use((req, res, next) => {
+  res.cookie = res.cookie.bind(res);
+  const oldCookie = res.cookie;
+  res.cookie = function(name, value, options = {}) {
+    return oldCookie.call(this, name, value, {
+      ...options,
+      sameSite: 'none',
+      secure: true,
+      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
+    });
+  };
+  next();
+});
 
 // Essential middleware
 app.use(express.json({ 
