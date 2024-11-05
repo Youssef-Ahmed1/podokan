@@ -106,118 +106,52 @@ router.post(
 );
 
 // login shop
-// login shop
-router.post("/login-shop", async (req, res) => {
+router.post("/login-shop", catchAsyncErrors(async (req, res, next) => {
   try {
-    console.log('Login request received:', {
-      body: req.body,
-      cookies: req.cookies,
-      headers: {
-        'content-type': req.headers['content-type'],
-        'seller-authorization': req.headers['seller-authorization']
-      }
-    });
-
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide email and password"
-      });
+      return next(new ErrorHandler("Please provide all fields!", 400));
     }
 
-    // Find shop and verify password
-    const shop = await Shop.findOne({ email }).select('+password');
-    console.log('Shop lookup result:', {
-      found: !!shop,
-      email: email,
-      shopId: shop?._id
-    });
+    const seller = await Shop.findOne({ email }).select("+password");
 
-    if (!shop) {
-      return res.status(401).json({
-        success: false,
-        message: "Shop not found"
-      });
+    if (!seller) {
+      return next(new ErrorHandler("Seller doesn't exists!", 400));
     }
 
-    const isPasswordValid = await shop.comparePassword(password);
-    console.log('Password validation:', {
-      isValid: isPasswordValid,
-      shopId: shop._id
-    });
+    const isPasswordValid = await seller.comparePassword(password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials"
-      });
+      return next(new ErrorHandler("Please provide the correct information", 400));
     }
 
-    // Generate token
-    const token = jwt.sign(
-      { id: shop._id },
-      process.env.JWT_SECRET_KEY,
-      { expiresIn: '7d' }
-    );
+    const token = seller.getJwtToken();
 
-    console.log('Token generated:', {
-      tokenExists: !!token,
-      shopId: shop._id
-    });
-
-    // Cookie options
+    // Set cookie options
     const cookieOptions = {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       httpOnly: true,
-      sameSite: "none",
+      sameSite: 'none',
       secure: true,
-      path: '/',
       domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
     };
 
-    // Prepare response object
-    const shopResponse = shop.toObject();
-    delete shopResponse.password;
-
-    console.log('Preparing response:', {
-      success: true,
-      hasSeller: !!shopResponse,
-      hasToken: !!token
-    });
-
-    // Set cookie and send response
-    return res
+    // Send response with both cookie and header
+    res
       .status(200)
       .cookie("seller_token", token, cookieOptions)
-      .header('Seller-Authorization', `Bearer ${token}`)
+      .header("Seller-Authorization", `Bearer ${token}`)
       .json({
         success: true,
-        seller: shopResponse,
-        token
+        token,
+        seller
       });
 
   } catch (error) {
-    console.error("Login error:", {
-      message: error.message,
-      stack: error.stack,
-      type: error.name,
-      env: {
-        nodeEnv: process.env.NODE_ENV,
-        jwtSecret: !!process.env.JWT_SECRET_KEY,
-        jwtExpires: process.env.JWT_EXPIRES
-      }
-    });
-
-    return res.status(500).json({
-      success: false,
-      message: process.env.NODE_ENV === 'PRODUCTION' ? 
-        "Login failed" : 
-        `Login failed: ${error.message}`
-    });
+    return next(new ErrorHandler(error.message, 500));
   }
-});
+}));
 
 router.get(
   "/getSeller",

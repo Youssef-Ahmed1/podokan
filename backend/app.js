@@ -10,44 +10,36 @@ const appConfig = require('../backend/server');
 
 // CORS configuration
 app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,UPDATE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization, Seller-Authorization');
   next();
 });
 
-// Update CORS configuration
-// app.js
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://testpodokan.store' , 'http://testpodokan.store'],
+  origin: function(origin, callback) {
+    const allowedOrigins = ['http://localhost:3000', 'https://testpodokan.store'];
+    callback(null, allowedOrigins.includes(origin));
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'Seller-Authorization',
-    'x-requested-with'
-  ]
+  exposedHeaders: ['Seller-Authorization']
 }));
 
+// Cookie settings
 app.use(cookieParser());
-
-// Add cookie options middleware
 app.use((req, res, next) => {
-  res.cookie = res.cookie.bind(res);
-  const oldCookie = res.cookie;
   res.cookie = function(name, value, options = {}) {
-    return oldCookie.call(this, name, value, {
+    return res.cookie(name, value, {
       ...options,
-      sameSite: 'none',
+      httpOnly: true,
       secure: true,
+      sameSite: 'none',
       domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
     });
   };
   next();
 });
-
 // Essential middleware
 app.use(express.json({ 
   limit: '50mb',
@@ -90,6 +82,18 @@ const upload = multer({
     }
     cb(new Error("Error: Images Only!"));
   },
+});
+// app.js (add this before your routes)
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`, {
+    cookies: req.cookies,
+    headers: {
+      origin: req.headers.origin,
+      auth: req.headers.authorization,
+      sellerAuth: req.headers['seller-authorization']
+    }
+  });
+  next();
 });
 
 // Import routes
