@@ -19,7 +19,12 @@ module.exports = {
     error_file: "logs/error.log",
     out_file: "logs/out.log",
     time: true,
-    listen_timeout: 50000,
+    log_date_format: "YYYY-MM-DD HH:mm:ss Z",
+    combine_logs: true,
+    merge_logs: true,
+    max_restarts: 12,
+    restart_delay: 2000,
+    listen_timeout: 5000,
     kill_timeout: 5000
   }]
 };
