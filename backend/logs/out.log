@@ -257,3 +257,182 @@
     'seller-authorization': 'missing'
   }
 }
+2024-11-05T17:56:06: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
+2024-11-05T17:56:06: Attempting to connect to MongoDB...
+2024-11-05T17:56:06: Database connected successfully
+2024-11-05T17:56:06: Server is running on port 8000
+2024-11-05T17:56:07: MongoDB connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-05T17:59:34: 2024-11-05T17:59:34.382Z GET /api/v2/user/getuser {
+  query: {},
+  body: undefined,
+  cookies: [ 'token', 'seller_token' ],
+  headers: {
+    'content-type': undefined,
+    authorization: 'missing',
+    'seller-authorization': 'missing'
+  }
+}
+2024-11-05T17:59:34: 2024-11-05T17:59:34.393Z GET /api/v2/shop/getSeller {
+  query: {},
+  body: undefined,
+  cookies: [ 'token', 'seller_token' ],
+  headers: {
+    'content-type': undefined,
+    authorization: 'missing',
+    'seller-authorization': 'missing'
+  }
+}
+2024-11-05T17:59:34: Auth check: {
+  cookies: {
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+    seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+  },
+  headers: { auth: undefined, sellerAuth: undefined },
+  token: 'eyJhbGciOiJIUzI1NiIs...'
+}
+2024-11-05T17:59:34: 2024-11-05T17:59:34.397Z GET /api/v2/product/get-all-products {
+  query: {},
+  body: undefined,
+  cookies: [ 'token', 'seller_token' ],
+  headers: {
+    'content-type': undefined,
+    authorization: 'missing',
+    'seller-authorization': 'missing'
+  }
+}
+2024-11-05T17:59:34: 2024-11-05T17:59:34.400Z GET /api/v2/event/get-all-events {
+  query: {},
+  body: undefined,
+  cookies: [ 'token', 'seller_token' ],
+  headers: {
+    'content-type': undefined,
+    authorization: 'missing',
+    'seller-authorization': 'missing'
+  }
+}
+2024-11-05T17:59:34: 2024-11-05T17:59:34.662Z GET /api/v2/order/get-seller-all-orders/65e23cf729b804d0261266d6 {
+  query: {},
+  body: undefined,
+  cookies: [ 'token', 'seller_token' ],
+  headers: {
+    'content-type': undefined,
+    authorization: 'missing',
+    'seller-authorization': 'missing'
+  }
+}
+2024-11-05T17:59:34: Auth check: {
+  cookies: {
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+    seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+  },
+  headers: { auth: undefined, sellerAuth: undefined },
+  token: 'eyJhbGciOiJIUzI1NiIs...'
+}
+2024-11-05T17:59:34: 2024-11-05T17:59:34.666Z GET /api/v2/product/get-all-products-shop/65e23cf729b804d0261266d6 {
+  query: {},
+  body: undefined,
+  cookies: [ 'token', 'seller_token' ],
+  headers: {
+    'content-type': undefined,
+    authorization: 'missing',
+    'seller-authorization': 'missing'
+  }
+}
+2024-11-05T17:59:38: 2024-11-05T17:59:38.588Z GET /api/v2/order/admin-all-orders {
+  query: {},
+  body: undefined,
+  cookies: [ 'token', 'seller_token' ],
+  headers: {
+    'content-type': undefined,
+    authorization: 'missing',
+    'seller-authorization': 'missing'
+  }
+}
+2024-11-05T17:59:38: 2024-11-05T17:59:38.591Z GET /api/v2/api/v2/shop/admin-all-sellers {
+  query: {},
+  body: undefined,
+  cookies: [ 'token', 'seller_token' ],
+  headers: {
+    'content-type': undefined,
+    authorization: 'missing',
+    'seller-authorization': 'missing'
+  }
+}
+2024-11-05T17:59:40: 2024-11-05T17:59:40.603Z GET /api/v2/user/getuser {
+  query: {},
+  body: undefined,
+  cookies: [ 'token', 'seller_token' ],
+  headers: {
+    'content-type': undefined,
+    authorization: 'missing',
+    'seller-authorization': 'missing'
+  }
+}
+2024-11-05T17:59:40: 2024-11-05T17:59:40.613Z GET /api/v2/shop/getSeller {
+  query: {},
+  body: undefined,
+  cookies: [ 'token', 'seller_token' ],
+  headers: {
+    'content-type': undefined,
+    authorization: 'missing',
+    'seller-authorization': 'missing'
+  }
+}
+2024-11-05T17:59:40: Auth check: {
+  cookies: {
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+    seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+  },
+  headers: { auth: undefined, sellerAuth: undefined },
+  token: 'eyJhbGciOiJIUzI1NiIs...'
+}
+2024-11-05T17:59:40: 2024-11-05T17:59:40.618Z GET /api/v2/product/get-all-products {
+  query: {},
+  body: undefined,
+  cookies: [ 'token', 'seller_token' ],
+  headers: {
+    'content-type': undefined,
+    authorization: 'missing',
+    'seller-authorization': 'missing'
+  }
+}
+2024-11-05T17:59:40: 2024-11-05T17:59:40.621Z GET /api/v2/event/get-all-events {
+  query: {},
+  body: undefined,
+  cookies: [ 'token', 'seller_token' ],
+  headers: {
+    'content-type': undefined,
+    authorization: 'missing',
+    'seller-authorization': 'missing'
+  }
+}
+2024-11-05T17:59:45: 2024-11-05T17:59:45.347Z GET /api/v2/order/admin-all-orders {
+  query: {},
+  body: undefined,
+  cookies: [ 'token', 'seller_token' ],
+  headers: {
+    'content-type': undefined,
+    authorization: 'missing',
+    'seller-authorization': 'missing'
+  }
+}
+2024-11-05T17:59:45: 2024-11-05T17:59:45.350Z GET /api/v2/api/v2/shop/admin-all-sellers {
+  query: {},
+  body: undefined,
+  cookies: [ 'token', 'seller_token' ],
+  headers: {
+    'content-type': undefined,
+    authorization: 'missing',
+    'seller-authorization': 'missing'
+  }
+}
+2024-11-05T17:59:48: 2024-11-05T17:59:48.196Z GET /api/v2/product/admin/pending-products {
+  query: {},
+  body: undefined,
+  cookies: [ 'token', 'seller_token' ],
+  headers: {
+    'content-type': undefined,
+    authorization: 'missing',
+    'seller-authorization': 'missing'
+  }
+}
