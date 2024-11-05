@@ -20,19 +20,21 @@ const verifyToken = (token, secret) => {
 
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
+    // Get token from both cookie and header
     const token = 
       req.cookies.seller_token ||
-      (req.headers["seller-authorization"]?.replace("Bearer ", "")) ||
-      (req.headers["authorization"]?.replace("Bearer ", ""));
+      req.headers["seller-authorization"]?.split(" ")[1] ||
+      req.headers["authorization"]?.split(" ")[1];
 
     if (!token) {
       return next(new ErrorHandler("Please login to continue", 401));
     }
 
+    // Log the token for debugging
+    console.log('Seller token:', { token: token?.substring(0, 20) + '...' });
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    
-    const seller = await Shop.findById(decoded.id)
-      .select('+email +role');
+    const seller = await Shop.findById(decoded.id);
 
     if (!seller) {
       return next(new ErrorHandler("Seller not found", 401));
@@ -41,7 +43,7 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
     req.seller = seller;
     next();
   } catch (error) {
-    console.error("Seller auth error:", error);
+    console.error('Auth error:', error);
     return next(new ErrorHandler("Authentication failed", 401));
   }
 });
