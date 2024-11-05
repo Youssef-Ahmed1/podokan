@@ -85,55 +85,59 @@ async function notifyShopOwner(product, status) {
 
 // controller/product.js
 // First, define the upload middleware (keep this part)
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, 'uploads/');
-    },
-    filename: function (req, file, cb) {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-    }
-  }),
-  limits: {
-    fileSize: 100 * 1024 * 1024 // 100MB
+const multerStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
   },
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only images are allowed'));
-    }
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
-// Then modify the create product route
-router.post("/create-product", 
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Not an image! Please upload only images.'), false);
+  }
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+  limits: {
+    fileSize: 100 * 1024 * 1024 // 100MB
+  }
+});
+
+// Create uploads directory if it doesn't exist
+(async () => {
+  try {
+    await fs.access('uploads');
+  } catch {
+    await fs.mkdir('uploads', { recursive: true });
+  }
+})();
+
+// Product routes
+router.post("/create-product",
   isAuthenticated,
   isSeller,
-  upload.single('designImage'), // Use upload middleware directly
+  upload.single('designImage'),
   validateProductData,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      // Parse design position
-      let designPosition;
-      try {
-        designPosition = req.body.designPosition ? JSON.parse(req.body.designPosition) : { x: 50, y: 50 };
-      } catch (e) {
-        designPosition = { x: 50, y: 50 };
-      }
-
-      // Parse design tags
-      let designTags;
-      try {
-        designTags = req.body.Designtags ? JSON.parse(req.body.Designtags) : [];
-      } catch (e) {
-        designTags = [];
-      }
+      console.log('Create product request:', {
+        body: req.body,
+        file: req.file,
+        seller: req.seller?._id
+      });
 
       if (!req.file) {
         return next(new ErrorHandler("Design image is required", 400));
       }
+
 
       // Upload to cloudinary
       const result = await cloudinary.uploader.upload(req.file.path, {
