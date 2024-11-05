@@ -1,20 +1,64 @@
-2024-11-05T17:28:07: Error: {
-  message: 'Please login to continue',
-  stack: undefined,
-  path: '/api/v2/user/getuser'
-}
-2024-11-05T17:28:08: Error: {
-  message: 'Please login to continue',
-  stack: undefined,
-  path: '/api/v2/shop/getSeller'
-}
-2024-11-05T17:39:19: Error: {
-  message: 'Please login to continue',
-  stack: undefined,
-  path: '/api/v2/user/getuser'
-}
-2024-11-05T17:39:19: Error: {
-  message: 'Please login to continue',
-  stack: undefined,
-  path: '/api/v2/shop/getSeller'
-}
+TypeError: Cannot read properties of undefined (reading 'token')
+    at ServerResponse.<anonymous> (/var/www/podokan/backend/app.js:23:28)
+    at ServerResponse.emit (node:events:531:35)
+    at onFinish (node:_http_outgoing:1027:10)
+    at callback (node:internal/streams/writable:764:21)
+    at afterWrite (node:internal/streams/writable:708:5)
+    at afterWriteTick (node:internal/streams/writable:694:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:81:21)
+TypeError: Cannot read properties of undefined (reading 'token')
+    at ServerResponse.<anonymous> (/var/www/podokan/backend/app.js:23:28)
+    at ServerResponse.emit (node:events:531:35)
+    at onFinish (node:_http_outgoing:1027:10)
+    at callback (node:internal/streams/writable:764:21)
+    at afterWrite (node:internal/streams/writable:708:5)
+    at afterWriteTick (node:internal/streams/writable:694:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:81:21)
+TypeError: Cannot read properties of undefined (reading 'token')
+    at ServerResponse.<anonymous> (/var/www/podokan/backend/app.js:23:28)
+    at ServerResponse.emit (node:events:531:35)
+    at onFinish (node:_http_outgoing:1027:10)
+    at callback (node:internal/streams/writable:764:21)
+    at afterWrite (node:internal/streams/writable:708:5)
+    at afterWriteTick (node:internal/streams/writable:694:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:81:21)
+TypeError: Cannot read properties of undefined (reading 'token')
+    at ServerResponse.<anonymous> (/var/www/podokan/backend/app.js:23:28)
+    at ServerResponse.emit (node:events:531:35)
+    at onFinish (node:_http_outgoing:1027:10)
+    at callback (node:internal/streams/writable:764:21)
+    at afterWrite (node:internal/streams/writable:708:5)
+    at afterWriteTick (node:internal/streams/writable:694:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:81:21)
+TypeError: Cannot read properties of undefined (reading 'token')
+    at ServerResponse.<anonymous> (/var/www/podokan/backend/app.js:23:28)
+    at ServerResponse.emit (node:events:531:35)
+    at onFinish (node:_http_outgoing:1027:10)
+    at callback (node:internal/streams/writable:764:21)
+    at afterWrite (node:internal/streams/writable:708:5)
+    at afterWriteTick (node:internal/streams/writable:694:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:81:21)
+TypeError: Cannot read properties of undefined (reading 'token')
+    at ServerResponse.<anonymous> (/var/www/podokan/backend/app.js:23:28)
+    at ServerResponse.emit (node:events:531:35)
+    at onFinish (node:_http_outgoing:1027:10)
+    at callback (node:internal/streams/writable:764:21)
+    at afterWrite (node:internal/streams/writable:708:5)
+    at afterWriteTick (node:internal/streams/writable:694:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:81:21)
+TypeError: Cannot read properties of undefined (reading 'token')
+    at ServerResponse.<anonymous> (/var/www/podokan/backend/app.js:23:28)
+    at ServerResponse.emit (node:events:531:35)
+    at onFinish (node:_http_outgoing:1027:10)
+    at callback (node:internal/streams/writable:764:21)
+    at afterWrite (node:internal/streams/writable:708:5)
+    at afterWriteTick (node:internal/streams/writable:694:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:81:21)
+TypeError: Cannot read properties of undefined (reading 'token')
+    at ServerResponse.<anonymous> (/var/www/podokan/backend/app.js:23:28)
+    at ServerResponse.emit (node:events:531:35)
+    at onFinish (node:_http_outgoing:1027:10)
+    at callback (node:internal/streams/writable:764:21)
+    at afterWrite (node:internal/streams/writable:708:5)
+    at afterWriteTick (node:internal/streams/writable:694:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:81:21)

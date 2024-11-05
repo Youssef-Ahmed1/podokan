@@ -1,438 +1,48 @@
-2024-11-05T17:19:27: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
-2024-11-05T17:19:27: Attempting to connect to MongoDB...
-2024-11-05T17:19:27: Database connected successfully
-2024-11-05T17:19:27: Server is running on port 8000
-2024-11-05T17:19:28: MongoDB connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
-2024-11-05T17:24:48: 2024-11-05T17:24:48.353Z GET /api/v2/user/getuser {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:24:48: 2024-11-05T17:24:48.362Z GET /api/v2/shop/getSeller {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:24:48: Auth check: {
-  cookies: {
-    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
-    seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
-  },
-  headers: { auth: undefined, sellerAuth: undefined },
-  token: 'eyJhbGciOiJIUzI1NiIs...'
-}
-2024-11-05T17:24:48: 2024-11-05T17:24:48.375Z GET /api/v2/product/get-all-products {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:24:48: 2024-11-05T17:24:48.379Z GET /api/v2/event/get-all-events {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:24:48: 2024-11-05T17:24:48.623Z GET /api/v2/product/get-all-products-shop/65e23cf729b804d0261266d6 {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:24:48: 2024-11-05T17:24:48.673Z GET /api/v2/order/get-seller-all-orders/65e23cf729b804d0261266d6 {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:24:48: Auth check: {
-  cookies: {
-    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
-    seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
-  },
-  headers: { auth: undefined, sellerAuth: undefined },
-  token: 'eyJhbGciOiJIUzI1NiIs...'
-}
-2024-11-05T17:24:56: 2024-11-05T17:24:56.660Z GET /api/v2/order/admin-all-orders {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:24:56: 2024-11-05T17:24:56.664Z GET /api/v2/api/v2/shop/admin-all-sellers {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:24:58: 2024-11-05T17:24:58.762Z GET /api/v2/user/getuser {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:24:58: 2024-11-05T17:24:58.768Z GET /api/v2/shop/getSeller {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:24:58: Auth check: {
-  cookies: {
-    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
-    seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
-  },
-  headers: { auth: undefined, sellerAuth: undefined },
-  token: 'eyJhbGciOiJIUzI1NiIs...'
-}
-2024-11-05T17:24:58: 2024-11-05T17:24:58.772Z GET /api/v2/product/get-all-products {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:24:58: 2024-11-05T17:24:58.773Z GET /api/v2/event/get-all-events {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:25:01: 2024-11-05T17:25:01.371Z GET /api/v2/order/admin-all-orders {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:25:01: 2024-11-05T17:25:01.378Z GET /api/v2/api/v2/shop/admin-all-sellers {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:25:05: 2024-11-05T17:25:05.699Z GET /api/v2/product/admin/pending-products {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:28:07: 2024-11-05T17:28:07.254Z GET /api/v2/user/getuser {
-  query: {},
-  body: undefined,
-  cookies: [],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:28:07: 2024-11-05T17:28:07.773Z GET /api/v2/product/get-all-products {
-  query: {},
-  body: undefined,
-  cookies: [],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:28:08: 2024-11-05T17:28:08.277Z GET /api/v2/shop/getSeller {
-  query: {},
-  body: undefined,
-  cookies: [],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:28:08: Auth check: {
-  cookies: [Object: null prototype] {},
-  headers: { auth: undefined, sellerAuth: undefined },
-  token: 'missing'
-}
-2024-11-05T17:39:19: 2024-11-05T17:39:19.572Z GET /api/v2/user/getuser {
-  query: {},
-  body: undefined,
-  cookies: [],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:39:19: 2024-11-05T17:39:19.576Z GET /api/v2/shop/getSeller {
-  query: {},
-  body: undefined,
-  cookies: [],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:39:19: Auth check: {
-  cookies: [Object: null prototype] {},
-  headers: { auth: undefined, sellerAuth: undefined },
-  token: 'missing'
-}
-2024-11-05T17:39:19: 2024-11-05T17:39:19.582Z GET /api/v2/event/get-all-events {
-  query: {},
-  body: undefined,
-  cookies: [],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:39:19: 2024-11-05T17:39:19.585Z GET /api/v2/product/get-all-products {
-  query: {},
-  body: undefined,
-  cookies: [],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:56:06: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
-2024-11-05T17:56:06: Attempting to connect to MongoDB...
-2024-11-05T17:56:06: Database connected successfully
-2024-11-05T17:56:06: Server is running on port 8000
-2024-11-05T17:56:07: MongoDB connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
-2024-11-05T17:59:34: 2024-11-05T17:59:34.382Z GET /api/v2/user/getuser {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:59:34: 2024-11-05T17:59:34.393Z GET /api/v2/shop/getSeller {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:59:34: Auth check: {
-  cookies: {
-    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
-    seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
-  },
-  headers: { auth: undefined, sellerAuth: undefined },
-  token: 'eyJhbGciOiJIUzI1NiIs...'
-}
-2024-11-05T17:59:34: 2024-11-05T17:59:34.397Z GET /api/v2/product/get-all-products {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:59:34: 2024-11-05T17:59:34.400Z GET /api/v2/event/get-all-events {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:59:34: 2024-11-05T17:59:34.662Z GET /api/v2/order/get-seller-all-orders/65e23cf729b804d0261266d6 {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:59:34: Auth check: {
-  cookies: {
-    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
-    seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
-  },
-  headers: { auth: undefined, sellerAuth: undefined },
-  token: 'eyJhbGciOiJIUzI1NiIs...'
-}
-2024-11-05T17:59:34: 2024-11-05T17:59:34.666Z GET /api/v2/product/get-all-products-shop/65e23cf729b804d0261266d6 {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:59:38: 2024-11-05T17:59:38.588Z GET /api/v2/order/admin-all-orders {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:59:38: 2024-11-05T17:59:38.591Z GET /api/v2/api/v2/shop/admin-all-sellers {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:59:40: 2024-11-05T17:59:40.603Z GET /api/v2/user/getuser {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:59:40: 2024-11-05T17:59:40.613Z GET /api/v2/shop/getSeller {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:59:40: Auth check: {
-  cookies: {
-    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
-    seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
-  },
-  headers: { auth: undefined, sellerAuth: undefined },
-  token: 'eyJhbGciOiJIUzI1NiIs...'
-}
-2024-11-05T17:59:40: 2024-11-05T17:59:40.618Z GET /api/v2/product/get-all-products {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:59:40: 2024-11-05T17:59:40.621Z GET /api/v2/event/get-all-events {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:59:45: 2024-11-05T17:59:45.347Z GET /api/v2/order/admin-all-orders {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:59:45: 2024-11-05T17:59:45.350Z GET /api/v2/api/v2/shop/admin-all-sellers {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
-2024-11-05T17:59:48: 2024-11-05T17:59:48.196Z GET /api/v2/product/admin/pending-products {
-  query: {},
-  body: undefined,
-  cookies: [ 'token', 'seller_token' ],
-  headers: {
-    'content-type': undefined,
-    authorization: 'missing',
-    'seller-authorization': 'missing'
-  }
-}
+2024-11-05T18:03:53: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
+2024-11-05T18:03:53: Attempting to connect to MongoDB...
+2024-11-05T18:03:53: Database connected successfully
+2024-11-05T18:03:53: Server is running on port 8000
+2024-11-05T18:03:54: MongoDB connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-05T18:04:27: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
+2024-11-05T18:04:27: Attempting to connect to MongoDB...
+2024-11-05T18:04:27: Database connected successfully
+2024-11-05T18:04:27: Server is running on port 8000
+2024-11-05T18:04:28: MongoDB connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-05T18:06:28: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
+2024-11-05T18:06:28: Attempting to connect to MongoDB...
+2024-11-05T18:06:28: Database connected successfully
+2024-11-05T18:06:28: Server is running on port 8000
+2024-11-05T18:06:29: MongoDB connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-05T18:06:38: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
+2024-11-05T18:06:38: Attempting to connect to MongoDB...
+2024-11-05T18:06:38: Database connected successfully
+2024-11-05T18:06:38: Server is running on port 8000
+2024-11-05T18:06:39: MongoDB connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-05T20:07:44: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
+2024-11-05T20:07:44: Attempting to connect to MongoDB...
+2024-11-05T20:07:44: Database connected successfully
+2024-11-05T20:07:44: Server is running on port 8000
+2024-11-05T20:07:45: MongoDB connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-05T20:26:47: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
+2024-11-05T20:26:47: Attempting to connect to MongoDB...
+2024-11-05T20:26:47: Database connected successfully
+2024-11-05T20:26:47: Server is running on port 8000
+2024-11-05T20:26:48: MongoDB connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-05T20:27:16: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
+2024-11-05T20:27:16: Attempting to connect to MongoDB...
+2024-11-05T20:27:16: Database connected successfully
+2024-11-05T20:27:16: Server is running on port 8000
+2024-11-05T20:27:17: MongoDB connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-05T20:38:15: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
+2024-11-05T20:38:15: Attempting to connect to MongoDB...
+2024-11-05T20:38:15: Database connected successfully
+2024-11-05T20:38:15: Server is running on port 8000
+2024-11-05T20:38:15: MongoDB connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-05T21:00:44: MongoDB disconnected
+2024-11-05T21:00:49: Attempting to connect to MongoDB...
+2024-11-05T21:00:49: MongoDB connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-05T21:48:38: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
+2024-11-05T21:48:38: Attempting to connect to MongoDB...
+2024-11-05T21:48:38: Database connected successfully
+2024-11-05T21:48:38: Server is running on port 8000
+2024-11-05T21:48:39: MongoDB connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
