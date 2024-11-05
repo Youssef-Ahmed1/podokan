@@ -1,19 +1,13 @@
+// server.js
 const app = require("./app");
 const connectDatabase = require("./db/Database");
 const cloudinary = require("cloudinary").v2;
-
-// Load environment variables
-if (process.env.NODE_ENV !== "PRODUCTION") {
-  require("dotenv").config({
-    path: "config/.env",
-  });
-}
+require("dotenv").config({ path: "./config/.env" });
 
 // Debug logging
 console.log('Environment:', {
   NODE_ENV: process.env.NODE_ENV,
   DB_URL: process.env.DB_URL ? 'Set' : 'Not set',
-  MONGO_URI: process.env.MONGO_URI ? 'Set' : 'Not set',
   PORT: process.env.PORT || 8000
 });
 
@@ -26,6 +20,11 @@ cloudinary.config({
 
 // Create server
 const server = require('http').createServer(app);
+
+// Configure server timeouts
+server.timeout = 120000;
+server.keepAliveTimeout = 65000;
+server.headersTimeout = 66000;
 
 // Database connection with retry
 const connectWithRetry = async (retries = 5) => {
@@ -48,14 +47,18 @@ const connectWithRetry = async (retries = 5) => {
 const startServer = () => {
   const port = process.env.PORT || 8000;
   server.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+    console.log(`Server is running on port ${port} in ${process.env.NODE_ENV} mode`);
   });
 };
 
 // Error handlers
 process.on("uncaughtException", (err) => {
   console.error("Uncaught Exception:", err);
-  process.exit(1);
+  if (server) {
+    server.close(() => process.exit(1));
+  } else {
+    process.exit(1);
+  }
 });
 
 process.on("unhandledRejection", (err) => {
@@ -66,4 +69,6 @@ process.on("unhandledRejection", (err) => {
     process.exit(1);
   }
 });
+
+// Start application
 connectWithRetry();
