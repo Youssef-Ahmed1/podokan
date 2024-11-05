@@ -1,0 +1,10 @@
+2024-11-05T00:17:05: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
+2024-11-05T00:17:05: Attempting to connect to MongoDB...
+2024-11-05T00:17:05: Database connected successfully
+2024-11-05T00:17:05: Server is running on port 8000
+2024-11-05T00:17:06: MongoDB connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-05T00:19:24: Seller token: { token: 'eyJhbGciOiJIUzI1NiIs...' }
+2024-11-05T00:19:51: Seller token: { token: 'eyJhbGciOiJIUzI1NiIs...' }
+2024-11-05T00:20:05: Seller token: { token: 'eyJhbGciOiJIUzI1NiIs...' }
+2024-11-05T00:20:19: Seller token: { token: 'eyJhbGciOiJIUzI1NiIs...' }
+2024-11-05T00:20:29: Seller token: { token: 'eyJhbGciOiJIUzI1NiIs...' }

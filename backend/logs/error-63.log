@@ -1,0 +1,95 @@
+2024-11-05T00:19:25: Error: {
+  message: "User doesn't exists",
+  stack: undefined,
+  path: '/api/v2/user/getuser'
+}
+2024-11-05T00:19:53: Product creation error: Error: Product validation failed: availableColors.0: Available colors must be one of: white, black, gray, red, blue
+    at ValidationError.inspect (/var/www/podokan/backend/node_modules/mongoose/lib/error/validation.js:50:26)
+    at formatValue (node:internal/util/inspect:806:19)
+    at inspect (node:internal/util/inspect:365:10)
+    at formatWithOptionsInternal (node:internal/util/inspect:2304:40)
+    at formatWithOptions (node:internal/util/inspect:2166:10)
+    at console.value (node:internal/console/constructor:357:14)
+    at console.error (node:internal/console/constructor:394:61)
+    at /var/www/podokan/backend/controller/product.js:178:15 {
+  errors: {
+    'availableColors.0': ValidatorError: Available colors must be one of: white, black, gray, red, blue
+        at validate (/var/www/podokan/backend/node_modules/mongoose/lib/schematype.js:1365:13)
+        at SchemaType.doValidate (/var/www/podokan/backend/node_modules/mongoose/lib/schematype.js:1349:7)
+        at /var/www/podokan/backend/node_modules/mongoose/lib/document.js:3004:18
+        at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+      properties: [Object],
+      kind: 'enum',
+      path: 'availableColors.0',
+      value: '["white"]',
+      reason: undefined,
+      [Symbol(mongoose:validatorError)]: true
+    }
+  },
+  _message: 'Product validation failed'
+}
+2024-11-05T00:19:53: Error: {
+  message: 'Product validation failed: availableColors.0: Available colors must be one of: white, black, gray, red, blue',
+  stack: undefined,
+  path: '/api/v2/product/create-product'
+}
+2024-11-05T00:20:07: Product creation error: Error: Product validation failed: availableColors.0: Available colors must be one of: white, black, gray, red, blue
+    at ValidationError.inspect (/var/www/podokan/backend/node_modules/mongoose/lib/error/validation.js:50:26)
+    at formatValue (node:internal/util/inspect:806:19)
+    at inspect (node:internal/util/inspect:365:10)
+    at formatWithOptionsInternal (node:internal/util/inspect:2304:40)
+    at formatWithOptions (node:internal/util/inspect:2166:10)
+    at console.value (node:internal/console/constructor:357:14)
+    at console.error (node:internal/console/constructor:394:61)
+    at /var/www/podokan/backend/controller/product.js:178:15 {
+  errors: {
+    'availableColors.0': ValidatorError: Available colors must be one of: white, black, gray, red, blue
+        at validate (/var/www/podokan/backend/node_modules/mongoose/lib/schematype.js:1365:13)
+        at SchemaType.doValidate (/var/www/podokan/backend/node_modules/mongoose/lib/schematype.js:1349:7)
+        at /var/www/podokan/backend/node_modules/mongoose/lib/document.js:3004:18
+        at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+      properties: [Object],
+      kind: 'enum',
+      path: 'availableColors.0',
+      value: '["white"]',
+      reason: undefined,
+      [Symbol(mongoose:validatorError)]: true
+    }
+  },
+  _message: 'Product validation failed'
+}
+2024-11-05T00:20:07: Error: {
+  message: 'Product validation failed: availableColors.0: Available colors must be one of: white, black, gray, red, blue',
+  stack: undefined,
+  path: '/api/v2/product/create-product'
+}
+2024-11-05T00:20:20: Error: {
+  message: "User doesn't exists",
+  stack: undefined,
+  path: '/api/v2/user/getuser'
+}
+2024-11-05T00:20:29: Error: {
+  message: "User doesn't exists",
+  stack: undefined,
+  path: '/api/v2/user/getuser'
+}
+2024-11-05T00:20:48: Error: {
+  message: 'Please login to continue',
+  stack: undefined,
+  path: '/api/v2/user/getuser'
+}
+2024-11-05T00:20:49: Error: {
+  message: 'Please login to continue',
+  stack: undefined,
+  path: '/api/v2/shop/getSeller'
+}
+2024-11-05T02:35:48: Error: {
+  message: 'Please login to continue',
+  stack: undefined,
+  path: '/api/v2/user/getuser'
+}
+2024-11-05T02:35:48: Error: {
+  message: 'Please login to continue',
+  stack: undefined,
+  path: '/api/v2/shop/getSeller'
+}
