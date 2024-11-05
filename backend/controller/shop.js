@@ -278,43 +278,26 @@ router.put(
   })
 );
 
-// all sellers --- for admin
-// controller/shop.js
 
-// Get all sellers -- admin only
-router.get(
-  "/admin-all-sellers",
+router.get("/admin/all-sellers", 
   isAuthenticated,
   isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 20;
-      const skip = (page - 1) * limit;
-
-      const totalSellers = await Shop.countDocuments();
-
       const sellers = await Shop.find()
-        .select('-password -__v')
+        .select('-password')
         .sort('-createdAt')
-        .skip(skip)
-        .limit(limit)
-        .lean()
-        .maxTimeMS(30000);
+        .lean();
 
       res.status(200).json({
         success: true,
-        sellers,
-        currentPage: page,
-        totalPages: Math.ceil(totalSellers / limit),
-        totalSellers,
+        sellers
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
-
 // Delete seller -- admin only
 router.delete(
   "/delete-seller/:id",
