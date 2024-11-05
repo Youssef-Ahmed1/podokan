@@ -63,9 +63,13 @@ cloudinary.config({
 });
 
 // Create HTTP server with timeout
+// server.js
 const server = http.createServer(app);
-server.timeout = 300000; // 5 minutes timeout
 
+// Increase timeouts
+server.timeout = 120000; // 2 minutes
+server.keepAliveTimeout = 65000;
+server.headersTimeout = 66000;
 // Start server
 server.listen(process.env.PORT || 8000, () => {
     console.log(`Server is running on port ${process.env.PORT || 8000}`);
