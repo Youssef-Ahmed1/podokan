@@ -9,54 +9,69 @@ const path = require('path');
 const appConfig = require('../backend/server');
 
 // CORS configuration
+// app.js
+
+// Add request logging
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Origin', req.headers.origin);
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,UPDATE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization, Seller-Authorization');
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`${new Date().toISOString()} ${req.method} ${req.path} ${res.statusCode} ${duration}ms`, {
+      query: req.query,
+      cookies: req.cookies ? Object.keys(req.cookies) : [],
+      auth: {
+        token: req.cookies.token ? 'present' : 'missing',
+        sellerToken: req.cookies.seller_token ? 'present' : 'missing'
+      }
+    });
+  });
   next();
 });
 
-const corsOptions = {
-  origin: ['http://localhost:3000', 'https://testpodokan.store'],
+// Update CORS
+app.use(cors({
+  origin: function(origin, callback) {
+    const allowedOrigins = ['http://localhost:3000', 'https://testpodokan.store'];
+    callback(null, allowedOrigins.includes(origin));
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: [
     'Content-Type',
     'Authorization',
     'Seller-Authorization',
-    'x-requested-with',
-    'Accept'
+    'X-Requested-With'
   ],
-  exposedHeaders: ['Seller-Authorization'],
-  maxAge: 86400
-};
+  exposedHeaders: ['Seller-Authorization']
+}));
 
-app.use(cors(corsOptions));
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', {
+    message: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    path: req.path,
+    method: req.method,
+    query: req.query,
+    body: req.method === 'GET' ? undefined : '<<BODY>>'
+  });
 
-// Add security headers
-app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  next();
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+    error: process.env.NODE_ENV === 'development' ? err : undefined
+  });
 });
 
-// Cookie settings
-app.use((req, res, next) => {
-  res.cookie = function(name, value, options = {}) {
-    return res.cookie(name, value, {
-      ...options,
-      secure: true,
-      httpOnly: true,
-      sameSite: 'none',
-      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
-    });
-  };
-  next();
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found',
+    path: req.originalUrl,
+    method: req.method
+  });
 });
-
 
 // Essential middleware
 app.use(express.json({ 
