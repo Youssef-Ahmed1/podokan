@@ -35,23 +35,44 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Invalid token", 401));
   }
 });
+
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
-  const token = req.cookies.seller_token || req.headers["seller-authorization"]?.split(" ")[1];
-
-  if (!token) {
-    return next(new ErrorHandler("Please login as seller", 401));
-  }
-
   try {
+    // Check both cookie and header
+    const token = 
+      req.cookies.seller_token || 
+      req.headers["seller-authorization"]?.replace("Bearer ", "") ||
+      req.headers["authorization"]?.replace("Bearer ", "");
+
+    console.log('Auth check:', {
+      cookies: req.cookies,
+      headers: {
+        auth: req.headers["authorization"],
+        sellerAuth: req.headers["seller-authorization"]
+      },
+      token: token ? token.substring(0, 20) + '...' : 'missing'
+    });
+
+    if (!token) {
+      return next(new ErrorHandler("Please login to continue", 401));
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    req.seller = await Shop.findById(decoded.id);
-    if (!req.seller) {
+    const seller = await Shop.findById(decoded.id);
+
+    if (!seller) {
       return next(new ErrorHandler("Seller not found", 401));
     }
+
+    req.seller = seller;
     next();
   } catch (error) {
-    console.error("Seller auth error:", error);
-    return next(new ErrorHandler("Invalid seller token", 401));
+    console.error('Auth error:', {
+      message: error.message,
+      type: error.name,
+      stack: error.stack
+    });
+    return next(new ErrorHandler(error.message || "Authentication failed", 401));
   }
 });
 exports.isAdmin = (roles = ['admin']) => {
