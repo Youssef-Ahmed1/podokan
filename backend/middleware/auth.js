@@ -36,6 +36,7 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
+
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
     // Check both cookie and header
@@ -75,6 +76,7 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler(error.message || "Authentication failed", 401));
   }
 });
+
 exports.isAdmin = (roles = ['admin']) => {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
