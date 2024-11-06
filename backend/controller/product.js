@@ -476,23 +476,18 @@ router.get(
   })
 );
 
-router.get("/admin/pending-products", // Remove extra api/v2 prefix
+router.get("/admin/pending-products",
   isAuthenticated,
-  isAdmin("Admin"),
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const [totalPending, pendingProducts] = await Promise.all([
-        Product.countDocuments({ status: 'pending' }),
-        Product.find({ status: 'pending' })
-          .populate('shopId', 'name email')
-          .sort('-createdAt')
-          .lean()
-      ]);
+      const products = await Product.find({ status: 'pending' })
+        .populate('shopId', 'name email avatar')
+        .sort('-createdAt');
 
       res.status(200).json({
         success: true,
-        products: pendingProducts,
-        totalPending
+        products
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
