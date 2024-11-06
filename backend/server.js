@@ -2,6 +2,23 @@
 const app = require("./app");
 const connectDatabase = require("./db/Database");
 const cloudinary = require("cloudinary").v2;
+const path = require('path');
+
+// Load environment variables
+if (process.env.NODE_ENV !== "PRODUCTION") {
+  require("dotenv").config({
+    path: "config/.env"
+  });
+} else {
+  require("dotenv").config({
+    path: path.join(__dirname, "config", ".env")
+  });
+}
+
+// Set DB_URL from ecosystem config if not set
+if (!process.env.DB_URL && process.env.MONGO_URI) {
+  process.env.DB_URL = process.env.MONGO_URI;
+}
 
 // Debug logging
 console.log('Environment:', {
@@ -9,6 +26,21 @@ console.log('Environment:', {
   DB_URL: process.env.DB_URL ? 'Set' : 'Not set',
   PORT: process.env.PORT || 8000
 });
+
+// Validate required environment variables
+const requiredEnvVars = [
+  'DB_URL',
+  'JWT_SECRET_KEY',
+  'CLOUDINARY_NAME',
+  'CLOUDINARY_API_KEY',
+  'CLOUDINARY_API_SECRET'
+];
+
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+if (missingVars.length > 0) {
+  console.error('Missing required environment variables:', missingVars);
+  process.exit(1);
+}
 
 // Configure cloudinary
 cloudinary.config({
@@ -67,18 +99,6 @@ process.on("unhandledRejection", (err) => {
   } else {
     process.exit(1);
   }
-});
-
-// Handle graceful shutdown
-process.on('SIGTERM', () => {
-  console.info('SIGTERM signal received');
-  server.close(() => {
-    console.log('Server closed');
-    mongoose.connection.close(false, () => {
-      console.log('MongoDB connection closed');
-      process.exit(0);
-    });
-  });
 });
 
 // Start application
