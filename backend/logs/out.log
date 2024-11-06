@@ -1,30 +1,89 @@
-2024-11-05T23:53:12: Environment: {
-  NODE_ENV: 'PRODUCTION',
-  DB_URL: 'Not set',
-  MONGO_URI: 'Not set',
-  PORT: 8000
+2024-11-06T00:00:20: Auth check: {
+  cookies: {
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+    seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+  },
+  headers: { auth: undefined, sellerAuth: undefined },
+  token: 'eyJhbGciOiJIUzI1NiIs...'
 }
-2024-11-05T23:53:17: Environment: {
-  NODE_ENV: 'PRODUCTION',
-  DB_URL: 'Not set',
-  MONGO_URI: 'Not set',
-  PORT: 8000
+2024-11-06T00:00:20: [2024-11-06T00:00:20.644Z] GET /get-all-events 304 132ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-06T00:00:20: [2024-11-06T00:00:20.833Z] GET /getSeller 304 333ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-06T00:00:20: [2024-11-06T00:00:20.837Z] GET /getuser 304 406ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-06T00:00:20: [2024-11-06T00:00:20.919Z] GET /get-all-products 200 412ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-06T00:00:21: [2024-11-06T00:00:21.835Z] GET /api/v2/shop/admin-all-sellers 404 2ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-06T00:00:22: [2024-11-06T00:00:22.111Z] GET /admin-all-orders 304 286ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-06T00:00:24: [2024-11-06T00:00:24.218Z] GET /admin/pending-products 304 555ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-06T00:01:53: Auth check: {
+  cookies: {
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+    seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+  },
+  headers: { auth: undefined, sellerAuth: undefined },
+  token: 'eyJhbGciOiJIUzI1NiIs...'
 }
-2024-11-05T23:53:22: Environment: {
-  NODE_ENV: 'PRODUCTION',
-  DB_URL: 'Not set',
-  MONGO_URI: 'Not set',
-  PORT: 8000
+2024-11-06T00:01:54: [2024-11-06T00:01:54.162Z] GET /get-seller-all-orders/65e23cf729b804d0261266d6 304 171ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-06T00:01:54: [2024-11-06T00:01:54.253Z] GET /get-all-products-shop/65e23cf729b804d0261266d6 200 252ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-06T00:02:03: [2024-11-06T00:02:03.507Z] PUT /approve-reject-product/672aa74049a89d4091155f41 504 30002ms { query: {}, auth: { token: 'present', sellerToken: 'present' } }
+2024-11-06T00:03:09: Auth check: {
+  cookies: [Object: null prototype] {},
+  headers: { auth: undefined, sellerAuth: undefined },
+  token: 'missing'
 }
-2024-11-05T23:53:27: Environment: {
-  NODE_ENV: 'PRODUCTION',
-  DB_URL: 'Not set',
-  MONGO_URI: 'Not set',
-  PORT: 8000
+2024-11-06T00:03:09: [2024-11-06T00:03:09.089Z] GET /api/v2/shop/getSeller 401 3ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T00:03:09: [2024-11-06T00:03:09.343Z] GET /api/v2/user/getuser 401 1ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T00:03:10: [2024-11-06T00:03:10.196Z] GET /get-all-events 200 83ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T00:03:10: [2024-11-06T00:03:10.455Z] GET /api/v2/order/admin-all-orders 401 2ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T00:21:43: [2024-11-06T00:21:43.675Z] GET / 404 1ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T00:22:48: [2024-11-06T00:22:48.831Z] GET /api/v2/user/getuser 401 2ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T00:22:49: [2024-11-06T00:22:49.547Z] GET /get-all-products 200 253ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T00:22:49: [2024-11-06T00:22:49.854Z] GET /get-all-events 200 86ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T00:22:50: Auth check: {
+  cookies: [Object: null prototype] {},
+  headers: { auth: undefined, sellerAuth: undefined },
+  token: 'missing'
 }
-2024-11-05T23:53:32: Environment: {
-  NODE_ENV: 'PRODUCTION',
-  DB_URL: 'Not set',
-  MONGO_URI: 'Not set',
-  PORT: 8000
+2024-11-06T00:22:50: [2024-11-06T00:22:50.244Z] GET /api/v2/shop/getSeller 401 2ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T01:52:48: [2024-11-06T01:52:48.494Z] GET /api/v2/user/getuser 401 1ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T02:28:19: [2024-11-06T02:28:19.776Z] GET / 404 0ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T03:22:49: [2024-11-06T03:22:49.027Z] GET /get-all-products 200 253ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T03:45:35: [2024-11-06T03:45:35.012Z] GET / 404 1ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T04:05:01: [2024-11-06T04:05:01.632Z] GET / 404 1ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T04:05:15: [2024-11-06T04:05:15.052Z] GET /favicon.ico 404 0ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T07:06:22: [2024-11-06T07:06:22.057Z] GET /get-all-events 200 85ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T07:06:22: [2024-11-06T07:06:22.633Z] GET /get-all-products 200 252ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T08:25:24: [2024-11-06T08:25:24.795Z] GET /api/v2/user/getuser 401 1ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T08:25:24: Auth check: {
+  cookies: [Object: null prototype] {},
+  headers: { auth: undefined, sellerAuth: undefined },
+  token: 'missing'
 }
+2024-11-06T08:25:24: [2024-11-06T08:25:24.799Z] GET /api/v2/shop/getSeller 401 2ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T08:25:24: [2024-11-06T08:25:24.889Z] GET /get-all-events 304 87ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T08:25:25: [2024-11-06T08:25:25.070Z] GET /get-all-products 200 271ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T12:27:33: [2024-11-06T12:27:33.145Z] GET /api/v2/user/getuser 401 3ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T12:27:33: Auth check: {
+  cookies: [Object: null prototype] {},
+  headers: { auth: undefined, sellerAuth: undefined },
+  token: 'missing'
+}
+2024-11-06T12:27:33: [2024-11-06T12:27:33.148Z] GET /api/v2/shop/getSeller 401 1ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T12:27:33: [2024-11-06T12:27:33.237Z] GET /get-all-events 200 86ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T12:27:33: [2024-11-06T12:27:33.409Z] GET /get-all-products 200 260ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T13:14:03: [2024-11-06T13:14:03.286Z] GET / 404 1ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T16:39:27: [2024-11-06T16:39:27.931Z] GET / 404 0ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T18:22:22: [2024-11-06T18:22:22.182Z] GET /api/v2/user/getuser 401 2ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T18:22:22: Auth check: {
+  cookies: [Object: null prototype] {},
+  headers: { auth: undefined, sellerAuth: undefined },
+  token: 'missing'
+}
+2024-11-06T18:22:22: [2024-11-06T18:22:22.185Z] GET /api/v2/shop/getSeller 401 2ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T20:04:25: [2024-11-06T20:04:25.406Z] GET /api/v2/user/getuser 401 2ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T20:04:26: Auth check: {
+  cookies: [Object: null prototype] {},
+  headers: { auth: undefined, sellerAuth: undefined },
+  token: 'missing'
+}
+2024-11-06T20:04:26: [2024-11-06T20:04:26.294Z] GET /api/v2/shop/getSeller 401 2ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T20:04:26: [2024-11-06T20:04:26.840Z] GET /get-all-events 200 93ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
+2024-11-06T20:04:27: [2024-11-06T20:04:27.561Z] GET /get-all-products 200 271ms { query: {}, auth: { token: 'missing', sellerToken: 'missing' } }
