@@ -4,8 +4,8 @@ module.exports = {
     name: "podokan",
     script: "server.js",
     instances: 1,
-    exec_mode: "cluster", // Change back to cluster mode
-    watch: true,
+    exec_mode: "fork",
+    watch: false,
     max_memory_restart: "1G",
     env: {
       NODE_ENV: "production",
@@ -16,10 +16,8 @@ module.exports = {
     time: true,
     merge_logs: true,
     log_date_format: "YYYY-MM-DD HH:mm:ss Z",
-    max_restarts: 10,
-    restart_delay: 4000,
-    wait_ready: false, // Remove wait_ready as it's causing issues
-    kill_timeout: 3000,
+    max_restarts: 5,
+    restart_delay: 5000,
     autorestart: true
   }]
 };
