@@ -20,41 +20,31 @@ const verifyToken = (token, secret) => {
 
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   try {
-    // Get token from cookie or Authorization header
     const token = req.cookies.token || 
-                 req.headers.authorization?.split(' ')[1];
+                 req.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Authentication required"
+        message: "Please login to access this resource"
       });
     }
 
-    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    
-    // Get user with essential fields only
-    const user = await User.findById(decoded.id)
-      .select('name email role status')
-      .lean();
+    req.user = await User.findById(decoded.id);
 
-    if (!user) {
+    if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: "User not found or deactivated"
+        message: "User not found"
       });
     }
 
-    req.user = user;
     next();
   } catch (error) {
-    console.error('Auth error:', error);
     return res.status(401).json({
       success: false,
-      message: error.name === 'TokenExpiredError' ? 
-        'Session expired. Please login again.' : 
-        'Authentication failed'
+      message: "Authentication failed"
     });
   }
 });
