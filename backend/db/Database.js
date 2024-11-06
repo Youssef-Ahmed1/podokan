@@ -1,47 +1,35 @@
-// db/Database.js
 const mongoose = require("mongoose");
 
 const connectDatabase = async () => {
   try {
     if (!process.env.DB_URL) {
-      console.error('DB_URL is not defined');
-      process.exit(1);
+      throw new Error('DB_URL is not defined');
     }
-
-    console.log('Attempting to connect to MongoDB...');
 
     const options = {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      autoIndex: true,
-      serverSelectionTimeoutMS: 15000,
+      serverSelectionTimeoutMS: 30000,
       socketTimeoutMS: 45000,
-      connectTimeoutMS: 30000,
       maxPoolSize: 10,
-      minPoolSize: 5,
-      maxIdleTimeMS: 10000,
-      family: 4,
-      retryWrites: true,
-      w: 'majority',
-      wtimeoutMS: 10000
+      family: 4
     };
 
     const conn = await mongoose.connect(process.env.DB_URL, options);
+    console.log(`MongoDB connected: ${conn.connection.host}`);
 
     mongoose.connection.on('error', (err) => {
-      console.error('MongoDB connection error:', err);
+      console.error('MongoDB error:', err);
     });
 
     mongoose.connection.on('disconnected', () => {
       console.log('MongoDB disconnected');
     });
 
-    console.log(`MongoDB connected with server: ${conn.connection.host}`);
     return conn;
-
   } catch (error) {
-    console.error("Database connection error:", error);
-    process.exit(1);
+    console.error('Database connection failed:', error);
+    throw error;
   }
 };
 
