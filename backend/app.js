@@ -69,11 +69,6 @@ app.use((req, res, next) => {
 
 // API Routes
 const API_PREFIX = "/api/v2";
-Object.entries(routes).forEach(([name, router]) => {
-  app.use(`${API_PREFIX}/${name}`, (req, res, next) => {
-    Promise.resolve(router(req, res, next)).catch(next);
-  });
-});
 
 const routes = {
   user: require("./controller/user"),
@@ -89,7 +84,9 @@ const routes = {
 };
 
 Object.entries(routes).forEach(([name, router]) => {
-  app.use(`${API_PREFIX}/${name}`, router);
+  app.use(`${API_PREFIX}/${name}`, (req, res, next) => {
+    Promise.resolve(router(req, res, next)).catch(next);
+  });
 });
 
 // Error handling
