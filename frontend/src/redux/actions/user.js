@@ -6,14 +6,15 @@ import { toast } from "react-toastify";
 
 axios.defaults.withCredentials = true;
 
-// Set auth token
-const setAuthToken = (token) => {
+// Helper function to set auth headers
+const setAuthHeader = (token) => {
   if (token) {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
     delete axios.defaults.headers.common['Authorization'];
   }
 };
+
 
 const initialState = {
   isAuthenticated: false,
@@ -90,23 +91,36 @@ export const userReducer = createReducer(initialState, (builder) => {
 export const loadUser = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadUserRequest" });
-    
+
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      setAuthHeader(storedToken);
+    }
+
     const { data } = await axios.get(`${server}/user/getuser`, {
-      withCredentials: true
+      withCredentials: true,
+      headers: {
+        'Accept': 'application/json'
+      }
     });
-    
+
     if (data.success) {
-      setAuthToken(data.token);
-      dispatch({ type: "LoadUserSuccess", payload: data.user });
+      dispatch({ 
+        type: "LoadUserSuccess", 
+        payload: data.user 
+      });
     }
   } catch (error) {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      setAuthHeader(null);
+    }
     dispatch({
       type: "LoadUserFail",
       payload: error.response?.data?.message || "Authentication failed"
     });
   }
 };
-
 // Load seller
 export const loadSeller = () => async (dispatch) => {
   try {
@@ -175,20 +189,45 @@ export const updateUserAddress =
       });
     }
   };
+  export const login = (email, password) => async (dispatch) => {
+    try {
+      dispatch({ type: "LoginRequest" });
+  
+      const { data } = await axios.post(
+        `${server}/user/login-user`,
+        { email, password },
+        { 
+          withCredentials: true,
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      );
+  
+      if (data.success) {
+        localStorage.setItem('token', data.token);
+        setAuthHeader(data.token);
+        dispatch({ type: "LoginSuccess", payload: data.user });
+      }
+    } catch (error) {
+      dispatch({
+        type: "LoginFail",
+        payload: error.response?.data?.message || "Login failed"
+      });
+    }
+  };
   export const logout = () => async (dispatch) => {
     try {
-      await axios.get(`${server}/user/logout`, { withCredentials: true });
+      await axios.get(`${server}/user/logout`, { 
+        withCredentials: true 
+      });
       
-      // Clear localStorage
       localStorage.removeItem('token');
-      localStorage.removeItem('seller_token');
-      
-      // Clear axios default header
-      delete axios.defaults.headers.common['Authorization'];
+      setAuthHeader(null);
       
       dispatch({ type: "LoadUserFail" });
-      
-      toast.success("Logout successful");
+      dispatch({ type: "Logout" });
     } catch (error) {
       console.error("Logout error:", error);
     }
