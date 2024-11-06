@@ -266,68 +266,51 @@ router.put("/approve-reject-product/:id",
       const { id } = req.params;
       const { status, statusReason } = req.body;
 
-      // Quick validation
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ success: false, message: "Invalid ID format" });
-      }
-
-      // Use session for transaction
-      const session = await mongoose.startSession();
-      session.startTransaction();
-
-      try {
-        // Update product with session
-        const product = await Product.findOneAndUpdate(
-          { _id: id },
-          {
-            $set: {
-              status,
-              statusReason: statusReason || '',
-              lastModified: new Date(),
-              lastModifiedBy: req.user._id
-            }
-          },
-          {
-            new: true,
-            session,
-            maxTimeMS: 10000,
-            lean: true
-          }
-        );
-
-        if (!product) {
-          await session.abortTransaction();
-          return res.status(404).json({ success: false, message: "Product not found" });
-        }
-
-        await session.commitTransaction();
-        
-        res.status(200).json({
-          success: true,
-          message: `Product ${status} successfully`,
-          product
+        return res.status(400).json({ 
+          success: false, 
+          message: "Invalid product ID" 
         });
-
-      } catch (error) {
-        await session.abortTransaction();
-        throw error;
-      } finally {
-        session.endSession();
       }
+
+      const product = await Product.findById(id);
+      
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: "Product not found"
+        });
+      }
+
+      // Update product
+      product.status = status;
+      product.statusReason = statusReason || '';
+      product.lastModified = new Date();
+      product.lastModifiedBy = req.user._id;
+
+      await product.save();
+
+      res.status(200).json({
+        success: true,
+        message: `Product ${status} successfully`,
+        product
+      });
 
     } catch (error) {
       console.error("Product approval error:", {
         id: req.params.id,
-        error: error.message
+        error: error.message,
+        stack: error.stack
       });
       
       return res.status(500).json({
         success: false,
-        message: "Failed to update product status. Please try again."
+        message: "Failed to update product status"
       });
     }
   })
 );
+
 // Update product design
 router.put("/update-product-design/:id", 
   isAuthenticated,
