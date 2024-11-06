@@ -1,12 +1,3 @@
-2024-11-06T21:13:09: Error: {
-  path: '/api/v2/shop/getSeller',
-  method: 'GET',
-  message: 'Please login to continue',
-  stack: undefined
-}
-2024-11-06T21:13:10: Error: {
-  path: '/api/v2/user/getuser',
-  method: 'GET',
-  message: 'Please login to continue',
-  stack: undefined
-}
+2024-11-06T21:24:28: (node:2919369) [MONGODB DRIVER] Warning: keepAlive is a deprecated option: Will not be able to turn off in the future.
+(Use `node --trace-warnings ...` to show where the warning was created)
+2024-11-06T21:24:28: (node:2919369) [MONGODB DRIVER] Warning: keepAliveInitialDelay is a deprecated option: Will not be configurable in the future.
