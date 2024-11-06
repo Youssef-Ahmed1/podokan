@@ -1,83 +1,11 @@
-2024-11-06T00:03:09: Error: {
+2024-11-06T21:13:09: Error: {
   path: '/api/v2/shop/getSeller',
   method: 'GET',
   message: 'Please login to continue',
   stack: undefined
 }
-2024-11-06T00:03:09: Error: {
+2024-11-06T21:13:10: Error: {
   path: '/api/v2/user/getuser',
-  method: 'GET',
-  message: 'Please login to continue',
-  stack: undefined
-}
-2024-11-06T00:03:10: Error: {
-  path: '/api/v2/order/admin-all-orders',
-  method: 'GET',
-  message: 'Please login to continue',
-  stack: undefined
-}
-2024-11-06T00:22:48: Error: {
-  path: '/api/v2/user/getuser',
-  method: 'GET',
-  message: 'Please login to continue',
-  stack: undefined
-}
-2024-11-06T00:22:50: Error: {
-  path: '/api/v2/shop/getSeller',
-  method: 'GET',
-  message: 'Please login to continue',
-  stack: undefined
-}
-2024-11-06T01:52:48: Error: {
-  path: '/api/v2/user/getuser',
-  method: 'GET',
-  message: 'Please login to continue',
-  stack: undefined
-}
-2024-11-06T08:25:24: Error: {
-  path: '/api/v2/user/getuser',
-  method: 'GET',
-  message: 'Please login to continue',
-  stack: undefined
-}
-2024-11-06T08:25:24: Error: {
-  path: '/api/v2/shop/getSeller',
-  method: 'GET',
-  message: 'Please login to continue',
-  stack: undefined
-}
-2024-11-06T12:27:33: Error: {
-  path: '/api/v2/user/getuser',
-  method: 'GET',
-  message: 'Please login to continue',
-  stack: undefined
-}
-2024-11-06T12:27:33: Error: {
-  path: '/api/v2/shop/getSeller',
-  method: 'GET',
-  message: 'Please login to continue',
-  stack: undefined
-}
-2024-11-06T18:22:22: Error: {
-  path: '/api/v2/user/getuser',
-  method: 'GET',
-  message: 'Please login to continue',
-  stack: undefined
-}
-2024-11-06T18:22:22: Error: {
-  path: '/api/v2/shop/getSeller',
-  method: 'GET',
-  message: 'Please login to continue',
-  stack: undefined
-}
-2024-11-06T20:04:25: Error: {
-  path: '/api/v2/user/getuser',
-  method: 'GET',
-  message: 'Please login to continue',
-  stack: undefined
-}
-2024-11-06T20:04:26: Error: {
-  path: '/api/v2/shop/getSeller',
   method: 'GET',
   message: 'Please login to continue',
   stack: undefined
