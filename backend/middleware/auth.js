@@ -99,22 +99,23 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-exports.isAdmin = catchAsyncErrors(async (req, res, next) => {
+
+exports.isAdmin = (adminType = "Admin") => catchAsyncErrors(async (req, res, next) => {
   try {
-    // Check if req.user exists before accessing properties
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: "Authentication required"
+        message: "Please login first"
       });
     }
 
-    if (req.user.role !== "admin") {
+    if (req.user.role !== adminType) {
       return res.status(403).json({
         success: false,
-        message: "Access denied. Admin only."
+        message: `Access denied. ${adminType} only.`
       });
     }
+
     next();
   } catch (error) {
     console.error('Admin auth error:', error);
