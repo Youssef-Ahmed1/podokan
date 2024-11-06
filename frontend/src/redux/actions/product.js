@@ -108,8 +108,8 @@ export const approveRejectProduct = (productId, newStatus, rejectionReason, upda
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       },
-      withCredentials: true,
-      timeout: 30000 // 30 second timeout
+      timeout: 20000, // 20 second timeout
+      withCredentials: true
     };
 
     const response = await axios.put(
@@ -128,23 +128,24 @@ export const approveRejectProduct = (productId, newStatus, rejectionReason, upda
         payload: response.data
       });
 
-      // Refresh products lists
+      // Refresh product lists
       await Promise.all([
         dispatch(fetchPendingProducts()),
         dispatch(getAllProducts())
       ]);
 
-      return { 
-        success: true, 
-        message: response.data.message 
-      };
+      return response.data;
     }
   } catch (error) {
     console.error('Approve/Reject Error:', error);
+
+    let errorMessage = 'Failed to update product status';
     
-    const errorMessage = error.code === 'ECONNABORTED'
-      ? 'Request timed out. Please try again.'
-      : error.response?.data?.message || 'Failed to update product status';
+    if (error.code === 'ECONNABORTED') {
+      errorMessage = 'Request timed out. Please try again.';
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    }
 
     dispatch({
       type: "approveRejectProductFail",

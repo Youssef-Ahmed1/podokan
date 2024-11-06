@@ -258,49 +258,46 @@ router.get(
 
 // Approve/reject product
 
-router.put("/approve-reject-product/:id", 
-  isAuthenticated, 
-  isAdmin, 
+router.put("/approve-reject-product/:id",
+  isAuthenticated,
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { id } = req.params;
       const { status, statusReason } = req.body;
 
-      // Add timeout promise
-      const timeout = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), 25000);
-      });
+      // Basic validation
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid product ID"
+        });
+      }
 
-      // Product update promise
-      const updateProduct = new Promise(async (resolve, reject) => {
-        try {
-          const product = await Product.findById(id);
-          if (!product) {
-            reject(new ErrorHandler("Product not found", 404));
-            return;
-          }
-
-          const updateData = {
+      // Find and update in one operation
+      const updatedProduct = await Product.findByIdAndUpdate(
+        id,
+        {
+          $set: {
             status,
             statusReason: statusReason || '',
             lastModified: new Date(),
             lastModifiedBy: req.user._id
-          };
-
-          const updatedProduct = await Product.findByIdAndUpdate(
-            id,
-            { $set: updateData },
-            { new: true }
-          );
-
-          resolve(updatedProduct);
-        } catch (err) {
-          reject(err);
+          }
+        },
+        { 
+          new: true,
+          runValidators: true,
+          maxTimeMS: 20000 // 20 second timeout
         }
-      });
+      ).lean();
 
-      // Race between timeout and update
-      const updatedProduct = await Promise.race([updateProduct, timeout]);
+      if (!updatedProduct) {
+        return res.status(404).json({
+          success: false,
+          message: "Product not found"
+        });
+      }
 
       res.status(200).json({
         success: true,
@@ -309,16 +306,26 @@ router.put("/approve-reject-product/:id",
       });
 
     } catch (error) {
-      if (error.message === 'Request timeout') {
-        return res.status(504).json({
+      console.error("Product approval error:", {
+        id: req.params.id,
+        error: error.message,
+        stack: error.stack
+      });
+
+      // Handle specific errors
+      if (error.name === 'MongoServerError' && error.code === 50) {
+        return res.status(503).json({
           success: false,
-          message: 'Operation timed out'
+          message: "Database operation timed out. Please try again."
         });
       }
-      return next(new ErrorHandler(error.message, error.statusCode || 500));
+
+      return next(new ErrorHandler(error.message, 500));
     }
   })
 );
+
+
 // Update product design
 router.put("/update-product-design/:id", 
   isAuthenticated,
