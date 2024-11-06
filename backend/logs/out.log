@@ -1,1 +1,18 @@
-2024-11-06T23:20:10: Server running on port 8000
+2024-11-06T23:21:44: MongoDB connected successfully
+2024-11-06T23:21:44: Server running on port 8000
+2024-11-06T23:25:37: Auth check: {
+2024-11-06T23:25:37:   cookies: {
+2024-11-06T23:25:37:     token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+2024-11-06T23:25:37:     seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+2024-11-06T23:25:37:   },
+2024-11-06T23:25:37:   headers: { auth: undefined, sellerAuth: undefined },
+2024-11-06T23:25:37:   token: 'eyJhbGciOiJIUzI1NiIs...'
+2024-11-06T23:25:37: }
+2024-11-06T23:26:00: Auth check: {
+2024-11-06T23:26:00:   cookies: {
+2024-11-06T23:26:00:     token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+2024-11-06T23:26:00:     seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+2024-11-06T23:26:00:   },
+2024-11-06T23:26:00:   headers: { auth: undefined, sellerAuth: undefined },
+2024-11-06T23:26:00:   token: 'eyJhbGciOiJIUzI1NiIs...'
+2024-11-06T23:26:00: }
