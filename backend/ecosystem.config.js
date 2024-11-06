@@ -3,19 +3,29 @@ module.exports = {
     name: "podokan",
     script: "server.js",
     instances: 1,
-    exec_mode: "fork",
+    exec_mode: "cluster",
+    watch: ["./"],
+    ignore_watch: [
+      "node_modules",
+      "uploads",
+      "logs",
+      ".git"
+    ],
     env_production: {
       NODE_ENV: "PRODUCTION",
       PORT: 8000
     },
-    watch: false,
+    max_memory_restart: "1G",
     error_file: "logs/error.log",
     out_file: "logs/out.log",
     time: true,
-    max_memory_restart: "1G",
     log_date_format: "YYYY-MM-DD HH:mm:ss Z",
-    env: {
-      NODE_ENV: "PRODUCTION"
-    }
+    combine_logs: true,
+    merge_logs: true,
+    max_restarts: 10,
+    restart_delay: 4000,
+    listen_timeout: 50000,
+    kill_timeout: 10000,
+    max_memory_restart: '1G'
   }]
 };

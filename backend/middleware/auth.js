@@ -19,22 +19,45 @@ const verifyToken = (token, secret) => {
 
 
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
-  const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
-
-  if (!token) {
-    return next(new ErrorHandler("Please login to continue", 401));
-  }
-
   try {
+    // Get token from cookie or Authorization header
+    const token = req.cookies.token || 
+                 req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required"
+      });
+    }
+
+    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    req.user = await User.findById(decoded.id);
+    
+    // Get user with essential fields only
+    const user = await User.findById(decoded.id)
+      .select('name email role status')
+      .lean();
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found or deactivated"
+      });
+    }
+
+    req.user = user;
     next();
   } catch (error) {
-    return next(new ErrorHandler("Invalid token", 401));
+    console.error('Auth error:', error);
+    return res.status(401).json({
+      success: false,
+      message: error.name === 'TokenExpiredError' ? 
+        'Session expired. Please login again.' : 
+        'Authentication failed'
+    });
   }
 });
-
-
 
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
@@ -77,10 +100,21 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
 });
 
 exports.isAdmin = catchAsyncErrors(async (req, res, next) => {
-  if (!req.user || req.user.role !== 'admin') {
-    return next(new ErrorHandler("Admin access required", 403));
+  try {
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Admin only."
+      });
+    }
+    next();
+  } catch (error) {
+    console.error('Admin auth error:', error);
+    return res.status(403).json({
+      success: false,
+      message: "Access denied"
+    });
   }
-  next();
 });
 
 module.exports = exports;
