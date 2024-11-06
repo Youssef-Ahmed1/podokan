@@ -266,66 +266,68 @@ router.put("/approve-reject-product/:id",
       const { id } = req.params;
       const { status, statusReason } = req.body;
 
-      // Basic validation
+      // Quick validation
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid product ID"
-        });
+        return res.status(400).json({ success: false, message: "Invalid ID format" });
       }
 
-      // Find and update in one operation
-      const updatedProduct = await Product.findByIdAndUpdate(
-        id,
-        {
-          $set: {
-            status,
-            statusReason: statusReason || '',
-            lastModified: new Date(),
-            lastModifiedBy: req.user._id
+      // Use session for transaction
+      const session = await mongoose.startSession();
+      session.startTransaction();
+
+      try {
+        // Update product with session
+        const product = await Product.findOneAndUpdate(
+          { _id: id },
+          {
+            $set: {
+              status,
+              statusReason: statusReason || '',
+              lastModified: new Date(),
+              lastModifiedBy: req.user._id
+            }
+          },
+          {
+            new: true,
+            session,
+            maxTimeMS: 10000,
+            lean: true
           }
-        },
-        { 
-          new: true,
-          runValidators: true,
-          maxTimeMS: 20000 // 20 second timeout
+        );
+
+        if (!product) {
+          await session.abortTransaction();
+          return res.status(404).json({ success: false, message: "Product not found" });
         }
-      ).lean();
 
-      if (!updatedProduct) {
-        return res.status(404).json({
-          success: false,
-          message: "Product not found"
+        await session.commitTransaction();
+        
+        res.status(200).json({
+          success: true,
+          message: `Product ${status} successfully`,
+          product
         });
-      }
 
-      res.status(200).json({
-        success: true,
-        message: `Product ${status} successfully`,
-        product: updatedProduct
-      });
+      } catch (error) {
+        await session.abortTransaction();
+        throw error;
+      } finally {
+        session.endSession();
+      }
 
     } catch (error) {
       console.error("Product approval error:", {
         id: req.params.id,
-        error: error.message,
-        stack: error.stack
+        error: error.message
       });
-
-      // Handle specific errors
-      if (error.name === 'MongoServerError' && error.code === 50) {
-        return res.status(503).json({
-          success: false,
-          message: "Database operation timed out. Please try again."
-        });
-      }
-
-      return next(new ErrorHandler(error.message, 500));
+      
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update product status. Please try again."
+      });
     }
   })
 );
-
-
 // Update product design
 router.put("/update-product-design/:id", 
   isAuthenticated,

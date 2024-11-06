@@ -1,4 +1,3 @@
-// db/Database.js
 const mongoose = require("mongoose");
 
 const connectDatabase = async () => {
@@ -8,21 +7,20 @@ const connectDatabase = async () => {
       process.exit(1);
     }
 
-    console.log('Attempting to connect to MongoDB...');
+    mongoose.set('maxTimeMS', 10000);
     
-    const options = {
+    const conn = await mongoose.connect(process.env.DB_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 20000,
-      socketTimeoutMS: 30000,
-      connectTimeoutMS: 30000,
-      heartbeatFrequencyMS: 5000,
-      retryWrites: true,
-      w: 'majority'
-    };
-    
+      autoIndex: true,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 15000,
+      family: 4,
+      keepAlive: true,
+      keepAliveInitialDelay: 300000
+    });
 
-    const conn = await mongoose.connect(process.env.DB_URL, options);
     console.log(`MongoDB connected with server: ${conn.connection.host}`);
 
     mongoose.connection.on('error', (err) => {
@@ -36,7 +34,7 @@ const connectDatabase = async () => {
     return conn;
   } catch (error) {
     console.error("Database connection error:", error);
-    throw error;
+    process.exit(1);
   }
 };
 
