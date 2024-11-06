@@ -50,25 +50,27 @@ const startServer = () => {
     console.log(`Server is running on port ${port} in ${process.env.NODE_ENV} mode`);
   });
 };
+server.keepAliveTimeout = 65000;
+server.headersTimeout = 66000;
+
 
 // Error handlers
 process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err);
-  if (server) {
-    server.close(() => process.exit(1));
-  } else {
-    process.exit(1);
-  }
-});
-
-process.on("unhandledRejection", (err) => {
-  console.error("Unhandled Rejection:", err);
-  if (server) {
-    server.close(() => process.exit(1));
-  } else {
-    process.exit(1);
-  }
-});
-
+    console.error("Uncaught Exception:", err);
+    if (server) {
+      server.close(() => process.exit(1));
+    } else {
+      process.exit(1);
+    }
+  });
+  
+  process.on("unhandledRejection", (err) => {
+    console.error("Unhandled Rejection:", err);
+    if (server) {
+      server.close(() => process.exit(1));
+    } else {
+      process.exit(1);
+    }
+  });
 // Start application
 connectWithRetry();
