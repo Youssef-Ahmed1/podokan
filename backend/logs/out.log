@@ -1,3 +1,39 @@
-2024-11-06T21:24:28: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Set', PORT: '8000' }
-2024-11-06T21:24:29: MongoDB connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
-2024-11-06T21:24:29: Server is running on port 8000 in PRODUCTION mode
+2024-11-06T21:24:57: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:25:02: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:25:07: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:25:12: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:25:16: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:25:21: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:25:26: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:25:31: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:25:36: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:25:40: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:25:45: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:25:50: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:25:55: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:25:59: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:26:04: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:26:09: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:26:14: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:26:18: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:26:23: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:26:28: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:26:33: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:26:37: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:26:42: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:26:47: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:26:52: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:26:56: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:27:01: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:27:06: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:27:11: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:27:15: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:27:20: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:27:25: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:27:30: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:27:34: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:27:39: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:27:44: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:27:49: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:27:53: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }
+2024-11-06T21:27:58: Environment: { NODE_ENV: 'PRODUCTION', DB_URL: 'Not set', PORT: 8000 }

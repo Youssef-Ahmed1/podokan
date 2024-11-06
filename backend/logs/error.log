@@ -1,3 +1,0 @@
-2024-11-06T21:24:28: (node:2919369) [MONGODB DRIVER] Warning: keepAlive is a deprecated option: Will not be able to turn off in the future.
-(Use `node --trace-warnings ...` to show where the warning was created)
-2024-11-06T21:24:28: (node:2919369) [MONGODB DRIVER] Warning: keepAliveInitialDelay is a deprecated option: Will not be configurable in the future.
