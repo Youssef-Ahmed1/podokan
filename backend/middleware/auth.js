@@ -20,18 +20,9 @@ const verifyToken = (token, secret) => {
 
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   try {
-    // Get token from cookie or Authorization header
     const token = 
       req.cookies.token || 
-      req.headers.authorization?.split(' ')[1] ||
-      req.headers.Authorization?.split(' ')[1];
-
-    console.log('Auth check:', {
-      path: req.path,
-      token: token ? 'present' : 'missing',
-      cookies: req.cookies,
-      headers: req.headers
-    });
+      req.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
       return res.status(401).json({
@@ -42,24 +33,22 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-      const user = await User.findById(decoded.id).select('-password');
+      req.user = await User.findById(decoded.id)
+        .select('-password')
+        .lean();
 
-      if (!user) {
+      if (!req.user) {
         return res.status(401).json({
           success: false,
           message: "User not found"
         });
       }
 
-      req.user = user;
       next();
     } catch (jwtError) {
-      console.error('JWT verification failed:', jwtError);
       return res.status(401).json({
         success: false,
-        message: jwtError.name === 'TokenExpiredError' 
-          ? "Session expired. Please login again"
-          : "Invalid authentication"
+        message: "Invalid or expired token"
       });
     }
   } catch (error) {

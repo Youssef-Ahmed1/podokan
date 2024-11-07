@@ -153,6 +153,7 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    // Validation
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -160,8 +161,8 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
       });
     }
 
-    const user = await User.findOne({ email }).select("+password");
-    
+    // Find user
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -169,6 +170,7 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
       });
     }
 
+    // Check password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -177,49 +179,19 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
       });
     }
 
-    // Generate token
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET_KEY,
-      { expiresIn: process.env.JWT_EXPIRES }
-    );
-
-    // Remove password from response
-    const userResponse = user.toObject();
-    delete userResponse.password;
-
-    // Set cookie options
-    const cookieOptions = {
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      domain: '.testpodokan.store'
-    };
-
-    res
-      .status(200)
-      .cookie('token', token, cookieOptions)
-      .json({
-        success: true,
-        token,
-        user: userResponse
-      });
-
+    // Use sendToken utility
+    sendToken(user, 200, res);
   } catch (error) {
     console.error('Login error:', error);
-    return res.status(500).json({
-      success: false,
-      message: "Login failed"
-    });
+    return next(new ErrorHandler(error.message, 500));
   }
 }));
 
-
 router.get("/getuser", catchAsyncErrors(async (req, res, next) => {
   try {
-    const token = req.cookies.token || 
-                 req.headers.authorization?.replace('Bearer ', '');
+    const token = 
+      req.cookies.token || 
+      req.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
       return res.status(401).json({
@@ -229,7 +201,9 @@ router.get("/getuser", catchAsyncErrors(async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id)
+      .select('-password')
+      .lean();
 
     if (!user) {
       return res.status(401).json({
@@ -238,8 +212,11 @@ router.get("/getuser", catchAsyncErrors(async (req, res, next) => {
       });
     }
 
-    // Use your sendToken helper
-    sendToken(user, 200, res);
+    // Send direct response instead of using sendToken
+    res.status(200).json({
+      success: true,
+      user
+    });
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
