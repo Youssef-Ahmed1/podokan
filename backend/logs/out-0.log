@@ -14,3 +14,5 @@
 2024-11-07T14:43:42: HTTP server closed
 2024-11-07T14:43:42: MongoDB disconnected, attempting to reconnect...
 2024-11-07T14:43:42: Database connection closed
+2024-11-07T14:46:57: MongoDB connected with host: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T14:46:57: Server is running on http://localhost:8000
