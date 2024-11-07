@@ -4,28 +4,14 @@ const jwt = require("jsonwebtoken");
 const Shop = require("../model/shop");
 const User = require("../model/user");
 
-exports.isSeller = catchAsyncErrors(async (req, res, next) => {
+const verifyToken = async (token, secretKey) => {
   try {
-    const token = 
-      req.cookies.seller_token ||
-      (req.headers["seller-authorization"] ? req.headers["seller-authorization"].replace("Bearer ", "") : null);
-
-    if (!token) {
-      return next(new ErrorHandler("Please login to continue", 401));
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    req.seller = await Shop.findById(decoded.id);
-
-    if (!req.seller) {
-      return next(new ErrorHandler("Seller not found", 401));
-    }
-
-    next();
+    return jwt.verify(token, secretKey);
   } catch (error) {
-    return next(new ErrorHandler("Authentication failed", 401));
+    return null;
   }
-});
+};
+
 
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   try {
@@ -38,17 +24,46 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    req.user = await User.findById(decoded.id);
+    // Remove any potential recursion here
+    const user = await User.findById(decoded.id).select('-password');
 
-    if (!req.user) {
+    if (!user) {
       return next(new ErrorHandler("User not found", 401));
     }
 
+    req.user = user;
     next();
   } catch (error) {
     return next(new ErrorHandler("Authentication failed", 401));
   }
 });
+
+exports.isSeller = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const token = 
+      req.cookies.seller_token ||
+      (req.headers["seller-authorization"] ? req.headers["seller-authorization"].replace("Bearer ", "") : null);
+
+    if (!token) {
+      return next(new ErrorHandler("Please login to continue", 401));
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    // Remove any potential recursion here
+    const seller = await Shop.findById(decoded.id).select('-password');
+
+    if (!seller) {
+      return next(new ErrorHandler("Seller not found", 401));
+    }
+
+    req.seller = seller;
+    next();
+  } catch (error) {
+    return next(new ErrorHandler("Authentication failed", 401));
+  }
+});
+// Combined auth for dual-role endpoints
+
 
 // Change back to the original format
 exports.isAdmin = (role) => {
