@@ -51,41 +51,43 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
-    // Check both cookie and header
+    // Check authorization in correct order
     const token = 
-      req.cookies.seller_token || 
       req.headers["seller-authorization"]?.replace("Bearer ", "") ||
-      req.headers["authorization"]?.replace("Bearer ", "");
-
-    console.log('Auth check:', {
-      cookies: req.cookies,
-      headers: {
-        auth: req.headers["authorization"],
-        sellerAuth: req.headers["seller-authorization"]
-      },
-      token: token ? token.substring(0, 20) + '...' : 'missing'
-    });
+      req.headers.authorization?.replace("Bearer ", "") ||
+      req.cookies.seller_token;
 
     if (!token) {
+      console.log('No seller token found:', {
+        cookies: req.cookies,
+        headers: req.headers
+      });
       return next(new ErrorHandler("Please login to continue", 401));
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const seller = await Shop.findById(decoded.id);
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      const seller = await Shop.findById(decoded.id);
 
-    if (!seller) {
-      return next(new ErrorHandler("Seller not found", 401));
+      if (!seller) {
+        return next(new ErrorHandler("Seller not found", 401));
+      }
+
+      req.seller = seller;
+      next();
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        return next(new ErrorHandler("Token expired, please login again", 401));
+      }
+      throw error;
     }
-
-    req.seller = seller;
-    next();
   } catch (error) {
-    console.error('Auth error:', {
+    console.error('Seller auth error:', {
       message: error.message,
       type: error.name,
       stack: error.stack
     });
-    return next(new ErrorHandler(error.message || "Authentication failed", 401));
+    return next(new ErrorHandler("Authentication failed", 401));
   }
 });
 
