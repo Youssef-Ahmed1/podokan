@@ -66,6 +66,21 @@ export const userReducer = createReducer(initialState, (builder) => {
     })
     .addCase("clearErrors", (state) => {
       state.error = null;
+    })    // Add these cases
+    .addCase("LoginRequest", (state) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase("LoginSuccess", (state, action) => {
+      state.isAuthenticated = true;
+      state.loading = false;
+      state.user = action.payload;
+      state.error = null;
+    })
+    .addCase("LoginFail", (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+      state.isAuthenticated = false;
     })
     .addCase("clearMessages", (state) => {
       state.successMessage = null;

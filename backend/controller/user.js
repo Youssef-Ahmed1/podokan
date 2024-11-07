@@ -200,23 +200,30 @@ router.get("/getuser", catchAsyncErrors(async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const user = await User.findById(decoded.id)
-      .select('-password')
-      .lean();
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      const user = await User.findById(decoded.id)
+        .select('-password')
+        .lean();
 
-    if (!user) {
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not found"
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        user,
+        token // Send back token for frontend to update
+      });
+    } catch (jwtError) {
       return res.status(401).json({
         success: false,
-        message: "User not found"
+        message: "Token invalid or expired"
       });
     }
-
-    // Send direct response instead of using sendToken
-    res.status(200).json({
-      success: true,
-      user
-    });
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
