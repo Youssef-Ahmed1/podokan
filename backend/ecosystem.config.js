@@ -7,7 +7,7 @@ module.exports = {
     watch: false,
     max_memory_restart: "1G",
     kill_timeout: 10000,    // Give process 10 seconds to clean up
-    wait_ready: true,       // Wait for ready signal
+    wait_ready: false,       // Wait for ready signal
     listen_timeout: 10000,  // Wait 10s for listen
     env: {
       NODE_ENV: "production",

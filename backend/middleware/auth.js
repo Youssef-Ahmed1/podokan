@@ -17,7 +17,24 @@ const extractToken = (req) => {
         return null;
     }
 };
-
+exports.apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  trustProxy: true, // Add this line
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: 'Too many requests, please try again later'
+    });
+  },
+  keyGenerator: (req) => {
+    return req.ip || 
+           req.headers['x-forwarded-for'] || 
+           req.connection.remoteAddress;
+  }
+});
 const extractSellerToken = (req) => {
     try {
         const authHeader = req.headers['seller-authorization'];
