@@ -1,0 +1,960 @@
+2024-11-07T14:35:41: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:41: Require stack:
+2024-11-07T14:35:41: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:41: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:41:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:41:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:41:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:41:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:41:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:41:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:41:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:41:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:41:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:41:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:41:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:41:   requireStack: [
+2024-11-07T14:35:41:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:41:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:41:   ]
+2024-11-07T14:35:41: }
+2024-11-07T14:35:42: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:42: Require stack:
+2024-11-07T14:35:42: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:42: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:42:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:42:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:42:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:42:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:42:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:42:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:42:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:42:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:42:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:42:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:42:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:42:   requireStack: [
+2024-11-07T14:35:42:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:42:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:42:   ]
+2024-11-07T14:35:42: }
+2024-11-07T14:35:42: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:42: Require stack:
+2024-11-07T14:35:42: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:42: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:42:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:42:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:42:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:42:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:42:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:42:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:42:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:42:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:42:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:42:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:42:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:42:   requireStack: [
+2024-11-07T14:35:42:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:42:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:42:   ]
+2024-11-07T14:35:42: }
+2024-11-07T14:35:42: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:42: Require stack:
+2024-11-07T14:35:42: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:42: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:42:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:42:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:42:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:42:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:42:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:42:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:42:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:42:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:42:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:42:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:42:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:42:   requireStack: [
+2024-11-07T14:35:42:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:42:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:42:   ]
+2024-11-07T14:35:42: }
+2024-11-07T14:35:42: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:42: Require stack:
+2024-11-07T14:35:42: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:42: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:42:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:42:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:42:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:42:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:42:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:42:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:42:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:42:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:42:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:42:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:42:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:42:   requireStack: [
+2024-11-07T14:35:42:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:42:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:42:   ]
+2024-11-07T14:35:42: }
+2024-11-07T14:35:42: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:42: Require stack:
+2024-11-07T14:35:42: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:42: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:42:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:42:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:42:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:42:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:42:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:42:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:42:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:42:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:42:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:42:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:42:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:42:   requireStack: [
+2024-11-07T14:35:42:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:42:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:42:   ]
+2024-11-07T14:35:42: }
+2024-11-07T14:35:43: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:43: Require stack:
+2024-11-07T14:35:43: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:43: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:43:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:43:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:43:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:43:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:43:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:43:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:43:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:43:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:43:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:43:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:43:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:43:   requireStack: [
+2024-11-07T14:35:43:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:43:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:43:   ]
+2024-11-07T14:35:43: }
+2024-11-07T14:35:43: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:43: Require stack:
+2024-11-07T14:35:43: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:43: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:43:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:43:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:43:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:43:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:43:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:43:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:43:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:43:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:43:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:43:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:43:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:43:   requireStack: [
+2024-11-07T14:35:43:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:43:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:43:   ]
+2024-11-07T14:35:43: }
+2024-11-07T14:35:43: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:43: Require stack:
+2024-11-07T14:35:43: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:43: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:43:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:43:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:43:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:43:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:43:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:43:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:43:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:43:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:43:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:43:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:43:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:43:   requireStack: [
+2024-11-07T14:35:43:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:43:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:43:   ]
+2024-11-07T14:35:43: }
+2024-11-07T14:35:43: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:43: Require stack:
+2024-11-07T14:35:43: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:43: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:43:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:43:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:43:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:43:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:43:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:43:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:43:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:43:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:43:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:43:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:43:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:43:   requireStack: [
+2024-11-07T14:35:43:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:43:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:43:   ]
+2024-11-07T14:35:43: }
+2024-11-07T14:35:44: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:44: Require stack:
+2024-11-07T14:35:44: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:44: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:44:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:44:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:44:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:44:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:44:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:44:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:44:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:44:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:44:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:44:   requireStack: [
+2024-11-07T14:35:44:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:44:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:44:   ]
+2024-11-07T14:35:44: }
+2024-11-07T14:35:44: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:44: Require stack:
+2024-11-07T14:35:44: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:44: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:44:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:44:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:44:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:44:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:44:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:44:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:44:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:44:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:44:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:44:   requireStack: [
+2024-11-07T14:35:44:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:44:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:44:   ]
+2024-11-07T14:35:44: }
+2024-11-07T14:35:44: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:44: Require stack:
+2024-11-07T14:35:44: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:44: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:44:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:44:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:44:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:44:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:44:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:44:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:44:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:44:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:44:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:44:   requireStack: [
+2024-11-07T14:35:44:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:44:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:44:   ]
+2024-11-07T14:35:44: }
+2024-11-07T14:35:44: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:44: Require stack:
+2024-11-07T14:35:44: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:44: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:44:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:44:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:44:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:44:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:44:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:44:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:44:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:44:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:44:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:44:   requireStack: [
+2024-11-07T14:35:44:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:44:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:44:   ]
+2024-11-07T14:35:44: }
+2024-11-07T14:35:44: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:44: Require stack:
+2024-11-07T14:35:44: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:44: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:44:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:44:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:44:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:44:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:44:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:44:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:44:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:44:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:44:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:44:   requireStack: [
+2024-11-07T14:35:44:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:44:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:44:   ]
+2024-11-07T14:35:44: }
+2024-11-07T14:35:45: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:35:45: Require stack:
+2024-11-07T14:35:45: - /var/www/podokan/backend/app.js
+2024-11-07T14:35:45: - /var/www/podokan/backend/server.js
+2024-11-07T14:35:45:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:35:45:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:35:45:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:35:45:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:35:45:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:35:45:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:35:45:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:35:45:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:35:45:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:35:45:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:35:45:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:35:45:   requireStack: [
+2024-11-07T14:35:45:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:35:45:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:35:45:   ]
+2024-11-07T14:35:45: }
+2024-11-07T14:37:13: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:13: Require stack:
+2024-11-07T14:37:13: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:13: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:13:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:13:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:13:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:13:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:13:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:13:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:13:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:13:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:13:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:13:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:13:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:13:   requireStack: [
+2024-11-07T14:37:13:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:13:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:13:   ]
+2024-11-07T14:37:13: }
+2024-11-07T14:37:13: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:13: Require stack:
+2024-11-07T14:37:13: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:13: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:13:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:13:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:13:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:13:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:13:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:13:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:13:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:13:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:13:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:13:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:13:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:13:   requireStack: [
+2024-11-07T14:37:13:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:13:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:13:   ]
+2024-11-07T14:37:13: }
+2024-11-07T14:37:13: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:13: Require stack:
+2024-11-07T14:37:13: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:13: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:13:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:13:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:13:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:13:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:13:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:13:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:13:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:13:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:13:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:13:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:13:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:13:   requireStack: [
+2024-11-07T14:37:13:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:13:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:13:   ]
+2024-11-07T14:37:13: }
+2024-11-07T14:37:13: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:13: Require stack:
+2024-11-07T14:37:13: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:13: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:13:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:13:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:13:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:13:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:13:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:13:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:13:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:13:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:13:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:13:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:13:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:13:   requireStack: [
+2024-11-07T14:37:13:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:13:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:13:   ]
+2024-11-07T14:37:13: }
+2024-11-07T14:37:14: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:14: Require stack:
+2024-11-07T14:37:14: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:14: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:14:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:14:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:14:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:14:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:14:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:14:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:14:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:14:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:14:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:14:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:14:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:14:   requireStack: [
+2024-11-07T14:37:14:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:14:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:14:   ]
+2024-11-07T14:37:14: }
+2024-11-07T14:37:14: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:14: Require stack:
+2024-11-07T14:37:14: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:14: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:14:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:14:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:14:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:14:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:14:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:14:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:14:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:14:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:14:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:14:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:14:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:14:   requireStack: [
+2024-11-07T14:37:14:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:14:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:14:   ]
+2024-11-07T14:37:14: }
+2024-11-07T14:37:14: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:14: Require stack:
+2024-11-07T14:37:14: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:14: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:14:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:14:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:14:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:14:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:14:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:14:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:14:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:14:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:14:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:14:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:14:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:14:   requireStack: [
+2024-11-07T14:37:14:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:14:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:14:   ]
+2024-11-07T14:37:14: }
+2024-11-07T14:37:14: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:14: Require stack:
+2024-11-07T14:37:14: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:14: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:14:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:14:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:14:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:14:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:14:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:14:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:14:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:14:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:14:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:14:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:14:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:14:   requireStack: [
+2024-11-07T14:37:14:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:14:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:14:   ]
+2024-11-07T14:37:14: }
+2024-11-07T14:37:14: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:14: Require stack:
+2024-11-07T14:37:14: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:14: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:14:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:14:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:14:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:14:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:14:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:14:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:14:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:14:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:14:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:14:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:14:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:14:   requireStack: [
+2024-11-07T14:37:14:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:14:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:14:   ]
+2024-11-07T14:37:14: }
+2024-11-07T14:37:15: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:15: Require stack:
+2024-11-07T14:37:15: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:15: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:15:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:15:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:15:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:15:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:15:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:15:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:15:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:15:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:15:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:15:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:15:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:15:   requireStack: [
+2024-11-07T14:37:15:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:15:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:15:   ]
+2024-11-07T14:37:15: }
+2024-11-07T14:37:15: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:15: Require stack:
+2024-11-07T14:37:15: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:15: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:15:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:15:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:15:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:15:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:15:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:15:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:15:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:15:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:15:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:15:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:15:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:15:   requireStack: [
+2024-11-07T14:37:15:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:15:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:15:   ]
+2024-11-07T14:37:15: }
+2024-11-07T14:37:15: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:15: Require stack:
+2024-11-07T14:37:15: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:15: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:15:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:15:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:15:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:15:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:15:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:15:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:15:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:15:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:15:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:15:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:15:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:15:   requireStack: [
+2024-11-07T14:37:15:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:15:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:15:   ]
+2024-11-07T14:37:15: }
+2024-11-07T14:37:15: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:15: Require stack:
+2024-11-07T14:37:15: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:15: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:15:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:15:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:15:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:15:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:15:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:15:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:15:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:15:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:15:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:15:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:15:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:15:   requireStack: [
+2024-11-07T14:37:15:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:15:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:15:   ]
+2024-11-07T14:37:15: }
+2024-11-07T14:37:16: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:16: Require stack:
+2024-11-07T14:37:16: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:16: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:16:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:16:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:16:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:16:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:16:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:16:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:16:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:16:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:16:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:16:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:16:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:16:   requireStack: [
+2024-11-07T14:37:16:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:16:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:16:   ]
+2024-11-07T14:37:16: }
+2024-11-07T14:37:16: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:16: Require stack:
+2024-11-07T14:37:16: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:16: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:16:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:16:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:16:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:16:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:16:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:16:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:16:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:16:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:16:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:16:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:16:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:16:   requireStack: [
+2024-11-07T14:37:16:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:16:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:16:   ]
+2024-11-07T14:37:16: }
+2024-11-07T14:37:16: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:16: Require stack:
+2024-11-07T14:37:16: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:16: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:16:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:16:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:16:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:16:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:16:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:16:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:16:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:16:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:16:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:16:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:16:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:16:   requireStack: [
+2024-11-07T14:37:16:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:16:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:16:   ]
+2024-11-07T14:37:16: }
+2024-11-07T14:37:28: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:28: Require stack:
+2024-11-07T14:37:28: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:28: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:28:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:28:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:28:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:28:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:28:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:28:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:28:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:28:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:28:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:28:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:28:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:28:   requireStack: [
+2024-11-07T14:37:28:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:28:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:28:   ]
+2024-11-07T14:37:28: }
+2024-11-07T14:37:28: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:28: Require stack:
+2024-11-07T14:37:28: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:28: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:28:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:28:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:28:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:28:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:28:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:28:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:28:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:28:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:28:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:28:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:28:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:28:   requireStack: [
+2024-11-07T14:37:28:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:28:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:28:   ]
+2024-11-07T14:37:28: }
+2024-11-07T14:37:29: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:29: Require stack:
+2024-11-07T14:37:29: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:29: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:29:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:29:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:29:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:29:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:29:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:29:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:29:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:29:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:29:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:29:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:29:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:29:   requireStack: [
+2024-11-07T14:37:29:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:29:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:29:   ]
+2024-11-07T14:37:29: }
+2024-11-07T14:37:29: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:29: Require stack:
+2024-11-07T14:37:29: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:29: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:29:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:29:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:29:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:29:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:29:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:29:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:29:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:29:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:29:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:29:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:29:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:29:   requireStack: [
+2024-11-07T14:37:29:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:29:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:29:   ]
+2024-11-07T14:37:29: }
+2024-11-07T14:37:29: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:29: Require stack:
+2024-11-07T14:37:29: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:29: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:29:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:29:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:29:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:29:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:29:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:29:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:29:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:29:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:29:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:29:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:29:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:29:   requireStack: [
+2024-11-07T14:37:29:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:29:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:29:   ]
+2024-11-07T14:37:29: }
+2024-11-07T14:37:29: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:29: Require stack:
+2024-11-07T14:37:29: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:29: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:29:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:29:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:29:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:29:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:29:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:29:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:29:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:29:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:29:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:29:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:29:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:29:   requireStack: [
+2024-11-07T14:37:29:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:29:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:29:   ]
+2024-11-07T14:37:29: }
+2024-11-07T14:37:29: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:29: Require stack:
+2024-11-07T14:37:29: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:29: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:29:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:29:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:29:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:29:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:29:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:29:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:29:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:29:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:29:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:29:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:29:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:29:   requireStack: [
+2024-11-07T14:37:29:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:29:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:29:   ]
+2024-11-07T14:37:29: }
+2024-11-07T14:37:30: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:30: Require stack:
+2024-11-07T14:37:30: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:30: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:30:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:30:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:30:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:30:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:30:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:30:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:30:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:30:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:30:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:30:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:30:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:30:   requireStack: [
+2024-11-07T14:37:30:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:30:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:30:   ]
+2024-11-07T14:37:30: }
+2024-11-07T14:37:30: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:30: Require stack:
+2024-11-07T14:37:30: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:30: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:30:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:30:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:30:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:30:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:30:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:30:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:30:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:30:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:30:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:30:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:30:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:30:   requireStack: [
+2024-11-07T14:37:30:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:30:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:30:   ]
+2024-11-07T14:37:30: }
+2024-11-07T14:37:30: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:30: Require stack:
+2024-11-07T14:37:30: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:30: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:30:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:30:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:30:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:30:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:30:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:30:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:30:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:30:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:30:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:30:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:30:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:30:   requireStack: [
+2024-11-07T14:37:30:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:30:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:30:   ]
+2024-11-07T14:37:30: }
+2024-11-07T14:37:30: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:30: Require stack:
+2024-11-07T14:37:30: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:30: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:30:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:30:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:30:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:30:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:30:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:30:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:30:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:30:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:30:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:30:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:30:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:30:   requireStack: [
+2024-11-07T14:37:30:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:30:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:30:   ]
+2024-11-07T14:37:30: }
+2024-11-07T14:37:31: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:31: Require stack:
+2024-11-07T14:37:31: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:31: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:31:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:31:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:31:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:31:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:31:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:31:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:31:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:31:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:31:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:31:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:31:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:31:   requireStack: [
+2024-11-07T14:37:31:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:31:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:31:   ]
+2024-11-07T14:37:31: }
+2024-11-07T14:37:31: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:31: Require stack:
+2024-11-07T14:37:31: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:31: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:31:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:31:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:31:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:31:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:31:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:31:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:31:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:31:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:31:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:31:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:31:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:31:   requireStack: [
+2024-11-07T14:37:31:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:31:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:31:   ]
+2024-11-07T14:37:31: }
+2024-11-07T14:37:31: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:31: Require stack:
+2024-11-07T14:37:31: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:31: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:31:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:31:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:31:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:31:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:31:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:31:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:31:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:31:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:31:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:31:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:31:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:31:   requireStack: [
+2024-11-07T14:37:31:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:31:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:31:   ]
+2024-11-07T14:37:31: }
+2024-11-07T14:37:31: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:31: Require stack:
+2024-11-07T14:37:31: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:31: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:31:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:31:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:31:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:31:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:31:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:31:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:31:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:31:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:31:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:31:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:31:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:31:   requireStack: [
+2024-11-07T14:37:31:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:31:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:31:   ]
+2024-11-07T14:37:31: }
+2024-11-07T14:37:31: Error: Cannot find module './middleware/rateLimiter'
+2024-11-07T14:37:31: Require stack:
+2024-11-07T14:37:31: - /var/www/podokan/backend/app.js
+2024-11-07T14:37:31: - /var/www/podokan/backend/server.js
+2024-11-07T14:37:31:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+2024-11-07T14:37:31:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+2024-11-07T14:37:31:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:37:31:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:20)
+2024-11-07T14:37:31:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:37:31:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:37:31:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:37:31:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:37:31:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:37:31:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T14:37:31:   code: 'MODULE_NOT_FOUND',
+2024-11-07T14:37:31:   requireStack: [
+2024-11-07T14:37:31:     '/var/www/podokan/backend/app.js',
+2024-11-07T14:37:31:     '/var/www/podokan/backend/server.js'
+2024-11-07T14:37:31:   ]
+2024-11-07T14:37:31: }
