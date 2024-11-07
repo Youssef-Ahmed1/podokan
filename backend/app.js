@@ -1,5 +1,4 @@
 const express = require("express");
-var http = require('http');
 const fs = require('fs').promises;
 const ErrorHandler = require("./middleware/error");
 const app = express();
@@ -8,7 +7,6 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const multer = require('multer');
 const path = require('path');
-const appConfig = require('../backend/server');
 
 const createUploadsDirectory = async () => {
   const uploadPath = path.join(__dirname, 'uploads');
@@ -25,10 +23,8 @@ const createUploadsDirectory = async () => {
   }
 };
 
-createUploadsDirectory().catch(console.error);
-
 const corsOptions = {
-  origin: ['https://testpodokan.store', 'https://www.testpodokan.store' , "http://localhost:3000" , "http://www.testpodokan.store"],
+  origin: ['https://testpodokan.store', 'https://www.testpodokan.store', 'http://localhost:3000', 'http://www.testpodokan.store'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Seller-Authorization'],
@@ -67,51 +63,25 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((req, res, next) => {
-  console.log('Request:', {
-    method: req.method,
-    path: req.path,
-    cookies: req.cookies,
-    headers: {
-      origin: req.headers.origin,
-      authorization: req.headers.authorization ? 'present' : 'missing',
-      'seller-authorization': req.headers['seller-authorization'] ? 'present' : 'missing'
-    }
-  });
-  next();
-});
-
-app.use(express.json({ 
-  limit: '50mb',
-  verify: (req, res, buf) => {
-    req.rawBody = buf.toString();
-  }
-}));
-
+app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-if (process.env.NODE_ENV !== "PRODUCTION") {
-  require("dotenv").config({
-    path: "config/.env",
-  });
-}
-
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: (req, file, cb) => {
     cb(null, path.join(__dirname, 'uploads'));
   },
-  filename: function (req, file, cb) {
+  filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  },
+  }
 });
 
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 50 * 1024 * 1024 },
-  fileFilter: function (req, file, cb) {
+  fileFilter: (req, file, cb) => {
     const filetypes = /jpeg|jpg|png|gif/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = filetypes.test(file.mimetype);
@@ -119,32 +89,23 @@ const upload = multer({
       return cb(null, true);
     }
     cb(new Error("Error: Images Only!"));
-  },
+  }
 });
 
-const user = require("./controller/user");
-const shop = require("./controller/shop");
-const product = require("./controller/product");
-const event = require("./controller/event");
-const coupon = require("./controller/coupounCode");
-const payment = require("./controller/payment");
-const order = require("./controller/order");
-const conversation = require("./controller/conversation");
-const message = require("./controller/message");
-const withdraw = require("./controller/withdraw");
+createUploadsDirectory().catch(console.error);
 
 const API_PREFIX = "/api/v2";
 
-app.use(`${API_PREFIX}/user`, user);
-app.use(`${API_PREFIX}/shop`, shop);
-app.use(`${API_PREFIX}/product`, product);
-app.use(`${API_PREFIX}/event`, event);
-app.use(`${API_PREFIX}/coupon`, coupon);
-app.use(`${API_PREFIX}/payment`, payment);
-app.use(`${API_PREFIX}/order`, order);
-app.use(`${API_PREFIX}/conversation`, conversation);
-app.use(`${API_PREFIX}/message`, message);
-app.use(`${API_PREFIX}/withdraw`, withdraw);
+app.use(`${API_PREFIX}/user`, require("./controller/user"));
+app.use(`${API_PREFIX}/shop`, require("./controller/shop"));
+app.use(`${API_PREFIX}/product`, require("./controller/product"));
+app.use(`${API_PREFIX}/event`, require("./controller/event"));
+app.use(`${API_PREFIX}/coupon`, require("./controller/coupounCode"));
+app.use(`${API_PREFIX}/payment`, require("./controller/payment"));
+app.use(`${API_PREFIX}/order`, require("./controller/order"));
+app.use(`${API_PREFIX}/conversation`, require("./controller/conversation"));
+app.use(`${API_PREFIX}/message`, require("./controller/message"));
+app.use(`${API_PREFIX}/withdraw`, require("./controller/withdraw"));
 
 app.use((req, res, next) => {
   res.setTimeout(30000, () => {
@@ -164,24 +125,15 @@ app.use((err, req, res, next) => {
   });
 
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    return res.status(400).json({
-      success: false,
-      message: 'Invalid JSON'
-    });
+    return res.status(400).json({ success: false, message: 'Invalid JSON' });
   }
 
   if (err.name === 'PayloadTooLargeError') {
-    return res.status(413).json({
-      success: false,
-      message: 'Request entity too large'
-    });
+    return res.status(413).json({ success: false, message: 'Request entity too large' });
   }
 
   if (err.code === 'ETIMEDOUT' || err.code === 'ECONNABORTED') {
-    return res.status(504).json({
-      success: false,
-      message: 'Request timeout'
-    });
+    return res.status(504).json({ success: false, message: 'Request timeout' });
   }
 
   const statusCode = err.statusCode || 500;
