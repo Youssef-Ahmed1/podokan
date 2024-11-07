@@ -6,19 +6,12 @@ module.exports = {
     exec_mode: "fork",
     watch: false,
     max_memory_restart: "1G",
+    kill_timeout: 10000,    // Give process 10 seconds to clean up
+    wait_ready: true,       // Wait for ready signal
+    listen_timeout: 10000,  // Wait 10s for listen
     env: {
       NODE_ENV: "production",
       PORT: 8000
-    },
-    node_args: ['--max-old-space-size=2048'],
-    kill_timeout: 5000,
-    wait_ready: false,
-    listen_timeout: 10000,
-    max_restarts: 10,
-    restart_delay: 4000,
-    error_file: "/root/.pm2/logs/podokan-error.log",
-    out_file: "/root/.pm2/logs/podokan-out.log",
-    log_date_format: "YYYY-MM-DD HH:mm:ss Z",
-    merge_logs: true
+    }
   }]
 };
