@@ -90,3 +90,30 @@
 2024-11-06T23:59:29:   headers: { auth: undefined, sellerAuth: undefined },
 2024-11-06T23:59:29:   token: 'missing'
 2024-11-06T23:59:29: }
+2024-11-07T00:08:37: Auth check: {
+2024-11-07T00:08:37:   cookies: {
+2024-11-07T00:08:37:     token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+2024-11-07T00:08:37:     seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+2024-11-07T00:08:37:   },
+2024-11-07T00:08:37:   headers: {
+2024-11-07T00:08:37:     auth: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDkzNTU1NywiZXhwIjoxNzMxNTQwMzU3fQ.zEybI9vyDJWKjSuGYcX2W-wHGt5i6HqZVpVcPiNPg3s',
+2024-11-07T00:08:37:     sellerAuth: undefined
+2024-11-07T00:08:37:   },
+2024-11-07T00:08:37:   token: 'eyJhbGciOiJIUzI1NiIs...'
+2024-11-07T00:08:37: }
+2024-11-07T00:10:01: Auth check: {
+2024-11-07T00:10:01:   cookies: [Object: null prototype] {},
+2024-11-07T00:10:01:   headers: { auth: undefined, sellerAuth: undefined },
+2024-11-07T00:10:01:   token: 'missing'
+2024-11-07T00:10:01: }
+2024-11-07T00:10:08: Auth check: {
+2024-11-07T00:10:08:   cookies: {
+2024-11-07T00:10:08:     token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+2024-11-07T00:10:08:     seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+2024-11-07T00:10:08:   },
+2024-11-07T00:10:08:   headers: {
+2024-11-07T00:10:08:     auth: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDkzNTU1NywiZXhwIjoxNzMxNTQwMzU3fQ.zEybI9vyDJWKjSuGYcX2W-wHGt5i6HqZVpVcPiNPg3s',
+2024-11-07T00:10:08:     sellerAuth: undefined
+2024-11-07T00:10:08:   },
+2024-11-07T00:10:08:   token: 'eyJhbGciOiJIUzI1NiIs...'
+2024-11-07T00:10:08: }
