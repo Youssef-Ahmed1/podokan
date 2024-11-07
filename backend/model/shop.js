@@ -90,16 +90,16 @@ shopSchema.pre("save", async function (next) {
 
 // jwt token
 shopSchema.methods.getJwtToken = function () {
-  try {
-    return jwt.sign(
-      { id: this._id },
-      process.env.JWT_SECRET_KEY,
-      { expiresIn: process.env.JWT_EXPIRES || '7d' }
-    );
-  } catch (error) {
-    console.error('JWT Generation Error:', error);
-    throw error;
-  }
+  return jwt.sign(
+    { 
+      id: this._id,
+      role: 'seller' // Add role explicitly
+    }, 
+    process.env.JWT_SECRET_KEY,
+    {
+      expiresIn: process.env.JWT_EXPIRES
+    }
+  );
 };
 // comapre password
 shopSchema.methods.comparePassword = async function (enteredPassword) {

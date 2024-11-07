@@ -51,36 +51,47 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
-    // Check authorization in correct order
+    // Debug log the incoming request
+    console.log('Seller Auth Debug:', {
+      cookies: req.cookies,
+      headers: {
+        auth: req.headers.authorization,
+        sellerAuth: req.headers['seller-authorization']
+      }
+    });
+
     const token = 
-      req.headers["seller-authorization"]?.replace("Bearer ", "") ||
-      req.headers.authorization?.replace("Bearer ", "") ||
+      req.headers['seller-authorization']?.replace('Bearer ', '') ||
       req.cookies.seller_token;
 
     if (!token) {
-      console.log('No seller token found:', {
-        cookies: req.cookies,
-        headers: req.headers
-      });
-      return next(new ErrorHandler("Please login to continue", 401));
+      return next(new ErrorHandler("Please login as seller to continue", 401));
     }
 
+    let decoded;
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-      const seller = await Shop.findById(decoded.id);
-
-      if (!seller) {
-        return next(new ErrorHandler("Seller not found", 401));
-      }
-
-      req.seller = seller;
-      next();
-    } catch (error) {
-      if (error.name === 'TokenExpiredError') {
-        return next(new ErrorHandler("Token expired, please login again", 401));
-      }
-      throw error;
+      decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    } catch (err) {
+      console.error('Token verification failed:', err);
+      return next(new ErrorHandler("Invalid seller token", 401));
     }
+
+    // Add debug log for decoded token
+    console.log('Decoded seller token:', {
+      id: decoded.id,
+      exp: new Date(decoded.exp * 1000)
+    });
+
+    const seller = await Shop.findById(decoded.id);
+    
+    if (!seller) {
+      console.error('Seller not found for ID:', decoded.id);
+      return next(new ErrorHandler("Seller not found", 401));
+    }
+
+    // Add the seller to the request object
+    req.seller = seller;
+    next();
   } catch (error) {
     console.error('Seller auth error:', {
       message: error.message,
