@@ -1,4 +1,4 @@
-cat > /var/www/podokan/backend/app.js << 'EOL'
+cat > /var/www/podokan/backend/app.js << 'EOF'
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -87,4 +87,4 @@ app.use(`${API_PREFIX}/withdraw`, withdraw);
 app.use(ErrorHandler);
 
 module.exports = app;
-EOL
+EOF
