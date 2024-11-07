@@ -15,18 +15,18 @@ const verifyToken = async (token, secretKey) => {
 
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   try {
-    const token = 
-      req.cookies.token ||
-      (req.headers.authorization ? req.headers.authorization.replace("Bearer ", "") : null);
+    const token = req.cookies.token;
 
     if (!token) {
       return next(new ErrorHandler("Please login to continue", 401));
     }
 
+    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    // Remove any potential recursion here
+    
+    // Find user without password
     const user = await User.findById(decoded.id).select('-password');
-
+    
     if (!user) {
       return next(new ErrorHandler("User not found", 401));
     }
@@ -34,24 +34,27 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+      return next(new ErrorHandler("Invalid token", 401));
+    }
+    if (error.name === 'TokenExpiredError') {
+      return next(new ErrorHandler("Token expired", 401));
+    }
     return next(new ErrorHandler("Authentication failed", 401));
   }
 });
 
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
-    const token = 
-      req.cookies.seller_token ||
-      (req.headers["seller-authorization"] ? req.headers["seller-authorization"].replace("Bearer ", "") : null);
+    const token = req.cookies.seller_token;
 
     if (!token) {
-      return next(new ErrorHandler("Please login to continue", 401));
+      return next(new ErrorHandler("Please login as seller to continue", 401));
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    // Remove any potential recursion here
     const seller = await Shop.findById(decoded.id).select('-password');
-
+    
     if (!seller) {
       return next(new ErrorHandler("Seller not found", 401));
     }
@@ -59,10 +62,16 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
     req.seller = seller;
     next();
   } catch (error) {
-    return next(new ErrorHandler("Authentication failed", 401));
+    if (error.name === 'JsonWebTokenError') {
+      return next(new ErrorHandler("Invalid seller token", 401));
+    }
+    if (error.name === 'TokenExpiredError') {
+      return next(new ErrorHandler("Seller token expired", 401));
+    }
+    return next(new ErrorHandler("Seller authentication failed", 401));
   }
 });
-// Combined auth for dual-role endpoints
+
 
 
 // Change back to the original format
