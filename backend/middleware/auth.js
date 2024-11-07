@@ -1,14 +1,25 @@
-const ErrorHandler = require("../utils/ErrorHandler");
-const asyncHandler = require("./catchAsyncErrors");
+// middleware/auth.js
+
 const jwt = require("jsonwebtoken");
 const Shop = require("../model/shop");
 const User = require("../model/user");
+const ErrorHandler = require("../utils/ErrorHandler");
 
-const isAuthenticated = asyncHandler(async (req, res, next) => {
+const verifyToken = (token, secret) => {
   try {
-    const token = 
-      req.headers.authorization?.replace('Bearer ', '') ||
-      req.cookies.token;
+    return jwt.verify(token, secret);
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      throw new ErrorHandler('Token has expired', 401);
+    }
+    throw new ErrorHandler('Invalid token', 401);
+  }
+};
+
+const isAuthenticated = async (req, res, next) => {
+  try {
+    // Get token from headers or cookies
+    const token = req.cookies?.token || req.headers?.authorization?.replace('Bearer ', '');
 
     if (!token) {
       return res.status(401).json({
@@ -17,9 +28,11 @@ const isAuthenticated = asyncHandler(async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    // Verify token
+    const decoded = verifyToken(token, process.env.JWT_SECRET_KEY);
+    
+    // Get user
     const user = await User.findById(decoded.id).select('+role');
-
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -32,52 +45,63 @@ const isAuthenticated = asyncHandler(async (req, res, next) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: error.name === 'TokenExpiredError' 
-        ? "Token expired, please login again"
-        : "Authentication failed"
+      message: error.message || "Authentication failed"
     });
   }
-});
+};
 
-const isSeller = asyncHandler(async (req, res, next) => {
+const isSeller = async (req, res, next) => {
   try {
-    const token = 
-      req.headers['seller-authorization']?.replace('Bearer ', '') ||
-      req.cookies.seller_token;
+    const token = req.cookies?.seller_token || 
+                 req.headers?.['seller-authorization']?.replace('Bearer ', '');
 
     if (!token) {
-      return next(new ErrorHandler("Please login as seller to continue", 401));
+      return res.status(401).json({
+        success: false,
+        message: "Please login as seller"
+      });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const decoded = verifyToken(token, process.env.JWT_SECRET_KEY);
     const seller = await Shop.findById(decoded.id);
-    
+
     if (!seller) {
-      return next(new ErrorHandler("Seller not found", 401));
+      return res.status(401).json({
+        success: false,
+        message: "Seller not found"
+      });
     }
 
     req.seller = seller;
     next();
   } catch (error) {
-    return next(new ErrorHandler("Authentication failed", 401));
+    return res.status(401).json({
+      success: false,
+      message: error.message || "Seller authentication failed"
+    });
   }
-});
+};
 
-const isAdmin = asyncHandler(async (req, res, next) => {
-  if (!req.user) {
-    return next(new ErrorHandler("Please login first", 401));
+const isAdmin = async (req, res, next) => {
+  try {
+    if (!req.user || req.user.role !== "Admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Admin only."
+      });
+    }
+    next();
+  } catch (error) {
+    return res.status(403).json({
+      success: false,
+      message: "Admin access denied"
+    });
   }
+};
 
-  if (req.user.role !== "Admin") {
-    return next(new ErrorHandler("Access denied. Admin only.", 403));
-  }
-
-  next();
-});
-
-// Single exports at the end
 module.exports = {
   isAuthenticated,
   isSeller,
-  isAdmin
+  isAdmin,
+  verifyToken  // Export for testing
 };
