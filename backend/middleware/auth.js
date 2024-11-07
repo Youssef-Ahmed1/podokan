@@ -92,7 +92,7 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
 });
 
 
-exports.isAdmin = (adminType = "Admin") => catchAsyncErrors(async (req, res, next) => {
+exports.isAdmin = (adminType = "admin") => catchAsyncErrors(async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -108,11 +108,6 @@ exports.isAdmin = (adminType = "Admin") => catchAsyncErrors(async (req, res, nex
       });
     }
 
-    // Add caching headers
-    res.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-    res.set('Expires', '-1');
-    res.set('Pragma', 'no-cache');
-
     next();
   } catch (error) {
     console.error('Admin auth error:', error);
@@ -122,5 +117,4 @@ exports.isAdmin = (adminType = "Admin") => catchAsyncErrors(async (req, res, nex
     });
   }
 });
-
 module.exports = exports;
