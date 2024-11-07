@@ -62,7 +62,7 @@ export const fetchPendingProducts = () => async (dispatch) => {
     const config = {
       headers: getAuthHeaders(),
       withCredentials: true,
-      timeout: 60000 // Increase timeout to 60 seconds
+      timeout: 30000  // Reduce timeout to 30 seconds
     };
 
     const { data } = await axios.get(
@@ -75,12 +75,20 @@ export const fetchPendingProducts = () => async (dispatch) => {
       payload: data.products 
     });
   } catch (error) {
-    console.error("Error fetching pending products:", error);
-    dispatch({
-      type: "fetchPendingProductsFail",
-      payload: error.response?.data?.message || 
-               "Failed to fetch pending products. Please try again."
-    });
+    if (error.code === 'ECONNABORTED') {
+      console.error("Request timed out:", error);
+      dispatch({
+        type: "fetchPendingProductsFail",
+        payload: "Request timed out - please try again"
+      });
+    } else {
+      console.error("Error fetching pending products:", error);
+      dispatch({
+        type: "fetchPendingProductsFail",
+        payload: error.response?.data?.message || 
+                 "Failed to fetch pending products"
+      });
+    }
   }
 };
 
