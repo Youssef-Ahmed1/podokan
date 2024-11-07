@@ -7,6 +7,8 @@ echo "Deploying application..."
 cd /var/www/podokan
 
 # Pull latest changes
+git add .
+git commit -m 'save'
 git pull origin main
 
 # Frontend build
