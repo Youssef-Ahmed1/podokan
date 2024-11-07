@@ -14,32 +14,66 @@ const AllProducts = () => {
 
   const fetchProducts = () => {
     setIsLoading(true);
-    axios.get(`${server}/product/admin-all-products`, {withCredentials: true})
+    axios.get(`${server}/product/admin-all-products`, {
+      withCredentials: true,
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      timeout: 30000 // 30 second timeout
+    })
       .then((res) => {
-        setData(res.data.products);
+        const processedProducts = res.data.products.map(product => ({
+          ...product,
+          name: product.DesignTitle, // Map DesignTitle to name for DataGrid
+          price: product.discountPrice || product.originalPrice,
+          Stock: product.availableColors?.length || 1,
+          sold: product.sold_out || 0
+        }));
+        setData(processedProducts);
         setIsLoading(false);
       })
       .catch((err) => {
-        setError(err.message);
+        console.error("Error fetching products:", err);
+        setError(err.response?.data?.message || "Error fetching products");
         setIsLoading(false);
       });
   };
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const handleDelete = (id) => {
-    axios.delete(`${server}/product/delete-product/${id}`, {withCredentials: true})
-      .then(() => {
-        fetchProducts(); // Refetch the products after successful deletion
-      })
-      .catch((err) => {
-        console.error("Error deleting product:", err);
-        // Optionally, show an error message to the user
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${server}/product/delete-shop-product/${id}`, {
+        withCredentials: true,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
       });
+      fetchProducts(); // Refetch after successful deletion
+    } catch (err) {
+      console.error("Error deleting product:", err);
+      alert(err.response?.data?.message || "Error deleting product");
+    }
   };
-
+  const handleApproveReject = async (id, status) => {
+    try {
+      await axios.put(
+        `${server}/product/approve-reject-product/${id}`,
+        { status },
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      fetchProducts(); // Refresh the list
+    } catch (err) {
+      console.error("Error updating product status:", err);
+      alert(err.response?.data?.message || "Error updating product status");
+    }
+  };
   const columns = [
     { field: "id", headerName: "Product Id", minWidth: 150, flex: 0.7 },
     {
@@ -68,6 +102,53 @@ const AllProducts = () => {
       minWidth: 130,
       flex: 0.6,
     },
+    {
+      field: "status",
+      headerName: "Status",
+      minWidth: 130,
+      flex: 0.6,
+      renderCell: (params) => {
+        return (
+          <span className={`px-2 py-1 rounded ${
+            params.value === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+            params.value === 'public' ? 'bg-green-100 text-green-800' :
+            'bg-red-100 text-red-800'
+          }`}>
+            {params.value}
+          </span>
+        );
+      }
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      minWidth: 200,
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => handleApproveReject(params.id, 'public')}
+              disabled={params.row.status === 'public'}
+              className="bg-green-500 text-white"
+            >
+              Approve
+            </Button>
+            <Button
+              onClick={() => handleApproveReject(params.id, 'rejected')}
+              disabled={params.row.status === 'rejected'}
+              className="bg-red-500 text-white"
+            >
+              Reject
+            </Button>
+            <Button onClick={() => handleDelete(params.id)}>
+              <AiOutlineDelete size={20} />
+            </Button>
+          </div>
+        );
+      }
+    }
+,  
     {
       field: "Preview",
       flex: 0.8,

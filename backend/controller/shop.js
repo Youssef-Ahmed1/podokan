@@ -279,21 +279,24 @@ router.put(
 );
 
 
-router.get("/admin/all-sellers", 
+router.get(
+  "/admin-all-sellers",
   isAuthenticated,
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const sellers = await Shop.find()
         .select('-password')
-        .sort('-createdAt')
-        .lean();
+        .sort({ createdAt: -1 })
+        .lean()
+        .maxTimeMS(30000);
 
       res.status(200).json({
         success: true,
         sellers
       });
     } catch (error) {
+      console.error('Get all sellers error:', error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
