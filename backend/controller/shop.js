@@ -145,7 +145,12 @@ router.post("/login-shop", catchAsyncErrors(async (req, res, next) => {
       .json({
         success: true,
         token,
-        seller
+        seller: {
+          _id: seller._id,
+          name: seller.name,
+          email: seller.email,
+          role: 'seller'
+        }
       });
 
   } catch (error) {
