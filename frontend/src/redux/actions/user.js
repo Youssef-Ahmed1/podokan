@@ -96,10 +96,13 @@ export const loadUser = () => async (dispatch) => {
     });
     
     if (data.success) {
-      setAuthToken(data.token);
-      dispatch({ type: "LoadUserSuccess", payload: data.user });
+      dispatch({ 
+        type: "LoadUserSuccess", 
+        payload: data.user 
+      });
     }
   } catch (error) {
+    console.error("Load user error:", error.response?.data || error.message);
     dispatch({
       type: "LoadUserFail",
       payload: error.response?.data?.message || "Authentication failed"
