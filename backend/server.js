@@ -1,7 +1,10 @@
+// server.js
+require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+
 const app = express();
 
 // Middlewares
@@ -23,7 +26,6 @@ app.use("/api/v2/order", require("./controller/order"));
 mongoose.connect(process.env.DB_URL)
   .then(() => {
     console.log("Database connected");
-    // Only start server after DB connects
     app.listen(8000, () => {
       console.log("Server running on port 8000");
     });
@@ -32,8 +34,3 @@ mongoose.connect(process.env.DB_URL)
     console.log("Database connection failed:", err);
     process.exit(1);
   });
-
-// Handle errors
-mongoose.connection.on('error', err => {
-  console.error('MongoDB error:', err);
-});
