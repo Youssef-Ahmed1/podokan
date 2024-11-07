@@ -1,11 +1,10 @@
 const ErrorHandler = require("../utils/ErrorHandler");
-const catchAsyncErrors = require("./catchAsyncErrors");
+const asyncHandler = require("./catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 const Shop = require("../model/shop");
 const User = require("../model/user");
 
-// Remove exports. syntax and use const declarations
-const isAuthenticated = catchAsyncErrors(async (req, res, next) => {
+const isAuthenticated = asyncHandler(async (req, res, next) => {
   try {
     const token = 
       req.headers.authorization?.replace('Bearer ', '') ||
@@ -40,7 +39,7 @@ const isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-const isSeller = catchAsyncErrors(async (req, res, next) => {
+const isSeller = asyncHandler(async (req, res, next) => {
   try {
     const token = 
       req.headers['seller-authorization']?.replace('Bearer ', '') ||
@@ -64,7 +63,7 @@ const isSeller = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-const isAdmin = catchAsyncErrors(async (req, res, next) => {
+const isAdmin = asyncHandler(async (req, res, next) => {
   if (!req.user) {
     return next(new ErrorHandler("Please login first", 401));
   }
