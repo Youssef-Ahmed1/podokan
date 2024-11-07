@@ -1,63 +1,25 @@
-// middleware/auth.js
 const ErrorHandler = require("../utils/ErrorHandler");
-const catchAsyncErrors = require("./catchAsyncErrors");
+const asyncHandler = require("./catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 const Shop = require("../model/shop");
 const User = require("../model/user");
 
-// Separate token verification into its own middleware
-const verifyAuthToken = (req, res, next) => {
-  const token = req.cookies?.token || req.headers?.authorization?.replace('Bearer ', '');
-  
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: "Authentication token is missing"
-    });
-  }
-
+const isAuthenticated = asyncHandler(async (req, res, next) => {
   try {
+    const token = 
+      req.headers.authorization?.replace('Bearer ', '') ||
+      req.cookies.token;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Please login to access this resource"
+      });
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    req.decoded = decoded;
-    next();
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: error.name === 'TokenExpiredError' ? 
-        "Token has expired" : "Invalid token"
-    });
-  }
-};
+    const user = await User.findById(decoded.id).select('+role');
 
-const verifySellerToken = (req, res, next) => {
-  const token = req.cookies?.seller_token || 
-                req.headers?.['seller-authorization']?.replace('Bearer ', '');
-  
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: "Seller token is missing"
-    });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    req.decodedSeller = decoded;
-    next();
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: error.name === 'TokenExpiredError' ? 
-        "Seller token has expired" : "Invalid seller token"
-    });
-  }
-};
-
-const isAuthenticated = [
-  verifyAuthToken,
-  catchAsyncErrors(async (req, res, next) => {
-    const user = await User.findById(req.decoded.id).select('+role');
-    
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -67,40 +29,53 @@ const isAuthenticated = [
 
     req.user = user;
     next();
-  })
-];
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: error.name === 'TokenExpiredError' 
+        ? "Token expired, please login again"
+        : "Authentication failed"
+    });
+  }
+});
 
-const isSeller = [
-  verifySellerToken,
-  catchAsyncErrors(async (req, res, next) => {
-    const seller = await Shop.findById(req.decodedSeller.id);
+const isSeller = asyncHandler(async (req, res, next) => {
+  try {
+    const token = 
+      req.headers['seller-authorization']?.replace('Bearer ', '') ||
+      req.cookies.seller_token;
+
+    if (!token) {
+      return next(new ErrorHandler("Please login as seller to continue", 401));
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const seller = await Shop.findById(decoded.id);
     
     if (!seller) {
-      return res.status(401).json({
-        success: false,
-        message: "Seller not found"
-      });
+      return next(new ErrorHandler("Seller not found", 401));
     }
 
     req.seller = seller;
     next();
-  })
-];
-
-const isAdmin = [
-  isAuthenticated[0],
-  isAuthenticated[1],
-  (req, res, next) => {
-    if (req.user.role !== "Admin") {
-      return res.status(403).json({
-        success: false,
-        message: "Admin access required"
-      });
-    }
-    next();
+  } catch (error) {
+    return next(new ErrorHandler("Authentication failed", 401));
   }
-];
+});
 
+const isAdmin = asyncHandler(async (req, res, next) => {
+  if (!req.user) {
+    return next(new ErrorHandler("Please login first", 401));
+  }
+
+  if (req.user.role !== "Admin") {
+    return next(new ErrorHandler("Access denied. Admin only.", 403));
+  }
+
+  next();
+});
+
+// Single exports at the end
 module.exports = {
   isAuthenticated,
   isSeller,
