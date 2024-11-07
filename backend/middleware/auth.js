@@ -1,38 +1,63 @@
 // middleware/auth.js
-
+const ErrorHandler = require("../utils/ErrorHandler");
+const catchAsyncErrors = require("./catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 const Shop = require("../model/shop");
 const User = require("../model/user");
-const ErrorHandler = require("../utils/ErrorHandler");
 
-const verifyToken = (token, secret) => {
+// Separate token verification into its own middleware
+const verifyAuthToken = (req, res, next) => {
+  const token = req.cookies?.token || req.headers?.authorization?.replace('Bearer ', '');
+  
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: "Authentication token is missing"
+    });
+  }
+
   try {
-    return jwt.verify(token, secret);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    req.decoded = decoded;
+    next();
   } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      throw new ErrorHandler('Token has expired', 401);
-    }
-    throw new ErrorHandler('Invalid token', 401);
+    return res.status(401).json({
+      success: false,
+      message: error.name === 'TokenExpiredError' ? 
+        "Token has expired" : "Invalid token"
+    });
   }
 };
 
-const isAuthenticated = async (req, res, next) => {
+const verifySellerToken = (req, res, next) => {
+  const token = req.cookies?.seller_token || 
+                req.headers?.['seller-authorization']?.replace('Bearer ', '');
+  
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: "Seller token is missing"
+    });
+  }
+
   try {
-    // Get token from headers or cookies
-    const token = req.cookies?.token || req.headers?.authorization?.replace('Bearer ', '');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    req.decodedSeller = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: error.name === 'TokenExpiredError' ? 
+        "Seller token has expired" : "Invalid seller token"
+    });
+  }
+};
 
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "Please login to access this resource"
-      });
-    }
-
-    // Verify token
-    const decoded = verifyToken(token, process.env.JWT_SECRET_KEY);
+const isAuthenticated = [
+  verifyAuthToken,
+  catchAsyncErrors(async (req, res, next) => {
+    const user = await User.findById(req.decoded.id).select('+role');
     
-    // Get user
-    const user = await User.findById(decoded.id).select('+role');
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -42,29 +67,14 @@ const isAuthenticated = async (req, res, next) => {
 
     req.user = user;
     next();
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: error.message || "Authentication failed"
-    });
-  }
-};
+  })
+];
 
-const isSeller = async (req, res, next) => {
-  try {
-    const token = req.cookies?.seller_token || 
-                 req.headers?.['seller-authorization']?.replace('Bearer ', '');
-
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "Please login as seller"
-      });
-    }
-
-    const decoded = verifyToken(token, process.env.JWT_SECRET_KEY);
-    const seller = await Shop.findById(decoded.id);
-
+const isSeller = [
+  verifySellerToken,
+  catchAsyncErrors(async (req, res, next) => {
+    const seller = await Shop.findById(req.decodedSeller.id);
+    
     if (!seller) {
       return res.status(401).json({
         success: false,
@@ -74,34 +84,25 @@ const isSeller = async (req, res, next) => {
 
     req.seller = seller;
     next();
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: error.message || "Seller authentication failed"
-    });
-  }
-};
+  })
+];
 
-const isAdmin = async (req, res, next) => {
-  try {
-    if (!req.user || req.user.role !== "Admin") {
+const isAdmin = [
+  isAuthenticated[0],
+  isAuthenticated[1],
+  (req, res, next) => {
+    if (req.user.role !== "Admin") {
       return res.status(403).json({
         success: false,
-        message: "Access denied. Admin only."
+        message: "Admin access required"
       });
     }
     next();
-  } catch (error) {
-    return res.status(403).json({
-      success: false,
-      message: "Admin access denied"
-    });
   }
-};
+];
 
 module.exports = {
   isAuthenticated,
   isSeller,
-  isAdmin,
-  verifyToken  // Export for testing
+  isAdmin
 };
