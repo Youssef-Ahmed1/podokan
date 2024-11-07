@@ -2,6 +2,8 @@ import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
 // get all sellers --- admin
+axios.defaults.withCredentials = true;
+
 export const getAllSellers = () => async (dispatch) => {
   try {
     dispatch({ type: "getAllSellersRequest" });

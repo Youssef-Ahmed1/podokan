@@ -137,7 +137,27 @@ router.post("/login-shop", catchAsyncErrors(async (req, res, next) => {
       httpOnly: true,
       sameSite: 'none',
       secure: true,
-    };
+      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : 'localhost'
+  };
+  
+  // For user login
+  res.cookie('token', token, cookieOptions)
+     .header('Authorization', `Bearer ${token}`)
+     .json({
+          success: true,
+          token,
+          user
+     });
+  
+  // For seller login
+  res.cookie('seller_token', token, cookieOptions)
+     .header('Seller-Authorization', `Bearer ${token}`)
+     .json({
+          success: true,
+          token,
+          seller
+     });
+  
 
     res.status(200)
       .cookie("seller_token", token, cookieOptions)
