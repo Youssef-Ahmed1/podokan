@@ -205,13 +205,14 @@ export const updateUserAddress =
   
       if (data.success) {
         localStorage.setItem('token', data.token);
+        setAuthToken(data.token); // Set axios default header
         dispatch({ type: "LoginSuccess", payload: data.user });
+        toast.success("Login successful");
       }
     } catch (error) {
-      dispatch({
-        type: "LoginFail",
-        payload: error.response?.data?.message || "Login failed"
-      });
+      const message = error.response?.data?.message || "Login failed";
+      dispatch({ type: "LoginFail", payload: message });
+      toast.error(message);
     }
   };
   export const logout = () => async (dispatch) => {
