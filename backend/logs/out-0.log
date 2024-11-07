@@ -811,3 +811,12 @@
 2024-11-07T16:01:16:   PORT: '8000'
 2024-11-07T16:01:16: }
 2024-11-07T16:01:16: Server running on port 8000
+2024-11-07T16:21:52: Environment: {
+2024-11-07T16:21:52:   NODE_ENV: 'production',
+2024-11-07T16:21:52:   DB_URL: 'Set',
+2024-11-07T16:21:52:   MONGO_URI: 'Not set',
+2024-11-07T16:21:52:   PORT: '8000'
+2024-11-07T16:21:52: }
+2024-11-07T16:21:52: Server running on port 8000
+2024-11-07T16:21:52: Uploads directory exists
+2024-11-07T16:21:53: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
