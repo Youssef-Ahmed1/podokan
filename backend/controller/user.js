@@ -170,7 +170,6 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
     }
 
     const isPasswordValid = await user.comparePassword(password);
-    
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -178,24 +177,24 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
       });
     }
 
-    // Create token
+    // Generate token
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET_KEY,
-      { expiresIn: '7d' }
+      { expiresIn: process.env.JWT_EXPIRES }
     );
 
     // Remove password from response
-    const userWithoutPassword = user.toObject();
-    delete userWithoutPassword.password;
+    const userResponse = user.toObject();
+    delete userResponse.password;
 
     // Set cookie options
     const cookieOptions = {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'PRODUCTION',
-      sameSite: 'strict',
-      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
+      secure: true,
+      sameSite: 'none',
+      domain: '.testpodokan.store'
     };
 
     res
@@ -203,9 +202,10 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
       .cookie('token', token, cookieOptions)
       .json({
         success: true,
-        user: userWithoutPassword,
-        token
+        token,
+        user: userResponse
       });
+
   } catch (error) {
     console.error('Login error:', error);
     return res.status(500).json({

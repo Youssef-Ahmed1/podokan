@@ -90,18 +90,27 @@ export const userReducer = createReducer(initialState, (builder) => {
 export const loadUser = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadUserRequest" });
+
+    // Get token from localStorage
+    const token = localStorage.getItem('token');
     
-    const { data } = await axios.get(`${server}/user/getuser`, {
+    const config = {
       withCredentials: true,
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
       }
-    });
+    };
+    
+    const { data } = await axios.get(`${server}/user/getuser`, config);
     
     if (data.success) {
-      localStorage.setItem('token', data.token);
       dispatch({ type: "LoadUserSuccess", payload: data.user });
+      // Update token if returned
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
     }
   } catch (error) {
     dispatch({
