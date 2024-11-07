@@ -113,14 +113,14 @@ const upload = multer({
     cb(new Error("Error: Images Only!"));
   },
 });
-// app.js (add this before your routes)
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`, {
+  console.log('Request:', {
+    method: req.method,
+    path: req.path,
     cookies: req.cookies,
     headers: {
-      origin: req.headers.origin,
-      auth: req.headers.authorization,
-      sellerAuth: req.headers['seller-authorization']
+      authorization: req.headers.authorization ? 'present' : 'missing',
+      'seller-authorization': req.headers['seller-authorization'] ? 'present' : 'missing'
     }
   });
   next();

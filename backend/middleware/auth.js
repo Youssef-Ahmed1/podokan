@@ -20,10 +20,18 @@ const verifyToken = (token, secret) => {
 
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   try {
+    // Get token from cookie or Authorization header
     const token = 
       req.cookies.token || 
-      req.headers.authorization?.replace("Bearer ", "") ||
-      req.headers["authorization"]?.replace("Bearer ", "");
+      req.headers.authorization?.split(' ')[1] ||
+      req.headers.Authorization?.split(' ')[1];
+
+    console.log('Auth check:', {
+      path: req.path,
+      token: token ? 'present' : 'missing',
+      cookies: req.cookies,
+      headers: req.headers
+    });
 
     if (!token) {
       return res.status(401).json({
@@ -34,9 +42,7 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-      const user = await User.findById(decoded.id)
-        .select('-password')
-        .lean();
+      const user = await User.findById(decoded.id).select('-password');
 
       if (!user) {
         return res.status(401).json({
@@ -48,7 +54,7 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
       req.user = user;
       next();
     } catch (jwtError) {
-      console.error('JWT Error:', jwtError);
+      console.error('JWT verification failed:', jwtError);
       return res.status(401).json({
         success: false,
         message: jwtError.name === 'TokenExpiredError' 
@@ -57,7 +63,7 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
       });
     }
   } catch (error) {
-    console.error('Auth Error:', error);
+    console.error('Auth error:', error);
     return res.status(500).json({
       success: false,
       message: "Authentication failed"
