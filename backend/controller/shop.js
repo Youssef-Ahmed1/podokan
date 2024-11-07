@@ -106,18 +106,8 @@ router.post(
 );
 
 // login shop
-// login shop
 router.post("/login-shop", async (req, res) => {
   try {
-    console.log('Login request received:', {
-      body: req.body,
-      cookies: req.cookies,
-      headers: {
-        'content-type': req.headers['content-type'],
-        'seller-authorization': req.headers['seller-authorization']
-      }
-    });
-
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -127,28 +117,9 @@ router.post("/login-shop", async (req, res) => {
       });
     }
 
-    // Find shop and verify password
     const shop = await Shop.findOne({ email }).select('+password');
-    console.log('Shop lookup result:', {
-      found: !!shop,
-      email: email,
-      shopId: shop?._id
-    });
 
-    if (!shop) {
-      return res.status(401).json({
-        success: false,
-        message: "Shop not found"
-      });
-    }
-
-    const isPasswordValid = await shop.comparePassword(password);
-    console.log('Password validation:', {
-      isValid: isPasswordValid,
-      shopId: shop._id
-    });
-
-    if (!isPasswordValid) {
+    if (!shop || !(await shop.comparePassword(password))) {
       return res.status(401).json({
         success: false,
         message: "Invalid credentials"
@@ -162,30 +133,8 @@ router.post("/login-shop", async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    console.log('Token generated:', {
-      tokenExists: !!token,
-      shopId: shop._id
-    });
-
-    // Cookie options
-    const cookieOptions = {
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      path: '/',
-      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
-    };
-
-    // Prepare response object
     const shopResponse = shop.toObject();
     delete shopResponse.password;
-
-    console.log('Preparing response:', {
-      success: true,
-      hasSeller: !!shopResponse,
-      hasToken: !!token
-    });
 
     // Set cookie and send response
     return res
@@ -197,28 +146,14 @@ router.post("/login-shop", async (req, res) => {
         seller: shopResponse,
         token
       });
-
   } catch (error) {
-    console.error("Login error:", {
-      message: error.message,
-      stack: error.stack,
-      type: error.name,
-      env: {
-        nodeEnv: process.env.NODE_ENV,
-        jwtSecret: !!process.env.JWT_SECRET_KEY,
-        jwtExpires: process.env.JWT_EXPIRES
-      }
-    });
-
+    console.error("Login error:", error);
     return res.status(500).json({
       success: false,
-      message: process.env.NODE_ENV === 'PRODUCTION' ? 
-        "Login failed" : 
-        `Login failed: ${error.message}`
+      message: "Login failed"
     });
   }
 });
-
 router.get(
   "/getSeller",
   isSeller,
