@@ -10,6 +10,7 @@ const appConfig = require('../backend/server');
 const  axios = require("axios");
 
 
+
 // CORS configuration
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Credentials', 'true');

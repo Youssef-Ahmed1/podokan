@@ -1,7 +1,7 @@
 const app = require("./app");
 const connectDatabase = require("./db/Database.js");
 const cloudinary = require("cloudinary").v2;
-
+const mongoose = require('mongoose');
 if (process.env.NODE_ENV !== "PRODUCTION") {
   require("dotenv").config({
     path: "config/.env",
@@ -14,7 +14,10 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const server = require('http').createServer(app);
+const server = app.listen(process.env.PORT || 8000, () => {
+  console.log(`Server is running on port ${process.env.PORT || 8000}`);
+});
+
 
 const connectWithRetry = async (retries = 5) => {
   try {
@@ -35,6 +38,25 @@ const connectWithRetry = async (retries = 5) => {
     }
   }
 };
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('SIGINT received. Starting graceful shutdown...');
+  
+  try {
+      await server.close();
+      console.log('HTTP server closed');
+      
+      if (mongoose.connection.readyState === 1) {
+          await mongoose.connection.close();
+          console.log('MongoDB connection closed');
+      }
+      
+      process.exit(0);
+  } catch (err) {
+      console.error('Error during shutdown:', err);
+      process.exit(1);
+  }
+});
 
 process.on("uncaughtException", (err) => {
   console.error("Uncaught Exception:", err);
