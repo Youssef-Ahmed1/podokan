@@ -52,10 +52,11 @@ const startServer = async () => {
     });
 
     // Handle shutdown signals
-    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    ['SIGTERM', 'SIGINT'].forEach(signal => {
+      process.on(signal, () => gracefulShutdown(signal));
+    });
 
-    // Handle unhandled promise rejections
+    // Handle unhandled rejections
     process.on("unhandledRejection", (err) => {
       console.error(`Unhandled Promise Rejection: ${err.message}`);
       gracefulShutdown('UNHANDLED_REJECTION');

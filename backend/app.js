@@ -28,15 +28,13 @@ const corsOptions = {
   allowedHeaders: [
     'Content-Type',
     'Authorization',
-    'Seller-Authorization',
-    'Accept',
-    'Origin',
-    'X-Requested-With'
+    'Seller-Authorization'
   ],
   exposedHeaders: ['Authorization', 'Seller-Authorization']
 };
 
 app.use(cors(corsOptions));
+
 
 // Essential middleware
 app.use(express.json({ limit: '50mb' }));
