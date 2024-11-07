@@ -80,3 +80,33 @@
 2024-11-07T15:07:41: (node:2999119) [MONGODB DRIVER] Warning: keepAlive is a deprecated option: Will not be able to turn off in the future.
 2024-11-07T15:07:41: (Use `node --trace-warnings ...` to show where the warning was created)
 2024-11-07T15:07:41: (node:2999119) [MONGODB DRIVER] Warning: keepAliveInitialDelay is a deprecated option: Will not be configurable in the future.
+2024-11-07T15:15:29: Error: {
+2024-11-07T15:15:29:   message: 'Maximum call stack size exceeded',
+2024-11-07T15:15:29:   stack: undefined,
+2024-11-07T15:15:29:   path: '/api/v2/user/getuser'
+2024-11-07T15:15:29: }
+2024-11-07T15:20:15: Error: {
+2024-11-07T15:20:15:   message: 'Maximum call stack size exceeded',
+2024-11-07T15:20:15:   stack: undefined,
+2024-11-07T15:20:15:   path: '/api/v2/user/getuser'
+2024-11-07T15:20:15: }
+2024-11-07T15:21:40: Error: {
+2024-11-07T15:21:40:   message: 'Maximum call stack size exceeded',
+2024-11-07T15:21:40:   stack: undefined,
+2024-11-07T15:21:40:   path: '/api/v2/user/login-user'
+2024-11-07T15:21:40: }
+2024-11-07T15:23:04: Error: {
+2024-11-07T15:23:04:   message: 'Maximum call stack size exceeded',
+2024-11-07T15:23:04:   stack: undefined,
+2024-11-07T15:23:04:   path: '/api/v2/user/getuser'
+2024-11-07T15:23:04: }
+2024-11-07T15:23:11: Error: {
+2024-11-07T15:23:11:   message: 'Maximum call stack size exceeded',
+2024-11-07T15:23:11:   stack: undefined,
+2024-11-07T15:23:11:   path: '/api/v2/user/login-user'
+2024-11-07T15:23:11: }
+2024-11-07T15:24:50: Error: {
+2024-11-07T15:24:50:   message: 'Please login to continue',
+2024-11-07T15:24:50:   stack: undefined,
+2024-11-07T15:24:50:   path: '/api/v2/shop/getSeller'
+2024-11-07T15:24:50: }
