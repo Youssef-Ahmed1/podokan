@@ -20,44 +20,51 @@ const verifyToken = (token, secret) => {
 
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   try {
-    // Get token from cookie or Authorization header
-    const token = req.cookies.token || 
-                 req.headers.authorization?.split(' ')[1];
+    const token = 
+      req.cookies.token || 
+      req.headers.authorization?.replace("Bearer ", "") ||
+      req.headers["authorization"]?.replace("Bearer ", "");
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Authentication required"
+        message: "Please login to continue"
       });
     }
 
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    
-    // Get user with essential fields only
-    const user = await User.findById(decoded.id)
-      .select('name email role status')
-      .lean();
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      const user = await User.findById(decoded.id)
+        .select('-password')
+        .lean();
 
-    if (!user) {
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not found"
+        });
+      }
+
+      req.user = user;
+      next();
+    } catch (jwtError) {
+      console.error('JWT Error:', jwtError);
       return res.status(401).json({
         success: false,
-        message: "User not found or deactivated"
+        message: jwtError.name === 'TokenExpiredError' 
+          ? "Session expired. Please login again"
+          : "Invalid authentication"
       });
     }
-
-    req.user = user;
-    next();
   } catch (error) {
-    console.error('Auth error:', error);
-    return res.status(401).json({
+    console.error('Auth Error:', error);
+    return res.status(500).json({
       success: false,
-      message: error.name === 'TokenExpiredError' ? 
-        'Session expired. Please login again.' : 
-        'Authentication failed'
+      message: "Authentication failed"
     });
   }
 });
+
 
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
