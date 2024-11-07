@@ -3,6 +3,7 @@ const catchAsyncErrors = require("./catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 const User = require("../model/user");
 const Shop = require("../model/shop");
+const expressRateLimit = require('express-rate-limit'); // Add this import
 
 // Token extractors
 const extractToken = (req) => {
@@ -17,24 +18,7 @@ const extractToken = (req) => {
         return null;
     }
 };
-exports.apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  trustProxy: true, // Add this line
-  handler: (req, res) => {
-    res.status(429).json({
-      success: false,
-      message: 'Too many requests, please try again later'
-    });
-  },
-  keyGenerator: (req) => {
-    return req.ip || 
-           req.headers['x-forwarded-for'] || 
-           req.connection.remoteAddress;
-  }
-});
+
 const extractSellerToken = (req) => {
     try {
         const authHeader = req.headers['seller-authorization'];
@@ -47,6 +31,23 @@ const extractSellerToken = (req) => {
         return null;
     }
 };
+
+// Rate limiting middleware
+exports.apiLimiter = expressRateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: {
+        success: false,
+        message: 'Too many requests, please try again later'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    trustProxy: true,
+    skipFailedRequests: true,
+    keyGenerator: (req) => {
+        return req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    }
+});
 
 // Authentication middleware
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
@@ -61,24 +62,17 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-        const user = await User.findById(decoded.id).select("+role");
+        req.user = await User.findById(decoded.id).select("+role");
 
-        if (!user) {
+        if (!req.user) {
             return res.status(401).json({
                 success: false,
                 message: "User not found"
             });
         }
 
-        req.user = user;
         next();
     } catch (error) {
-        if (error.name === 'TokenExpiredError') {
-            return res.status(401).json({
-                success: false,
-                message: "Token expired, please login again"
-            });
-        }
         return res.status(401).json({
             success: false,
             message: "Authentication failed"

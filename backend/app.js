@@ -2,43 +2,25 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const { apiLimiter } = require("./middleware/auth");
 const ErrorHandler = require("./middleware/error");
 
 const app = express();
 
-// Trust proxy - Add this before other middleware
+// Trust proxy settings
 app.set('trust proxy', 1);
 
-// Rate limiter configuration
-const rateLimit = require('express-rate-limit');
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per window
-  standardHeaders: true,
-  legacyHeaders: false,
-  trustProxy: true,
-  handler: (req, res) => {
-    res.status(429).json({
-      success: false,
-      message: 'Too many requests, please try again later'
-    });
-  },
-  skip: (req) => {
-    // Skip rate limiting for health checks
-    return req.path === '/health';
-  }
-});
 // Load environment variables
 if (process.env.NODE_ENV !== "PRODUCTION") {
   require("dotenv").config({
     path: "config/.env",
   });
 }
-app.use(limiter);
+
 // CORS configuration
 const corsOptions = {
   origin: [
-    'http://localhost:3000', 
+    'http://localhost:3000',
     'https://testpodokan.store'
   ],
   credentials: true,
@@ -56,29 +38,16 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Security headers
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Origin', req.headers.origin);
-  res.header('Access-Control-Expose-Headers', 'Authorization, Seller-Authorization');
-  next();
-});
-
 // Essential middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-// Request logging in development
-if (process.env.NODE_ENV !== "PRODUCTION") {
-  app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()}: ${req.method} ${req.url}`);
-    next();
-  });
-}
+// Apply rate limiting to API routes
+app.use('/api/v2', apiLimiter);
 
-// Import routes
+// Routes
 const user = require("./controller/user");
 const shop = require("./controller/shop");
 const product = require("./controller/product");
@@ -93,11 +62,10 @@ const withdraw = require("./controller/withdraw");
 // API Routes with prefix
 const API_PREFIX = "/api/v2";
 
-// Health check endpoint
+// Health check endpoint (no rate limit)
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
+  res.status(200).json({
     status: 'OK',
-    environment: process.env.NODE_ENV,
     timestamp: new Date().toISOString()
   });
 });
@@ -114,26 +82,7 @@ app.use(`${API_PREFIX}/conversation`, conversation);
 app.use(`${API_PREFIX}/message`, message);
 app.use(`${API_PREFIX}/withdraw`, withdraw);
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "API endpoint not found",
-    path: req.originalUrl
-  });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(`Error [${req.method} ${req.url}]:`, {
-    message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    timestamp: new Date().toISOString()
-  });
-  next(err);
-});
-
-// Final error handler
+// Error handling
 app.use(ErrorHandler);
 
 module.exports = app;
