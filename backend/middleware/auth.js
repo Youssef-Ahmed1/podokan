@@ -1,9 +1,10 @@
+// middleware/auth.js
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("./catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 const User = require("../model/user");
 const Shop = require("../model/shop");
-const expressRateLimit = require('express-rate-limit'); // Add this import
+const rateLimit = require('express-rate-limit'); // Changed from expressRateLimit
 
 // Token extractors
 const extractToken = (req) => {
@@ -33,17 +34,20 @@ const extractSellerToken = (req) => {
 };
 
 // Rate limiting middleware
-const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
-
-exports.apiLimiter = expressRateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  message: {
-    success: false,
-    message: 'Too many requests, please try again later'
-  },
-  standardHeaders: true,
-  legacyHeaders: false
+exports.apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: {
+        success: false,
+        message: 'Too many requests, please try again later'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    trustProxy: true,
+    skipFailedRequests: true,
+    keyGenerator: (req) => {
+        return req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    }
 });
 
 // Authentication middleware
