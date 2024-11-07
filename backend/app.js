@@ -1,4 +1,3 @@
-// app.js
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -7,20 +6,34 @@ const ErrorHandler = require("./middleware/error");
 
 const app = express();
 
+// Load environment variables first
+if (process.env.NODE_ENV !== "PRODUCTION") {
+  require("dotenv").config({
+    path: "config/.env",
+  });
+}
+
 // CORS configuration
 app.use(cors({
   origin: ['http://localhost:3000', 'https://testpodokan.store'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Seller-Authorization'],
-  exposedHeaders: ['Authorization', 'Seller-Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Seller-Authorization']
 }));
 
-// Middleware
+// Essential middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+
+// Add request logging in development
+if (process.env.NODE_ENV !== "PRODUCTION") {
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+  });
+}
 
 // Import routes
 const user = require("./controller/user");
@@ -34,7 +47,7 @@ const conversation = require("./controller/conversation");
 const message = require("./controller/message");
 const withdraw = require("./controller/withdraw");
 
-// API Routes
+// API Routes with prefix
 const API_PREFIX = "/api/v2";
 app.use(`${API_PREFIX}/user`, user);
 app.use(`${API_PREFIX}/shop`, shop);
@@ -47,7 +60,16 @@ app.use(`${API_PREFIX}/conversation`, conversation);
 app.use(`${API_PREFIX}/message`, message);
 app.use(`${API_PREFIX}/withdraw`, withdraw);
 
-// Error handling
+// 404 handler
+app.use((req, res, next) => {
+  res.status(404).json({
+    success: false,
+    message: "API endpoint not found"
+  });
+});
+
+// Error handling middleware must be last
 app.use(ErrorHandler);
 
+// Export for server.js
 module.exports = app;
