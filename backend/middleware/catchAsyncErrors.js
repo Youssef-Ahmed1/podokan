@@ -1,9 +1,6 @@
-const catchAsyncErrors = (theFunc) => (req, res, next) => {
-  Promise.resolve(theFunc(req, res, next))
-      .catch((error) => {
-          console.error('Async Error:', error);
-          next(error);
-      });
+// middleware/catchAsyncErrors.js
+const catchAsyncErrors = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
 };
 
 module.exports = catchAsyncErrors;
