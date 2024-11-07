@@ -66,3 +66,5 @@
 2024-11-07T23:00:34: Database connection failed: Listen method has been called more than once without closing.
 2024-11-07T23:00:39: Database connection failed: Listen method has been called more than once without closing.
 2024-11-07T23:00:44: Database connection failed: Listen method has been called more than once without closing.
+2024-11-07T23:00:49: Database connection failed: Listen method has been called more than once without closing.
+2024-11-07T23:00:49: Max retries reached, exiting...

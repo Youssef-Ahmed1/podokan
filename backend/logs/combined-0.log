@@ -176,3 +176,29 @@
 2024-11-07T23:00:44: Database connection failed: Listen method has been called more than once without closing.
 2024-11-07T23:00:44: Retrying in 5 seconds... (1 attempts remaining)
 2024-11-07T23:00:44: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T23:00:49: Database connection failed: Listen method has been called more than once without closing.
+2024-11-07T23:00:49: Max retries reached, exiting...
+2024-11-07T23:00:50: Server running on port 8000
+2024-11-07T23:00:50: Database connection failed: MongooseError: The `uri` parameter to `openUri()` must be a string, got "undefined". Make sure the first parameter to `mongoose.connect()` or `mongoose.createConnection()` is a string.
+2024-11-07T23:00:50:     at NativeConnection.createClient (/var/www/podokan/backend/node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:206:11)
+2024-11-07T23:00:50:     at NativeConnection.openUri (/var/www/podokan/backend/node_modules/mongoose/lib/connection.js:766:34)
+2024-11-07T23:00:50:     at Mongoose.connect (/var/www/podokan/backend/node_modules/mongoose/lib/index.js:416:15)
+2024-11-07T23:00:50:     at Object.<anonymous> (/var/www/podokan/backend/server.js:17:10)
+2024-11-07T23:00:50:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T23:00:50:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T23:00:50:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T23:00:50:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T23:00:50:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2024-11-07T23:00:50:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T23:02:26: Server running on port 8000
+2024-11-07T23:02:26: Database connection failed: MongooseError: The `uri` parameter to `openUri()` must be a string, got "undefined". Make sure the first parameter to `mongoose.connect()` or `mongoose.createConnection()` is a string.
+2024-11-07T23:02:26:     at NativeConnection.createClient (/var/www/podokan/backend/node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:206:11)
+2024-11-07T23:02:26:     at NativeConnection.openUri (/var/www/podokan/backend/node_modules/mongoose/lib/connection.js:766:34)
+2024-11-07T23:02:26:     at Mongoose.connect (/var/www/podokan/backend/node_modules/mongoose/lib/index.js:416:15)
+2024-11-07T23:02:26:     at Object.<anonymous> (/var/www/podokan/backend/server.js:17:10)
+2024-11-07T23:02:26:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T23:02:26:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T23:02:26:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T23:02:26:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T23:02:26:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2024-11-07T23:02:26:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
