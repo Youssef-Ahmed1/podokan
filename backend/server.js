@@ -1,4 +1,3 @@
-// server.js
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
@@ -13,11 +12,6 @@ app.use(cors({
   credentials: true
 }));
 
-// MongoDB connection
-mongoose.connect(process.env.DB_URL)
-  .then(() => console.log("Database connected"))
-  .catch((err) => console.log("Database connection failed:", err));
-
 // Routes
 app.use("/api/v2/user", require("./controller/user"));
 app.use("/api/v2/shop", require("./controller/shop"));
@@ -25,7 +19,21 @@ app.use("/api/v2/product", require("./controller/product"));
 app.use("/api/v2/event", require("./controller/event"));
 app.use("/api/v2/order", require("./controller/order"));
 
-// Start server
-app.listen(8000, () => {
-  console.log("Server running on port 8000");
+// Connect to MongoDB
+mongoose.connect(process.env.DB_URL)
+  .then(() => {
+    console.log("Database connected");
+    // Only start server after DB connects
+    app.listen(8000, () => {
+      console.log("Server running on port 8000");
+    });
+  })
+  .catch((err) => {
+    console.log("Database connection failed:", err);
+    process.exit(1);
+  });
+
+// Handle errors
+mongoose.connection.on('error', err => {
+  console.error('MongoDB error:', err);
 });
