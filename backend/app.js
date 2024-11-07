@@ -1,14 +1,74 @@
 const express = require("express");
+const ErrorHandler = require("./middleware/error");
+const app = express();
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const limiter = require("./middleware/rateLimiter");
-const ErrorHandler = require("./middleware/error");
+const multer = require('multer');
+const path = require('path');
+const appConfig = require('../backend/server');
 
-const app = express();
-//.
-// Trust proxy settings
-app.set('trust proxy', 1);
+// CORS configuration
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,UPDATE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization, Seller-Authorization');
+  next();
+});
+
+const corsOptions = {
+  origin: ['http://localhost:3000', 'https://testpodokan.store'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Seller-Authorization',
+    'x-requested-with',
+    'Accept'
+  ],
+  exposedHeaders: ['Seller-Authorization'],
+  maxAge: 86400
+};
+
+app.use(cors(corsOptions));
+
+// Add security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
+// Cookie settings
+app.use((req, res, next) => {
+  res.cookie = function(name, value, options = {}) {
+    return res.cookie(name, value, {
+      ...options,
+      secure: true,
+      httpOnly: true,
+      sameSite: 'none',
+      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
+    });
+  };
+  next();
+});
+
+// Essential middleware
+app.use(express.json({ 
+  limit: '50mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf.toString();
+  }
+}));
+
+
+app.use(cookieParser());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 // Load environment variables
 if (process.env.NODE_ENV !== "PRODUCTION") {
@@ -17,37 +77,43 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
   });
 }
 
-// CORS configuration
-const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'https://testpodokan.store'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'Seller-Authorization',
-    'Accept',
-    'Origin',
-    'X-Requested-With'
-  ],
-  exposedHeaders: ['Authorization', 'Seller-Authorization']
-};
+// Configure multer
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(appConfig.fileUploadPath));
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
 
-app.use(cors(corsOptions));
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: function (req, file, cb) {
+    const filetypes = /jpeg|jpg|png|gif/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb(new Error("Error: Images Only!"));
+  },
+});
+// app.js (add this before your routes)
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`, {
+    cookies: req.cookies,
+    headers: {
+      origin: req.headers.origin,
+      auth: req.headers.authorization,
+      sellerAuth: req.headers['seller-authorization']
+    }
+  });
+  next();
+});
 
-// Essential middleware
-app.use(express.json({ limit: '50mb' }));
-app.use(cookieParser());
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
-
-// Apply rate limiting to API routes
-app.use('/api/v2', limiter);
-
-// Routes
+// Import routes
 const user = require("./controller/user");
 const shop = require("./controller/shop");
 const product = require("./controller/product");
@@ -59,18 +125,9 @@ const conversation = require("./controller/conversation");
 const message = require("./controller/message");
 const withdraw = require("./controller/withdraw");
 
-// API Routes with prefix
+// API Routes
 const API_PREFIX = "/api/v2";
 
-// Health check endpoint (no rate limit)
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// API routes
 app.use(`${API_PREFIX}/user`, user);
 app.use(`${API_PREFIX}/shop`, shop);
 app.use(`${API_PREFIX}/product`, product);
@@ -82,7 +139,63 @@ app.use(`${API_PREFIX}/conversation`, conversation);
 app.use(`${API_PREFIX}/message`, message);
 app.use(`${API_PREFIX}/withdraw`, withdraw);
 
-// Error handling
-app.use(ErrorHandler);
+// Timeout middleware
+app.use((req, res, next) => {
+  res.setTimeout(30000, () => {
+    res.status(504).json({
+      success: false,
+      message: "Request timeout"
+    });
+  });
+  next();
+});
+
+// Global error handling
+app.use((err, req, res, next) => {
+  console.error('Error:', {
+    message: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    path: req.path
+  });
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid JSON'
+    });
+  }
+
+  if (err.name === 'PayloadTooLargeError') {
+    return res.status(413).json({
+      success: false,
+      message: 'Request entity too large'
+    });
+  }
+
+  if (err.code === 'ETIMEDOUT' || err.code === 'ECONNABORTED') {
+    return res.status(504).json({
+      success: false,
+      message: 'Request timeout'
+    });
+  }
+
+  const statusCode = err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+
+  res.status(statusCode).json({
+    success: false,
+    message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    path: req.originalUrl
+  });
+});
+
+// 404 Handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found',
+    path: req.originalUrl
+  });
+});
 
 module.exports = app;
