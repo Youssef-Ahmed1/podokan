@@ -19,7 +19,7 @@ const verifyToken = (token, secret) => {
 
 
 
-exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
+const isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   try {
     const token = 
       req.headers.authorization?.replace('Bearer ', '') ||
@@ -64,7 +64,7 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 });
 
 
-exports.isSeller = catchAsyncErrors(async (req, res, next) => {
+const isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
     // Debug log the incoming request
     console.log('Seller Auth Debug:', {
@@ -118,7 +118,7 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
 });
 
 
-exports.isAdmin = catchAsyncErrors(async (req, res, next) => {
+const isAdmin = catchAsyncErrors(async (req, res, next) => {
   if (!req.user) {
     return next(new ErrorHandler("Please login first", 401));
   }
@@ -129,4 +129,8 @@ exports.isAdmin = catchAsyncErrors(async (req, res, next) => {
 
   next();
 });
-module.exports = exports;
+module.exports = {
+  isAuthenticated,
+  isSeller,
+  isAdmin
+};
