@@ -36,3 +36,22 @@
 2024-11-07T00:10:01:     status: 401
 2024-11-07T00:10:01:   }
 2024-11-07T00:10:01: }
+2024-11-07T00:51:47: Error: {
+2024-11-07T00:51:47:   path: '/api/v2/shop/getSeller',
+2024-11-07T00:51:47:   method: 'GET',
+2024-11-07T00:51:47:   error: {
+2024-11-07T00:51:47:     message: 'Please login to continue',
+2024-11-07T00:51:47:     stack: 'Error: Please login to continue\n' +
+2024-11-07T00:51:47:       '    at /var/www/podokan/backend/middleware/auth.js:70:19\n' +
+2024-11-07T00:51:47:       '    at /var/www/podokan/backend/middleware/catchAsyncErrors.js:2:19\n' +
+2024-11-07T00:51:47:       '    at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)\n' +
+2024-11-07T00:51:47:       '    at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)\n' +
+2024-11-07T00:51:47:       '    at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)\n' +
+2024-11-07T00:51:47:       '    at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)\n' +
+2024-11-07T00:51:47:       '    at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15\n' +
+2024-11-07T00:51:47:       '    at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)\n' +
+2024-11-07T00:51:47:       '    at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)\n' +
+2024-11-07T00:51:47:       '    at Function.handle (/var/www/podokan/backend/node_modules/express/lib/router/index.js:175:3)',
+2024-11-07T00:51:47:     status: 401
+2024-11-07T00:51:47:   }
+2024-11-07T00:51:47: }
