@@ -486,40 +486,27 @@ router.get(
       const page = parseInt(req.query.page) || 1;
       const skip = (page - 1) * limit;
 
-      // Use Promise.all for parallel queries
-      const [pendingProducts, totalCount] = await Promise.all([
+      const [products, total] = await Promise.all([
         Product.find({ status: 'pending' })
-          .select('designImage shopId DesignTitle Description status createdAt')
-          .populate('shopId', 'name email avatar')
+          .select('designImage shopId DesignTitle status createdAt')
+          .populate('shopId', 'name email')
           .sort('-createdAt')
           .skip(skip)
           .limit(limit)
-          .lean()
-          .maxTimeMS(10000),
-
+          .lean(),
         Product.countDocuments({ status: 'pending' })
-          .maxTimeMS(5000)
       ]);
 
       res.status(200).json({
         success: true,
-        products: pendingProducts,
+        products,
         currentPage: page,
-        totalPages: Math.ceil(totalCount / limit),
-        total: totalCount
+        totalPages: Math.ceil(total / limit),
+        total
       });
-
     } catch (error) {
-      console.error('Pending products error:', {
-        error: error.message,
-        stack: error.stack
-      });
-      return next(new ErrorHandler(
-        error.name === 'MongoTimeoutError' 
-          ? 'Request timed out - please try again'
-          : error.message,
-        error.name === 'MongoTimeoutError' ? 504 : 500
-      ));
+      console.error('Admin products error:', error);
+      return next(new ErrorHandler(error.message, 500));
     }
   })
 );
