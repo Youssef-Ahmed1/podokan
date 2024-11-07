@@ -1,9 +1,9 @@
-// app.js
+cat > /var/www/podokan/backend/app.js << 'EOL'
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const apiLimiter = require("./middleware/rateLimiter");
+const limiter = require("./middleware/rateLimiter");
 const ErrorHandler = require("./middleware/error");
 
 const app = express();
@@ -46,7 +46,7 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 // Apply rate limiting to API routes
-app.use('/api/v2', apiLimiter);
+app.use('/api/v2', limiter);
 
 // Routes
 const user = require("./controller/user");
@@ -87,3 +87,4 @@ app.use(`${API_PREFIX}/withdraw`, withdraw);
 app.use(ErrorHandler);
 
 module.exports = app;
+EOL
