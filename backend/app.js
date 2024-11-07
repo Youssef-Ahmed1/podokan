@@ -1,6 +1,6 @@
 const express = require("express");
 var http = require('http');
-const fs = require('fs').promises; // Change to use promises version
+const fs = require('fs').promises;
 const ErrorHandler = require("./middleware/error");
 const app = express();
 const cookieParser = require("cookie-parser");
@@ -10,24 +10,25 @@ const multer = require('multer');
 const path = require('path');
 const appConfig = require('../backend/server');
 
-// Move directory creation to a function
 const createUploadsDirectory = async () => {
+  const uploadPath = path.join(__dirname, 'uploads');
   try {
-    await fs.access('uploads');
+    await fs.access(uploadPath);
     console.log('Uploads directory exists');
   } catch (error) {
     try {
-      await fs.mkdir('uploads', { recursive: true });
+      await fs.mkdir(uploadPath, { recursive: true });
       console.log('Created uploads directory');
     } catch (mkdirError) {
       console.error('Error creating uploads directory:', mkdirError);
     }
   }
 };
+
 createUploadsDirectory().catch(console.error);
-// CORS configuration
+
 const corsOptions = {
-  origin: ['https://testpodokan.store', 'https://www.testpodokan.store'],
+  origin: ['https://testpodokan.store', 'https://www.testpodokan.store' , "http://localhost:3000" , "http://www.testpodokan.store"],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Seller-Authorization'],
@@ -37,7 +38,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Single cookie configuration middleware
 app.use((req, res, next) => {
   const originalCookie = res.cookie;
   res.cookie = function(name, value, options = {}) {
@@ -47,16 +47,14 @@ app.use((req, res, next) => {
       sameSite: 'none',
       domain: '.testpodokan.store',
       path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       ...options
     };
-    
     return originalCookie.call(this, name, value, cookieOptions);
   };
   next();
 });
 
-// Security headers
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -69,7 +67,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Request logging middleware
 app.use((req, res, next) => {
   console.log('Request:', {
     method: req.method,
@@ -84,7 +81,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Essential middleware
 app.use(express.json({ 
   limit: '50mb',
   verify: (req, res, buf) => {
@@ -96,20 +92,19 @@ app.use(cookieParser());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-// Environment variables
 if (process.env.NODE_ENV !== "PRODUCTION") {
   require("dotenv").config({
     path: "config/.env",
   });
 }
 
-// Multer configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, 'uploads'));
   },
   filename: function (req, file, cb) {
-    cb(null, `${Date.now()}-${file.originalname}`);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   },
 });
 
@@ -126,16 +121,7 @@ const upload = multer({
     cb(new Error("Error: Images Only!"));
   },
 });
-// Create uploads directory
-(async () => {
-  try {
-    await fs.access('uploads');
-  } catch {
-    await fs.mkdir('uploads', { recursive: true });
-  }
-})();
 
-// Import routes
 const user = require("./controller/user");
 const shop = require("./controller/shop");
 const product = require("./controller/product");
@@ -147,7 +133,6 @@ const conversation = require("./controller/conversation");
 const message = require("./controller/message");
 const withdraw = require("./controller/withdraw");
 
-// API Routes
 const API_PREFIX = "/api/v2";
 
 app.use(`${API_PREFIX}/user`, user);
@@ -161,7 +146,6 @@ app.use(`${API_PREFIX}/conversation`, conversation);
 app.use(`${API_PREFIX}/message`, message);
 app.use(`${API_PREFIX}/withdraw`, withdraw);
 
-// Timeout middleware
 app.use((req, res, next) => {
   res.setTimeout(30000, () => {
     res.status(504).json({
@@ -172,7 +156,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', {
     message: err.message,
@@ -212,7 +195,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 Handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
