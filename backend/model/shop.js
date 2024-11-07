@@ -10,6 +10,7 @@ const shopSchema = new mongoose.Schema({
   email: {
     type: String,
     required: [true, "Please enter your shop email address"],
+    unique: true,
   },
   password: {
     type: String,
@@ -17,7 +18,7 @@ const shopSchema = new mongoose.Schema({
     minLength: [6, "Password should be greater than 6 characters"],
     select: false,
   },
-  Description: {
+  description: {
     type: String,
   },
   address: {
@@ -25,12 +26,17 @@ const shopSchema = new mongoose.Schema({
     required: true,
   },
   phoneNumber: {
-    type: Number,
+    type: String,
     required: true,
   },
   role: {
     type: String,
     default: "Seller",
+  },
+  status: {
+    type: String,
+    enum: ["Pending", "Approved", "Rejected"],
+    default: "Pending"
   },
   avatar: {
     public_id: {
@@ -43,7 +49,7 @@ const shopSchema = new mongoose.Schema({
     },
   },
   zipCode: {
-    type: Number,
+    type: String,
     required: true,
   },
   withdrawMethod: {
@@ -53,31 +59,10 @@ const shopSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  transections: [
-    {
-      amount: {
-        type: Number,
-        required: true,
-      },
-      status: {
-        type: String,
-        default: "Processing",
-      },
-      createdAt: {
-        type: Date,
-        default: Date.now(),
-      },
-      updatedAt: {
-        type: Date,
-      },
-    },
-  ],
   createdAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
-  resetPasswordToken: String,
-  resetPasswordTime: Date,
 });
 
 // Hash password
@@ -90,18 +75,12 @@ shopSchema.pre("save", async function (next) {
 
 // jwt token
 shopSchema.methods.getJwtToken = function () {
-  return jwt.sign(
-    { 
-      id: this._id,
-      role: 'seller' // Add role explicitly
-    }, 
-    process.env.JWT_SECRET_KEY,
-    {
-      expiresIn: process.env.JWT_EXPIRES
-    }
-  );
+  return jwt.sign({ id: this._id }, process.env.JWT_SECRET_KEY, {
+    expiresIn: "7d",
+  });
 };
-// comapre password
+
+// compare password
 shopSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };

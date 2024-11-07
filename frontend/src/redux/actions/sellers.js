@@ -7,7 +7,7 @@ export const getAllSellers = () => async (dispatch) => {
     dispatch({ type: "getAllSellersRequest" });
     
     const { data } = await axios.get(
-      `${server}/shop/admin-all-sellers`, // Remove duplicate api/v2
+      `${server}/shop/admin-all-sellers`,
       { withCredentials: true }
     );
 
@@ -19,6 +19,28 @@ export const getAllSellers = () => async (dispatch) => {
     dispatch({
       type: "getAllSellersFailed",
       payload: error.response?.data?.message || error.message
+    });
+  }
+};
+export const sellerLogin = (loginData) => async (dispatch) => {
+  try {
+    dispatch({ type: "SellerLoginRequest" });
+
+    const { data } = await axios.post(
+      `${server}/shop/login-shop`,
+      loginData,
+      { withCredentials: true }
+    );
+
+    dispatch({ 
+      type: "SellerLoginSuccess",
+      payload: data.seller
+    });
+
+  } catch (error) {
+    dispatch({
+      type: "SellerLoginFailed",
+      payload: error.response?.data?.message || "Login failed"
     });
   }
 };

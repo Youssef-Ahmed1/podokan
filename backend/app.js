@@ -14,12 +14,35 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
 }
 
 // CORS configuration
-app.use(cors({
-  origin: ['http://localhost:3000', 'https://testpodokan.store'],
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = ['http://localhost:3000', 'https://testpodokan.store'];
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Seller-Authorization']
-}));
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'Seller-Authorization', 
+    'Accept',
+    'Origin',
+    'X-Requested-With'
+  ]
+};
+
+app.use(cors(corsOptions));
+
+// Security headers
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Expose-Headers', 'Authorization, Seller-Authorization');
+  next();
+});
 
 // Essential middleware
 app.use(express.json({ limit: '50mb' }));
@@ -31,6 +54,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 if (process.env.NODE_ENV !== "PRODUCTION") {
   app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
+    console.log('Headers:', req.headers);
     next();
   });
 }
@@ -49,6 +73,12 @@ const withdraw = require("./controller/withdraw");
 
 // API Routes with prefix
 const API_PREFIX = "/api/v2";
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
+});
+
 app.use(`${API_PREFIX}/user`, user);
 app.use(`${API_PREFIX}/shop`, shop);
 app.use(`${API_PREFIX}/product`, product);
@@ -61,7 +91,7 @@ app.use(`${API_PREFIX}/message`, message);
 app.use(`${API_PREFIX}/withdraw`, withdraw);
 
 // 404 handler
-app.use((req, res, next) => {
+app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: "API endpoint not found"
@@ -71,5 +101,4 @@ app.use((req, res, next) => {
 // Error handling middleware must be last
 app.use(ErrorHandler);
 
-// Export for server.js
 module.exports = app;
