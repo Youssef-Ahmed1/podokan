@@ -61,7 +61,8 @@ export const fetchPendingProducts = () => async (dispatch) => {
     
     const config = {
       headers: getAuthHeaders(),
-      withCredentials: true
+      withCredentials: true,
+      timeout: 60000 // Increase timeout to 60 seconds
     };
 
     const { data } = await axios.get(
@@ -69,29 +70,16 @@ export const fetchPendingProducts = () => async (dispatch) => {
       config
     );
 
-    const products = data.products?.map(product => ({
-      ...product,
-      _id: product._id || '',
-      designImage: product.designImage?.url || product.designImage || '',
-      DesignPosition: product.DesignPosition || { x: 50, y: 50 },
-      DesignScale: product.DesignScale || 1,
-      ProductView: product.ProductView || 'front',
-      originalPrice: product.originalPrice || 0,
-      discountPrice: product.discountPrice || null,
-      availableColors: product.availableColors || ['white'],
-      status: product.status || 'pending',
-      Designtags: Array.isArray(product.Designtags) ? product.Designtags : []
-    })) || [];
-
     dispatch({ 
       type: "fetchPendingProductsSuccess", 
-      payload: products 
+      payload: data.products 
     });
   } catch (error) {
     console.error("Error fetching pending products:", error);
     dispatch({
       type: "fetchPendingProductsFail",
-      payload: error.response?.data?.message || error.message,
+      payload: error.response?.data?.message || 
+               "Failed to fetch pending products. Please try again."
     });
   }
 };
@@ -99,7 +87,7 @@ export const fetchPendingProducts = () => async (dispatch) => {
 // Approve/Reject product
 // frontend/redux/actions/product.js
 
-export const approveRejectProduct = (productId, newStatus, rejectionReason, updates) => async (dispatch) => {
+export const approveRejectProduct = (productId, status, reason) => async (dispatch) => {
   try {
     dispatch({ type: "approveRejectProductRequest" });
 
@@ -108,54 +96,41 @@ export const approveRejectProduct = (productId, newStatus, rejectionReason, upda
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       },
-      timeout: 20000, // 20 second timeout
-      withCredentials: true
+      withCredentials: true,
+      timeout: 30000
     };
 
     const response = await axios.put(
       `${server}/product/approve-reject-product/${productId}`,
       {
-        status: newStatus,
-        statusReason: rejectionReason || '',
-        ...updates
+        status,
+        statusReason: reason || ''
       },
       config
     );
 
     if (response.data.success) {
       dispatch({ 
-        type: "approveRejectProductSuccess", 
+        type: "approveRejectProductSuccess",
         payload: response.data
       });
 
-      // Refresh product lists
-      await Promise.all([
-        dispatch(fetchPendingProducts()),
-        dispatch(getAllProducts())
-      ]);
+      // Refresh products lists
+      dispatch(fetchPendingProducts());
+      dispatch(getAllProducts());
 
       return response.data;
     }
   } catch (error) {
     console.error('Approve/Reject Error:', error);
-
-    let errorMessage = 'Failed to update product status';
-    
-    if (error.code === 'ECONNABORTED') {
-      errorMessage = 'Request timed out. Please try again.';
-    } else if (error.response?.data?.message) {
-      errorMessage = error.response.data.message;
-    }
-
     dispatch({
       type: "approveRejectProductFail",
-      payload: errorMessage
+      payload: error.response?.data?.message || 
+               "Failed to update product status"
     });
-
-    throw new Error(errorMessage);
+    throw error;
   }
 };
-
 // Get all products
 export const getAllProducts = () => async (dispatch) => {
   try {
