@@ -2,6 +2,8 @@
 import axios from "axios";
 import { server } from "../../server";
 
+
+axios.defaults.withCredentials = true;
 const getAuthHeaders = (isMultipart = false) => {
   const token = localStorage.getItem('token');
   const sellerToken = localStorage.getItem('seller_token');
@@ -62,7 +64,7 @@ export const fetchPendingProducts = () => async (dispatch) => {
     const config = {
       headers: getAuthHeaders(),
       withCredentials: true,
-      timeout: 60000 // Match nginx timeout
+      timeout: 60000 
     };
 
     const { data } = await axios.get(

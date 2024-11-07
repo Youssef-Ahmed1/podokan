@@ -1,9 +1,13 @@
 import { createReducer } from "@reduxjs/toolkit";
 
 
-const sellerInitialState = {
-  isLoading: true,
+const initialState = {
+  isAuthenticated: false,
+  loading: false,
+  user: null,
+  error: null
 };
+
 
 export const sellerReducer = createReducer(sellerInitialState, (builder) => {
   builder.addCase("LoadSellerRequest", (state) => {
