@@ -1,131 +1,63 @@
-// middleware/auth.js
-
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("./catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 const Shop = require("../model/shop");
 const User = require("../model/user");
 
-const verifyToken = (token, secret) => {
-  try {
-    return jwt.verify(token, secret);
-  } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      throw new ErrorHandler('Token has expired', 401);
-    }
-    throw new ErrorHandler('Invalid token', 401);
-  }
-};
-
-
-exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
-  try {
-    const token = 
-      req.cookies.token || 
-      req.headers.authorization?.replace('Bearer ', '');
-
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "Please login to continue"
-      });
-    }
-
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-      req.user = await User.findById(decoded.id)
-        .select('-password')
-        .lean();
-
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          message: "User not found"
-        });
-      }
-
-      next();
-    } catch (jwtError) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid or expired token"
-      });
-    }
-  } catch (error) {
-    console.error('Auth error:', error);
-    return res.status(500).json({
-      success: false,
-      message: "Authentication failed"
-    });
-  }
-});
-
-
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
-    // Check both cookie and header
     const token = 
-      req.cookies.seller_token || 
-      req.headers["seller-authorization"]?.replace("Bearer ", "") ||
-      req.headers["authorization"]?.replace("Bearer ", "");
-
-    console.log('Auth check:', {
-      cookies: req.cookies,
-      headers: {
-        auth: req.headers["authorization"],
-        sellerAuth: req.headers["seller-authorization"]
-      },
-      token: token ? token.substring(0, 20) + '...' : 'missing'
-    });
+      req.cookies.seller_token ||
+      (req.headers["seller-authorization"] ? req.headers["seller-authorization"].replace("Bearer ", "") : null);
 
     if (!token) {
       return next(new ErrorHandler("Please login to continue", 401));
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const seller = await Shop.findById(decoded.id);
+    req.seller = await Shop.findById(decoded.id);
 
-    if (!seller) {
+    if (!req.seller) {
       return next(new ErrorHandler("Seller not found", 401));
     }
 
-    req.seller = seller;
     next();
   } catch (error) {
-    console.error('Auth error:', {
-      message: error.message,
-      type: error.name,
-      stack: error.stack
-    });
-    return next(new ErrorHandler(error.message || "Authentication failed", 401));
+    return next(new ErrorHandler("Authentication failed", 401));
   }
 });
 
-
-exports.isAdmin = (adminType = "Admin") => catchAsyncErrors(async (req, res, next) => {
+exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Please login first"
-      });
+    const token = 
+      req.cookies.token ||
+      (req.headers.authorization ? req.headers.authorization.replace("Bearer ", "") : null);
+
+    if (!token) {
+      return next(new ErrorHandler("Please login to continue", 401));
     }
 
-    if (req.user.role !== adminType) {
-      return res.status(403).json({
-        success: false,
-        message: `Access denied. ${adminType} only.`
-      });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    req.user = await User.findById(decoded.id);
+
+    if (!req.user) {
+      return next(new ErrorHandler("User not found", 401));
     }
 
     next();
   } catch (error) {
-    console.error('Admin auth error:', error);
-    return res.status(500).json({
-      success: false,
-      message: "Authentication failed"
-    });
+    return next(new ErrorHandler("Authentication failed", 401));
   }
 });
+
+// Change back to the original format
+exports.isAdmin = (role) => {
+  return (req, res, next) => {
+    if (!req.user || req.user.role !== role) {
+      return next(new ErrorHandler(`${role} access denied`, 403));
+    }
+    next();
+  };
+};
 
 module.exports = exports;
