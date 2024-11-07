@@ -93,7 +93,7 @@ router.delete(
 router.get(
   "/admin-all-events",
   isAuthenticated,
-  isAdmin("Admin"),  
+  isAdmin,  
   catchAsyncErrors(async (req, res, next) => {
     try {
       const events = await Event.find().sort({ createdAt: -1 });
