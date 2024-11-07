@@ -2,9 +2,8 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const { apiLimiter } = require("./middleware/auth"); 
+const limiter = require("./config/rateLimit");
 const ErrorHandler = require("./middleware/error");
-
 
 const app = express();
 
@@ -17,6 +16,9 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
     path: "config/.env",
   });
 }
+
+// Apply rate limiting to all routes
+app.use(limiter);
 
 // CORS configuration
 const corsOptions = {
@@ -35,7 +37,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
 
 // Essential middleware
 app.use(express.json({ limit: '50mb' }));
