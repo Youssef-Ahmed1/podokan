@@ -9,13 +9,32 @@ const app = express();
 // Trust proxy - Add this before other middleware
 app.set('trust proxy', 1);
 
+// Rate limiter configuration
+const rateLimit = require('express-rate-limit');
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  trustProxy: true,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: 'Too many requests, please try again later'
+    });
+  },
+  skip: (req) => {
+    // Skip rate limiting for health checks
+    return req.path === '/health';
+  }
+});
 // Load environment variables
 if (process.env.NODE_ENV !== "PRODUCTION") {
   require("dotenv").config({
     path: "config/.env",
   });
 }
-
+app.use(limiter);
 // CORS configuration
 const corsOptions = {
   origin: [
