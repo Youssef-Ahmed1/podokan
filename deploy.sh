@@ -10,6 +10,7 @@ cd /var/www/podokan
 git add .
 git commit -m 'save'
 git pull origin main
+git merge
 
 # Frontend build
 cd frontend
