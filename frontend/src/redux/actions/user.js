@@ -90,27 +90,14 @@ export const userReducer = createReducer(initialState, (builder) => {
 export const loadUser = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadUserRequest" });
-
-    // Get token from localStorage
-    const token = localStorage.getItem('token');
     
-    const config = {
-      withCredentials: true,
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      }
-    };
-    
-    const { data } = await axios.get(`${server}/user/getuser`, config);
+    const { data } = await axios.get(`${server}/user/getuser`, {
+      withCredentials: true
+    });
     
     if (data.success) {
+      setAuthToken(data.token);
       dispatch({ type: "LoadUserSuccess", payload: data.user });
-      // Update token if returned
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
     }
   } catch (error) {
     dispatch({
@@ -119,6 +106,7 @@ export const loadUser = () => async (dispatch) => {
     });
   }
 };
+
 // Load seller
 export const loadSeller = () => async (dispatch) => {
   try {
@@ -185,34 +173,6 @@ export const updateUserAddress =
         type: "updateUserAddressFailed",
         payload: error.response?.data?.message || error.message,
       });
-    }
-  };
-  export const login = (email, password) => async (dispatch) => {
-    try {
-      dispatch({ type: "LoginRequest" });
-  
-      const { data } = await axios.post(
-        `${server}/user/login-user`,
-        { email, password },
-        {
-          withCredentials: true,
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-  
-      if (data.success) {
-        localStorage.setItem('token', data.token);
-        setAuthToken(data.token); // Set axios default header
-        dispatch({ type: "LoginSuccess", payload: data.user });
-        toast.success("Login successful");
-      }
-    } catch (error) {
-      const message = error.response?.data?.message || "Login failed";
-      dispatch({ type: "LoginFail", payload: message });
-      toast.error(message);
     }
   };
   export const logout = () => async (dispatch) => {

@@ -55,26 +55,18 @@ export const createProduct = (formData) => async (dispatch) => {
 };
 
 // Fetch pending products
-// actions/product.js
 export const fetchPendingProducts = () => async (dispatch) => {
   try {
     dispatch({ type: "fetchPendingProductsRequest" });
     
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No auth token found');
-    }
-
     const config = {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      withCredentials: true
+      headers: getAuthHeaders(),
+      withCredentials: true,
+      timeout: 60000 // Match nginx timeout
     };
 
     const { data } = await axios.get(
-      `${server}/product/admin/pending-products?limit=10`,
+      `${server}/product/admin/pending-products?limit=10`, 
       config
     );
 
@@ -83,15 +75,23 @@ export const fetchPendingProducts = () => async (dispatch) => {
       payload: data.products 
     });
   } catch (error) {
-    console.error('Fetch pending error:', error);
-    dispatch({
-      type: "fetchPendingProductsFail",
-      payload: error.response?.data?.message || 'Failed to fetch pending products'
-    });
+    if (error.code === 'ECONNABORTED') {
+      dispatch({
+        type: "fetchPendingProductsFail",
+        payload: "Request timed out - please try again"
+      });
+    } else {
+      dispatch({
+        type: "fetchPendingProductsFail",
+        payload: error.response?.data?.message || 
+                 "Failed to fetch pending products"
+      });
+    }
   }
 };
 
 // Approve/Reject product
+// frontend/redux/actions/product.js
 
 export const approveRejectProduct = (productId, status, reason) => async (dispatch) => {
   try {

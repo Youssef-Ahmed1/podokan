@@ -153,45 +153,33 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Validation
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide email and password"
-      });
+      return next(new ErrorHandler("Please provide all fields", 400));
     }
 
-    // Find user
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select("+password");
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials"
-      });
+      return next(new ErrorHandler("User doesn't exist", 401));
     }
 
-    // Check password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials"
-      });
+      return next(new ErrorHandler("Invalid credentials", 401));
     }
 
-    // Use sendToken utility
+    // Use your sendToken helper
     sendToken(user, 200, res);
   } catch (error) {
-    console.error('Login error:', error);
     return next(new ErrorHandler(error.message, 500));
   }
 }));
 
+// load user
+// controller/user.js
 router.get("/getuser", catchAsyncErrors(async (req, res, next) => {
   try {
-    const token = 
-      req.cookies.token || 
-      req.headers.authorization?.replace('Bearer ', '');
+    const token = req.cookies.token || 
+                 req.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
       return res.status(401).json({
@@ -200,30 +188,18 @@ router.get("/getuser", catchAsyncErrors(async (req, res, next) => {
       });
     }
 
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-      const user = await User.findById(decoded.id)
-        .select('-password')
-        .lean();
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const user = await User.findById(decoded.id);
 
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: "User not found"
-        });
-      }
-
-      res.status(200).json({
-        success: true,
-        user,
-        token // Send back token for frontend to update
-      });
-    } catch (jwtError) {
+    if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Token invalid or expired"
+        message: "User not found"
       });
     }
+
+    // Use your sendToken helper
+    sendToken(user, 200, res);
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
