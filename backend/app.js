@@ -16,14 +16,26 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization, Seller-Authorization');
   next();
 });
-
+const cookieOptions = {
+  expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  httpOnly: true,
+  sameSite: 'none',
+  secure: true,
+  domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : 'localhost'
+};
 app.use(cors({
   origin: function(origin, callback) {
     const allowedOrigins = ['http://localhost:3000', 'https://testpodokan.store'];
-    callback(null, allowedOrigins.includes(origin));
+    // Allow requests with no origin (mobile apps, curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, origin);
+    } else {
+      callback(null, allowedOrigins[0]);
+    }
   },
   credentials: true,
-  exposedHeaders: ['Seller-Authorization']
+  exposedHeaders: ['Authorization', 'Seller-Authorization']
 }));
 
 // Cookie settings
