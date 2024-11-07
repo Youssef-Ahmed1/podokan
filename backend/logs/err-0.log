@@ -1,0 +1,480 @@
+2024-11-07T14:18:16: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:16: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:16:       ^
+2024-11-07T14:18:16: 
+2024-11-07T14:18:16: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:16:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:16:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:16:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:16:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:16:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:16:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:16:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:16:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:16:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:16:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:16: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:16: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:16:       ^
+2024-11-07T14:18:16: 
+2024-11-07T14:18:16: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:16:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:16:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:16:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:16:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:16:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:16:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:16:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:16:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:16:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:16:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:16: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:16: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:16:       ^
+2024-11-07T14:18:16: 
+2024-11-07T14:18:16: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:16:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:16:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:16:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:16:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:16:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:16:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:16:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:16:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:16:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:16:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:17: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:17: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:17:       ^
+2024-11-07T14:18:17: 
+2024-11-07T14:18:17: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:17:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:17:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:17:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:17:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:17:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:17:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:17:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:17:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:17:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:17:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:17: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:17: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:17:       ^
+2024-11-07T14:18:17: 
+2024-11-07T14:18:17: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:17:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:17:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:17:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:17:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:17:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:17:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:17:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:17:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:17:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:17:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:17: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:17: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:17:       ^
+2024-11-07T14:18:17: 
+2024-11-07T14:18:17: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:17:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:17:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:17:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:17:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:17:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:17:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:17:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:17:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:17:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:17:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:17: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:17: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:17:       ^
+2024-11-07T14:18:17: 
+2024-11-07T14:18:17: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:17:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:17:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:17:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:17:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:17:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:17:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:17:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:17:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:17:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:17:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:17: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:17: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:17:       ^
+2024-11-07T14:18:17: 
+2024-11-07T14:18:17: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:17:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:17:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:17:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:17:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:17:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:17:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:17:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:17:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:17:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:17:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:18: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:18: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:18:       ^
+2024-11-07T14:18:18: 
+2024-11-07T14:18:18: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:18:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:18:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:18:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:18:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:18:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:18:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:18:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:18:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:18:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:18:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:18: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:18: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:18:       ^
+2024-11-07T14:18:18: 
+2024-11-07T14:18:18: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:18:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:18:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:18:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:18:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:18:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:18:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:18:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:18:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:18:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:18:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:18: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:18: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:18:       ^
+2024-11-07T14:18:18: 
+2024-11-07T14:18:18: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:18:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:18:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:18:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:18:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:18:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:18:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:18:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:18:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:18:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:18:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:18: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:18: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:18:       ^
+2024-11-07T14:18:18: 
+2024-11-07T14:18:18: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:18:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:18:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:18:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:18:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:18:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:18:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:18:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:18:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:18:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:18:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:19: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:19: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:19:       ^
+2024-11-07T14:18:19: 
+2024-11-07T14:18:19: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:19:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:19:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:19:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:19:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:19:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:19:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:19:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:19:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:19:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:19:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:19: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:19: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:19:       ^
+2024-11-07T14:18:19: 
+2024-11-07T14:18:19: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:19:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:19:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:19:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:19:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:19:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:19:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:19:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:19:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:19:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:19:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:19: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:19: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:19:       ^
+2024-11-07T14:18:19: 
+2024-11-07T14:18:19: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:19:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:19:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:19:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:19:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:19:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:19:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:19:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:19:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:19:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:19:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:19: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:19: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:19:       ^
+2024-11-07T14:18:19: 
+2024-11-07T14:18:19: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:19:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:19:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:19:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:19:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:19:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:19:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:19:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:19:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:19:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:19:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:25: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:25: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:25:       ^
+2024-11-07T14:18:25: 
+2024-11-07T14:18:25: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:25:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:25:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:25:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:25:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:25:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:25:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:25:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:25:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:25:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:25:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:26: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:26: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:26:       ^
+2024-11-07T14:18:26: 
+2024-11-07T14:18:26: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:26:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:26:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:26:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:26:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:26:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:26:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:26:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:26:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:26:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:26:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:26: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:26: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:26:       ^
+2024-11-07T14:18:26: 
+2024-11-07T14:18:26: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:26:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:26:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:26:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:26:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:26:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:26:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:26:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:26:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:26:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:26:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:26: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:26: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:26:       ^
+2024-11-07T14:18:26: 
+2024-11-07T14:18:26: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:26:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:26:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:26:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:26:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:26:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:26:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:26:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:26:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:26:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:26:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:26: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:26: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:26:       ^
+2024-11-07T14:18:26: 
+2024-11-07T14:18:26: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:26:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:26:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:26:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:26:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:26:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:26:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:26:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:26:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:26:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:26:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:26: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:26: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:26:       ^
+2024-11-07T14:18:26: 
+2024-11-07T14:18:26: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:26:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:26:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:26:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:26:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:26:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:26:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:26:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:26:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:26:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:26:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:27: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:27: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:27:       ^
+2024-11-07T14:18:27: 
+2024-11-07T14:18:27: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:27:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:27:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:27:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:27:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:27:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:27:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:27:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:27:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:27:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:27:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:27: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:27: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:27:       ^
+2024-11-07T14:18:27: 
+2024-11-07T14:18:27: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:27:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:27:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:27:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:27:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:27:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:27:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:27:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:27:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:27:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:27:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:27: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:27: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:27:       ^
+2024-11-07T14:18:27: 
+2024-11-07T14:18:27: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:27:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:27:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:27:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:27:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:27:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:27:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:27:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:27:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:27:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:27:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:27: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:27: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:27:       ^
+2024-11-07T14:18:27: 
+2024-11-07T14:18:27: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:27:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:27:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:27:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:27:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:27:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:27:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:27:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:27:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:27:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:27:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:27: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:27: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:27:       ^
+2024-11-07T14:18:27: 
+2024-11-07T14:18:27: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:27:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:27:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:27:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:27:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:27:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:27:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:27:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:27:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:27:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:27:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:28: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:28: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:28:       ^
+2024-11-07T14:18:28: 
+2024-11-07T14:18:28: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:28:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:28:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:28:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:28:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:28:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:28:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:28:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:28:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:28:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:28:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:28: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:28: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:28:       ^
+2024-11-07T14:18:28: 
+2024-11-07T14:18:28: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:28:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:28:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:28:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:28:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:28:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:28:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:28:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:28:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:28:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:28:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:28: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:28: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:28:       ^
+2024-11-07T14:18:28: 
+2024-11-07T14:18:28: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:28:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:28:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:28:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:28:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:28:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:28:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:28:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:28:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:28:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:28:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:28: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:28: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:28:       ^
+2024-11-07T14:18:28: 
+2024-11-07T14:18:28: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:28:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:28:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:28:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:28:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:28:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:28:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:28:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:28:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:28:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:28:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:18:29: /var/www/podokan/backend/middleware/auth.js:36
+2024-11-07T14:18:29: const expressRateLimit = require('express-rate-limit'); // Make sure this is properly imported
+2024-11-07T14:18:29:       ^
+2024-11-07T14:18:29: 
+2024-11-07T14:18:29: SyntaxError: Identifier 'expressRateLimit' has already been declared
+2024-11-07T14:18:29:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:18:29:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:18:29:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:18:29:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:18:29:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:18:29:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:18:29:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:18:29:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:18:29:     at Object.<anonymous> (/var/www/podokan/backend/app.js:5:24)
+2024-11-07T14:18:29:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
