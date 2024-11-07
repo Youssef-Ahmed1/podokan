@@ -476,20 +476,25 @@ router.get(
   })
 );
 
-router.get("/admin/pending-products",
+router.get(
+  "/admin/pending-products",
   isAuthenticated,
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const products = await Product.find({ status: 'pending' })
+      const pendingProducts = await Product.find({ status: 'pending' })
+        .select('designImage shopId DesignTitle Description Maintag Designtags ProductType ProductColor status createdAt')
         .populate('shopId', 'name email avatar')
-        .sort('-createdAt');
+        .lean()
+        .limit(50)  // Limit results to prevent timeout
+        .maxTimeMS(30000);
 
       res.status(200).json({
         success: true,
-        products
+        products: pendingProducts
       });
     } catch (error) {
+      console.error('Pending products error:', error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
