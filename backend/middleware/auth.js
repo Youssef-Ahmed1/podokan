@@ -120,17 +120,11 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
 
 exports.isAdmin = catchAsyncErrors(async (req, res, next) => {
   if (!req.user) {
-    return res.status(401).json({
-      success: false,
-      message: "Please login first"
-    });
+    return next(new ErrorHandler("Please login first", 401));
   }
 
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({
-      success: false,
-      message: "Access denied. Admin only."
-    });
+  if (req.user.role !== "Admin") {
+    return next(new ErrorHandler("Access denied. Admin only.", 403));
   }
 
   next();
