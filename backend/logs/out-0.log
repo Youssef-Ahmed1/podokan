@@ -820,3 +820,21 @@
 2024-11-07T16:21:52: Server running on port 8000
 2024-11-07T16:21:52: Uploads directory exists
 2024-11-07T16:21:53: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T16:30:11: Environment: {
+2024-11-07T16:30:11:   NODE_ENV: 'production',
+2024-11-07T16:30:11:   DB_URL: 'Set',
+2024-11-07T16:30:11:   MONGO_URI: 'Not set',
+2024-11-07T16:30:11:   PORT: '8000'
+2024-11-07T16:30:11: }
+2024-11-07T16:30:11: Server running on port 8000
+2024-11-07T16:30:11: Uploads directory exists
+2024-11-07T16:30:12: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T16:30:16: Environment: {
+2024-11-07T16:30:16:   NODE_ENV: 'production',
+2024-11-07T16:30:16:   DB_URL: 'Set',
+2024-11-07T16:30:16:   MONGO_URI: 'Not set',
+2024-11-07T16:30:16:   PORT: '8000'
+2024-11-07T16:30:16: }
+2024-11-07T16:30:16: Server running on port 8000
+2024-11-07T16:30:16: Uploads directory exists
+2024-11-07T16:30:17: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
