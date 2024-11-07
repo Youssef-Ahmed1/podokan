@@ -15,7 +15,7 @@ module.exports = {
     },
     node_args: ['--max-old-space-size=2048'],
     kill_timeout: 3000,
-    wait_ready: true,
+    wait_ready: false,
     listen_timeout: 30000,
     time: true
   }]
