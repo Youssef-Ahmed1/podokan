@@ -12,7 +12,7 @@ module.exports = {
     },
     node_args: ['--max-old-space-size=2048'],
     kill_timeout: 5000,
-    wait_ready: true,
+    wait_ready: false,
     shutdown_with_message: true,
     listen_timeout: 10000,
     max_restarts: 10,
