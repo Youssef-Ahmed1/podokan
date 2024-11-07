@@ -1132,3 +1132,128 @@
 2024-11-07T16:01:16:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
 2024-11-07T16:01:16:   code: 'ERR_INVALID_ARG_TYPE'
 2024-11-07T16:01:16: }
+2024-11-07T16:57:30: Error: {
+2024-11-07T16:57:30:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:30:   stack: undefined,
+2024-11-07T16:57:30:   path: '/api/v2/user/getuser'
+2024-11-07T16:57:30: }
+2024-11-07T16:57:30: Error: {
+2024-11-07T16:57:30:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:30:   stack: undefined,
+2024-11-07T16:57:30:   path: '/api/v2/shop/getSeller'
+2024-11-07T16:57:30: }
+2024-11-07T16:57:30: Error: {
+2024-11-07T16:57:30:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:30:   stack: undefined,
+2024-11-07T16:57:30:   path: '/api/v2/product/get-all-products'
+2024-11-07T16:57:30: }
+2024-11-07T16:57:30: Error: {
+2024-11-07T16:57:30:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:30:   stack: undefined,
+2024-11-07T16:57:30:   path: '/api/v2/event/get-all-events'
+2024-11-07T16:57:30: }
+2024-11-07T16:57:32: Error: {
+2024-11-07T16:57:32:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:32:   stack: undefined,
+2024-11-07T16:57:32:   path: '/api/v2/user/getuser'
+2024-11-07T16:57:32: }
+2024-11-07T16:57:32: Error: {
+2024-11-07T16:57:32:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:32:   stack: undefined,
+2024-11-07T16:57:32:   path: '/api/v2/shop/getSeller'
+2024-11-07T16:57:32: }
+2024-11-07T16:57:32: Error: {
+2024-11-07T16:57:32:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:32:   stack: undefined,
+2024-11-07T16:57:32:   path: '/api/v2/product/get-all-products'
+2024-11-07T16:57:32: }
+2024-11-07T16:57:32: Error: {
+2024-11-07T16:57:32:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:32:   stack: undefined,
+2024-11-07T16:57:32:   path: '/api/v2/event/get-all-events'
+2024-11-07T16:57:32: }
+2024-11-07T16:57:33: Error: {
+2024-11-07T16:57:33:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:33:   stack: undefined,
+2024-11-07T16:57:33:   path: '/api/v2/user/getuser'
+2024-11-07T16:57:33: }
+2024-11-07T16:57:33: Error: {
+2024-11-07T16:57:33:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:33:   stack: undefined,
+2024-11-07T16:57:33:   path: '/api/v2/shop/getSeller'
+2024-11-07T16:57:33: }
+2024-11-07T16:57:33: Error: {
+2024-11-07T16:57:33:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:33:   stack: undefined,
+2024-11-07T16:57:33:   path: '/api/v2/product/get-all-products'
+2024-11-07T16:57:33: }
+2024-11-07T16:57:33: Error: {
+2024-11-07T16:57:33:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:33:   stack: undefined,
+2024-11-07T16:57:33:   path: '/api/v2/event/get-all-events'
+2024-11-07T16:57:33: }
+2024-11-07T16:57:35: Error: {
+2024-11-07T16:57:35:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:35:   stack: undefined,
+2024-11-07T16:57:35:   path: '/api/v2/user/getuser'
+2024-11-07T16:57:35: }
+2024-11-07T16:57:35: Error: {
+2024-11-07T16:57:35:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:35:   stack: undefined,
+2024-11-07T16:57:35:   path: '/api/v2/shop/getSeller'
+2024-11-07T16:57:35: }
+2024-11-07T16:57:35: Error: {
+2024-11-07T16:57:35:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:35:   stack: undefined,
+2024-11-07T16:57:35:   path: '/api/v2/product/get-all-products'
+2024-11-07T16:57:35: }
+2024-11-07T16:57:35: Error: {
+2024-11-07T16:57:35:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:35:   stack: undefined,
+2024-11-07T16:57:35:   path: '/api/v2/event/get-all-events'
+2024-11-07T16:57:35: }
+2024-11-07T16:57:58: Error: {
+2024-11-07T16:57:58:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:58:   stack: undefined,
+2024-11-07T16:57:58:   path: '/api/v2/event/get-all-events'
+2024-11-07T16:57:58: }
+2024-11-07T16:57:58: Error: {
+2024-11-07T16:57:58:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:58:   stack: undefined,
+2024-11-07T16:57:58:   path: '/api/v2/product/get-all-products'
+2024-11-07T16:57:58: }
+2024-11-07T16:57:58: Error: {
+2024-11-07T16:57:58:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:58:   stack: undefined,
+2024-11-07T16:57:58:   path: '/api/v2/user/getuser'
+2024-11-07T16:57:58: }
+2024-11-07T16:57:59: Error: {
+2024-11-07T16:57:59:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:57:59:   stack: undefined,
+2024-11-07T16:57:59:   path: '/api/v2/shop/getSeller'
+2024-11-07T16:57:59: }
+2024-11-07T17:06:05: Error: {
+2024-11-07T17:06:05:   message: 'Maximum call stack size exceeded',
+2024-11-07T17:06:05:   stack: undefined,
+2024-11-07T17:06:05:   path: '/api/v2/user/getuser'
+2024-11-07T17:06:05: }
+2024-11-07T17:10:33: Error: {
+2024-11-07T17:10:33:   message: 'Please login to continue',
+2024-11-07T17:10:33:   stack: undefined,
+2024-11-07T17:10:33:   path: '/api/v2/shop/getSeller'
+2024-11-07T17:10:33: }
+2024-11-07T17:14:46: Error: {
+2024-11-07T17:14:46:   message: 'Please login to continue',
+2024-11-07T17:14:46:   stack: undefined,
+2024-11-07T17:14:46:   path: '/api/v2/shop/getSeller'
+2024-11-07T17:14:46: }
+2024-11-07T20:16:42: Error: {
+2024-11-07T20:16:42:   message: 'Maximum call stack size exceeded',
+2024-11-07T20:16:42:   stack: undefined,
+2024-11-07T20:16:42:   path: '/api/v2/user/getuser'
+2024-11-07T20:16:42: }
+2024-11-07T20:16:49: Error: {
+2024-11-07T20:16:49:   message: 'Maximum call stack size exceeded',
+2024-11-07T20:16:49:   stack: undefined,
+2024-11-07T20:16:49:   path: '/api/v2/user/getuser'
+2024-11-07T20:16:49: }
