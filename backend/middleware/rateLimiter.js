@@ -1,4 +1,4 @@
-cat > /var/www/podokan/backend/middleware/rateLimiter.js << 'EOL'
+cat > /var/www/podokan/backend/middleware/rateLimiter.js << 'EOF'
 const rateLimit = require('express-rate-limit');
 
 const limiter = rateLimit({
@@ -14,4 +14,4 @@ const limiter = rateLimit({
 });
 
 module.exports = limiter;
-EOL
+EOF
