@@ -79,10 +79,13 @@ history.listen(() => {
 });
 
 const App = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        await Promise.all([
+        setIsLoading(true);
+        await Promise.allSettled([
           Store.dispatch(loadUser()),
           Store.dispatch(loadSeller()),
           Store.dispatch(getAllProducts()),
@@ -90,11 +93,17 @@ const App = () => {
         ]);
       } catch (error) {
         console.error("Error loading initial data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     loadInitialData();
   }, []);
+
+  if (isLoading) {
+    return <div>Loading...</div>; 
+  }
 
   return (
     <BrowserRouter>

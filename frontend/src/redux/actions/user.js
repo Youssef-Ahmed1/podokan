@@ -17,7 +17,11 @@ const setAuthToken = (token) => {
 
 const initialState = {
   isAuthenticated: false,
+  loading: false,
+  user: null,
+  error: null
 };
+
 
 export const userReducer = createReducer(initialState, (builder) => {
   builder.addCase("LoadUserRequest", (state) => {
@@ -92,15 +96,17 @@ export const loadUser = () => async (dispatch) => {
     dispatch({ type: "LoadUserRequest" });
     
     const { data } = await axios.get(`${server}/user/getuser`, {
-      withCredentials: true
+      withCredentials: true,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
     });
     
-    if (data.success) {
-      dispatch({ 
-        type: "LoadUserSuccess", 
-        payload: data.user 
-      });
-    }
+    dispatch({ 
+      type: "LoadUserSuccess", 
+      payload: data.user 
+    });
   } catch (error) {
     console.error("Load user error:", error.response?.data || error.message);
     dispatch({
@@ -110,23 +116,27 @@ export const loadUser = () => async (dispatch) => {
   }
 };
 
-// Load seller
 export const loadSeller = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadSellerRequest" });
     
     const { data } = await axios.get(`${server}/shop/getSeller`, {
-      withCredentials: true
+      withCredentials: true,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Seller-Authorization': `Bearer ${localStorage.getItem('seller_token')}`
+      }
     });
     
-    if (data.success) {
-      setAuthToken(data.token);
-      dispatch({ type: "LoadSellerSuccess", payload: data.seller });
-    }
+    dispatch({ 
+      type: "LoadSellerSuccess", 
+      payload: data.seller 
+    });
   } catch (error) {
     dispatch({
       type: "LoadSellerFail",
-      payload: error.response?.data?.message || "Authentication failed"
+      payload: error.response?.data?.message || "Seller authentication failed"
     });
   }
 };
