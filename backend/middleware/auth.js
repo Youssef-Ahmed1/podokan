@@ -106,6 +106,11 @@ exports.isAdmin = (adminType = "Admin") => catchAsyncErrors(async (req, res, nex
       });
     }
 
+    // Add caching headers
+    res.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    res.set('Expires', '-1');
+    res.set('Pragma', 'no-cache');
+
     next();
   } catch (error) {
     console.error('Admin auth error:', error);
