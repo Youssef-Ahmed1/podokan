@@ -106,52 +106,118 @@ router.post(
 );
 
 // login shop
-router.post("/login-shop", catchAsyncErrors(async (req, res, next) => {
+// login shop
+router.post("/login-shop", async (req, res) => {
   try {
+    console.log('Login request received:', {
+      body: req.body,
+      cookies: req.cookies,
+      headers: {
+        'content-type': req.headers['content-type'],
+        'seller-authorization': req.headers['seller-authorization']
+      }
+    });
+
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return next(new ErrorHandler("Please provide all fields!", 400));
+      return res.status(400).json({
+        success: false,
+        message: "Please provide email and password"
+      });
     }
 
-    const seller = await Shop.findOne({ email }).select("+password");
+    // Find shop and verify password
+    const shop = await Shop.findOne({ email }).select('+password');
+    console.log('Shop lookup result:', {
+      found: !!shop,
+      email: email,
+      shopId: shop?._id
+    });
 
-    if (!seller) {
-      return next(new ErrorHandler("Seller doesn't exists!", 400));
+    if (!shop) {
+      return res.status(401).json({
+        success: false,
+        message: "Shop not found"
+      });
     }
 
-    const isPasswordValid = await seller.comparePassword(password);
+    const isPasswordValid = await shop.comparePassword(password);
+    console.log('Password validation:', {
+      isValid: isPasswordValid,
+      shopId: shop._id
+    });
 
     if (!isPasswordValid) {
-      return next(new ErrorHandler("Please provide the correct information", 400));
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials"
+      });
     }
 
-    const token = seller.getJwtToken();
+    // Generate token
+    const token = jwt.sign(
+      { id: shop._id },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: '7d' }
+    );
 
-    // Set cookie options
+    console.log('Token generated:', {
+      tokenExists: !!token,
+      shopId: shop._id
+    });
+
+    // Cookie options
     const cookieOptions = {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       httpOnly: true,
-      sameSite: 'none',
+      sameSite: "none",
       secure: true,
+      path: '/',
       domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
     };
 
-    // Send response with both cookie and header
-    res
+    // Prepare response object
+    const shopResponse = shop.toObject();
+    delete shopResponse.password;
+
+    console.log('Preparing response:', {
+      success: true,
+      hasSeller: !!shopResponse,
+      hasToken: !!token
+    });
+
+    // Set cookie and send response
+    return res
       .status(200)
       .cookie("seller_token", token, cookieOptions)
-      .header("Seller-Authorization", `Bearer ${token}`)
+      .header('Seller-Authorization', `Bearer ${token}`)
       .json({
         success: true,
-        token,
-        seller
+        seller: shopResponse,
+        token
       });
 
   } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
+    console.error("Login error:", {
+      message: error.message,
+      stack: error.stack,
+      type: error.name,
+      env: {
+        nodeEnv: process.env.NODE_ENV,
+        jwtSecret: !!process.env.JWT_SECRET_KEY,
+        jwtExpires: process.env.JWT_EXPIRES
+      }
+    });
+
+    return res.status(500).json({
+      success: false,
+      message: process.env.NODE_ENV === 'PRODUCTION' ? 
+        "Login failed" : 
+        `Login failed: ${error.message}`
+    });
   }
-}));
+});
 
 router.get(
   "/getSeller",
@@ -278,33 +344,20 @@ router.put(
   })
 );
 
+// all sellers --- for admin
+// controller/shop.js
 
+// Get all sellers -- admin only
 router.get(
   "/admin-all-sellers",
   isAuthenticated,
-  isAdmin,
+  isAdmin,  
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 20;
-      const skip = (page - 1) * limit;
-
-      const totalSellers = await Shop.countDocuments();
-
-      const sellers = await Shop.find()
-        .select('-password -__v')
-        .sort('-createdAt')
-        .skip(skip)
-        .limit(limit)
-        .lean()
-        .maxTimeMS(30000);
-
+      const sellers = await Shop.find().sort({ createdAt: -1 });
       res.status(200).json({
         success: true,
         sellers,
-        currentPage: page,
-        totalPages: Math.ceil(totalSellers / limit),
-        totalSellers,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
