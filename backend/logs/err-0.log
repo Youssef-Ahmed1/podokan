@@ -74,3 +74,9 @@
 2024-11-07T15:03:04: (node:2998975) [MONGODB DRIVER] Warning: keepAlive is a deprecated option: Will not be able to turn off in the future.
 2024-11-07T15:03:04: (Use `node --trace-warnings ...` to show where the warning was created)
 2024-11-07T15:03:04: (node:2998975) [MONGODB DRIVER] Warning: keepAliveInitialDelay is a deprecated option: Will not be configurable in the future.
+2024-11-07T15:07:30: (node:2999096) [MONGODB DRIVER] Warning: keepAlive is a deprecated option: Will not be able to turn off in the future.
+2024-11-07T15:07:30: (Use `node --trace-warnings ...` to show where the warning was created)
+2024-11-07T15:07:30: (node:2999096) [MONGODB DRIVER] Warning: keepAliveInitialDelay is a deprecated option: Will not be configurable in the future.
+2024-11-07T15:07:41: (node:2999119) [MONGODB DRIVER] Warning: keepAlive is a deprecated option: Will not be able to turn off in the future.
+2024-11-07T15:07:41: (Use `node --trace-warnings ...` to show where the warning was created)
+2024-11-07T15:07:41: (node:2999119) [MONGODB DRIVER] Warning: keepAliveInitialDelay is a deprecated option: Will not be configurable in the future.
