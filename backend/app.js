@@ -1,6 +1,6 @@
 const express = require("express");
 var http = require('http');
-const fs = require('fs')
+const fs = require('fs').promises; // Change to use promises version
 const ErrorHandler = require("./middleware/error");
 const app = express();
 const cookieParser = require("cookie-parser");
@@ -10,6 +10,21 @@ const multer = require('multer');
 const path = require('path');
 const appConfig = require('../backend/server');
 
+// Move directory creation to a function
+const createUploadsDirectory = async () => {
+  try {
+    await fs.access('uploads');
+    console.log('Uploads directory exists');
+  } catch (error) {
+    try {
+      await fs.mkdir('uploads', { recursive: true });
+      console.log('Created uploads directory');
+    } catch (mkdirError) {
+      console.error('Error creating uploads directory:', mkdirError);
+    }
+  }
+};
+createUploadsDirectory().catch(console.error);
 // CORS configuration
 const corsOptions = {
   origin: ['https://testpodokan.store', 'https://www.testpodokan.store'],
@@ -91,7 +106,7 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
 // Multer configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(appConfig.fileUploadPath));
+    cb(null, path.join(__dirname, 'uploads'));
   },
   filename: function (req, file, cb) {
     cb(null, `${Date.now()}-${file.originalname}`);
@@ -111,7 +126,6 @@ const upload = multer({
     cb(new Error("Error: Images Only!"));
   },
 });
-
 // Create uploads directory
 (async () => {
   try {
