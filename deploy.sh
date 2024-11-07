@@ -14,11 +14,9 @@ git merge
 
 # Frontend build
 cd frontend
-yarn add 
 yarn build
 # Backend deployment
 cd ../backend
-npm install
 
 # PM2 restart
 pm2 delete all

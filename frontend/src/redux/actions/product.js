@@ -93,7 +93,6 @@ export const fetchPendingProducts = () => async (dispatch) => {
 };
 
 // Approve/Reject product
-// frontend/redux/actions/product.js
 
 export const approveRejectProduct = (productId, status, reason) => async (dispatch) => {
   try {

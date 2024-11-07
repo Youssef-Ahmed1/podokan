@@ -15,7 +15,9 @@ const verifyToken = async (token, secretKey) => {
 
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    const token = 
+      req.cookies.token ||
+      (req.headers.authorization ? req.headers.authorization.replace('Bearer ', '') : null);
 
     if (!token) {
       return next(new ErrorHandler("Please login to continue", 401));
@@ -23,10 +25,8 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    
-    // Find user without password
-    const user = await User.findById(decoded.id).select('-password');
-    
+    const user = await User.findById(decoded.id).select('-password').lean();
+
     if (!user) {
       return next(new ErrorHandler("User not found", 401));
     }
@@ -34,15 +34,24 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
+    // Clear invalid token
+    res.cookie('token', '', { 
+      expires: new Date(0),
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true
+    });
+
     if (error.name === 'JsonWebTokenError') {
-      return next(new ErrorHandler("Invalid token", 401));
+      return next(new ErrorHandler("Invalid token, please login again", 401));
     }
     if (error.name === 'TokenExpiredError') {
-      return next(new ErrorHandler("Token expired", 401));
+      return next(new ErrorHandler("Token expired, please login again", 401));
     }
     return next(new ErrorHandler("Authentication failed", 401));
   }
 });
+
 
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
@@ -75,13 +84,11 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
 
 
 // Change back to the original format
-exports.isAdmin = (role) => {
-  return (req, res, next) => {
-    if (!req.user || req.user.role !== role) {
-      return next(new ErrorHandler(`${role} access denied`, 403));
-    }
-    next();
-  };
-};
+exports.isAdmin = catchAsyncErrors(async (req, res, next) => {
+  if (!req.user || req.user.role !== 'Admin') {
+    return next(new ErrorHandler("Access denied. Admin only.", 403));
+  }
+  next();
+});
 
 module.exports = exports;
