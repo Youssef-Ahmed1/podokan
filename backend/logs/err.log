@@ -1,0 +1,10 @@
+2024-11-07T21:03:22: Error: {
+2024-11-07T21:03:22:   message: 'Please login to continue',
+2024-11-07T21:03:22:   stack: undefined,
+2024-11-07T21:03:22:   path: '/api/v2/product/admin/pending-products'
+2024-11-07T21:03:22: }
+2024-11-07T21:03:22: Error: {
+2024-11-07T21:03:22:   message: 'Please login to continue',
+2024-11-07T21:03:22:   stack: undefined,
+2024-11-07T21:03:22:   path: '/api/v2/order/admin-all-orders'
+2024-11-07T21:03:22: }
