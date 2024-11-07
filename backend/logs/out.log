@@ -1,2 +1,92 @@
-2024-11-06T23:49:33: MongoDB connected successfully
-2024-11-06T23:49:33: Server running on port 8000
+2024-11-06T23:55:04: MongoDB connected successfully
+2024-11-06T23:55:04: Server running on port 8000
+2024-11-06T23:57:17: Auth check: {
+2024-11-06T23:57:17:   cookies: {
+2024-11-06T23:57:17:     token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+2024-11-06T23:57:17:     seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+2024-11-06T23:57:17:   },
+2024-11-06T23:57:17:   headers: {
+2024-11-06T23:57:17:     auth: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDkzNTU1NywiZXhwIjoxNzMxNTQwMzU3fQ.zEybI9vyDJWKjSuGYcX2W-wHGt5i6HqZVpVcPiNPg3s',
+2024-11-06T23:57:17:     sellerAuth: undefined
+2024-11-06T23:57:17:   },
+2024-11-06T23:57:17:   token: 'eyJhbGciOiJIUzI1NiIs...'
+2024-11-06T23:57:17: }
+2024-11-06T23:57:46: Auth check: {
+2024-11-06T23:57:46:   cookies: {
+2024-11-06T23:57:46:     token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+2024-11-06T23:57:46:     seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+2024-11-06T23:57:46:   },
+2024-11-06T23:57:46:   headers: {
+2024-11-06T23:57:46:     auth: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDkzNTU1NywiZXhwIjoxNzMxNTQwMzU3fQ.zEybI9vyDJWKjSuGYcX2W-wHGt5i6HqZVpVcPiNPg3s',
+2024-11-06T23:57:46:     sellerAuth: undefined
+2024-11-06T23:57:46:   },
+2024-11-06T23:57:46:   token: 'eyJhbGciOiJIUzI1NiIs...'
+2024-11-06T23:57:46: }
+2024-11-06T23:57:47: Auth check: {
+2024-11-06T23:57:47:   cookies: {
+2024-11-06T23:57:47:     token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+2024-11-06T23:57:47:     seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+2024-11-06T23:57:47:   },
+2024-11-06T23:57:47:   headers: { auth: undefined, sellerAuth: undefined },
+2024-11-06T23:57:47:   token: 'eyJhbGciOiJIUzI1NiIs...'
+2024-11-06T23:57:47: }
+2024-11-06T23:58:11: Auth check: {
+2024-11-06T23:58:11:   cookies: {
+2024-11-06T23:58:11:     token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+2024-11-06T23:58:11:     seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+2024-11-06T23:58:11:   },
+2024-11-06T23:58:11:   headers: {
+2024-11-06T23:58:11:     auth: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDkzNTU1NywiZXhwIjoxNzMxNTQwMzU3fQ.zEybI9vyDJWKjSuGYcX2W-wHGt5i6HqZVpVcPiNPg3s',
+2024-11-06T23:58:11:     sellerAuth: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+2024-11-06T23:58:11:   },
+2024-11-06T23:58:11:   token: 'eyJhbGciOiJIUzI1NiIs...'
+2024-11-06T23:58:11: }
+2024-11-06T23:58:12: Request data: {
+2024-11-06T23:58:12:   body: [Object: null prototype] {
+2024-11-06T23:58:12:     DesignTitle: 'dfgdfg',
+2024-11-06T23:58:12:     Description: 'dsfgdfgsdfgs',
+2024-11-06T23:58:12:     Maintag: 'dfgsdsfgdsfg',
+2024-11-06T23:58:12:     Designtags: '["sdfgdfgsdfgsg"]',
+2024-11-06T23:58:12:     ProductType: 't-shirt',
+2024-11-06T23:58:12:     ProductColor: 'white',
+2024-11-06T23:58:12:     ProductView: 'front',
+2024-11-06T23:58:12:     DesignScale: '1',
+2024-11-06T23:58:12:     shopId: '65e23cf729b804d0261266d6',
+2024-11-06T23:58:12:     designPosition: '{"x":50,"y":50}',
+2024-11-06T23:58:12:     originalPrice: '340',
+2024-11-06T23:58:12:     discountPrice: '310',
+2024-11-06T23:58:12:     availableColors: '["white"]'
+2024-11-06T23:58:12:   },
+2024-11-06T23:58:12:   file: {
+2024-11-06T23:58:12:     fieldname: 'designImage',
+2024-11-06T23:58:12:     originalname: '[removal.ai]_11466a45-b14a-47ea-bb18-c40afda8e502-black-clover-v002-transformed_8D91IJ.png',
+2024-11-06T23:58:12:     encoding: '7bit',
+2024-11-06T23:58:12:     mimetype: 'image/png',
+2024-11-06T23:58:12:     destination: 'uploads/',
+2024-11-06T23:58:12:     filename: 'designImage-1730937492071-861268363.png',
+2024-11-06T23:58:12:     path: 'uploads/designImage-1730937492071-861268363.png',
+2024-11-06T23:58:12:     size: 1365879
+2024-11-06T23:58:12:   },
+2024-11-06T23:58:12:   seller: new ObjectId("65e23cf729b804d0261266d6")
+2024-11-06T23:58:12: }
+2024-11-06T23:58:14: Auth check: {
+2024-11-06T23:58:14:   cookies: {
+2024-11-06T23:58:14:     token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+2024-11-06T23:58:14:     seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+2024-11-06T23:58:14:   },
+2024-11-06T23:58:14:   headers: { auth: undefined, sellerAuth: undefined },
+2024-11-06T23:58:14:   token: 'eyJhbGciOiJIUzI1NiIs...'
+2024-11-06T23:58:14: }
+2024-11-06T23:58:32: Auth check: {
+2024-11-06T23:58:32:   cookies: {
+2024-11-06T23:58:32:     token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMDc2NjAyNywiZXhwIjoxNzMxMzcwODI3fQ.1ZO9_0OXO-RJRIRWc7GzWYEmtHZ_C59NVlGGr4nPcBg',
+2024-11-06T23:58:32:     seller_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZTIzY2Y3MjliODA0ZDAyNjEyNjZkNiIsImlhdCI6MTczMDU1MTI5MSwiZXhwIjoxNzMxMTU2MDkxfQ.AK_HDjOeGzV-jsK0NZ3pEzbNZiaKdMe2EKjjE46FoXE'
+2024-11-06T23:58:32:   },
+2024-11-06T23:58:32:   headers: { auth: undefined, sellerAuth: undefined },
+2024-11-06T23:58:32:   token: 'eyJhbGciOiJIUzI1NiIs...'
+2024-11-06T23:58:32: }
+2024-11-06T23:59:29: Auth check: {
+2024-11-06T23:59:29:   cookies: [Object: null prototype] {},
+2024-11-06T23:59:29:   headers: { auth: undefined, sellerAuth: undefined },
+2024-11-06T23:59:29:   token: 'missing'
+2024-11-06T23:59:29: }
