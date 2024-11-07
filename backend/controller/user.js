@@ -149,63 +149,58 @@ router.post(
 );
 
 // login user
-router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
+router.post("/login-user", async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return next(new ErrorHandler("Please provide all fields", 400));
+      return next(new ErrorHandler("Please provide the all fields!", 400));
     }
 
     const user = await User.findOne({ email }).select("+password");
+
     if (!user) {
-      return next(new ErrorHandler("User doesn't exist", 401));
+      return next(new ErrorHandler("User doesn't exists!", 400));
     }
 
     const isPasswordValid = await user.comparePassword(password);
+
     if (!isPasswordValid) {
-      return next(new ErrorHandler("Invalid credentials", 401));
+      return next(new ErrorHandler("Please provide the correct information", 400));
     }
 
-    // Use your sendToken helper
-    sendToken(user, 200, res);
+    sendToken(user, 201, res);
   } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
+    console.error("Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
-}));
+});
 
 // load user
-// controller/user.js
-router.get("/getuser", catchAsyncErrors(async (req, res, next) => {
-  try {
-    const token = req.cookies.token || 
-                 req.headers.authorization?.replace('Bearer ', '');
+router.get(
+  "/getuser",
+  isAuthenticated,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const user = await User.findById(req.user.id);
 
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "Please login first"
+      if (!user) {
+        return next(new ErrorHandler("User doesn't exists", 400));
+      }
+
+      res.status(200).json({
+        success: true,
+        user,
       });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
     }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "User not found"
-      });
-    }
-
-    // Use your sendToken helper
-    sendToken(user, 200, res);
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
-  }
-}));
-
-// Login route
+  })
+);
 
 // log out user
 router.get(
@@ -427,26 +422,10 @@ router.get(
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 20;
-      const skip = (page - 1) * limit;
-
-      const totalUsers = await User.countDocuments();
-
-      const users = await User.find()
-        .select('-password -__v')
-        .sort('-createdAt')
-        .skip(skip)
-        .limit(limit)
-        .lean()
-        .maxTimeMS(30000);
-
+      const users = await User.find().sort({ createdAt: -1 });
       res.status(200).json({
         success: true,
         users,
-        currentPage: page,
-        totalPages: Math.ceil(totalUsers / limit),
-        totalUsers,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
