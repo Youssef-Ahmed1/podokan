@@ -6,12 +6,12 @@ module.exports = {
     exec_mode: "fork",
     watch: false,
     max_memory_restart: "1G",
-    kill_timeout: 10000,    // Give process 10 seconds to clean up
-    wait_ready: false,       // Wait for ready signal
-    listen_timeout: 10000,  // Wait 10s for listen
     env: {
       NODE_ENV: "production",
       PORT: 8000
-    }
+    },
+    error_file: "./logs/err.log",
+    out_file: "./logs/out.log",
+    time: true
   }]
 };
