@@ -1021,3 +1021,279 @@
 2024-11-07T20:43:18: Server running on port 8000
 2024-11-07T20:43:18: Database connected
 2024-11-07T20:43:19: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:46:21: Server is running on port 8000
+2024-11-07T21:46:21: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:46:22: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:46:26: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:46:26: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:46:31: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:46:31: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:46:36: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:46:36: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:46:41: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:46:41: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:46:47: Server is running on port 8000
+2024-11-07T21:46:47: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:46:48: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:46:52: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:46:52: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:46:57: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:46:57: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:47:02: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:47:02: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:47:07: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:47:07: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:47:13: Server is running on port 8000
+2024-11-07T21:47:13: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:47:14: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:47:18: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:47:18: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:47:23: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:47:23: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:47:28: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:47:28: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:47:33: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:47:33: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:47:38: Server is running on port 8000
+2024-11-07T21:47:38: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:47:39: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:47:43: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:47:43: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:47:48: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:47:48: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:47:53: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:47:53: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:47:58: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:47:58: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:48:04: Server is running on port 8000
+2024-11-07T21:48:04: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:48:05: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:48:09: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:48:09: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:48:14: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:48:14: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:48:19: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:48:19: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:48:24: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:48:24: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:48:30: Server is running on port 8000
+2024-11-07T21:48:30: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:48:31: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:48:35: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:48:35: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:48:40: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:48:40: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:48:45: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:48:45: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:48:50: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:48:50: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:48:56: Server is running on port 8000
+2024-11-07T21:48:56: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:48:57: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:49:01: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:49:01: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:49:06: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:49:06: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:49:11: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:49:11: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:49:16: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:49:16: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:49:22: Server is running on port 8000
+2024-11-07T21:49:22: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:49:23: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:49:27: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:49:27: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:49:32: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:49:32: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:49:37: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:49:37: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:49:42: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:49:42: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:49:47: Server is running on port 8000
+2024-11-07T21:49:47: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:49:48: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:49:52: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:49:52: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:49:57: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:49:57: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:50:02: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:50:02: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:50:07: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:50:07: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:50:13: Server is running on port 8000
+2024-11-07T21:50:13: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:50:14: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:50:18: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:50:18: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:50:23: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:50:23: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:50:28: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:50:28: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:50:33: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:50:33: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:50:39: Server is running on port 8000
+2024-11-07T21:50:39: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:50:40: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:50:44: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:50:44: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:50:49: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:50:49: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:50:54: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:50:54: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:50:59: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:50:59: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:51:05: Server is running on port 8000
+2024-11-07T21:51:05: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:51:06: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:51:10: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:51:10: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:51:15: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:51:15: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:51:20: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:51:20: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:51:25: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:51:25: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:51:31: Server is running on port 8000
+2024-11-07T21:51:31: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:51:31: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:51:36: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:51:36: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:51:41: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:51:41: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:51:46: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:51:46: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:51:51: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:51:51: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:51:56: Server is running on port 8000
+2024-11-07T21:51:56: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:51:57: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:52:01: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:52:01: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:52:06: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:52:06: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:52:11: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:52:11: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:52:16: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:52:16: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:52:22: Server is running on port 8000
+2024-11-07T21:52:22: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:52:23: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:52:27: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:52:27: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:52:32: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:52:32: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:52:37: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:52:37: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:52:42: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:52:42: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:52:48: Server is running on port 8000
+2024-11-07T21:52:48: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:52:49: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:52:53: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:52:53: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:52:58: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:52:58: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:53:03: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:53:03: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:53:08: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:53:08: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:53:14: Server is running on port 8000
+2024-11-07T21:53:14: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:53:15: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:53:19: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:53:19: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:53:24: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:53:24: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:53:29: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:53:29: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:53:34: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:53:34: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:53:40: Server is running on port 8000
+2024-11-07T21:53:40: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:53:40: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:53:45: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:53:45: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:53:50: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:53:50: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:53:55: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:53:55: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:54:00: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:54:00: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:54:05: Server is running on port 8000
+2024-11-07T21:54:05: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:54:06: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:54:10: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:54:10: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:54:15: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:54:15: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:54:20: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:54:20: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:54:25: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:54:25: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T21:54:31: Server is running on port 8000
+2024-11-07T21:54:31: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:54:32: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:54:36: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:54:36: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:54:41: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:54:41: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:54:46: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:54:46: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:54:51: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:54:51: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:54:57: Server is running on port 8000
+2024-11-07T21:54:57: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:54:58: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:55:02: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:55:02: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:55:07: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:55:07: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:55:12: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:55:12: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:55:17: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:55:17: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:55:23: Server is running on port 8000
+2024-11-07T21:55:23: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:55:24: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:55:28: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:55:28: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:55:33: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:55:33: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:55:38: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:55:38: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:55:43: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:55:43: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:55:49: Server is running on port 8000
+2024-11-07T21:55:49: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:55:50: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:55:54: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:55:54: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:55:59: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:55:59: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:56:04: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:56:04: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:56:09: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:56:09: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:56:15: Server is running on port 8000
+2024-11-07T21:56:15: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:56:15: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:56:20: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:56:20: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:56:25: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:56:25: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:56:30: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:56:30: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:56:35: Retrying in 5 seconds... (1 attempts remaining)
+2024-11-07T21:56:35: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T21:56:40: Server is running on port 8000
+2024-11-07T21:56:40: Retrying in 5 seconds... (5 attempts remaining)
+2024-11-07T21:56:41: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:56:45: Retrying in 5 seconds... (4 attempts remaining)
+2024-11-07T21:56:45: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:56:50: Retrying in 5 seconds... (3 attempts remaining)
+2024-11-07T21:56:50: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:56:55: Retrying in 5 seconds... (2 attempts remaining)
+2024-11-07T21:56:55: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T21:56:59: SIGINT received. Starting graceful shutdown...
+2024-11-07T21:56:59: HTTP server closed
+2024-11-07T21:57:00: MongoDB connection closed
