@@ -1,9 +1,8 @@
-// app.js
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const rateLimiter = require("./config/rateLimit"); // Updated import name
+const apiLimiter = require("./middleware/rateLimiter");  // Import directly
 const ErrorHandler = require("./middleware/error");
 
 const app = express();
@@ -37,16 +36,15 @@ const corsOptions = {
   exposedHeaders: ['Authorization', 'Seller-Authorization']
 };
 
-app.use(cors(corsOptions));
-
 // Essential middleware
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-// Apply rate limiting to API routes
-app.use('/api/v2', rateLimiter);  // Changed from apiLimiter to rateLimiter
+// Rate limiting middleware
+app.use('/api/v2', apiLimiter);
 
 // Routes
 const user = require("./controller/user");
