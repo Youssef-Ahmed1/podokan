@@ -92,11 +92,15 @@ export const loadUser = () => async (dispatch) => {
     dispatch({ type: "LoadUserRequest" });
     
     const { data } = await axios.get(`${server}/user/getuser`, {
-      withCredentials: true
+      withCredentials: true,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
     });
     
     if (data.success) {
-      setAuthToken(data.token);
+      localStorage.setItem('token', data.token);
       dispatch({ type: "LoadUserSuccess", payload: data.user });
     }
   } catch (error) {
@@ -106,7 +110,6 @@ export const loadUser = () => async (dispatch) => {
     });
   }
 };
-
 // Load seller
 export const loadSeller = () => async (dispatch) => {
   try {
@@ -172,6 +175,33 @@ export const updateUserAddress =
       dispatch({
         type: "updateUserAddressFailed",
         payload: error.response?.data?.message || error.message,
+      });
+    }
+  };
+  export const login = (email, password) => async (dispatch) => {
+    try {
+      dispatch({ type: "LoginRequest" });
+  
+      const { data } = await axios.post(
+        `${server}/user/login-user`,
+        { email, password },
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+  
+      if (data.success) {
+        localStorage.setItem('token', data.token);
+        dispatch({ type: "LoginSuccess", payload: data.user });
+      }
+    } catch (error) {
+      dispatch({
+        type: "LoginFail",
+        payload: error.response?.data?.message || "Login failed"
       });
     }
   };
