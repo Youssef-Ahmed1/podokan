@@ -236,3 +236,21 @@
 2024-11-07T15:07:41: }
 2024-11-07T15:07:42: MongoDB connected with host: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
 2024-11-07T15:07:42: Server running on port 8000
+2024-11-07T15:10:34: Environment: {
+2024-11-07T15:10:34:   NODE_ENV: 'production',
+2024-11-07T15:10:34:   DB_URL: 'Set',
+2024-11-07T15:10:34:   MONGO_URI: 'Not set',
+2024-11-07T15:10:34:   PORT: '8000'
+2024-11-07T15:10:34: }
+2024-11-07T15:10:34: Attempting to connect to MongoDB...
+2024-11-07T15:10:34: Server running on port 8000
+2024-11-07T15:10:35: MongoDB connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T15:10:44: Environment: {
+2024-11-07T15:10:44:   NODE_ENV: 'production',
+2024-11-07T15:10:44:   DB_URL: 'Set',
+2024-11-07T15:10:44:   MONGO_URI: 'Not set',
+2024-11-07T15:10:44:   PORT: '8000'
+2024-11-07T15:10:44: }
+2024-11-07T15:10:44: Attempting to connect to MongoDB...
+2024-11-07T15:10:44: Server running on port 8000
+2024-11-07T15:10:45: MongoDB connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
