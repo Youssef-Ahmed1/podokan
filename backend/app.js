@@ -7,6 +7,8 @@ const cors = require("cors");
 const multer = require('multer');
 const path = require('path');
 const appConfig = require('../backend/server');
+const  axios = require("axios");
+
 
 // CORS configuration
 app.use((req, res, next) => {
@@ -37,7 +39,17 @@ app.use(cors({
   credentials: true,
   exposedHeaders: ['Authorization', 'Seller-Authorization']
 }));
-
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear invalid tokens
+      document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      localStorage.removeItem('token');
+    }
+    return Promise.reject(error);
+  }
+);
 // Cookie settings
 app.use(cookieParser());
 app.use((req, res, next) => {
