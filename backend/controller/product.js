@@ -483,26 +483,27 @@ router.get(
   catchAsyncErrors(async (req, res, next) => {
     try {
       const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 20;
+      const limit = Math.min(parseInt(req.query.limit) || 10, 20); // Cap at 20
       const skip = (page - 1) * limit;
 
-      const totalProducts = await Product.countDocuments({ status: 'pending' });
-
-      const pendingProducts = await Product.find({ status: 'pending' })
-        .select('designImage shopId DesignTitle Description Maintag Designtags ProductType ProductColor status createdAt')
-        .populate('shopId', 'name email avatar')
-        .sort('-createdAt')
-        .skip(skip)
-        .limit(limit)
-        .lean()
-        .maxTimeMS(20000);
+      // Use lean() and specific field selection
+      const [products, total] = await Promise.all([
+        Product.find({ status: 'pending' })
+          .select('designImage shopId DesignTitle Description status createdAt')
+          .populate('shopId', 'name email avatar')
+          .sort('-createdAt')
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+        Product.countDocuments({ status: 'pending' })
+      ]);
 
       res.status(200).json({
         success: true,
-        products: pendingProducts,
+        products,
         currentPage: page,
-        totalPages: Math.ceil(totalProducts / limit),
-        totalProducts
+        totalPages: Math.ceil(total / limit),
+        total
       });
     } catch (error) {
       console.error('Pending products error:', error);
@@ -510,7 +511,6 @@ router.get(
     }
   })
 );
-
 router.put(
   "/create-new-review",
   isAuthenticated,
