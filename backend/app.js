@@ -1,8 +1,9 @@
+// app.js
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const limiter = require("./config/rateLimit");
+const rateLimiter = require("./config/rateLimit"); // Updated import name
 const ErrorHandler = require("./middleware/error");
 
 const app = express();
@@ -17,9 +18,6 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
   });
 }
 
-// Apply rate limiting to all routes
-app.use(limiter);
-
 // CORS configuration
 const corsOptions = {
   origin: [
@@ -31,7 +29,10 @@ const corsOptions = {
   allowedHeaders: [
     'Content-Type',
     'Authorization',
-    'Seller-Authorization'
+    'Seller-Authorization',
+    'Accept',
+    'Origin',
+    'X-Requested-With'
   ],
   exposedHeaders: ['Authorization', 'Seller-Authorization']
 };
@@ -45,7 +46,7 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 // Apply rate limiting to API routes
-app.use('/api/v2', apiLimiter);
+app.use('/api/v2', rateLimiter);  // Changed from apiLimiter to rateLimiter
 
 // Routes
 const user = require("./controller/user");
