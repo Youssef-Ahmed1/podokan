@@ -482,16 +482,27 @@ router.get(
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 20;
+      const skip = (page - 1) * limit;
+
+      const totalProducts = await Product.countDocuments({ status: 'pending' });
+
       const pendingProducts = await Product.find({ status: 'pending' })
         .select('designImage shopId DesignTitle Description Maintag Designtags ProductType ProductColor status createdAt')
         .populate('shopId', 'name email avatar')
+        .sort('-createdAt')
+        .skip(skip)
+        .limit(limit)
         .lean()
-        .limit(50)  // Limit results to prevent timeout
-        .maxTimeMS(30000);
+        .maxTimeMS(20000);
 
       res.status(200).json({
         success: true,
-        products: pendingProducts
+        products: pendingProducts,
+        currentPage: page,
+        totalPages: Math.ceil(totalProducts / limit),
+        totalProducts
       });
     } catch (error) {
       console.error('Pending products error:', error);
