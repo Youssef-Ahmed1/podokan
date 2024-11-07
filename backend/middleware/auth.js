@@ -18,10 +18,12 @@ const verifyToken = (token, secret) => {
 };
 
 
+
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   try {
-    const token = req.cookies.token || 
-                 req.headers.authorization?.replace('Bearer ', '');
+    const token = 
+      req.headers.authorization?.replace('Bearer ', '') ||
+      req.cookies.token;
 
     if (!token) {
       return res.status(401).json({
@@ -30,24 +32,37 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    req.user = await User.findById(decoded.id);
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      const user = await User.findById(decoded.id).select('+role');
 
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: "User not found"
-      });
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not found"
+        });
+      }
+
+      req.user = user;
+      next();
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          success: false,
+          message: "Token expired, please login again"
+        });
+      }
+      throw error;
     }
-
-    next();
   } catch (error) {
+    console.error('Auth error:', error);
     return res.status(401).json({
       success: false,
       message: "Authentication failed"
     });
   }
 });
+
 
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
@@ -103,29 +118,21 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
 });
 
 
-exports.isAdmin = (adminType = "admin") => catchAsyncErrors(async (req, res, next) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Please login first"
-      });
-    }
-
-    if (req.user.role !== adminType) {
-      return res.status(403).json({
-        success: false,
-        message: `Access denied. ${adminType} only.`
-      });
-    }
-
-    next();
-  } catch (error) {
-    console.error('Admin auth error:', error);
-    return res.status(500).json({
+exports.isAdmin = catchAsyncErrors(async (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
       success: false,
-      message: "Authentication failed"
+      message: "Please login first"
     });
   }
+
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied. Admin only."
+    });
+  }
+
+  next();
 });
 module.exports = exports;
