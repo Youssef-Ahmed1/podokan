@@ -560,3 +560,575 @@
 2024-11-07T16:00:27:   stack: undefined,
 2024-11-07T16:00:27:   path: '/stat'
 2024-11-07T16:00:27: }
+2024-11-07T16:00:59: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:00:59:     at makeCallback (node:fs:185:3)
+2024-11-07T16:00:59:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:00:59:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:00:59:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:00:59:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:00:59:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:00:59:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:00:59:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:00:59:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:00:59:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:00:59:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:00:59: }
+2024-11-07T16:00:59: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:00:59:     at makeCallback (node:fs:185:3)
+2024-11-07T16:00:59:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:00:59:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:00:59:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:00:59:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:00:59:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:00:59:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:00:59:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:00:59:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:00:59:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:00:59:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:00:59: }
+2024-11-07T16:01:00: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:00:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:00:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:00:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:00:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:00:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:00:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:00:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:00:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:00:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:00:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:00: }
+2024-11-07T16:01:00: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:00:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:00:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:00:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:00:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:00:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:00:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:00:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:00:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:00:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:00:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:00: }
+2024-11-07T16:01:01: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:01:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:01:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:01:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:01:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:01:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:01:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:01:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:01:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:01:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:01:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:01:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:01: }
+2024-11-07T16:01:01: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:01:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:01:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:01:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:01:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:01:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:01:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:01:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:01:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:01:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:01:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:01:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:01: }
+2024-11-07T16:01:02: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:02:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:02:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:02:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:02:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:02:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:02:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:02:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:02:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:02:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:02:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:02:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:02: }
+2024-11-07T16:01:02: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:02:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:02:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:02:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:02:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:02:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:02:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:02:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:02:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:02:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:02:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:02:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:02: }
+2024-11-07T16:01:02: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:02:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:02:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:02:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:02:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:02:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:02:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:02:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:02:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:02:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:02:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:02:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:02: }
+2024-11-07T16:01:02: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:02:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:02:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:02:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:02:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:02:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:02:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:02:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:02:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:02:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:02:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:02:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:02: }
+2024-11-07T16:01:03: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:03:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:03:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:03:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:03:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:03:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:03:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:03:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:03:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:03:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:03:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:03:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:03: }
+2024-11-07T16:01:03: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:03:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:03:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:03:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:03:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:03:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:03:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:03:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:03:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:03:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:03:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:03:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:03: }
+2024-11-07T16:01:04: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:04:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:04:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:04:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:04:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:04:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:04:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:04:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:04:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:04:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:04:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:04:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:04: }
+2024-11-07T16:01:04: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:04:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:04:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:04:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:04:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:04:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:04:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:04:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:04:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:04:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:04:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:04:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:04: }
+2024-11-07T16:01:05: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:05:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:05:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:05:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:05:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:05:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:05:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:05:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:05:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:05:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:05:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:05:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:05: }
+2024-11-07T16:01:05: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:05:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:05:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:05:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:05:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:05:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:05:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:05:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:05:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:05:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:05:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:05:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:05: }
+2024-11-07T16:01:06: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:06:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:06:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:06:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:06:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:06:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:06:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:06:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:06:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:06:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:06:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:06:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:06: }
+2024-11-07T16:01:06: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:06:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:06:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:06:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:06:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:06:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:06:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:06:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:06:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:06:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:06:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:06:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:06: }
+2024-11-07T16:01:07: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:07:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:07:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:07:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:07:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:07:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:07:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:07:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:07:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:07:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:07:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:07:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:07: }
+2024-11-07T16:01:07: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:07:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:07:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:07:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:07:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:07:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:07:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:07:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:07:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:07:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:07:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:07:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:07: }
+2024-11-07T16:01:08: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:08:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:08:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:08:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:08:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:08:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:08:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:08:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:08:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:08:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:08:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:08:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:08: }
+2024-11-07T16:01:08: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:08:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:08:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:08:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:08:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:08:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:08:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:08:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:08:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:08:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:08:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:08:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:08: }
+2024-11-07T16:01:08: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:08:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:08:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:08:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:08:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:08:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:08:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:08:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:08:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:08:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:08:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:08:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:08: }
+2024-11-07T16:01:09: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:09:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:09:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:09:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:09:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:09:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:09:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:09:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:09:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:09:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:09:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:09:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:09: }
+2024-11-07T16:01:09: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:09:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:09:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:09:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:09:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:09:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:09:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:09:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:09:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:09:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:09:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:09:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:09: }
+2024-11-07T16:01:09: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:09:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:09:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:09:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:09:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:09:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:09:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:09:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:09:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:09:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:09:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:09:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:09: }
+2024-11-07T16:01:10: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:10:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:10:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:10:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:10:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:10:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:10:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:10:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:10:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:10:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:10:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:10:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:10: }
+2024-11-07T16:01:10: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:10:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:10:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:10:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:10:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:10:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:10:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:10:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:10:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:10:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:10:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:10:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:10: }
+2024-11-07T16:01:11: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:11:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:11:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:11:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:11:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:11:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:11:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:11:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:11:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:11:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:11:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:11:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:11: }
+2024-11-07T16:01:11: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:11:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:11:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:11:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:11:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:11:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:11:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:11:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:11:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:11:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:11:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:11:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:11: }
+2024-11-07T16:01:12: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:12:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:12:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:12:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:12:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:12:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:12:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:12:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:12:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:12:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:12:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:12:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:12: }
+2024-11-07T16:01:12: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:12:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:12:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:12:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:12:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:12:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:12:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:12:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:12:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:12:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:12:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:12:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:12: }
+2024-11-07T16:01:12: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:12:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:12:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:12:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:12:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:12:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:12:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:12:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:12:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:12:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:12:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:12:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:12: }
+2024-11-07T16:01:12: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:12:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:12:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:12:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:12:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:12:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:12:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:12:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:12:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:12:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:12:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:12:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:12: }
+2024-11-07T16:01:13: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:13:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:13:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:13:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:13:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:13:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:13:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:13:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:13:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:13:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:13:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:13:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:13: }
+2024-11-07T16:01:13: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:13:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:13:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:13:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:13:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:13:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:13:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:13:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:13:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:13:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:13:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:13:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:13: }
+2024-11-07T16:01:14: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:14:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:14:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:14:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:14:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:14:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:14:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:14:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:14:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:14:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:14:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:14:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:14: }
+2024-11-07T16:01:14: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:14:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:14:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:14:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:14:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:14:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:14:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:14:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:14:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:14:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:14:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:14:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:14: }
+2024-11-07T16:01:15: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:15:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:15:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:15:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:15:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:15:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:15:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:15:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:15:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:15:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:15:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:15:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:15: }
+2024-11-07T16:01:15: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:15:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:15:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:15:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:15:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:15:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:15:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:15:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:15:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:15:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:15:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:15:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:15: }
+2024-11-07T16:01:15: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:15:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:15:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:15:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:15:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:15:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:15:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:15:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:15:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:15:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:15:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:15:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:15: }
+2024-11-07T16:01:15: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:15:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:15:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:15:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:15:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:15:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:15:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:15:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:15:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:15:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:15:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:15:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:15: }
+2024-11-07T16:01:16: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:16:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:16:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:16:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:16:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:16:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:16:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:16:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:16:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:16:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:16:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:16:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:16: }
+2024-11-07T16:01:16: Unhandled Rejection: TypeError [ERR_INVALID_ARG_TYPE]: The "cb" argument must be of type function. Received undefined
+2024-11-07T16:01:16:     at makeCallback (node:fs:185:3)
+2024-11-07T16:01:16:     at Object.mkdir (node:fs:1337:14)
+2024-11-07T16:01:16:     at /var/www/podokan/backend/app.js:120:14
+2024-11-07T16:01:16:     at Object.<anonymous> (/var/www/podokan/backend/app.js:122:3)
+2024-11-07T16:01:16:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T16:01:16:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T16:01:16:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T16:01:16:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T16:01:16:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T16:01:16:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39) {
+2024-11-07T16:01:16:   code: 'ERR_INVALID_ARG_TYPE'
+2024-11-07T16:01:16: }

@@ -657,3 +657,157 @@
 2024-11-07T15:57:13: }
 2024-11-07T15:57:13: Server running on port 8000
 2024-11-07T15:57:13: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-07T16:00:59: Environment: {
+2024-11-07T16:00:59:   NODE_ENV: 'production',
+2024-11-07T16:00:59:   DB_URL: 'Set',
+2024-11-07T16:00:59:   MONGO_URI: 'Not set',
+2024-11-07T16:00:59:   PORT: '8000'
+2024-11-07T16:00:59: }
+2024-11-07T16:00:59: Server running on port 8000
+2024-11-07T16:01:00: Environment: {
+2024-11-07T16:01:00:   NODE_ENV: 'production',
+2024-11-07T16:01:00:   DB_URL: 'Set',
+2024-11-07T16:01:00:   MONGO_URI: 'Not set',
+2024-11-07T16:01:00:   PORT: '8000'
+2024-11-07T16:01:00: }
+2024-11-07T16:01:00: Server running on port 8000
+2024-11-07T16:01:01: Environment: {
+2024-11-07T16:01:01:   NODE_ENV: 'production',
+2024-11-07T16:01:01:   DB_URL: 'Set',
+2024-11-07T16:01:01:   MONGO_URI: 'Not set',
+2024-11-07T16:01:01:   PORT: '8000'
+2024-11-07T16:01:01: }
+2024-11-07T16:01:01: Server running on port 8000
+2024-11-07T16:01:02: Environment: {
+2024-11-07T16:01:02:   NODE_ENV: 'production',
+2024-11-07T16:01:02:   DB_URL: 'Set',
+2024-11-07T16:01:02:   MONGO_URI: 'Not set',
+2024-11-07T16:01:02:   PORT: '8000'
+2024-11-07T16:01:02: }
+2024-11-07T16:01:02: Server running on port 8000
+2024-11-07T16:01:02: Environment: {
+2024-11-07T16:01:02:   NODE_ENV: 'production',
+2024-11-07T16:01:02:   DB_URL: 'Set',
+2024-11-07T16:01:02:   MONGO_URI: 'Not set',
+2024-11-07T16:01:02:   PORT: '8000'
+2024-11-07T16:01:02: }
+2024-11-07T16:01:02: Server running on port 8000
+2024-11-07T16:01:03: Environment: {
+2024-11-07T16:01:03:   NODE_ENV: 'production',
+2024-11-07T16:01:03:   DB_URL: 'Set',
+2024-11-07T16:01:03:   MONGO_URI: 'Not set',
+2024-11-07T16:01:03:   PORT: '8000'
+2024-11-07T16:01:03: }
+2024-11-07T16:01:03: Server running on port 8000
+2024-11-07T16:01:04: Environment: {
+2024-11-07T16:01:04:   NODE_ENV: 'production',
+2024-11-07T16:01:04:   DB_URL: 'Set',
+2024-11-07T16:01:04:   MONGO_URI: 'Not set',
+2024-11-07T16:01:04:   PORT: '8000'
+2024-11-07T16:01:04: }
+2024-11-07T16:01:04: Server running on port 8000
+2024-11-07T16:01:05: Environment: {
+2024-11-07T16:01:05:   NODE_ENV: 'production',
+2024-11-07T16:01:05:   DB_URL: 'Set',
+2024-11-07T16:01:05:   MONGO_URI: 'Not set',
+2024-11-07T16:01:05:   PORT: '8000'
+2024-11-07T16:01:05: }
+2024-11-07T16:01:05: Server running on port 8000
+2024-11-07T16:01:06: Environment: {
+2024-11-07T16:01:06:   NODE_ENV: 'production',
+2024-11-07T16:01:06:   DB_URL: 'Set',
+2024-11-07T16:01:06:   MONGO_URI: 'Not set',
+2024-11-07T16:01:06:   PORT: '8000'
+2024-11-07T16:01:06: }
+2024-11-07T16:01:06: Server running on port 8000
+2024-11-07T16:01:07: Environment: {
+2024-11-07T16:01:07:   NODE_ENV: 'production',
+2024-11-07T16:01:07:   DB_URL: 'Set',
+2024-11-07T16:01:07:   MONGO_URI: 'Not set',
+2024-11-07T16:01:07:   PORT: '8000'
+2024-11-07T16:01:07: }
+2024-11-07T16:01:07: Server running on port 8000
+2024-11-07T16:01:08: Environment: {
+2024-11-07T16:01:08:   NODE_ENV: 'production',
+2024-11-07T16:01:08:   DB_URL: 'Set',
+2024-11-07T16:01:08:   MONGO_URI: 'Not set',
+2024-11-07T16:01:08:   PORT: '8000'
+2024-11-07T16:01:08: }
+2024-11-07T16:01:08: Server running on port 8000
+2024-11-07T16:01:08: Environment: {
+2024-11-07T16:01:08:   NODE_ENV: 'production',
+2024-11-07T16:01:08:   DB_URL: 'Set',
+2024-11-07T16:01:08:   MONGO_URI: 'Not set',
+2024-11-07T16:01:08:   PORT: '8000'
+2024-11-07T16:01:08: }
+2024-11-07T16:01:08: Server running on port 8000
+2024-11-07T16:01:09: Environment: {
+2024-11-07T16:01:09:   NODE_ENV: 'production',
+2024-11-07T16:01:09:   DB_URL: 'Set',
+2024-11-07T16:01:09:   MONGO_URI: 'Not set',
+2024-11-07T16:01:09:   PORT: '8000'
+2024-11-07T16:01:09: }
+2024-11-07T16:01:09: Server running on port 8000
+2024-11-07T16:01:10: Environment: {
+2024-11-07T16:01:10:   NODE_ENV: 'production',
+2024-11-07T16:01:10:   DB_URL: 'Set',
+2024-11-07T16:01:10:   MONGO_URI: 'Not set',
+2024-11-07T16:01:10:   PORT: '8000'
+2024-11-07T16:01:10: }
+2024-11-07T16:01:10: Server running on port 8000
+2024-11-07T16:01:11: Environment: {
+2024-11-07T16:01:11:   NODE_ENV: 'production',
+2024-11-07T16:01:11:   DB_URL: 'Set',
+2024-11-07T16:01:11:   MONGO_URI: 'Not set',
+2024-11-07T16:01:11:   PORT: '8000'
+2024-11-07T16:01:11: }
+2024-11-07T16:01:11: Server running on port 8000
+2024-11-07T16:01:12: Environment: {
+2024-11-07T16:01:12:   NODE_ENV: 'production',
+2024-11-07T16:01:12:   DB_URL: 'Set',
+2024-11-07T16:01:12:   MONGO_URI: 'Not set',
+2024-11-07T16:01:12:   PORT: '8000'
+2024-11-07T16:01:12: }
+2024-11-07T16:01:12: Server running on port 8000
+2024-11-07T16:01:12: Environment: {
+2024-11-07T16:01:12:   NODE_ENV: 'production',
+2024-11-07T16:01:12:   DB_URL: 'Set',
+2024-11-07T16:01:12:   MONGO_URI: 'Not set',
+2024-11-07T16:01:12:   PORT: '8000'
+2024-11-07T16:01:12: }
+2024-11-07T16:01:12: Server running on port 8000
+2024-11-07T16:01:13: Environment: {
+2024-11-07T16:01:13:   NODE_ENV: 'production',
+2024-11-07T16:01:13:   DB_URL: 'Set',
+2024-11-07T16:01:13:   MONGO_URI: 'Not set',
+2024-11-07T16:01:13:   PORT: '8000'
+2024-11-07T16:01:13: }
+2024-11-07T16:01:13: Server running on port 8000
+2024-11-07T16:01:14: Environment: {
+2024-11-07T16:01:14:   NODE_ENV: 'production',
+2024-11-07T16:01:14:   DB_URL: 'Set',
+2024-11-07T16:01:14:   MONGO_URI: 'Not set',
+2024-11-07T16:01:14:   PORT: '8000'
+2024-11-07T16:01:14: }
+2024-11-07T16:01:14: Server running on port 8000
+2024-11-07T16:01:15: Environment: {
+2024-11-07T16:01:15:   NODE_ENV: 'production',
+2024-11-07T16:01:15:   DB_URL: 'Set',
+2024-11-07T16:01:15:   MONGO_URI: 'Not set',
+2024-11-07T16:01:15:   PORT: '8000'
+2024-11-07T16:01:15: }
+2024-11-07T16:01:15: Server running on port 8000
+2024-11-07T16:01:15: Environment: {
+2024-11-07T16:01:15:   NODE_ENV: 'production',
+2024-11-07T16:01:15:   DB_URL: 'Set',
+2024-11-07T16:01:15:   MONGO_URI: 'Not set',
+2024-11-07T16:01:15:   PORT: '8000'
+2024-11-07T16:01:15: }
+2024-11-07T16:01:15: Server running on port 8000
+2024-11-07T16:01:16: Environment: {
+2024-11-07T16:01:16:   NODE_ENV: 'production',
+2024-11-07T16:01:16:   DB_URL: 'Set',
+2024-11-07T16:01:16:   MONGO_URI: 'Not set',
+2024-11-07T16:01:16:   PORT: '8000'
+2024-11-07T16:01:16: }
+2024-11-07T16:01:16: Server running on port 8000
