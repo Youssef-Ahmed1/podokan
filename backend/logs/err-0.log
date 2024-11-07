@@ -1598,3 +1598,483 @@
 2024-11-07T14:41:06:     '/var/www/podokan/backend/server.js'
 2024-11-07T14:41:06:   ]
 2024-11-07T14:41:06: }
+2024-11-07T14:43:43: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:43: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:43:       ^
+2024-11-07T14:43:43: 
+2024-11-07T14:43:43: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:43:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:43:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:43:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:43:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:43:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:43:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:43:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:43:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:43:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:43:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:43: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:43: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:43:       ^
+2024-11-07T14:43:43: 
+2024-11-07T14:43:43: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:43:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:43:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:43:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:43:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:43:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:43:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:43:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:43:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:43:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:43:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:43: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:43: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:43:       ^
+2024-11-07T14:43:43: 
+2024-11-07T14:43:43: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:43:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:43:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:43:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:43:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:43:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:43:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:43:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:43:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:43:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:43:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:43: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:43: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:43:       ^
+2024-11-07T14:43:43: 
+2024-11-07T14:43:43: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:43:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:43:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:43:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:43:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:43:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:43:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:43:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:43:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:43:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:43:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:43: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:43: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:43:       ^
+2024-11-07T14:43:43: 
+2024-11-07T14:43:43: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:43:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:43:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:43:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:43:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:43:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:43:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:43:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:43:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:43:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:43:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:44: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:44: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:44:       ^
+2024-11-07T14:43:44: 
+2024-11-07T14:43:44: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:44:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:44:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:44:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:44:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:44:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:44:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:44:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:44:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:44:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:44: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:44: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:44:       ^
+2024-11-07T14:43:44: 
+2024-11-07T14:43:44: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:44:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:44:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:44:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:44:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:44:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:44:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:44:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:44:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:44:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:44: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:44: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:44:       ^
+2024-11-07T14:43:44: 
+2024-11-07T14:43:44: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:44:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:44:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:44:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:44:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:44:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:44:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:44:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:44:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:44:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:44: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:44: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:44:       ^
+2024-11-07T14:43:44: 
+2024-11-07T14:43:44: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:44:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:44:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:44:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:44:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:44:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:44:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:44:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:44:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:44:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:44: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:44: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:44:       ^
+2024-11-07T14:43:44: 
+2024-11-07T14:43:44: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:44:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:44:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:44:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:44:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:44:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:44:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:44:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:44:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:44:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:44: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:44: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:44:       ^
+2024-11-07T14:43:44: 
+2024-11-07T14:43:44: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:44:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:44:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:44:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:44:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:44:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:44:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:44:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:44:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:44:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:45: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:45: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:45:       ^
+2024-11-07T14:43:45: 
+2024-11-07T14:43:45: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:45:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:45:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:45:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:45:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:45:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:45:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:45:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:45:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:45:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:45:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:45: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:45: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:45:       ^
+2024-11-07T14:43:45: 
+2024-11-07T14:43:45: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:45:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:45:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:45:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:45:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:45:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:45:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:45:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:45:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:45:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:45:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:45: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:45: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:45:       ^
+2024-11-07T14:43:45: 
+2024-11-07T14:43:45: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:45:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:45:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:45:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:45:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:45:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:45:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:45:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:45:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:45:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:45:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:45: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:45: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:45:       ^
+2024-11-07T14:43:45: 
+2024-11-07T14:43:45: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:45:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:45:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:45:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:45:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:45:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:45:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:45:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:45:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:45:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:45:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:45: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:45: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:45:       ^
+2024-11-07T14:43:45: 
+2024-11-07T14:43:45: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:45:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:45:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:45:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:45:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:45:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:45:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:45:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:45:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:45:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:45:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:57: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:57: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:57:       ^
+2024-11-07T14:43:57: 
+2024-11-07T14:43:57: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:57:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:57:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:57:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:57:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:57:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:57:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:57:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:57:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:57:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:57:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:57: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:57: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:57:       ^
+2024-11-07T14:43:57: 
+2024-11-07T14:43:57: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:57:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:57:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:57:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:57:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:57:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:57:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:57:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:57:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:57:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:57:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:57: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:57: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:57:       ^
+2024-11-07T14:43:57: 
+2024-11-07T14:43:57: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:57:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:57:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:57:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:57:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:57:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:57:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:57:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:57:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:57:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:57:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:57: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:57: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:57:       ^
+2024-11-07T14:43:57: 
+2024-11-07T14:43:57: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:57:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:57:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:57:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:57:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:57:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:57:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:57:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:57:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:57:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:57:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:58: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:58: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:58:       ^
+2024-11-07T14:43:58: 
+2024-11-07T14:43:58: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:58:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:58:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:58:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:58:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:58:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:58:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:58:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:58:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:58:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:58:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:58: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:58: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:58:       ^
+2024-11-07T14:43:58: 
+2024-11-07T14:43:58: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:58:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:58:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:58:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:58:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:58:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:58:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:58:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:58:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:58:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:58:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:58: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:58: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:58:       ^
+2024-11-07T14:43:58: 
+2024-11-07T14:43:58: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:58:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:58:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:58:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:58:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:58:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:58:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:58:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:58:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:58:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:58:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:58: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:58: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:58:       ^
+2024-11-07T14:43:58: 
+2024-11-07T14:43:58: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:58:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:58:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:58:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:58:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:58:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:58:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:58:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:58:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:58:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:58:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:58: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:58: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:58:       ^
+2024-11-07T14:43:58: 
+2024-11-07T14:43:58: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:58:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:58:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:58:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:58:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:58:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:58:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:58:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:58:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:58:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:58:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:58: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:58: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:58:       ^
+2024-11-07T14:43:58: 
+2024-11-07T14:43:58: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:58:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:58:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:58:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:58:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:58:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:58:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:58:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:58:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:58:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:58:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:59: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:59: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:59:       ^
+2024-11-07T14:43:59: 
+2024-11-07T14:43:59: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:59:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:59:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:59:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:59:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:59:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:59:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:59:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:59:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:59:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:59:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:59: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:59: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:59:       ^
+2024-11-07T14:43:59: 
+2024-11-07T14:43:59: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:59:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:59:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:59:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:59:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:59:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:59:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:59:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:59:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:59:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:59:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:59: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:59: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:59:       ^
+2024-11-07T14:43:59: 
+2024-11-07T14:43:59: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:59:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:59:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:59:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:59:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:59:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:59:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:59:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:59:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:59:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:59:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:59: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:59: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:59:       ^
+2024-11-07T14:43:59: 
+2024-11-07T14:43:59: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:59:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:59:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:59:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:59:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:59:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:59:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:59:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:59:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:59:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:59:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:59: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:59: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:59:       ^
+2024-11-07T14:43:59: 
+2024-11-07T14:43:59: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:59:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:59:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:59:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:59:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:59:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:59:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:59:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:59:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:59:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:59:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-07T14:43:59: /var/www/podokan/backend/app.js:1
+2024-11-07T14:43:59: cat > /var/www/podokan/backend/app.js << 'EOL'
+2024-11-07T14:43:59:       ^
+2024-11-07T14:43:59: 
+2024-11-07T14:43:59: SyntaxError: Invalid regular expression flags
+2024-11-07T14:43:59:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-07T14:43:59:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-07T14:43:59:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-07T14:43:59:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-07T14:43:59:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-07T14:43:59:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-07T14:43:59:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-07T14:43:59:     at require (node:internal/modules/helpers:179:18)
+2024-11-07T14:43:59:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T14:43:59:     at Module._compile (node:internal/modules/cjs/loader:1469:14)

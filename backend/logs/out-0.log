@@ -10,3 +10,7 @@
 2024-11-07T14:41:47: Database connection closed
 2024-11-07T14:41:49: MongoDB connected with host: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
 2024-11-07T14:41:49: Server is running on http://localhost:8000
+2024-11-07T14:43:42: SIGINT received. Starting graceful shutdown...
+2024-11-07T14:43:42: HTTP server closed
+2024-11-07T14:43:42: MongoDB disconnected, attempting to reconnect...
+2024-11-07T14:43:42: Database connection closed
