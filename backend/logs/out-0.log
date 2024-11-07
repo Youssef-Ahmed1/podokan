@@ -994,3 +994,12 @@
 2024-11-07T20:16:49:   },
 2024-11-07T20:16:49:   headers: { origin: undefined, auth: undefined, sellerAuth: undefined }
 2024-11-07T20:16:49: }
+2024-11-07T20:20:48: Server running on port 8000
+2024-11-07T20:20:48: Database connected
+2024-11-07T20:20:49: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-07T20:21:06: Server running on port 8000
+2024-11-07T20:21:06: Database connected
+2024-11-07T20:21:07: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-07T20:21:26: Server running on port 8000
+2024-11-07T20:21:26: Database connected
+2024-11-07T20:21:27: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
