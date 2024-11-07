@@ -308,18 +308,34 @@ router.get(
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const orders = await Order.find()
-        .sort({ createdAt: -1 })
-        .select('-paymentInfo.cardDetails');
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
 
-      const totalAmount = orders.reduce((sum, order) => sum + order.totalPrice, 0);
-      const totalOrders = orders.length;
+      const [orders, total] = await Promise.all([
+        Order.find()
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .select('-paymentInfo.cardDetails')
+          .lean()
+          .maxTimeMS(25000),
+        
+        Order.countDocuments()
+      ]);
+
+      const totalAmount = orders.reduce(
+        (sum, order) => sum + order.totalPrice, 
+        0
+      );
 
       res.status(200).json({
         success: true,
-        totalAmount,
-        totalOrders,
         orders,
+        totalAmount,
+        totalOrders: total,
+        currentPage: page,
+        totalPages: Math.ceil(total / limit)
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
