@@ -1,71 +1,69 @@
 const app = require("./app");
-const connectDatabase = require("./db/Database");
-const mongoose = require("mongoose");
+const connectDatabase = require("./db/Database.js");
+const cloudinary = require("cloudinary").v2;
 
-let server;
-
-// Handle uncaught exceptions
-process.on("uncaughtException", (err) => {
-  console.error(`Error: ${err.message}`);
-  console.log("Shutting down server due to uncaught exception");
-  process.exit(1);
-});
-
-// Config
+// Load environment variables
 if (process.env.NODE_ENV !== "PRODUCTION") {
   require("dotenv").config({
     path: "config/.env",
   });
 }
 
-// Graceful shutdown handler
-const gracefulShutdown = async (signal) => {
-  try {
-    console.log(`${signal} received. Starting graceful shutdown...`);
-    
-    if (server) {
-      await new Promise((resolve) => {
-        server.close(resolve);
-        console.log('HTTP server closed');
-      });
-    }
+// Debug logging
+console.log('Environment:', {
+  NODE_ENV: process.env.NODE_ENV,
+  DB_URL: process.env.DB_URL ? 'Set' : 'Not set',
+  MONGO_URI: process.env.MONGO_URI ? 'Set' : 'Not set',
+  PORT: process.env.PORT || 8000
+});
 
-    if (mongoose.connection.readyState === 1) {
-      await mongoose.connection.close();
-      console.log('Database connection closed');
-    }
+// Configure cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-    process.exit(0);
-  } catch (err) {
-    console.error('Error during shutdown:', err);
-    process.exit(1);
-  }
-};
+// Create server
+const server = require('http').createServer(app);
 
-// Connect database and start server
-const startServer = async () => {
+// Database connection with retry
+const connectWithRetry = async (retries = 5) => {
   try {
     await connectDatabase();
-    
-    server = app.listen(process.env.PORT || 8000, () => {
-      console.log(`Server is running on http://localhost:${process.env.PORT || 8000}`);
-    });
-
-    // Handle shutdown signals
-    ['SIGTERM', 'SIGINT'].forEach(signal => {
-      process.on(signal, () => gracefulShutdown(signal));
-    });
-
-    // Handle unhandled rejections
-    process.on("unhandledRejection", (err) => {
-      console.error(`Unhandled Promise Rejection: ${err.message}`);
-      gracefulShutdown('UNHANDLED_REJECTION');
-    });
-
-  } catch (error) {
-    console.error('Startup error:', error);
-    process.exit(1);
+    startServer();
+  } catch (err) {
+    console.error('Database connection failed:', err.message);
+    if (retries > 0) {
+      console.log(`Retrying in 5 seconds... (${retries} attempts remaining)`);
+      setTimeout(() => connectWithRetry(retries - 1), 5000);
+    } else {
+      console.error('Max retries reached, exiting...');
+      process.exit(1);
+    }
   }
 };
 
-startServer();
+// Start server
+const startServer = () => {
+  const port = process.env.PORT || 8000;
+  server.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
+};
+
+// Error handlers
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (err) => {
+  console.error("Unhandled Rejection:", err);
+  if (server) {
+    server.close(() => process.exit(1));
+  } else {
+    process.exit(1);
+  }
+});
+connectWithRetry();
