@@ -40,10 +40,25 @@ app.use((req, res, next) => {
   };
   
   // Override res.cookie to always use these options
-  const originalCookie = res.cookie;
-  res.cookie = function(name, value, options = {}) {
-    return originalCookie.call(this, name, value, { ...cookieOptions, ...options });
-  };
+  app.use((req, res, next) => {
+    // Original cookie function
+    const originalCookie = res.cookie;
+    
+    // Override cookie function
+    res.cookie = function(name, value, options = {}) {
+      const cookieOptions = {
+        ...options,
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: '.testpodokan.store'
+      };
+      
+      return originalCookie.call(this, name, value, cookieOptions);
+    };
+    
+    next();
+  });
   
   next();
 });
