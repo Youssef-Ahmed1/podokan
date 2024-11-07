@@ -174,38 +174,31 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
   }
 }));
 
-// load user
-// controller/user.js
-router.get("/getuser", catchAsyncErrors(async (req, res, next) => {
+
+router.get("/getuser", isAuthenticated, catchAsyncErrors(async (req, res, next) => {
   try {
-    const token = req.cookies.token || 
-                 req.headers.authorization?.replace('Bearer ', '');
-
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "Please login first"
-      });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const user = await User.findById(decoded.id);
-
+    const user = await User.findById(req.user._id).select('-password');
+    
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "User not found"
-      });
+      return next(new ErrorHandler("User not found", 404));
     }
 
-    // Use your sendToken helper
-    sendToken(user, 200, res);
+    // Send successful response with user data
+    res.status(200).json({
+      success: true,
+      user
+    });
   } catch (error) {
+    // Log the error for debugging
+    console.error("getuser error:", {
+      error: error.message,
+      stack: error.stack,
+      userId: req?.user?._id
+    });
     return next(new ErrorHandler(error.message, 500));
   }
 }));
 
-// Login route
 
 // log out user
 router.get(
