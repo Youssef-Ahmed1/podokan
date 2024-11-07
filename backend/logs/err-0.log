@@ -550,3 +550,13 @@
 2024-11-07T15:55:30:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
 2024-11-07T15:55:30:     at require (node:internal/modules/helpers:179:18)
 2024-11-07T15:55:30:     at Object.<anonymous> (/var/www/podokan/backend/server.js:1:13)
+2024-11-07T16:00:27: Error: {
+2024-11-07T16:00:27:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:00:27:   stack: undefined,
+2024-11-07T16:00:27:   path: '/status'
+2024-11-07T16:00:27: }
+2024-11-07T16:00:27: Error: {
+2024-11-07T16:00:27:   message: 'Invalid value "undefined" for header "Access-Control-Allow-Origin"',
+2024-11-07T16:00:27:   stack: undefined,
+2024-11-07T16:00:27:   path: '/stat'
+2024-11-07T16:00:27: }
