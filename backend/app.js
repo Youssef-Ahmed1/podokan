@@ -18,22 +18,35 @@ app.use((req, res, next) => {
 });
 
 const corsOptions = {
-  origin: ['http://localhost:3000', 'https://testpodokan.store'],
+  origin: ['https://testpodokan.store', 'https://www.testpodokan.store'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'Seller-Authorization',
-    'x-requested-with',
-    'Accept'
-  ],
-  exposedHeaders: ['Seller-Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Seller-Authorization'],
+  exposedHeaders: ['Authorization', 'Seller-Authorization'],
   maxAge: 86400
 };
 
 app.use(cors(corsOptions));
 
+// Cookie settings middleware
+app.use((req, res, next) => {
+  const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    domain: '.testpodokan.store',
+    path: '/',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  };
+  
+  // Override res.cookie to always use these options
+  const originalCookie = res.cookie;
+  res.cookie = function(name, value, options = {}) {
+    return originalCookie.call(this, name, value, { ...cookieOptions, ...options });
+  };
+  
+  next();
+});
 // Add security headers
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');

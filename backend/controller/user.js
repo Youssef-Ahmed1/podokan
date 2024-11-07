@@ -154,23 +154,64 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return next(new ErrorHandler("Please provide all fields", 400));
+      return res.status(400).json({
+        success: false,
+        message: "Please provide email and password"
+      });
     }
 
     const user = await User.findOne({ email }).select("+password");
+    
     if (!user) {
-      return next(new ErrorHandler("User doesn't exist", 401));
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials"
+      });
     }
 
     const isPasswordValid = await user.comparePassword(password);
+    
     if (!isPasswordValid) {
-      return next(new ErrorHandler("Invalid credentials", 401));
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials"
+      });
     }
 
-    // Use your sendToken helper
-    sendToken(user, 200, res);
+    // Create token
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: '7d' }
+    );
+
+    // Remove password from response
+    const userWithoutPassword = user.toObject();
+    delete userWithoutPassword.password;
+
+    // Set cookie options
+    const cookieOptions = {
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'PRODUCTION',
+      sameSite: 'strict',
+      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
+    };
+
+    res
+      .status(200)
+      .cookie('token', token, cookieOptions)
+      .json({
+        success: true,
+        user: userWithoutPassword,
+        token
+      });
   } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
+    console.error('Login error:', error);
+    return res.status(500).json({
+      success: false,
+      message: "Login failed"
+    });
   }
 }));
 
