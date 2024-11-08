@@ -1,47 +1,14 @@
-import React, { useEffect, useState, memo, useCallback, useMemo, useRef, useReducer } from 'react';
+import React, { useEffect, useState, memo, useCallback, useMemo, useRef ,Fragment} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { fetchPendingProducts, approveRejectProduct, getAllProducts } from '../../../redux/actions/product';
+import { fetchPendingProducts, approveRejectProduct , getAllProducts} from '../../../redux/actions/product';
 import { BsZoomIn, BsZoomOut } from 'react-icons/bs';
 import { AiOutlineWarning, AiOutlineInfoCircle } from 'react-icons/ai';
 import { debounce } from 'lodash';
 import PropTypes from 'prop-types';
 
-// State reducer
-const productApprovalReducer = (state, action) => {
-  switch (action.type) {
-    case 'SET_SELECTED_PRODUCT':
-      return { ...state, selectedProduct: action.payload };
-    case 'SET_EDITED_PRODUCT':
-      return { ...state, editedProduct: action.payload };
-    case 'SET_VALIDATION_STATUS':
-      return { ...state, validationStatus: action.payload };
-    case 'SET_SUBMITTING':
-      return { ...state, isSubmitting: action.payload };
-    case 'SET_SEARCH_QUERY':
-      return { ...state, searchQuery: action.payload };
-    case 'SET_FILTER_STATUS':
-      return { ...state, filterStatus: action.payload };
-    case 'SET_SHOW_GRID_LINES':
-      return { ...state, showGridLines: action.payload };
-    case 'RESET_STATE':
-      return {
-        selectedProduct: null,
-        editedProduct: null,
-        validationStatus: {},
-        isSubmitting: false,
-        searchQuery: '',
-        filterStatus: 'all',
-        showGridLines: false
-      };
-    default:
-      return state;
-  }
-};
-
 // Constants
-// At the top of your file where constants are defined
-export const PRODUCT_TYPES = {
+const PRODUCT_TYPES = {
   't-shirt': {
     label: 'T-Shirt',
     basePrice: 290,
@@ -74,7 +41,7 @@ export const PRODUCT_TYPES = {
     },
     mockupConfig: {
       version: 'v1',
-      folder: 'hoodies',
+      folder: '/hoodies',
       getFilename: (color, view) => `hoodie-${color}-${view}`,
       designArea: {
         front: { width: 280, height: 380, top: '30%', left: '50%' },
@@ -86,8 +53,8 @@ export const PRODUCT_TYPES = {
       gridLines: true
     }
   },
-  'long-sleeve': {
-    label: 'Long Sleeve',
+  'long-sleeves': {
+    label: 'Long Sleeves',
     basePrice: 370,
     productionCost: 200,
     margins: {
@@ -96,8 +63,8 @@ export const PRODUCT_TYPES = {
     },
     mockupConfig: {
       version: 'v1',
-      folder: 'long-sleeves',
-      getFilename: (color, view) => `long-sleeve-${color}-${view}`,
+      folder: '/long-sleeves',
+      getFilename: (color, view) => `longseleves-${color}-${view}`,
       designArea: {
         front: { width: 280, height: 380, top: '30%', left: '50%' },
         back: { width: 300, height: 400, top: '25%', left: '50%' }
@@ -109,19 +76,20 @@ export const PRODUCT_TYPES = {
     }
   }
 };
+
 const COLOR_OPTIONS = {
   white: {
     value: 'white',
-    label: 'White', 
+    label: 'White',
     hex: '#ffffff',
     textColor: 'text-gray-800',
     mockupModifier: 'none',
     designBlendMode: 'multiply'
   },
-  black: { 
+  black: {
     value: 'black',
     label: 'Black',
-    hex: '#000000', 
+    hex: '#000000',
     textColor: 'text-white',
     mockupModifier: 'brightness(0)',
     designBlendMode: 'screen'
@@ -202,41 +170,24 @@ const CURRENCY = {
   code: 'EGP',
   symbol: 'EGP',
   format: (amount) => `${amount} EGP`
-};// Utility Components
-const LoadingSpinner = () => (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg p-8 flex flex-col items-center">
-      <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent" />
-      <p className="mt-4 text-gray-600">Loading...</p>
-    </div>
-  </div>
-);
+};
 
-const ErrorMessage = ({ error }) => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="text-center">
-      <h2 className="text-2xl font-bold text-red-600">Error</h2>
-      <p className="mt-2 text-gray-600">{error}</p>
-      <button 
-        onClick={() => window.location.reload()}
-        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-      >
-        Try Again
-      </button>
-    </div>
-  </div>
-);
+// Utility Functions
+const getImageFormat = (url) => {
+  const extension = url.split('.').pop().toLowerCase();
+  return `image/${extension}`;
+};
 
-const AccessDenied = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="text-center">
-      <h2 className="text-2xl font-bold text-red-600">Access Denied</h2>
-      <p className="mt-2 text-gray-600">
-        You need administrator privileges to access this page.
-      </p>
-    </div>
-  </div>
-);
+const getProductionCost = (productType) => {
+  return PRODUCT_TYPES[productType]?.productionCost || 0;
+};
+
+const formatCheckName = (checkType) => {
+  return checkType
+    .split(/(?=[A-Z])/)
+    .join(' ')
+    .replace(/^\w/, c => c.toUpperCase());
+};
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component {
@@ -260,7 +211,7 @@ class ErrorBoundary extends React.Component {
           <h3 className="text-red-800">Something went wrong</h3>
           <button
             onClick={() => this.setState({ hasError: false })}
-            className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg"
           >
             Try again
           </button>
@@ -275,69 +226,6 @@ ErrorBoundary.propTypes = {
   children: PropTypes.node.isRequired
 };
 
-// Utility Functions
-
-
-const getMockupUrl = (productType = 't-shirt', color = 'white', view = 'front') => {
-  const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-  const config = PRODUCT_TYPES[productType]?.mockupConfig;
-  
-  if (!config) return "";
-  
-  const filename = config.getFilename(color, view);
-  return `${baseUrl}${config.version}/${config.folder}/${filename}.png`;
-};
-
-const validateProduct = (product) => {
-  const errors = {};
-
-  if (!product.DesignTitle?.trim()) {
-    errors.DesignTitle = "Design title is required";
-  }
-
-  if (!product.Description?.trim()) {
-    errors.Description = "Description is required";
-  }
-
-  if (!product.Maintag?.trim()) {
-    errors.Maintag = "Main tag is required";
-  }
-
-  if (!product.designImage) {
-    errors.designImage = "Design image is required";
-  }
-
-  if (!Array.isArray(product.Designtags) || product.Designtags.length < DESIGN_TAGS_CONFIG.minTags) {
-    errors.Designtags = `Minimum ${DESIGN_TAGS_CONFIG.minTags} tag required`;
-  }
-
-  if (!product.ProductType || !PRODUCT_TYPES[product.ProductType]) {
-    errors.ProductType = "Valid product type is required";
-  }
-
-  if (!product.ProductColor || !COLOR_OPTIONS[product.ProductColor]) {
-    errors.ProductColor = "Valid color is required";
-  }
-
-  const basePrice = PRODUCT_TYPES[product.ProductType]?.basePrice;
-  if (!product.originalPrice || product.originalPrice < basePrice) {
-    errors.price = `Price must be at least ${CURRENCY.format(basePrice)}`;
-  }
-
-  if (product.discountPrice && product.discountPrice >= product.originalPrice) {
-    errors.discount = "Discount price must be less than original price";
-  }
-
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors
-  };
-};
-
-
-
-
-
 
 const ProductPreview = memo(({ 
   editedProduct,
@@ -350,38 +238,33 @@ const ProductPreview = memo(({
   const designRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [position, setPosition] = useState({ x: 50, y: 50 });
+  const [position, setPosition] = useState({ x: 50, y: 50 }); // Changed initial position
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(false);
   const [isOutOfBounds, setIsOutOfBounds] = useState(false);
 
-  // Safely get configurations with fallbacks
-  const productType = editedProduct?.ProductType || 't-shirt';
-  const productColor = editedProduct?.ProductColor || 'white';
-  const productView = editedProduct?.ProductView || 'front';
+  const productConfig = PRODUCT_TYPES[editedProduct.ProductType];
+  const colorConfig = COLOR_OPTIONS[editedProduct.ProductColor];
+  const designArea = productConfig.mockupConfig.designArea[editedProduct.ProductView];
 
-  const productConfig = PRODUCT_TYPES[productType] || PRODUCT_TYPES['t-shirt'];
-  const colorConfig = COLOR_OPTIONS[productColor] || COLOR_OPTIONS['white'];
-  const designArea = productConfig?.mockupConfig?.designArea?.[productView] || {
-    width: 300,
-    height: 400,
-    top: '25%',
-    left: '50%'
-  };
-
+  // Design area calculation
   const getDesignAreaStyle = useCallback(() => {
-    if (!containerRef.current) return {};
+    if (!containerRef.current || !designArea) return {};
     
     const container = containerRef.current.getBoundingClientRect();
-    
+    const width = designArea.width || 300;
+    const height = designArea.height || 400;
+    const top = designArea.top || '25%';
+    const left = designArea.left || '50%';
+ 
     return {
       position: 'absolute',
-      top: `${parseFloat(designArea.top)}%`,
-      left: `${parseFloat(designArea.left)}%`,
-      width: `${designArea.width}px`,
-      height: `${designArea.height}px`,
+      top,
+      left,
+      width: `${width}px`,
+      height: `${height}px`,
       transform: 'translate(-50%, -50%)',
       border: showGrid ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
       pointerEvents: 'none',
@@ -389,7 +272,7 @@ const ProductPreview = memo(({
       backgroundColor: showGrid ? 'rgba(59, 130, 246, 0.1)' : 'transparent'
     };
   }, [designArea, showGrid]);
-
+  // Check boundaries
   const checkBoundary = useCallback(() => {
     if (!designRef.current || !containerRef.current) return;
 
@@ -416,6 +299,7 @@ const ProductPreview = memo(({
     setIsOutOfBounds(isOut);
   }, []);
 
+  // Center design
   const centerDesign = useCallback((axis) => {
     if (disabled) return;
 
@@ -427,6 +311,7 @@ const ProductPreview = memo(({
     onPositionChange?.(newPosition);
   }, [disabled, position, onPositionChange]);
 
+  // Handle drag
   const handleDragStart = useCallback((e) => {
     if (disabled) return;
     e.preventDefault();
@@ -463,6 +348,7 @@ const ProductPreview = memo(({
     setIsDragging(false);
   }, []);
 
+  // Handle zoom
   const handleZoom = useCallback((direction) => {
     if (disabled) return;
     
@@ -480,51 +366,51 @@ const ProductPreview = memo(({
     setTimeout(checkBoundary, 0);
   }, [zoom, disabled, productConfig, onZoom, checkBoundary]);
 
+  // Event listeners
   useEffect(() => {
-    const handleGlobalMouseMove = (e) => {
-      if (isDragging) {
-        handleDragMove(e);
-      }
-    };
-
-    const handleGlobalMouseUp = () => {
-      if (isDragging) {
-        handleDragEnd();
-      }
-    };
-
     if (isDragging) {
-      window.addEventListener('mousemove', handleGlobalMouseMove);
-      window.addEventListener('mouseup', handleGlobalMouseUp);
-      window.addEventListener('touchmove', handleGlobalMouseMove);
-      window.addEventListener('touchend', handleGlobalMouseUp);
+      window.addEventListener('mousemove', handleDragMove);
+      window.addEventListener('mouseup', handleDragEnd);
+      window.addEventListener('touchmove', handleDragMove);
+      window.addEventListener('touchend', handleDragEnd);
     }
 
     return () => {
-      window.removeEventListener('mousemove', handleGlobalMouseMove);
-      window.removeEventListener('mouseup', handleGlobalMouseUp);
-      window.removeEventListener('touchmove', handleGlobalMouseMove);
-      window.removeEventListener('touchend', handleGlobalMouseUp);
+      window.removeEventListener('mousemove', handleDragMove);
+      window.removeEventListener('mouseup', handleDragEnd);
+      window.removeEventListener('touchmove', handleDragMove);
+      window.removeEventListener('touchend', handleDragEnd);
     };
   }, [isDragging, handleDragMove, handleDragEnd]);
 
+  // Check boundary on position/zoom change
   useEffect(() => {
     checkBoundary();
   }, [position, zoom, checkBoundary]);
 
-  const mockupUrl = useMemo(() => {
-    return getMockupUrl(
-      editedProduct.ProductType,
-      editedProduct.ProductColor,
-      editedProduct.ProductView
-    );
-  }, [editedProduct.ProductType, editedProduct.ProductColor, editedProduct.ProductView]);
-
+  // Get mockup URL
+// In ProductPreview component, update the mockupUrl useMemo:
+const mockupUrl = useMemo(() => {
+  if (!editedProduct?.ProductType || !editedProduct?.ProductColor || !editedProduct?.ProductView) {
+    return '';
+  }
+  const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
+  const config = PRODUCT_TYPES[editedProduct.ProductType]?.mockupConfig;
+  if (!config) return '';
+  
+  const filename = config.getFilename(
+    editedProduct.ProductColor || 'white', 
+    editedProduct.ProductView || 'front'
+  );
+  return `${baseUrl}${config.version}/${config.folder.replace('/', '')}/${filename}.png`;
+}, [editedProduct?.ProductType, editedProduct?.ProductColor, editedProduct?.ProductView]);
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      {/* Controls Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-4">
+            {/* View Controls */}
             <div className="flex bg-gray-100 rounded-lg p-1">
               {['front', 'back'].map((view) => (
                 <button
@@ -544,6 +430,7 @@ const ProductPreview = memo(({
               ))}
             </div>
 
+            {/* Center Controls */}
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => centerDesign('x')}
@@ -567,6 +454,7 @@ const ProductPreview = memo(({
               </button>
             </div>
 
+            {/* Grid and Zoom Controls */}
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setShowGrid(!showGrid)}
@@ -602,62 +490,83 @@ const ProductPreview = memo(({
         </div>
       </div>
 
+      {/* Preview Area */}
       <div 
         ref={containerRef}
         className="relative aspect-square w-full bg-gray-50 overflow-hidden"
       >
+        {/* Design Area Border */}
         <div style={getDesignAreaStyle()} />
 
-        <img
-          src={getMockupUrl(productType, productColor, productView)}
-          alt={`${productType} ${productColor} ${productView} view`}
-          className="w-full h-full object-contain"
-          style={{
-            filter: colorConfig.mockupModifier !== 'none' ? colorConfig.mockupModifier : undefined
-          }}
-          onLoad={() => setLoading(false)}
-          onError={() => {
-            setLoading(false);
-            setError('Failed to load mockup');
-          }}
-        />
-
-        {!loading && !error && editedProduct?.designImage && (
-          <div
-            ref={designRef}
-            className={`
-              absolute transform -translate-x-1/2 -translate-y-1/2
-              ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
-              ${disabled ? 'cursor-not-allowed' : ''}
-              ${isOutOfBounds ? 'opacity-50' : 'opacity-100'}
-              transition-opacity duration-200
-            `}
-            style={{
-              left: `${position.x}%`,
-              top: `${position.y}%`,
-              width: `${designArea.width}px`,
-              height: `${designArea.height}px`,
-              transform: `translate(-50%, -50%) scale(${zoom})`,
-              mixBlendMode: colorConfig.designBlendMode
-            }}
-            onMouseDown={handleDragStart}
-            onTouchStart={handleDragStart}
-          >
-            <img
-              src={editedProduct.designImage}
-              alt="Design"
-              className="w-full h-full object-contain"
-              draggable={false}
-            />
+        {/* Grid Overlay */}
+        {showGrid && (
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-blue-400 opacity-30" />
+            <div className="absolute top-1/2 left-0 right-0 h-px bg-blue-400 opacity-30" />
+            <div className="grid grid-cols-4 grid-rows-4 h-full">
+              {Array.from({ length: 16 }).map((_, i) => (
+                <div key={i} className="border border-blue-200 opacity-10" />
+              ))}
+            </div>
           </div>
         )}
 
+        {/* Mockup Image */}
+        <img
+  src={mockupUrl}
+  alt={`${editedProduct.ProductType || ''} ${editedProduct.ProductColor || ''} ${editedProduct.ProductView || ''} view`}
+  className="w-full h-full object-contain"
+  style={{
+    filter: colorConfig?.mockupModifier && colorConfig.mockupModifier !== 'none' 
+      ? colorConfig.mockupModifier 
+      : undefined
+  }}
+  onLoad={() => setLoading(false)}
+  onError={() => {
+    setLoading(false);
+    setError('Failed to load mockup');
+  }}
+/>
+
+        {/* Design Layer */}
+        {!loading && !error && editedProduct.designImage && (
+         <div
+         ref={designRef}
+         className={`
+           absolute transform -translate-x-1/2 -translate-y-1/2
+           ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
+           ${disabled ? 'cursor-not-allowed' : ''}
+           ${isOutOfBounds ? 'opacity-50' : 'opacity-100'}
+           transition-opacity duration-200
+         `}
+         style={{
+           left: `${position?.x || 50}%`,
+           top: `${position?.y || 50}%`,
+           width: `${designArea?.width || 300}px`,
+           height: `${designArea?.height || 400}px`,
+           transform: `translate(-50%, -50%) scale(${zoom || 1})`,
+           mixBlendMode: colorConfig?.designBlendMode || 'multiply'
+         }}
+         onMouseDown={handleDragStart}
+         onTouchStart={handleDragStart}
+       >
+         <img
+           src={editedProduct.designImage}
+           alt="Design"
+           className="w-full h-full object-contain"
+           draggable={false}
+         />
+       </div>
+        )}
+
+        {/* Loading State */}
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
           </div>
         )}
 
+        {/* Error State */}
         {error && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
             <div className="text-center text-red-500">
@@ -668,6 +577,7 @@ const ProductPreview = memo(({
         )}
       </div>
 
+      {/* Status Bar */}
       <div className="p-4 bg-gray-50 border-t border-gray-200">
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-500">
@@ -687,9 +597,9 @@ const ProductPreview = memo(({
 
 ProductPreview.propTypes = {
   editedProduct: PropTypes.shape({
-    ProductType: PropTypes.string,
-    ProductColor: PropTypes.string,
-    ProductView: PropTypes.string,
+    ProductType: PropTypes.string.isRequired,
+    ProductColor: PropTypes.string.isRequired,
+    ProductView: PropTypes.string.isRequired,
     designImage: PropTypes.string
   }).isRequired,
   onZoom: PropTypes.func,
@@ -700,10 +610,6 @@ ProductPreview.propTypes = {
 
 ProductPreview.displayName = 'ProductPreview';
 
-
-
-
-
 const PriceCalculator = memo(({ 
   productType, 
   originalPrice, 
@@ -711,7 +617,7 @@ const PriceCalculator = memo(({
   onChange, 
   disabled = false 
 }) => {
-  const basePrice = PRODUCT_TYPES[productType]?.basePrice || PRODUCT_TYPES['t-shirt'].basePrice;
+  const basePrice = PRODUCT_TYPES[productType].basePrice;
   const [errors, setErrors] = useState({});
   const [localPrices, setLocalPrices] = useState({
     originalPrice: originalPrice || '',
@@ -722,27 +628,29 @@ const PriceCalculator = memo(({
     if (!price) return 'Price is required';
     if (isNaN(price)) return 'Must be a valid number';
     if (price < basePrice) return `Minimum price is ${CURRENCY.format(basePrice)}`;
-    if (type === 'discount' && price >= localPrices.originalPrice) {
+    if (type === 'discount' && price >= originalPrice) {
       return 'Discount price must be less than original price';
     }
     return null;
-  }, [basePrice, localPrices.originalPrice]);
-
+  }, [basePrice, originalPrice]);
   const handlePriceChange = useCallback((e) => {
     const { name, value } = e.target;
     const numValue = parseFloat(value);
     
+    // Update local state immediately for free typing
     setLocalPrices(prev => ({
       ...prev,
       [name]: value
     }));
 
+    // Validate but don't block input
     const error = validatePrice(numValue, name === 'discountPrice' ? 'discount' : 'original');
     setErrors(prev => ({
       ...prev,
       [name]: error
     }));
 
+    // Only update parent if validation passes
     if (!error && !isNaN(numValue)) {
       onChange({
         originalPrice: name === 'originalPrice' ? numValue : originalPrice,
@@ -751,15 +659,9 @@ const PriceCalculator = memo(({
     }
   }, [onChange, originalPrice, discountPrice, validatePrice]);
 
-  useEffect(() => {
-    setLocalPrices({
-      originalPrice: originalPrice || '',
-      discountPrice: discountPrice || ''
-    });
-  }, [originalPrice, discountPrice]);
-
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      {/* ... rest of your PriceCalculator component ... */}
       <div className="p-4 space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -775,8 +677,6 @@ const PriceCalculator = memo(({
               value={localPrices.originalPrice}
               onChange={handlePriceChange}
               disabled={disabled}
-              min={basePrice}
-              step="0.01"
               className={`
                 block w-full pl-10 pr-12 py-2 rounded-lg border
                 focus:outline-none focus:ring-2 focus:ring-blue-500
@@ -805,8 +705,6 @@ const PriceCalculator = memo(({
               value={localPrices.discountPrice}
               onChange={handlePriceChange}
               disabled={disabled}
-              min={basePrice}
-              step="0.01"
               className={`
                 block w-full pl-10 pr-12 py-2 rounded-lg border
                 focus:outline-none focus:ring-2 focus:ring-blue-500
@@ -824,17 +722,10 @@ const PriceCalculator = memo(({
         <div className="text-sm text-gray-500">
           Base price for {PRODUCT_TYPES[productType].label}: {CURRENCY.format(basePrice)}
         </div>
-
-        {localPrices.discountPrice && (
-          <div className="text-sm text-gray-500">
-            Discount: {Math.round((1 - (localPrices.discountPrice / localPrices.originalPrice)) * 100)}%
-          </div>
-        )}
       </div>
     </div>
   );
 });
-
 PriceCalculator.propTypes = {
   productType: PropTypes.string.isRequired,
   originalPrice: PropTypes.number,
@@ -844,6 +735,341 @@ PriceCalculator.propTypes = {
 };
 
 PriceCalculator.displayName = 'PriceCalculator';
+
+
+
+const MultiSelect = memo(({ 
+  options, 
+  value = [], 
+  onChange, 
+  placeholder = "Select...", 
+  disabled = false 
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <div
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`
+          min-h-[2.5rem] p-2 border rounded-lg bg-white
+          ${disabled 
+            ? 'bg-gray-50 cursor-not-allowed' 
+            : 'cursor-pointer hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500'}
+        `}
+      >
+        <div className="flex flex-wrap gap-2">
+          {value.length > 0 ? (
+            value.map((val) => {
+              const option = options.find(opt => opt.value === val);
+              return (
+                <div
+                  key={val}
+                  className="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-100 
+                           rounded-full text-sm text-gray-700"
+                >
+                  <span>{option?.label || val}</span>
+                  {!disabled && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onChange(value.filter(v => v !== val));
+                      }}
+                      className="ml-1 text-gray-400 hover:text-gray-600"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <span className="text-gray-500 text-sm">{placeholder}</span>
+          )}
+        </div>
+      </div>
+
+      {isOpen && !disabled && (
+        <div className="absolute z-50 w-full mt-1 py-1 bg-white rounded-lg shadow-lg 
+                      border border-gray-200 max-h-64 overflow-y-auto">
+          {options.map((option) => (
+            <div
+              key={option.value}
+              onClick={() => {
+                const newValue = value.includes(option.value)
+                  ? value.filter(v => v !== option.value)
+                  : [...value, option.value];
+                onChange(newValue);
+              }}
+              className={`
+                flex items-center gap-2 px-3 py-2 cursor-pointer
+                ${value.includes(option.value) 
+                  ? 'bg-blue-50 text-blue-700' 
+                  : 'hover:bg-gray-50 text-gray-700'}
+              `}
+            >
+              <span className="text-sm">{option.label}</span>
+              {value.includes(option.value) && (
+                <svg className="w-4 h-4 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" 
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                    clipRule="evenodd" 
+                  />
+                </svg>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
+MultiSelect.propTypes = {
+  options: PropTypes.arrayOf(PropTypes.shape({
+    value: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired
+  })).isRequired,
+  value: PropTypes.arrayOf(PropTypes.string),
+  onChange: PropTypes.func.isRequired,
+  placeholder: PropTypes.string,
+  disabled: PropTypes.bool
+};
+
+MultiSelect.displayName = 'MultiSelect';
+
+
+
+const ColorMultiSelect = memo(({ 
+  value = [], 
+  onChange, 
+  disabled = false 
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative inline-block w-full" ref={dropdownRef}>
+      <div
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`
+          min-h-[2.5rem] p-2 border rounded-lg bg-white w-full
+          ${disabled 
+            ? 'bg-gray-50 cursor-not-allowed' 
+            : 'cursor-pointer hover:border-blue-500'}
+        `}
+      >
+        <div className="flex flex-wrap gap-2">
+          {value.length > 0 ? (
+            value.map((colorKey) => {
+              const color = COLOR_OPTIONS[colorKey];
+              return (
+                <div
+                  key={colorKey}
+                  className="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-100 
+                           rounded-full text-sm text-gray-700"
+                >
+                  <span
+                    className="w-3 h-3 rounded-full border border-gray-300"
+                    style={{ backgroundColor: color.hex }}
+                  />
+                  <span>{color.label}</span>
+                  {!disabled && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const newValue = value.filter(v => v !== colorKey);
+                        onChange(newValue);
+                      }}
+                      className="ml-1 text-gray-400 hover:text-gray-600"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <span className="text-gray-500 text-sm">Select colors...</span>
+          )}
+        </div>
+      </div>
+
+      {isOpen && !disabled && (
+        <div 
+          ref={menuRef}
+          className="absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg shadow-lg 
+                    border border-gray-200 max-h-64 overflow-y-auto"
+        >
+          {Object.entries(COLOR_OPTIONS).map(([colorKey, color]) => (
+            <div
+              key={colorKey}
+              onClick={() => {
+                const newValue = value.includes(colorKey)
+                  ? value.filter(v => v !== colorKey)
+                  : [...value, colorKey];
+                onChange(newValue);
+              }}
+              className={`
+                flex items-center gap-2 px-3 py-2 cursor-pointer
+                ${value.includes(colorKey) ? 'bg-blue-50' : 'hover:bg-gray-50'}
+              `}
+            >
+              <div className="flex items-center flex-1 gap-2">
+                <span
+                  className="w-4 h-4 rounded-full border border-gray-300"
+                  style={{ backgroundColor: color.hex }}
+                />
+                <span className="text-sm">{color.label}</span>
+              </div>
+              {value.includes(colorKey) && (
+                <svg className="w-4 h-4 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" 
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                    clipRule="evenodd" />
+                </svg>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+ColorMultiSelect.propTypes = {
+  value: PropTypes.arrayOf(PropTypes.string),
+  onChange: PropTypes.func.isRequired,
+  disabled: PropTypes.bool
+};
+
+ColorMultiSelect.displayName = 'ColorMultiSelect';
+
+const Dropdown = memo(({ 
+  options, 
+  value, 
+  onChange, 
+  label, 
+  disabled = false,
+  error = null
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const selectedOption = options.find(opt => opt.value === value);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {label && (
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {label}
+        </label>
+      )}
+      
+      <button
+        type="button"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        className={`
+          relative w-full bg-white px-4 py-2 text-left
+          border rounded-lg shadow-sm
+          focus:outline-none focus:ring-2 focus:ring-blue-500
+          disabled:bg-gray-50 disabled:text-gray-500
+          ${error ? 'border-red-300' : 'border-gray-300'}
+        `}
+      >
+        <span className="block truncate">
+          {selectedOption?.label || 'Select option'}
+        </span>
+        <span className="absolute inset-y-0 right-0 flex items-center pr-2">
+          <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fillRule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-lg overflow-auto border border-gray-200">
+          <div className="py-1">
+            {options.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+                className={`
+                  w-full text-left px-4 py-2 text-sm hover:bg-gray-100
+                  ${value === option.value ? 'bg-blue-50 text-blue-600' : 'text-gray-900'}
+                `}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <p className="mt-1 text-sm text-red-600">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+});
+
+Dropdown.propTypes = {
+  options: PropTypes.arrayOf(PropTypes.shape({
+    value: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired
+  })).isRequired,
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  label: PropTypes.string,
+  disabled: PropTypes.bool,
+  error: PropTypes.string
+};
+
+Dropdown.displayName = 'Dropdown';
+
 
 const ProductConfig = memo(({ 
   editedProduct, 
@@ -863,10 +1089,22 @@ const ProductConfig = memo(({
     [onUpdate]
   );
 
-  const handleFieldChange = useCallback((field, value) => {
+  const handleTextChange = useCallback((field, value) => {
     if (disabled) return;
     setIsProcessing(true);
     debouncedUpdate({ [field]: value });
+  }, [disabled, debouncedUpdate]);
+
+  const handleAvailableColorsChange = useCallback((selectedColors) => {
+    if (disabled) return;
+    setIsProcessing(true);
+    debouncedUpdate({ availableColors: selectedColors });
+  }, [disabled, debouncedUpdate]);
+
+  const handleAvailableProductTypesChange = useCallback((selectedTypes) => {
+    if (disabled) return;
+    setIsProcessing(true);
+    debouncedUpdate({ availableProductTypes: selectedTypes });
   }, [disabled, debouncedUpdate]);
 
   const handleMainTagsChange = useCallback((selectedTags) => {
@@ -914,6 +1152,7 @@ const ProductConfig = memo(({
     }
   }, [handleAddTag]);
 
+
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       <div className="border-b border-gray-200">
@@ -938,6 +1177,37 @@ const ProductConfig = memo(({
       </div>
 
       <div className="p-4">
+        {activeTab === 'settings' && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Available Product Types
+              </label>
+              <MultiSelect
+                options={Object.entries(PRODUCT_TYPES).map(([value, config]) => ({
+                  value,
+                  label: config.label
+                }))}
+                value={editedProduct.availableProductTypes || [editedProduct.ProductType]}
+                onChange={handleAvailableProductTypesChange}
+                placeholder="Select available product types..."
+                disabled={disabled}
+              />
+            </div>
+
+            <div className="space-y-2">
+  <label className="block text-sm font-medium text-gray-700">
+    Available Colors
+  </label>
+  <ColorMultiSelect
+    value={editedProduct.availableColors || [editedProduct.ProductColor]}
+    onChange={handleAvailableColorsChange}
+    disabled={disabled}
+  />
+</div>
+          </div>
+        )}
+
         {activeTab === 'metadata' && (
           <div className="space-y-4">
             <div>
@@ -947,7 +1217,7 @@ const ProductConfig = memo(({
               <input
                 type="text"
                 value={editedProduct.DesignTitle || ''}
-                onChange={(e) => handleFieldChange('DesignTitle', e.target.value)}
+                onChange={(e) => handleTextChange('DesignTitle', e.target.value)}
                 disabled={disabled}
                 className="w-full px-3 py-2 border rounded-lg disabled:bg-gray-100"
                 placeholder="Enter design title..."
@@ -958,22 +1228,13 @@ const ProductConfig = memo(({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Main Tags
               </label>
-              <select
-                multiple
+              <MultiSelect
+                options={MAIN_TAGS}
                 value={editedProduct.mainTags || []}
-                onChange={(e) => {
-                  const selectedTags = Array.from(e.target.selectedOptions, option => option.value);
-                  handleMainTagsChange(selectedTags);
-                }}
+                onChange={handleMainTagsChange}
+                placeholder="Select main tags..."
                 disabled={disabled}
-                className="w-full px-3 py-2 border rounded-lg disabled:bg-gray-100"
-              >
-                {MAIN_TAGS.map(tag => (
-                  <option key={tag.value} value={tag.value}>
-                    {tag.label}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             <div>
@@ -1026,18 +1287,20 @@ const ProductConfig = memo(({
         )}
 
         {activeTab === 'description' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Product Description
-            </label>
-            <textarea
-              value={editedProduct.Description || ''}
-              onChange={(e) => handleFieldChange('Description', e.target.value)}
-              disabled={disabled}
-              rows={6}
-              className="w-full px-3 py-2 border rounded-lg disabled:bg-gray-100"
-              placeholder="Enter product description..."
-            />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Product Description
+              </label>
+              <textarea
+                value={editedProduct.Description || ''}
+                onChange={(e) => handleTextChange('Description', e.target.value)}
+                disabled={disabled}
+                rows={6}
+                className="w-full px-3 py-2 border rounded-lg disabled:bg-gray-100"
+                placeholder="Enter product description..."
+              />
+            </div>
           </div>
         )}
       </div>
@@ -1056,17 +1319,29 @@ const ProductConfig = memo(({
 
 ProductConfig.propTypes = {
   editedProduct: PropTypes.shape({
+    ProductType: PropTypes.string.isRequired,
+    ProductColor: PropTypes.string.isRequired,
     DesignTitle: PropTypes.string,
     Description: PropTypes.string,
     Designtags: PropTypes.arrayOf(PropTypes.string),
     mainTags: PropTypes.arrayOf(PropTypes.string),
+    availableColors: PropTypes.arrayOf(PropTypes.string),
+    availableProductTypes: PropTypes.arrayOf(PropTypes.string),
     updatedAt: PropTypes.string
   }).isRequired,
   onUpdate: PropTypes.func.isRequired,
   disabled: PropTypes.bool
 };
 
-ProductConfig.displayName = 'ProductConfig';const ValidationSystem = memo(({ product, onValidationChange }) => {
+ProductConfig.displayName = 'ProductConfig';
+
+
+
+
+
+
+
+const ValidationSystem = memo(({ product, onValidationChange }) => {
   const [validationResults, setValidationResults] = useState({});
   const [isValidating, setIsValidating] = useState(false);
 
@@ -1127,13 +1402,55 @@ ProductConfig.displayName = 'ProductConfig';const ValidationSystem = memo(({ pro
         })
       },
       {
-        id: 'tags',
+        id: 'designTags',
         name: 'Design Tags',
         validate: (product) => ({
           valid: Array.isArray(product.Designtags) && 
                  product.Designtags.length >= DESIGN_TAGS_CONFIG.minTags &&
                  product.Designtags.length <= DESIGN_TAGS_CONFIG.maxTags,
           message: `Must have between ${DESIGN_TAGS_CONFIG.minTags} and ${DESIGN_TAGS_CONFIG.maxTags} design tags`
+        })
+      },
+      {
+        id: 'mainTags',
+        name: 'Main Tags',
+        validate: (product) => ({
+          valid: Array.isArray(product.mainTags) && product.mainTags.length > 0,
+          message: 'At least one main tag must be selected'
+        })
+      }
+    ],
+    productConfig: [
+      {
+        id: 'availableColors',
+        name: 'Available Colors',
+        validate: (product) => ({
+          valid: Array.isArray(product.availableColors) && product.availableColors.length > 0,
+          message: 'At least one color must be available'
+        })
+      },
+      {
+        id: 'availableTypes',
+        name: 'Available Product Types',
+        validate: (product) => ({
+          valid: Array.isArray(product.availableProductTypes) && product.availableProductTypes.length > 0,
+          message: 'At least one product type must be available'
+        })
+      },
+      {
+        id: 'colorCompatibility',
+        name: 'Color Compatibility',
+        validate: (product) => ({
+          valid: product.availableColors?.includes(product.ProductColor),
+          message: 'Selected color must be in available colors'
+        })
+      },
+      {
+        id: 'typeCompatibility',
+        name: 'Type Compatibility',
+        validate: (product) => ({
+          valid: product.availableProductTypes?.includes(product.ProductType),
+          message: 'Selected product type must be in available types'
         })
       }
     ],
@@ -1147,7 +1464,7 @@ ProductConfig.displayName = 'ProductConfig';const ValidationSystem = memo(({ pro
           
           return {
             valid: product.originalPrice >= productConfig.basePrice,
-            message: `Price must be at least ${CURRENCY.format(productConfig.basePrice)}`
+            message: `Price must be at least ${CURRENCY.format(productConfig.basePrice)} for ${productConfig.label}`
           };
         }
       },
@@ -1193,6 +1510,7 @@ ProductConfig.displayName = 'ProductConfig';const ValidationSystem = memo(({ pro
 
       setValidationResults(results);
 
+      // Calculate overall validation status
       const isValid = Object.values(results).every(
         categoryRules => categoryRules.every(rule => rule.valid)
       );
@@ -1212,22 +1530,39 @@ ProductConfig.displayName = 'ProductConfig';const ValidationSystem = memo(({ pro
     return () => clearTimeout(timeoutId);
   }, [product, validateProduct]);
 
-  const getCategoryIcon = useCallback((categoryRules) => {
-    const isValid = categoryRules.every(rule => rule.valid);
-    const Icon = isValid ? 
-      <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-      </svg>
-      :
-      <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-      </svg>;
+  const getCategoryStatus = useCallback((rules) => {
+    if (!rules || rules.length === 0) return 'pending';
+    if (rules.every(rule => rule.valid)) return 'success';
+    return 'error';
+  }, []);
 
-    return (
-      <div className={`p-1 rounded-full ${isValid ? 'bg-green-100' : 'bg-red-100'}`}>
-        {Icon}
-      </div>
-    );
+  const getCategoryIcon = useCallback((status) => {
+    switch (status) {
+      case 'success':
+        return (
+          <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+            <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        );
+      case 'error':
+        return (
+          <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+            <svg className="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+        );
+      default:
+        return (
+          <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
+            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </div>
+        );
+    }
   }, []);
 
   return (
@@ -1243,42 +1578,63 @@ ProductConfig.displayName = 'ProductConfig';const ValidationSystem = memo(({ pro
           </div>
         ) : (
           <div className="space-y-6">
-            {Object.entries(validationResults).map(([category, rules]) => (
-              <div key={category} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    {getCategoryIcon(rules)}
-                    <h4 className="font-medium text-gray-900 capitalize">
-                      {category}
-                    </h4>
+            {Object.entries(validationResults).map(([category, rules]) => {
+              const categoryStatus = getCategoryStatus(rules);
+              return (
+                <div key={category} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      {getCategoryIcon(categoryStatus)}
+                      <h4 className="font-medium text-gray-900 capitalize">
+                        {category.replace(/([A-Z])/g, ' $1').trim()}
+                      </h4>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    {rules.map(rule => (
+                      <div
+                        key={rule.id}
+                        className={`
+                          flex items-center justify-between p-2 rounded
+                          ${rule.valid ? 'bg-green-50' : 'bg-red-50'}
+                        `}
+                      >
+                        <span className={`
+                          text-sm font-medium
+                          ${rule.valid ? 'text-green-800' : 'text-red-800'}
+                        `}>
+                          {rule.name}
+                        </span>
+                        {!rule.valid && (
+                          <span className="text-sm text-red-600">
+                            {rule.message}
+                          </span>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="space-y-1">
-                  {rules.map(rule => (
-                    <div
-                      key={rule.id}
-                      className={`
-                        flex items-center justify-between p-2 rounded
-                        ${rule.valid ? 'bg-green-50' : 'bg-red-50'}
-                      `}
-                    >
-                      <span className={`text-sm font-medium
-                        ${rule.valid ? 'text-green-800' : 'text-red-800'}
-                      `}>
-                        {rule.name}
-                      </span>
-                      {!rule.valid && (
-                        <span className="text-sm text-red-600">
-                          {rule.message}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
+      </div>
+
+      <div className="p-4 bg-gray-50 border-t border-gray-200">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-500">
+            All checks must pass before approval
+          </span>
+          {!isValidating && (
+            <button
+              onClick={validateProduct}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
+                       transition-colors duration-200"
+            >
+              Run Validation
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1292,7 +1648,11 @@ ValidationSystem.propTypes = {
     DesignTitle: PropTypes.string,
     Description: PropTypes.string,
     Designtags: PropTypes.arrayOf(PropTypes.string),
+    mainTags: PropTypes.arrayOf(PropTypes.string),
+    availableColors: PropTypes.arrayOf(PropTypes.string),
+    availableProductTypes: PropTypes.arrayOf(PropTypes.string),
     ProductType: PropTypes.string.isRequired,
+    ProductColor: PropTypes.string.isRequired,
     originalPrice: PropTypes.number,
     discountPrice: PropTypes.number
   }).isRequired,
@@ -1300,6 +1660,10 @@ ValidationSystem.propTypes = {
 };
 
 ValidationSystem.displayName = 'ValidationSystem';
+
+
+
+
 
 const StatusManager = memo(({ 
   product, 
@@ -1349,11 +1713,15 @@ const StatusManager = memo(({
       toast.success(`Product ${confirmDialog.status === 'public' ? 'approved' : 'rejected'} successfully`);
     } catch (error) {
       console.error('Status change failed:', error);
-      toast.error(error.message || 'Failed to update product status');
+      toast.error('Failed to update product status');
     } finally {
       setIsProcessing(false);
     }
   }, [confirmDialog, isProcessing, onStatusChange]);
+
+  const handleReasonChange = useCallback((e) => {
+    onReasonChange(e.target.value);
+  }, [onReasonChange]);
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -1361,9 +1729,10 @@ const StatusManager = memo(({
         <h3 className="text-lg font-semibold text-gray-800">Product Status</h3>
       </div>
 
-      <div className="p-4 space-y-4">
-        <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium">Current Status:</span>
+      <div className="p-4 space-y-6">
+        {/* Current Status */}
+        <div className="flex items-center space-x-4">
+          <span className="text-sm font-medium text-gray-500">Current Status:</span>
           <span className={`
             px-3 py-1 rounded-full text-sm font-medium
             ${STATUS_CONFIG[product.status].color} ${STATUS_CONFIG[product.status].textColor}
@@ -1372,7 +1741,23 @@ const StatusManager = memo(({
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        {/* Status History */}
+        {product.statusHistory && product.statusHistory.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-gray-700">Status History</h4>
+            <div className="space-y-1">
+              {product.statusHistory.map((history, index) => (
+                <div key={index} className="text-sm text-gray-600 flex justify-between">
+                  <span>{STATUS_CONFIG[history.status].label}</span>
+                  <span>{new Date(history.timestamp).toLocaleDateString()}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Status Actions */}
+        <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => handleStatusChange('public')}
             disabled={disabled || isProcessing || product.status === 'public'}
@@ -1406,6 +1791,7 @@ const StatusManager = memo(({
           </button>
         </div>
 
+        {/* Rejection Reason */}
         {(product.status === 'rejected' || confirmDialog?.requiresReason) && (
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
@@ -1413,29 +1799,40 @@ const StatusManager = memo(({
             </label>
             <textarea
               value={product.rejectionReason || ''}
-              onChange={(e) => onReasonChange(e.target.value)}
+              onChange={handleReasonChange}
               disabled={disabled || isProcessing}
               rows={3}
-              className="w-full px-3 py-2 border rounded-lg resize-none focus:ring-2 focus:ring-red-500"
+              className={`
+                w-full px-3 py-2 border rounded-lg resize-none
+                ${disabled ? 'bg-gray-100' : 'bg-white'}
+                focus:ring-2 focus:ring-red-500 focus:border-red-500
+              `}
               placeholder="Provide a detailed reason for rejection..."
             />
           </div>
         )}
       </div>
 
+      {/* Confirmation Dialog */}
       {confirmDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg max-w-md w-full m-4 p-6">
-            <h3 className="text-lg font-semibold mb-2">{confirmDialog.title}</h3>
+          <div className="bg-white rounded-lg max-w-md w-full p-6 m-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {confirmDialog.title}
+            </h3>
             <p className="text-gray-600 mb-4">{confirmDialog.message}</p>
             
             {confirmDialog.requiresReason && (
               <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Rejection Reason
+                </label>
                 <textarea
                   value={product.rejectionReason || ''}
-                  onChange={(e) => onReasonChange(e.target.value)}
+                  onChange={handleReasonChange}
                   rows={3}
-                  className="w-full px-3 py-2 border rounded-lg resize-none focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3 py-2 border rounded-lg resize-none
+                           focus:ring-2 focus:ring-red-500 focus:border-red-500"
                   placeholder="Provide a detailed reason for rejection..."
                 />
               </div>
@@ -1445,7 +1842,7 @@ const StatusManager = memo(({
               <button
                 onClick={() => setConfirmDialog(null)}
                 disabled={isProcessing}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
               >
                 Cancel
               </button>
@@ -1453,12 +1850,19 @@ const StatusManager = memo(({
                 onClick={handleConfirm}
                 disabled={isProcessing || (confirmDialog.requiresReason && !product.rejectionReason)}
                 className={`
-                  px-4 py-2 rounded-lg text-white
+                  px-4 py-2 rounded-lg text-white transition-colors
                   ${confirmDialog.actionColor}
-                  disabled:opacity-50
+                  disabled:opacity-50 disabled:cursor-not-allowed
                 `}
               >
-                {isProcessing ? 'Processing...' : confirmDialog.action}
+                {isProcessing ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                    <span>Processing...</span>
+                  </div>
+                ) : (
+                  confirmDialog.action
+                )}
               </button>
             </div>
           </div>
@@ -1471,7 +1875,11 @@ const StatusManager = memo(({
 StatusManager.propTypes = {
   product: PropTypes.shape({
     status: PropTypes.string.isRequired,
-    rejectionReason: PropTypes.string
+    rejectionReason: PropTypes.string,
+    statusHistory: PropTypes.arrayOf(PropTypes.shape({
+      status: PropTypes.string.isRequired,
+      timestamp: PropTypes.string.isRequired
+    }))
   }).isRequired,
   onStatusChange: PropTypes.func.isRequired,
   onReasonChange: PropTypes.func.isRequired,
@@ -1482,211 +1890,198 @@ StatusManager.displayName = 'StatusManager';
 
 
 
-
-const AdminProductApprovalWrapper = () => (
-  <ErrorBoundary>
-    <AdminProductApproval />
-  </ErrorBoundary>
-);
-
 const AdminProductApproval = () => {
 
-  const initialState = {
-    selectedProduct: null,
-    editedProduct: null,
-    validationStatus: { isValid: false },
-    isSubmitting: false,
-    searchQuery: '',
-    filterStatus: 'all',
-    showGridLines: false
+  const calculatePricing = (productType) => {
+    const productConfig = PRODUCT_TYPES[productType];
+    if (!productConfig) {
+      throw new Error(`Invalid product type: ${productType}`);
+    }
+
+    const recommendedPrice = productConfig.basePrice;
+    const discountPrice = Math.round(recommendedPrice * 0.85); // 15% discount
+
+    return {
+      originalPrice: recommendedPrice,
+      discountPrice: discountPrice
+    };
   };
 
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
   const { isLoading, pendingProducts } = useSelector((state) => state.product);
 
-  const [state, setState] = useReducer((state, action) => {
-    switch (action.type) {
-      case 'SET_STATE':
-        return { ...state, ...action.payload };
-      case 'RESET_STATE':
-        return initialState;
-      default:
-        return state;
-    }
-  }, {
-    selectedProduct: null,
-    editedProduct: null,
-    validationStatus: { isValid: false },
-    isSubmitting: false,
-    searchQuery: '',
-    filterStatus: 'all',
-    showGridLines: false
-  });
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [editedProduct, setEditedProduct] = useState(null);
+  const [validationStatus, setValidationStatus] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [showGridLines, setShowGridLines] = useState(false);
 
-  const [apiState, setApiState] = useState({
-    isLoading: false,
-    error: null
-  });
-
-  // Fetch products on mount
+  // Load pending products
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setApiState(prev => ({ ...prev, isLoading: true, error: null }));
-        await dispatch(fetchPendingProducts());
-      } catch (error) {
-        setApiState(prev => ({ ...prev, error: error.message }));
-        toast.error("Failed to fetch products");
-      } finally {
-        setApiState(prev => ({ ...prev, isLoading: false }));
-      }
-    };
-
-    fetchProducts();
+    dispatch(fetchPendingProducts());
   }, [dispatch]);
-// Move this inside AdminProductApproval component
-const calculatePricing = useCallback((productType = 't-shirt') => {
-  if (!productType || !PRODUCT_TYPES[productType]) {
-    productType = 't-shirt';
-  }
-  const getProductTypeConfig = (productType) => {
-    return PRODUCT_TYPES[productType] ? productType : 't-shirt';
-  };
-  const config = PRODUCT_TYPES[productType];
-  const basePrice = config.basePrice;
-  const recommendedPrice = Math.ceil(basePrice * (1 + config.margins.recommended));
-  const discountPrice = Math.round(recommendedPrice * 0.85);
 
-  return {
-    originalPrice: recommendedPrice,
-    discountPrice: discountPrice
-  };
-}, []);
-  // Filter products
+  // Filter and search products
   const filteredProducts = useMemo(() => {
     if (!pendingProducts) return [];
     
     return pendingProducts.filter(product => {
-      const matchesSearch = !state.searchQuery || 
-        product.DesignTitle?.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
-        product.Description?.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
-        product.mainTags?.some(tag => tag.toLowerCase().includes(state.searchQuery.toLowerCase()));
+      const matchesSearch = searchQuery === '' || 
+        product.DesignTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.Description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.mainTags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        product.Designtags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
         
-      const matchesFilter = state.filterStatus === 'all' || product.status === state.filterStatus;
+      const matchesFilter = filterStatus === 'all' || product.status === filterStatus;
       
       return matchesSearch && matchesFilter;
     });
-  }, [pendingProducts, state.searchQuery, state.filterStatus]);
+  }, [pendingProducts, searchQuery, filterStatus]);
 
+  // Handle product selection
   const handleProductSelect = useCallback((product) => {
-    if (!product) return;
-  
-    const productType = PRODUCT_TYPES[product.ProductType] ? product.ProductType : 't-shirt';
-    const productColor = COLOR_OPTIONS[product.ProductColor] ? product.ProductColor : 'white';
-    
-    const processedProduct = {
+    setSelectedProduct(product);
+    setEditedProduct({
       ...product,
-      ProductType: productType,
-      ProductColor: productColor,
-      ProductView: product.ProductView || 'front',
       DesignScale: product.DesignScale || 1,
       DesignPosition: product.DesignPosition || { x: 50, y: 25 },
-      originalPrice: product.originalPrice || PRODUCT_TYPES[productType].basePrice,
-      availableColors: product.availableColors || [productColor],
-      mainTags: product.mainTags || [],
-      status: product.status || 'pending',
-      visibility: product.visibility || 'private',
-      rejectionReason: product.rejectionReason || ''
-    };
-  
-    setState({
-      type: 'SET_STATE',
-      payload: {
-        selectedProduct: product,
-        editedProduct: processedProduct,
-        validationStatus: { isValid: false }
-      }
+      originalPrice: product.originalPrice || PRODUCT_TYPES[product.ProductType].basePrice,
+      availableColors: product.availableColors || [product.ProductColor],
+      availableProductTypes: product.availableProductTypes || [product.ProductType],
+      mainTags: product.mainTags || []
     });
   }, []);
 
+  // Handle product updates with validation
   const handleProductUpdate = useCallback((updates) => {
-    setState({
-      type: 'SET_STATE',
-      payload: {
-        editedProduct: prevState => ({
-          ...prevState.editedProduct,
-          ...updates,
-          updatedAt: new Date().toISOString()
-        })
+    setEditedProduct(prev => {
+      const updated = {
+        ...prev,
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Validate base price based on product type
+      if (updates.ProductType || updates.originalPrice) {
+        const basePrice = PRODUCT_TYPES[updated.ProductType].basePrice;
+        if (updated.originalPrice < basePrice) {
+          updated.originalPrice = basePrice;
+        }
+        if (updated.discountPrice && updated.discountPrice < basePrice) {
+          updated.discountPrice = basePrice;
+        }
       }
+
+      // Validate design tags count
+      if (updates.Designtags) {
+        if (updates.Designtags.length > 7) {
+          updated.Designtags = updates.Designtags.slice(0, 7);
+        }
+      }
+
+      // Ensure product color is in available colors
+      if (updates.availableColors && !updates.availableColors.includes(updated.ProductColor)) {
+        updated.availableColors = [...updates.availableColors, updated.ProductColor];
+      }
+
+      // Ensure product type is in available types
+      if (updates.availableProductTypes && !updates.availableProductTypes.includes(updated.ProductType)) {
+        updated.availableProductTypes = [...updates.availableProductTypes, updated.ProductType];
+      }
+
+      return updated;
     });
   }, []);
 
-  const handleValidationChange = useCallback((isValid) => {
-    setState({
-      type: 'SET_STATE',
-      payload: { 
-        validationStatus: { isValid } 
-      }
-    });
-  }, []);
+  // Handle design position update
+  const handlePositionChange = useCallback((position) => {
+    handleProductUpdate({ DesignPosition: position });
+  }, [handleProductUpdate]);
 
+  // Handle center alignment
+  const handleCenterAlignment = useCallback((axis) => {
+    const newPosition = { ...editedProduct.DesignPosition };
+    if (axis === 'x' || axis === 'both') newPosition.x = 50;
+    if (axis === 'y' || axis === 'both') newPosition.y = 25;
+    handleProductUpdate({ DesignPosition: newPosition });
+  }, [editedProduct, handleProductUpdate]);
+
+  // Handle validation status updates
+  const handleValidationUpdate = useCallback((isValid) => {
+    setValidationStatus(prev => ({
+      ...prev,
+      isValid
+    }));
+  }, []);
   const handleStatusChange = useCallback(async (newStatus) => {
-    if (!state.editedProduct) {
+    if (!editedProduct) {
       toast.error('No product selected');
       return;
     }
   
     try {
-      setState({ type: 'SET_STATE', payload: { isSubmitting: true } });
+      setIsSubmitting(true);
+      console.log('Starting approval process for:', editedProduct._id);
   
-      // Create a new object for updates instead of modifying existing one
-      const updates = {
-        ...state.editedProduct,
-        status: newStatus,
-        ProductType: PRODUCT_TYPES[state.editedProduct.ProductType] 
-          ? state.editedProduct.ProductType 
-          : 't-shirt'
-      };
-  
+      // Calculate pricing if approving
+      let updates = {};
       if (newStatus === 'public') {
-        const pricing = calculatePricing(updates.ProductType);
-        Object.assign(updates, pricing);
+        const pricing = calculatePricing(editedProduct.ProductType);
+        updates = {
+          ...pricing,
+          ProductType: editedProduct.ProductType,
+          ProductColor: editedProduct.ProductColor,
+          ProductView: editedProduct.ProductView,
+          availableColors: editedProduct.availableColors,
+          status: 'public'
+        };
+      } else {
+        updates = {
+          status: newStatus,
+          rejectionReason: editedProduct.rejectionReason
+        };
       }
   
       const result = await dispatch(
         approveRejectProduct(
-          state.editedProduct._id,
+          editedProduct._id,
           newStatus,
-          state.editedProduct.rejectionReason || '',
+          editedProduct.rejectionReason || '',
           updates
         )
       );
   
       if (result.success) {
         toast.success(`Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully`);
-        setState({ type: 'RESET_STATE' });
-        dispatch(fetchPendingProducts());
+        setSelectedProduct(null);
+        setEditedProduct(null);
+        dispatch(fetchPendingProducts()); // Refresh the list
       }
     } catch (error) {
       console.error('Status change failed:', error);
       toast.error(error.response?.data?.message || 'Failed to update product status');
     } finally {
-      setState({ type: 'SET_STATE', payload: { isSubmitting: false } });
+      setIsSubmitting(false);
     }
-  }, [state.editedProduct, dispatch, calculatePricing]);
-  // Loading and error states
-  if (apiState.isLoading) {
-    return <LoadingSpinner />;
-  }
-
-  if (apiState.error) {
-    return <ErrorMessage error={apiState.error} />;
-  }
-
+  }, [editedProduct, dispatch]);
+  
+  // Check if user has admin access
   if (!user?.role === 'admin') {
-    return <AccessDenied />;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600">
+            Access Denied
+          </h2>
+          <p className="mt-2 text-gray-600">
+            You need administrator privileges to access this page.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -1708,21 +2103,15 @@ const calculatePricing = useCallback((productType = 't-shirt') => {
             <div className="flex-1 sm:w-64">
               <input
                 type="text"
-                value={state.searchQuery}
-                onChange={(e) => setState({
-                  type: 'SET_STATE',
-                  payload: { searchQuery: e.target.value }
-                })}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search products..."
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <select
-              value={state.filterStatus}
-              onChange={(e) => setState({
-                type: 'SET_STATE',
-                payload: { filterStatus: e.target.value }
-              })}
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
               className="px-4 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Status</option>
@@ -1761,7 +2150,7 @@ const calculatePricing = useCallback((productType = 't-shirt') => {
                       onClick={() => handleProductSelect(product)}
                       className={`
                         w-full p-4 rounded-lg transition-all duration-200
-                        ${state.selectedProduct?._id === product._id 
+                        ${selectedProduct?._id === product._id 
                           ? 'bg-blue-50 border-2 border-blue-500' 
                           : 'hover:bg-gray-50 border border-gray-200'}
                       `}
@@ -1798,46 +2187,45 @@ const calculatePricing = useCallback((productType = 't-shirt') => {
           </div>
 
           {/* Review Area */}
-          {state.selectedProduct && state.editedProduct ? (
+          {selectedProduct && editedProduct ? (
             <div className="w-full lg:w-2/3 space-y-6">
               <ProductPreview
-                editedProduct={state.editedProduct}
-                onPositionChange={(position) => handleProductUpdate({ DesignPosition: position })}
+                editedProduct={editedProduct}
+                onPositionChange={handlePositionChange}
+                onCenterAlignment={handleCenterAlignment}
                 onZoom={(scale) => handleProductUpdate({ DesignScale: scale })}
                 onViewChange={(view) => handleProductUpdate({ ProductView: view })}
-                showGridLines={state.showGridLines}
-                onToggleGridLines={() => setState({
-                  type: 'SET_STATE',
-                  payload: { showGridLines: !state.showGridLines }
-                })}
-                disabled={state.isSubmitting}
+                showGridLines={showGridLines}
+                onToggleGridLines={() => setShowGridLines(!showGridLines)}
+                disabled={isSubmitting}
               />
 
               <ProductConfig
-                editedProduct={state.editedProduct}
+                editedProduct={editedProduct}
                 onUpdate={handleProductUpdate}
-                disabled={state.isSubmitting}
+                disabled={isSubmitting}
               />
 
               <PriceCalculator
-                productType={state.editedProduct.ProductType}
-                originalPrice={state.editedProduct.originalPrice}
-                discountPrice={state.editedProduct.discountPrice}
+                productType={editedProduct.ProductType}
+                originalPrice={editedProduct.originalPrice}
+                discountPrice={editedProduct.discountPrice}
                 onChange={({ originalPrice, discountPrice }) => 
                   handleProductUpdate({ originalPrice, discountPrice })}
-                disabled={state.isSubmitting}
+                disabled={isSubmitting}
               />
 
-<ValidationSystem
-  product={state.editedProduct}
-  onValidationChange={handleValidationChange}
-/>
-<StatusManager
-  product={state.editedProduct}
-  onStatusChange={handleStatusChange}
-  onReasonChange={(reason) => handleProductUpdate({ rejectionReason: reason })}
-  disabled={!state.validationStatus.isValid || state.isSubmitting}
-/>
+              <ValidationSystem
+                product={editedProduct}
+                onValidationChange={handleValidationUpdate}
+              />
+
+              <StatusManager
+                product={editedProduct}
+                onStatusChange={handleStatusChange}
+                onReasonChange={(reason) => handleProductUpdate({ rejectionReason: reason })}
+                disabled={!validationStatus.isValid || isSubmitting}
+              />
             </div>
           ) : (
             <div className="w-full lg:w-2/3 flex items-center justify-center bg-white rounded-xl shadow-lg p-8">
@@ -1847,6 +2235,7 @@ const calculatePricing = useCallback((productType = 't-shirt') => {
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -1868,7 +2257,7 @@ const calculatePricing = useCallback((productType = 't-shirt') => {
       </div>
 
       {/* Loading Overlay */}
-      {state.isSubmitting && (
+      {isSubmitting && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 flex flex-col items-center">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent" />
@@ -1880,4 +2269,4 @@ const calculatePricing = useCallback((productType = 't-shirt') => {
   );
 };
 
-export default AdminProductApprovalWrapper;
+export default AdminProductApproval;
