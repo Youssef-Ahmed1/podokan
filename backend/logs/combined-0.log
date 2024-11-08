@@ -2323,3 +2323,38 @@
 2024-11-08T23:26:28:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)
 2024-11-08T23:26:28:     at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)
 2024-11-08T23:26:28:     at Function.handle (/var/www/podokan/backend/node_modules/express/lib/router/index.js:175:3)
+2024-11-08T23:30:03: Server running on port 8000
+2024-11-08T23:30:04: Database connected
+2024-11-08T23:31:45: Error: Please login to continue
+2024-11-08T23:31:45:     at /var/www/podokan/backend/middleware/auth.js:23:19
+2024-11-08T23:31:45:     at /var/www/podokan/backend/middleware/catchAsyncErrors.js:3:19
+2024-11-08T23:31:45:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-08T23:31:45:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-08T23:31:45:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-08T23:31:45:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-08T23:31:45:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-08T23:31:45:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)
+2024-11-08T23:31:45:     at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)
+2024-11-08T23:31:45:     at Function.handle (/var/www/podokan/backend/node_modules/express/lib/router/index.js:175:3)
+2024-11-08T23:31:45: Error: Please login to continue
+2024-11-08T23:31:45:     at /var/www/podokan/backend/middleware/auth.js:23:19
+2024-11-08T23:31:45:     at /var/www/podokan/backend/middleware/catchAsyncErrors.js:3:19
+2024-11-08T23:31:45:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-08T23:31:45:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-08T23:31:45:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-08T23:31:45:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-08T23:31:45:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-08T23:31:45:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)
+2024-11-08T23:31:45:     at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)
+2024-11-08T23:31:45:     at Function.handle (/var/www/podokan/backend/node_modules/express/lib/router/index.js:175:3)
+2024-11-08T23:31:45: Error: Please login as seller to continue
+2024-11-08T23:31:45:     at /var/www/podokan/backend/middleware/auth.js:63:19
+2024-11-08T23:31:45:     at /var/www/podokan/backend/middleware/catchAsyncErrors.js:3:19
+2024-11-08T23:31:45:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-08T23:31:45:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-08T23:31:45:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-08T23:31:45:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-08T23:31:45:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-08T23:31:45:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)
+2024-11-08T23:31:45:     at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)
+2024-11-08T23:31:45:     at Function.handle (/var/www/podokan/backend/node_modules/express/lib/router/index.js:175:3)
