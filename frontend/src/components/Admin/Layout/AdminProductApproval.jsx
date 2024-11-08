@@ -1895,9 +1895,10 @@ const AdminProductApproval = () => {
   }, []);
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { user } = useSelector((state) => state.user);
+  const { seller } = useSelector((state) => state.seller);
   const { isLoading, pendingProducts } = useSelector((state) => state.product);
-
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editedProduct, setEditedProduct] = useState(null);
   const [validationStatus, setValidationStatus] = useState({});
@@ -2051,25 +2052,28 @@ const AdminProductApproval = () => {
   
     try {
       setIsSubmitting(true);
-      console.log('Starting approval process for:', editedProduct._id);
   
-      // Calculate pricing if approving
-      let updates = {};
+      const { user } = store.getState().user;
+      if (!user || !user.token) {
+        throw new Error('Authentication required');
+      }
+  
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+          'Content-Type': 'application/json',
+        },
+      };
+  
+      const updates = {
+        ...editedProduct,
+        status: newStatus,
+        ProductType: editedProduct.ProductType || 't-shirt',
+      };
+  
       if (newStatus === 'public') {
-        const pricing = calculatePricing(editedProduct.ProductType);
-        updates = {
-          ...pricing,
-          ProductType: editedProduct.ProductType,
-          ProductColor: editedProduct.ProductColor,
-          ProductView: editedProduct.ProductView,
-          availableColors: editedProduct.availableColors,
-          status: 'public'
-        };
-      } else {
-        updates = {
-          status: newStatus,
-          rejectionReason: editedProduct.rejectionReason
-        };
+        const pricing = calculatePricing(updates.ProductType);
+        Object.assign(updates, pricing);
       }
   
       const result = await dispatch(
@@ -2077,7 +2081,8 @@ const AdminProductApproval = () => {
           editedProduct._id,
           newStatus,
           editedProduct.rejectionReason || '',
-          updates
+          updates,
+          config
         )
       );
   
@@ -2085,15 +2090,21 @@ const AdminProductApproval = () => {
         toast.success(`Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully`);
         setSelectedProduct(null);
         setEditedProduct(null);
-        dispatch(fetchPendingProducts()); // Refresh the list
+        dispatch(fetchPendingProducts());
       }
     } catch (error) {
       console.error('Status change failed:', error);
-      toast.error(error.response?.data?.message || 'Failed to update product status');
+      if (error.response?.status === 401) {
+        toast.error('Please login again');
+        navigate('/login');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to update product status');
+      }
     } finally {
       setIsSubmitting(false);
     }
-  }, [editedProduct, dispatch]);
+  }, [editedProduct, dispatch, navigate, calculatePricing]);
+
   
   // Check if user has admin access
   if (!user?.role === 'admin') {

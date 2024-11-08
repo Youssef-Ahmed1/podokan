@@ -65,40 +65,43 @@ export const createProduct = (formData) => async (dispatch) => {
 };
 
 // Fetch pending products
-export const fetchPendingProducts = () => async (dispatch) => {
+export const fetchPendingProducts = () => async (dispatch, getState) => {
   try {
-    dispatch({ type: "fetchPendingProductsRequest" });
+    dispatch({
+      type: 'productPendingRequest',
+    });
+
+    const { user } = getState().user;
     
+    if (!user || !user.token) {
+      throw new Error('Authentication required');
+    }
+
     const config = {
-      headers: getAuthHeaders(),
-      withCredentials: true,
-      timeout: 60000 
+      headers: {
+        'Authorization': `Bearer ${user.token}`,
+        'Content-Type': 'application/json',
+      },
     };
 
     const { data } = await axios.get(
-      `${server}/product/admin/pending-products?limit=10`, 
+      `${server}/product/admin/pending-products`,
       config
     );
 
-    dispatch({ 
-      type: "fetchPendingProductsSuccess", 
-      payload: data.products 
+    dispatch({
+      type: 'productPendingSuccess',
+      payload: data.products,
     });
   } catch (error) {
-    if (error.code === 'ECONNABORTED') {
-      dispatch({
-        type: "fetchPendingProductsFail",
-        payload: "Request timed out - please try again"
-      });
-    } else {
-      dispatch({
-        type: "fetchPendingProductsFail",
-        payload: error.response?.data?.message || 
-                 "Failed to fetch pending products"
-      });
-    }
+    dispatch({
+      type: 'productPendingFail',
+      payload: error.response?.data?.message || "Failed to fetch pending products",
+    });
+    throw error;
   }
 };
+
 
 // Approve/Reject product
 
