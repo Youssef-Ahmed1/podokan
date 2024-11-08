@@ -55,15 +55,17 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
-    const token = req.cookies.seller_token;
+    const token = 
+      req.cookies.seller_token ||
+      (req.headers['seller-authorization'] ? req.headers['seller-authorization'].replace('Bearer ', '') : null);
 
     if (!token) {
       return next(new ErrorHandler("Please login as seller to continue", 401));
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const seller = await Shop.findById(decoded.id).select('-password');
-    
+    const seller = await Shop.findById(decoded.id);
+
     if (!seller) {
       return next(new ErrorHandler("Seller not found", 401));
     }
@@ -71,15 +73,11 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
     req.seller = seller;
     next();
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      return next(new ErrorHandler("Invalid seller token", 401));
-    }
-    if (error.name === 'TokenExpiredError') {
-      return next(new ErrorHandler("Seller token expired", 401));
-    }
-    return next(new ErrorHandler("Seller authentication failed", 401));
+    console.error('Seller auth error:', error);
+    return next(new ErrorHandler("Authentication failed", 401));
   }
 });
+
 
 
 

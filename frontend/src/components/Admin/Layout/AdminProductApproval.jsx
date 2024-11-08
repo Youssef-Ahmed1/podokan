@@ -1540,9 +1540,10 @@ const AdminProductApproval = () => {
     fetchProducts();
   }, [dispatch]);
 // Move this inside AdminProductApproval component
-const calculatePricing = useCallback((productType) => {
-  if (!productType || !PRODUCT_TYPES[productType]) {
-    productType = 't-shirt'; // Default fallback
+const calculatePricing = (productType) => {
+  const config = PRODUCT_TYPES[productType];
+  if (!config) {
+    throw new Error(`Invalid product type: ${productType}`); 
   }
 
   const productConfig = PRODUCT_TYPES[productType];
@@ -1550,10 +1551,11 @@ const calculatePricing = useCallback((productType) => {
   const discountPrice = Math.round(recommendedPrice * 0.85);
 
   return {
-    originalPrice: recommendedPrice,
-    discountPrice: discountPrice
+    originalPrice: config.basePrice,
+    discountPrice: Math.round(config.basePrice * 0.85)
   };
-}, []);
+};
+
   // Filter products
   const filteredProducts = useMemo(() => {
     if (!pendingProducts) return [];
