@@ -1551,7 +1551,9 @@ const calculatePricing = useCallback((productType = 't-shirt') => {
   if (!productType || !PRODUCT_TYPES[productType]) {
     productType = 't-shirt';
   }
-
+  const getProductTypeConfig = (productType) => {
+    return PRODUCT_TYPES[productType] ? productType : 't-shirt';
+  };
   const config = PRODUCT_TYPES[productType];
   const basePrice = config.basePrice;
   const recommendedPrice = Math.ceil(basePrice * (1 + config.margins.recommended));
@@ -1579,24 +1581,22 @@ const calculatePricing = useCallback((productType = 't-shirt') => {
   }, [pendingProducts, state.searchQuery, state.filterStatus]);
 
   const handleProductSelect = useCallback((product) => {
-    // Ensure product type is valid
-    if (!PRODUCT_TYPES[product.ProductType]) {
-      product.ProductType = 't-shirt';
-    }
+    const processedProduct = {
+      ...product,
+      ProductType: PRODUCT_TYPES[product.ProductType] ? product.ProductType : 't-shirt',
+      DesignScale: product.DesignScale || 1,
+      DesignPosition: product.DesignPosition || { x: 50, y: 25 },
+      originalPrice: product.originalPrice || PRODUCT_TYPES[product.ProductType]?.basePrice || PRODUCT_TYPES['t-shirt'].basePrice,
+      availableColors: product.availableColors || [product.ProductColor],
+      availableProductTypes: product.availableProductTypes || [product.ProductType],
+      mainTags: product.mainTags || []
+    };
   
     setState({
       type: 'SET_STATE',
       payload: {
         selectedProduct: product,
-        editedProduct: {
-          ...product,
-          DesignScale: product.DesignScale || 1,
-          DesignPosition: product.DesignPosition || { x: 50, y: 25 },
-          originalPrice: product.originalPrice || PRODUCT_TYPES[product.ProductType].basePrice,
-          availableColors: product.availableColors || [product.ProductColor],
-          availableProductTypes: product.availableProductTypes || [product.ProductType],
-          mainTags: product.mainTags || []
-        }
+        editedProduct: processedProduct
       }
     });
   }, []);
@@ -1632,24 +1632,18 @@ const calculatePricing = useCallback((productType = 't-shirt') => {
     try {
       setState({ type: 'SET_STATE', payload: { isSubmitting: true } });
   
-      const productType = state.editedProduct.ProductType;
-      // Make sure we have a valid product type
-      if (!PRODUCT_TYPES[productType]) {
-        console.warn(`Invalid product type: ${productType}, defaulting to t-shirt`);
-        state.editedProduct.ProductType = 't-shirt';
-      }
-  
-      let updates = {
+      // Create a new object for updates instead of modifying existing one
+      const updates = {
         ...state.editedProduct,
-        status: newStatus
+        status: newStatus,
+        ProductType: PRODUCT_TYPES[state.editedProduct.ProductType] 
+          ? state.editedProduct.ProductType 
+          : 't-shirt'
       };
   
       if (newStatus === 'public') {
-        const pricing = calculatePricing(state.editedProduct.ProductType);
-        updates = {
-          ...updates,
-          ...pricing
-        };
+        const pricing = calculatePricing(updates.ProductType);
+        Object.assign(updates, pricing);
       }
   
       const result = await dispatch(
@@ -1673,8 +1667,6 @@ const calculatePricing = useCallback((productType = 't-shirt') => {
       setState({ type: 'SET_STATE', payload: { isSubmitting: false } });
     }
   }, [state.editedProduct, dispatch, calculatePricing]);
-
-
   // Loading and error states
   if (apiState.isLoading) {
     return <LoadingSpinner />;
