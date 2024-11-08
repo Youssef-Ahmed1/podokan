@@ -1685,3 +1685,34 @@
 2024-11-08T21:33:49:   },
 2024-11-08T21:33:49:   seller: new ObjectId("65e23cf729b804d0261266d6")
 2024-11-08T21:33:49: }
+2024-11-08T22:34:49: Server running on port 8000
+2024-11-08T22:34:50: Database connected
+2024-11-08T22:36:02: Request data: {
+2024-11-08T22:36:02:   body: [Object: null prototype] {
+2024-11-08T22:36:02:     DesignTitle: [ 'asdfsadfsdafsdfa', 'asdfsadfsdafsdfa' ],
+2024-11-08T22:36:02:     Description: [ 'sdafsdafasdfsdafsdfa', 'sdafsdafasdfsdafsdfa' ],
+2024-11-08T22:36:02:     Maintag: [ 'asdfsdfasdfasdfa', 'asdfsdfasdfasdfa' ],
+2024-11-08T22:36:02:     Designtags: [ 'sfadsdfaasdf', '["sfadsdfaasdf"]' ],
+2024-11-08T22:36:02:     ProductType: [ 't-shirt', 't-shirt' ],
+2024-11-08T22:36:02:     ProductColor: [ 'white', 'white' ],
+2024-11-08T22:36:02:     ProductView: [ 'front', 'front' ],
+2024-11-08T22:36:02:     DesignScale: [ '1', '1' ],
+2024-11-08T22:36:02:     designPosition: [ '{"x":50,"y":50}', '{"x":50,"y":50}' ],
+2024-11-08T22:36:02:     availableColors: [ 'white', '["white"]' ],
+2024-11-08T22:36:02:     price: '{"original":295,"discount":210}',
+2024-11-08T22:36:02:     shopId: '65e23cf729b804d0261266d6',
+2024-11-08T22:36:02:     originalPrice: '295',
+2024-11-08T22:36:02:     discountPrice: '210'
+2024-11-08T22:36:02:   },
+2024-11-08T22:36:02:   file: {
+2024-11-08T22:36:02:     fieldname: 'designImage',
+2024-11-08T22:36:02:     originalname: '[removal.ai]_11466a45-b14a-47ea-bb18-c40afda8e502-black-clover-v002-transformed_8D91IJ.png',
+2024-11-08T22:36:02:     encoding: '7bit',
+2024-11-08T22:36:02:     mimetype: 'image/png',
+2024-11-08T22:36:02:     destination: 'uploads/',
+2024-11-08T22:36:02:     filename: 'designImage-1731105362206-743400053.png',
+2024-11-08T22:36:02:     path: 'uploads/designImage-1731105362206-743400053.png',
+2024-11-08T22:36:02:     size: 1365879
+2024-11-08T22:36:02:   },
+2024-11-08T22:36:02:   seller: new ObjectId("65e23cf729b804d0261266d6")
+2024-11-08T22:36:02: }
