@@ -2046,3 +2046,5 @@
 2024-11-08T21:01:48:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)
 2024-11-08T21:01:48:     at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)
 2024-11-08T21:01:48:     at Function.handle (/var/www/podokan/backend/node_modules/express/lib/router/index.js:175:3)
+2024-11-08T21:09:14: Server running on port 8000
+2024-11-08T21:09:15: Database connected
