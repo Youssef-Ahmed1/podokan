@@ -28,6 +28,35 @@ const BOUNDARY_LIMITS = {
   'long-sleeve': { top: 30, bottom: 65, left: 30, right: 70 }
 };
 
+const checkBoundaries = (position, productType) => {
+  const limits = BOUNDARY_LIMITS[productType];
+  if (!limits) return false;
+
+  return (
+    position.x >= limits.left &&
+    position.x <= limits.right &&
+    position.y >= limits.top &&
+    position.y <= limits.bottom
+  );
+};
+
+const handleDesignDrag = useCallback((e) => {
+  if (!mockupContainerRef.current || !isDragging) return;
+
+  const rect = mockupContainerRef.current.getBoundingClientRect();
+  const x = ((e.clientX - rect.left) / rect.width) * 100;
+  const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+  const newPosition = { x, y };
+  const isWithinBounds = checkBoundaries(newPosition, formState.ProductType);
+
+  setIsDesignVisible(isWithinBounds);
+  setFormState(prev => ({
+    ...prev,
+    designPosition: newPosition
+  }));
+}, [isDragging, formState.ProductType]);
+
 const COLOR_OPTIONS = {
   white: { value: 'white', label: 'White', hex: '#ffffff', textColor: 'text-gray-800' },
   black: { value: 'black', label: 'Black', hex: '#000000', textColor: 'text-white' },
@@ -699,13 +728,16 @@ const CreateProduct = () => {
     setFormState(prev => ({ ...prev, DesignScale: newScale }));
     setTimeout(() => setIsScaling(false), 300);
   }, [formState.DesignScale]);
+
+
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
   
     try {
       setIsSubmitting(true);
-      setValidationErrors({});
+      const formData = new FormData();
   
       // Validate form
       const errors = validateForm(formState, designFile);
@@ -715,10 +747,16 @@ const CreateProduct = () => {
         return;
       }
   
-      // Create FormData
-      const formData = new FormData();
+      // Add form data
+      Object.entries(formState).forEach(([key, value]) => {
+        if (key === 'designPosition' || key === 'price') {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, value);
+        }
+      });
   
-      // Add design file first
+      // Add design file
       if (designFile.file) {
         formData.append('designImage', designFile.file);
       }
@@ -753,7 +791,7 @@ const CreateProduct = () => {
       const response = await dispatch(createProduct(formData));
   
       if (response.success) {
-        toast.success("Product created successfully!");
+        toast.success("Product created successfully");
         navigate("/dashboard");
       } else {
         throw new Error(response.message || "Failed to create product");
@@ -762,6 +800,13 @@ const CreateProduct = () => {
     } catch (error) {
       console.error("Submit error:", error);
       toast.error(error.message || "Failed to create product");
+      
+      // Handle specific error cases
+      if (error.response?.status === 401) {
+        toast.error("Please login to continue");
+        navigate("/login");
+      }
+      
     } finally {
       setIsSubmitting(false);
     }
