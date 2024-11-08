@@ -24,34 +24,34 @@ const getAuthHeaders = (isMultipart = false) => {
 };
 
 // Create product
+// redux/actions/product.js
 export const createProduct = (formData) => async (dispatch) => {
   try {
     dispatch({ type: "productCreateRequest" });
 
     const config = {
-      headers: getAuthHeaders(true), // true for multipart/form-data
-      withCredentials: true,
-      timeout: 30000
+      headers: { "Content-Type": "multipart/form-data" },
+      withCredentials: true
     };
 
-    const { data } = await axios.post(
-      `${server}/product/create-product`,
+    const response = await axios.post(
+      `${server}/api/v2/product/create-product`,
       formData,
       config
     );
 
-    dispatch({ 
-      type: "productCreateSuccess", 
-      payload: data.product 
+    dispatch({
+      type: "productCreateSuccess",
+      payload: response.data.product
     });
 
-    return { 
-      success: true, 
-      product: data.product,
-      message: data.message
-    };
+    return response.data;
+
   } catch (error) {
-    console.error("Product creation error:", error);
+    dispatch({
+      type: "productCreateFail",
+      payload: error.response?.data?.message || "Failed to create product"
+    });
     throw error;
   }
 };
