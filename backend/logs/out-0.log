@@ -1588,3 +1588,5 @@
 2024-11-08T16:15:32:   },
 2024-11-08T16:15:32:   seller: new ObjectId("65e23cf729b804d0261266d6")
 2024-11-08T16:15:32: }
+2024-11-08T18:31:30: Server running on port 8000
+2024-11-08T18:31:31: Database connected
