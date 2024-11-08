@@ -24,11 +24,7 @@ const PRODUCT_TYPES = {
       designArea: {
         front: { width: 300, height: 400, top: '25%', left: '50%' },
         back: { width: 300, height: 400, top: '25%', left: '50%' }
-      },
-      defaultScale: 1,
-      minScale: 0.5,
-      maxScale: 2,
-      gridLines: true
+      }
     }
   },
   'hoodie': {
@@ -41,20 +37,16 @@ const PRODUCT_TYPES = {
     },
     mockupConfig: {
       version: 'v1',
-      folder: '/hoodies',
+      folder: 'hoodies',
       getFilename: (color, view) => `hoodie-${color}-${view}`,
       designArea: {
         front: { width: 280, height: 380, top: '30%', left: '50%' },
         back: { width: 300, height: 400, top: '25%', left: '50%' }
-      },
-      defaultScale: 1,
-      minScale: 0.5,
-      maxScale: 2,
-      gridLines: true
+      }
     }
   },
-  'long-sleeves': {
-    label: 'Long Sleeves',
+  'long-sleeve': {  // Note: Changed from 'long-sleeves' to 'long-sleeve'
+    label: 'Long Sleeve',
     basePrice: 370,
     productionCost: 200,
     margins: {
@@ -63,16 +55,12 @@ const PRODUCT_TYPES = {
     },
     mockupConfig: {
       version: 'v1',
-      folder: '/long-sleeves',
-      getFilename: (color, view) => `longseleves-${color}-${view}`,
+      folder: 'long-sleeves',
+      getFilename: (color, view) => `long-sleeve-${color}-${view}`,
       designArea: {
         front: { width: 280, height: 380, top: '30%', left: '50%' },
         back: { width: 300, height: 400, top: '25%', left: '50%' }
-      },
-      defaultScale: 1,
-      minScale: 0.5,
-      maxScale: 2,
-      gridLines: true
+      }
     }
   }
 };
@@ -1892,20 +1880,19 @@ StatusManager.displayName = 'StatusManager';
 
 const AdminProductApproval = () => {
 
-  const calculatePricing = (productType) => {
-    const productConfig = PRODUCT_TYPES[productType];
-    if (!productConfig) {
-      throw new Error(`Invalid product type: ${productType}`);
-    }
-
-    const recommendedPrice = productConfig.basePrice;
+  const calculatePricing = useCallback((productType) => {
+    // Default to t-shirt if product type is invalid
+    const validProductType = PRODUCT_TYPES[productType] ? productType : 't-shirt';
+    const config = PRODUCT_TYPES[validProductType];
+    
+    const recommendedPrice = config.basePrice;
     const discountPrice = Math.round(recommendedPrice * 0.85); // 15% discount
-
+  
     return {
       originalPrice: recommendedPrice,
       discountPrice: discountPrice
     };
-  };
+  }, []);
 
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
@@ -1943,18 +1930,33 @@ const AdminProductApproval = () => {
 
   // Handle product selection
   const handleProductSelect = useCallback((product) => {
-    setSelectedProduct(product);
-    setEditedProduct({
+    if (!product) return;
+  
+    // Validate and default the ProductType
+    const productType = PRODUCT_TYPES[product.ProductType] ? product.ProductType : 't-shirt';
+  
+    // Validate and default ProductColor
+    const productColor = COLOR_OPTIONS[product.ProductColor] ? product.ProductColor : 'white';
+  
+    // Get the base price safely
+    const basePrice = PRODUCT_TYPES[productType]?.basePrice || 290; // Default to t-shirt base price
+  
+    const processedProduct = {
       ...product,
+      ProductType: productType,
+      ProductColor: productColor,
+      ProductView: product.ProductView || 'front',
       DesignScale: product.DesignScale || 1,
       DesignPosition: product.DesignPosition || { x: 50, y: 25 },
-      originalPrice: product.originalPrice || PRODUCT_TYPES[product.ProductType].basePrice,
-      availableColors: product.availableColors || [product.ProductColor],
-      availableProductTypes: product.availableProductTypes || [product.ProductType],
+      originalPrice: product.originalPrice || basePrice,
+      availableColors: product.availableColors || [productColor],
+      availableProductTypes: product.availableProductTypes || [productType],
       mainTags: product.mainTags || []
-    });
+    };
+  
+    setSelectedProduct(product);
+    setEditedProduct(processedProduct);
   }, []);
-
   // Handle product updates with validation
   const handleProductUpdate = useCallback((updates) => {
     setEditedProduct(prev => {
