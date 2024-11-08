@@ -1528,3 +1528,33 @@
 2024-11-07T23:30:35: Database connected
 2024-11-07T23:37:43: Server running on port 8000
 2024-11-07T23:37:44: Database connected
+2024-11-07T23:43:43: Server running on port 8000
+2024-11-07T23:43:44: Database connected
+2024-11-07T23:52:43: Request data: {
+2024-11-07T23:52:43:   body: [Object: null prototype] {
+2024-11-07T23:52:43:     DesignTitle: 'dfgasdfsadf',
+2024-11-07T23:52:43:     Description: 'asdfsdfsdfaasdfsdfa',
+2024-11-07T23:52:43:     Maintag: 'asdfasdfasdf',
+2024-11-07T23:52:43:     Designtags: '["asdfasdfsdf"]',
+2024-11-07T23:52:43:     ProductType: 't-shirt',
+2024-11-07T23:52:43:     ProductColor: 'white',
+2024-11-07T23:52:43:     ProductView: 'front',
+2024-11-07T23:52:43:     DesignScale: '1',
+2024-11-07T23:52:43:     shopId: '65e23cf729b804d0261266d6',
+2024-11-07T23:52:43:     designPosition: '{"x":50,"y":50}',
+2024-11-07T23:52:43:     originalPrice: '340',
+2024-11-07T23:52:43:     discountPrice: '310',
+2024-11-07T23:52:43:     availableColors: '["white"]'
+2024-11-07T23:52:43:   },
+2024-11-07T23:52:43:   file: {
+2024-11-07T23:52:43:     fieldname: 'designImage',
+2024-11-07T23:52:43:     originalname: '[removal.ai]_11466a45-b14a-47ea-bb18-c40afda8e502-black-clover-v002-transformed_8D91IJ.png',
+2024-11-07T23:52:43:     encoding: '7bit',
+2024-11-07T23:52:43:     mimetype: 'image/png',
+2024-11-07T23:52:43:     destination: 'uploads/',
+2024-11-07T23:52:43:     filename: 'designImage-1731023563329-244492033.png',
+2024-11-07T23:52:43:     path: 'uploads/designImage-1731023563329-244492033.png',
+2024-11-07T23:52:43:     size: 1365879
+2024-11-07T23:52:43:   },
+2024-11-07T23:52:43:   seller: new ObjectId("65e23cf729b804d0261266d6")
+2024-11-07T23:52:43: }
