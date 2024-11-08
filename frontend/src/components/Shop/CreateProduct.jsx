@@ -312,10 +312,12 @@ const calculateDesignQualityScore = (imageInfo) => {
     }
   };
 };
-
 const validateForm = (formState, designFile) => {
   const errors = {};
 
+  if (!PRODUCT_TYPES[formState.ProductType]) {
+    errors.ProductType = "Invalid product type";
+  }
   if (!formState.DesignTitle?.trim()) {
     errors.DesignTitle = "Design title is required";
   } else if (formState.DesignTitle.length < 3 || formState.DesignTitle.length > 100) {
