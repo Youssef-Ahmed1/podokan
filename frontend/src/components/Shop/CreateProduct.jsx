@@ -440,14 +440,14 @@ const CreateProduct = () => {
     Description: "",
     Maintag: "",
     Designtags: "",
-    ProductType: "t-shirt",
+    ProductType: "t-shirt",  
     ProductColor: "white",
     ProductView: "front",
     DesignScale: 1,
     designPosition: { x: 50, y: 50 },
     availableColors: ["white"],
     price: {
-      original: calculateMinimumPrice("t-shirt"),
+      original: PRODUCT_TYPES['t-shirt'].basePrice,
       discount: 0
     }
   });
@@ -611,7 +611,7 @@ const CreateProduct = () => {
     });
   }, [isDragging, formState.ProductType]);
 
-  
+
   const handleDesignUpload = useCallback(async (file) => {
     try {
       if (!file) return;
