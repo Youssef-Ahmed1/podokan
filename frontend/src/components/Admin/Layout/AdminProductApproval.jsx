@@ -2013,45 +2013,33 @@ const AdminProductApproval = () => {
     try {
       setIsSubmitting(true);
       console.log('Starting approval process for:', editedProduct._id);
-      const handleApprove = (product) => {
-        if (!product?.ProductType || !PRODUCT_TYPES[product.ProductType]) {
-          toast.error("Invalid product type");
-          return;
-        }
-      
-        try {
-          const productConfig = PRODUCT_TYPES[product.ProductType];
-          const recommendedPrice = productConfig.basePrice; // Use base price directly
-          const discountPrice = Math.round(recommendedPrice * 0.85); // 15% discount
-      
-          setEditedProduct({
-            ...product,
-            originalPrice: recommendedPrice,
-            discountPrice: discountPrice,
-            status: 'public'
-          });
-      
-          // Show approval modal or directly submit
-          handleStatusChange('public');
-        } catch (error) {
-          console.error("Price calculation error:", error);
-          toast.error("Error calculating product price");
-        }
+  
+      // Get product configuration
+      const productConfig = PRODUCT_TYPES[editedProduct.ProductType];
+      if (!productConfig) {
+        toast.error("Invalid product type");
+        return;
+      }
+  
+      // Set default pricing
+      const recommendedPrice = productConfig.basePrice;
+      const discountPrice = Math.round(recommendedPrice * 0.85); // 15% discount
+  
+      const updates = {
+        originalPrice: recommendedPrice,
+        discountPrice: discountPrice,
+        ProductType: editedProduct.ProductType,
+        ProductColor: editedProduct.ProductColor,
+        ProductView: editedProduct.ProductView,
+        availableColors: editedProduct.availableColors
       };
-      
+  
       const result = await dispatch(
         approveRejectProduct(
           editedProduct._id,
           newStatus,
           editedProduct.rejectionReason || '',
-          {
-            originalPrice: editedProduct.originalPrice,
-            discountPrice: editedProduct.discountPrice,
-            ProductType: editedProduct.ProductType,
-            ProductColor: editedProduct.ProductColor,
-            ProductView: editedProduct.ProductView,
-            availableColors: editedProduct.availableColors
-          }
+          updates
         )
       );
   
@@ -2067,7 +2055,6 @@ const AdminProductApproval = () => {
       setIsSubmitting(false);
     }
   }, [editedProduct, dispatch]);
-
   // Check if user has admin access
   if (!user?.role === 'admin') {
     return (

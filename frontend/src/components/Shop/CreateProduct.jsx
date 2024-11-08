@@ -697,7 +697,6 @@ const CreateProduct = () => {
     setFormState(prev => ({ ...prev, DesignScale: newScale }));
     setTimeout(() => setIsScaling(false), 300);
   }, [formState.DesignScale]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -717,37 +716,45 @@ const CreateProduct = () => {
       // Create FormData
       const formData = new FormData();
   
-      // Add basic fields with proper type conversion
-      formData.append('DesignTitle', formState.DesignTitle);
-      formData.append('Description', formState.Description);
-      formData.append('Maintag', formState.Maintag);
-      formData.append('Designtags', JSON.stringify(
-        formState.Designtags.split(',').map(tag => tag.trim())
-      ));
-      formData.append('ProductType', formState.ProductType);
-      formData.append('ProductColor', formState.ProductColor);
-      formData.append('ProductView', formState.ProductView);
-      formData.append('DesignScale', formState.DesignScale.toString());
-      formData.append('shopId', seller._id);
-      formData.append('designPosition', JSON.stringify(formState.designPosition));
-      formData.append('originalPrice', formState.price.original.toString());
-      
-      if (formState.price.discount > 0) {
-        formData.append('discountPrice', formState.price.discount.toString());
-      }
-  
-      formData.append('availableColors', JSON.stringify([formState.ProductColor]));
-  
-      // Add design file
+      // Add design file first
       if (designFile.file) {
         formData.append('designImage', designFile.file);
       }
   
+      // Add basic fields
+      formData.append('DesignTitle', formState.DesignTitle);
+      formData.append('Description', formState.Description);
+      formData.append('Maintag', formState.Maintag);
+      
+      // Convert tags array to string for backend
+      const designTags = formState.Designtags.split(',')
+        .map(tag => tag.trim())
+        .filter(Boolean);
+      formData.append('Designtags', JSON.stringify(designTags));
+  
+      // Add product configuration
+      formData.append('ProductType', formState.ProductType);
+      formData.append('ProductColor', formState.ProductColor);
+      formData.append('ProductView', formState.ProductView);
+      formData.append('DesignScale', formState.DesignScale.toString());
+      formData.append('designPosition', JSON.stringify(formState.designPosition));
+  
+      // Add pricing
+      formData.append('originalPrice', formState.price.original.toString());
+      if (formState.price.discount) {
+        formData.append('discountPrice', formState.price.discount.toString());
+      }
+  
+      // Add available colors
+      formData.append('availableColors', JSON.stringify([formState.ProductColor]));
+  
       const response = await dispatch(createProduct(formData));
   
       if (response.success) {
-        toast.success(response.message);
+        toast.success("Product created successfully!");
         navigate("/dashboard");
+      } else {
+        throw new Error(response.message || "Failed to create product");
       }
   
     } catch (error) {
