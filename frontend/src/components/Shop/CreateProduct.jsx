@@ -135,16 +135,44 @@ const calculateDPI = (width, height) => {
   return Math.min(width, height) / PRINT_SIZE;
 };
 
-const getMockupUrl = (productType = 't-shirt', color = 'white', view = 'front') => {
-  const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-  const config = PRODUCT_TYPES[productType]?.mockupConfig;
-  
-  if (!config) return "";
-  
-  const filename = config.getFilename(color, view);
-  return `${baseUrl}${config.version}/${config.folder}/${filename}.png`;
-};
+const getMockupUrl = (productType, color, view) => {
+  // Add defensive checks
+  if (!productType || !color || !view) {
+    console.warn('Missing parameters for mockup URL:', { productType, color, view });
+    return '';
+  }
 
+  const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/v1/";
+  
+  // Make sure we're using string values
+  const safeProductType = String(productType).toLowerCase();
+  const safeColor = String(color).toLowerCase();
+  const safeView = String(view).toLowerCase();
+
+  // Map product types to their folders
+  const folderMap = {
+    't-shirt': 't-shirts',
+    'hoodie': 'hoodies',
+    'long-sleeve': 'long-sleeves'
+  };
+
+  const folder = folderMap[safeProductType] || 't-shirts';
+  
+  // Construct filename based on product type
+  let filename;
+  switch(safeProductType) {
+    case 'hoodie':
+      filename = `hoodie-${safeColor}-${safeView}`;
+      break;
+    case 'long-sleeve':
+      filename = `long-sleeve-${safeColor}-${safeView}`;
+      break;
+    default:
+      filename = `t-shirt-${safeColor}-${safeView}`;
+  }
+
+  return `${baseUrl}${folder}/${filename}.png`;
+};
 const compressDesign = async (file) => {
   return new Promise((resolve, reject) => {
     const img = new Image();

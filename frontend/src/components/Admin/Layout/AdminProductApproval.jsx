@@ -45,7 +45,7 @@ const PRODUCT_TYPES = {
       }
     }
   },
-  'long-sleeve': {  // Note: Changed from 'long-sleeves' to 'long-sleeve'
+  'long-sleeve': {  
     label: 'Long Sleeve',
     basePrice: 370,
     productionCost: 200,
@@ -1930,32 +1930,57 @@ const AdminProductApproval = () => {
 
   // Handle product selection
   const handleProductSelect = useCallback((product) => {
-    if (!product) return;
+    if (!product) {
+      console.warn('No product provided to handleProductSelect');
+      return;
+    }
   
-    // Validate and default the ProductType
-    const productType = PRODUCT_TYPES[product.ProductType] ? product.ProductType : 't-shirt';
+    // Log the incoming product for debugging
+    console.log('Selecting product:', product);
   
-    // Validate and default ProductColor
-    const productColor = COLOR_OPTIONS[product.ProductColor] ? product.ProductColor : 'white';
+    try {
+      const defaultProductType = 't-shirt';
+      const defaultColor = 'white';
+      const defaultView = 'front';
   
-    // Get the base price safely
-    const basePrice = PRODUCT_TYPES[productType]?.basePrice || 290; // Default to t-shirt base price
+      // Ensure we have valid product type and color
+      const productType = PRODUCT_TYPES[product.ProductType] 
+        ? product.ProductType 
+        : defaultProductType;
+        
+      const productColor = COLOR_OPTIONS[product.ProductColor]
+        ? product.ProductColor
+        : defaultColor;
   
-    const processedProduct = {
-      ...product,
-      ProductType: productType,
-      ProductColor: productColor,
-      ProductView: product.ProductView || 'front',
-      DesignScale: product.DesignScale || 1,
-      DesignPosition: product.DesignPosition || { x: 50, y: 25 },
-      originalPrice: product.originalPrice || basePrice,
-      availableColors: product.availableColors || [productColor],
-      availableProductTypes: product.availableProductTypes || [productType],
-      mainTags: product.mainTags || []
-    };
+      const processedProduct = {
+        ...product,
+        ProductType: productType,
+        ProductColor: productColor,
+        ProductView: product.ProductView || defaultView,
+        DesignScale: product.DesignScale || 1,
+        DesignPosition: product.DesignPosition || { x: 50, y: 25 },
+        originalPrice: product.originalPrice || PRODUCT_TYPES[productType].basePrice,
+        availableColors: Array.isArray(product.availableColors) 
+          ? product.availableColors 
+          : [productColor],
+        availableProductTypes: Array.isArray(product.availableProductTypes)
+          ? product.availableProductTypes
+          : [productType],
+        mainTags: Array.isArray(product.mainTags) ? product.mainTags : [],
+        Designtags: Array.isArray(product.Designtags) ? product.Designtags : [],
+        status: product.status || 'pending'
+      };
   
-    setSelectedProduct(product);
-    setEditedProduct(processedProduct);
+      // Log the processed product for debugging
+      console.log('Processed product:', processedProduct);
+  
+      setSelectedProduct(product);
+      setEditedProduct(processedProduct);
+      
+    } catch (error) {
+      console.error('Error in handleProductSelect:', error);
+      toast.error('Failed to load product details');
+    }
   }, []);
   // Handle product updates with validation
   const handleProductUpdate = useCallback((updates) => {
