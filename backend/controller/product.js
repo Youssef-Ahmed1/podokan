@@ -152,7 +152,7 @@ router.post("/create-product",
 
       // Validate required data
       if (!req.file) {
-        return next(new ErrorHandler("Design image is required", 400));
+        return next(new ErrorHandler("Design image is required", 400));  
       }
 
       if (!req.body.ProductColor || !VALID_COLORS.includes(req.body.ProductColor)) {

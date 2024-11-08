@@ -112,16 +112,16 @@ export const PRODUCT_TYPES = {
 const COLOR_OPTIONS = {
   white: {
     value: 'white',
-    label: 'White',
+    label: 'White', 
     hex: '#ffffff',
     textColor: 'text-gray-800',
     mockupModifier: 'none',
     designBlendMode: 'multiply'
   },
-  black: {
+  black: { 
     value: 'black',
     label: 'Black',
-    hex: '#000000',
+    hex: '#000000', 
     textColor: 'text-white',
     mockupModifier: 'brightness(0)',
     designBlendMode: 'screen'
@@ -332,7 +332,14 @@ const validateProduct = (product) => {
     isValid: Object.keys(errors).length === 0,
     errors
   };
-};const ProductPreview = memo(({ 
+};
+
+
+
+
+
+
+const ProductPreview = memo(({ 
   editedProduct,
   onZoom,
   onPositionChange,
@@ -350,33 +357,38 @@ const validateProduct = (product) => {
   const [showGrid, setShowGrid] = useState(false);
   const [isOutOfBounds, setIsOutOfBounds] = useState(false);
 
-  const productConfig = PRODUCT_TYPES[editedProduct.ProductType];
-  const colorConfig = COLOR_OPTIONS[editedProduct.ProductColor];
-  const designArea = productConfig?.mockupConfig.designArea[editedProduct.ProductView];
+  // Safely get configurations with fallbacks
+  const productType = editedProduct?.ProductType || 't-shirt';
+  const productColor = editedProduct?.ProductColor || 'white';
+  const productView = editedProduct?.ProductView || 'front';
+
+  const productConfig = PRODUCT_TYPES[productType] || PRODUCT_TYPES['t-shirt'];
+  const colorConfig = COLOR_OPTIONS[productColor] || COLOR_OPTIONS['white'];
+  const designArea = productConfig?.mockupConfig?.designArea?.[productView] || {
+    width: 300,
+    height: 400,
+    top: '25%',
+    left: '50%'
+  };
 
   const getDesignAreaStyle = useCallback(() => {
-    if (!containerRef.current || !designArea) return {};
+    if (!containerRef.current) return {};
     
     const container = containerRef.current.getBoundingClientRect();
     
-    const width = (container.width * parseFloat(designArea.width)) / 100;
-    const height = (container.height * parseFloat(designArea.height)) / 100;
-    const top = (container.height * parseFloat(designArea.top)) / 100;
-    const left = (container.width * parseFloat(designArea.left)) / 100;
-  
     return {
       position: 'absolute',
-      top: `${top}px`,
-      left: `${left}px`,
-      width: `${width}px`,
-      height: `${height}px`,
+      top: `${parseFloat(designArea.top)}%`,
+      left: `${parseFloat(designArea.left)}%`,
+      width: `${designArea.width}px`,
+      height: `${designArea.height}px`,
       transform: 'translate(-50%, -50%)',
-      border: '2px dashed rgba(59, 130, 246, 0.5)',
+      border: showGrid ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
       pointerEvents: 'none',
       zIndex: 10,
-      backgroundColor: 'rgba(59, 130, 246, 0.1)'
+      backgroundColor: showGrid ? 'rgba(59, 130, 246, 0.1)' : 'transparent'
     };
-  }, [designArea]);
+  }, [designArea, showGrid]);
 
   const checkBoundary = useCallback(() => {
     if (!designRef.current || !containerRef.current) return;
@@ -596,21 +608,9 @@ const validateProduct = (product) => {
       >
         <div style={getDesignAreaStyle()} />
 
-        {showGrid && (
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-blue-400 opacity-30" />
-            <div className="absolute top-1/2 left-0 right-0 h-px bg-blue-400 opacity-30" />
-            <div className="grid grid-cols-4 grid-rows-4 h-full">
-              {Array.from({ length: 16 }).map((_, i) => (
-                <div key={i} className="border border-blue-200 opacity-10" />
-              ))}
-            </div>
-          </div>
-        )}
-
         <img
-          src={mockupUrl}
-          alt={`${editedProduct.ProductType} ${editedProduct.ProductColor} ${editedProduct.ProductView} view`}
+          src={getMockupUrl(productType, productColor, productView)}
+          alt={`${productType} ${productColor} ${productView} view`}
           className="w-full h-full object-contain"
           style={{
             filter: colorConfig.mockupModifier !== 'none' ? colorConfig.mockupModifier : undefined
@@ -622,7 +622,7 @@ const validateProduct = (product) => {
           }}
         />
 
-        {!loading && !error && editedProduct.designImage && (
+        {!loading && !error && editedProduct?.designImage && (
           <div
             ref={designRef}
             className={`
@@ -635,8 +635,8 @@ const validateProduct = (product) => {
             style={{
               left: `${position.x}%`,
               top: `${position.y}%`,
-              width: `${designArea?.width}px`,
-              height: `${designArea?.height}px`,
+              width: `${designArea.width}px`,
+              height: `${designArea.height}px`,
               transform: `translate(-50%, -50%) scale(${zoom})`,
               mixBlendMode: colorConfig.designBlendMode
             }}
@@ -687,9 +687,9 @@ const validateProduct = (product) => {
 
 ProductPreview.propTypes = {
   editedProduct: PropTypes.shape({
-    ProductType: PropTypes.string.isRequired,
-    ProductColor: PropTypes.string.isRequired,
-    ProductView: PropTypes.string.isRequired,
+    ProductType: PropTypes.string,
+    ProductColor: PropTypes.string,
+    ProductView: PropTypes.string,
     designImage: PropTypes.string
   }).isRequired,
   onZoom: PropTypes.func,
@@ -699,7 +699,6 @@ ProductPreview.propTypes = {
 };
 
 ProductPreview.displayName = 'ProductPreview';
-
 
 
 
@@ -1581,22 +1580,32 @@ const calculatePricing = useCallback((productType = 't-shirt') => {
   }, [pendingProducts, state.searchQuery, state.filterStatus]);
 
   const handleProductSelect = useCallback((product) => {
+    if (!product) return;
+  
+    const productType = PRODUCT_TYPES[product.ProductType] ? product.ProductType : 't-shirt';
+    const productColor = COLOR_OPTIONS[product.ProductColor] ? product.ProductColor : 'white';
+    
     const processedProduct = {
       ...product,
-      ProductType: PRODUCT_TYPES[product.ProductType] ? product.ProductType : 't-shirt',
+      ProductType: productType,
+      ProductColor: productColor,
+      ProductView: product.ProductView || 'front',
       DesignScale: product.DesignScale || 1,
       DesignPosition: product.DesignPosition || { x: 50, y: 25 },
-      originalPrice: product.originalPrice || PRODUCT_TYPES[product.ProductType]?.basePrice || PRODUCT_TYPES['t-shirt'].basePrice,
-      availableColors: product.availableColors || [product.ProductColor],
-      availableProductTypes: product.availableProductTypes || [product.ProductType],
-      mainTags: product.mainTags || []
+      originalPrice: product.originalPrice || PRODUCT_TYPES[productType].basePrice,
+      availableColors: product.availableColors || [productColor],
+      mainTags: product.mainTags || [],
+      status: product.status || 'pending',
+      visibility: product.visibility || 'private',
+      rejectionReason: product.rejectionReason || ''
     };
   
     setState({
       type: 'SET_STATE',
       payload: {
         selectedProduct: product,
-        editedProduct: processedProduct
+        editedProduct: processedProduct,
+        validationStatus: { isValid: false }
       }
     });
   }, []);
