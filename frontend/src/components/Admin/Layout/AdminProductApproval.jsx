@@ -40,6 +40,7 @@ const productApprovalReducer = (state, action) => {
 };
 
 // Constants
+// At the top of your file where constants are defined
 export const PRODUCT_TYPES = {
   't-shirt': {
     label: 'T-Shirt',
@@ -73,7 +74,7 @@ export const PRODUCT_TYPES = {
     },
     mockupConfig: {
       version: 'v1',
-      folder: '/hoodies',
+      folder: 'hoodies',
       getFilename: (color, view) => `hoodie-${color}-${view}`,
       designArea: {
         front: { width: 280, height: 380, top: '30%', left: '50%' },
@@ -85,8 +86,8 @@ export const PRODUCT_TYPES = {
       gridLines: true
     }
   },
-  'long-sleeves': {
-    label: 'Long Sleeves',
+  'long-sleeve': {
+    label: 'Long Sleeve',
     basePrice: 370,
     productionCost: 200,
     margins: {
@@ -95,8 +96,8 @@ export const PRODUCT_TYPES = {
     },
     mockupConfig: {
       version: 'v1',
-      folder: '/long-sleeves',
-      getFilename: (color, view) => `longseleves-${color}-${view}`,
+      folder: 'long-sleeves',
+      getFilename: (color, view) => `long-sleeve-${color}-${view}`,
       designArea: {
         front: { width: 280, height: 380, top: '30%', left: '50%' },
         back: { width: 300, height: 400, top: '25%', left: '50%' }
@@ -108,7 +109,6 @@ export const PRODUCT_TYPES = {
     }
   }
 };
-
 const COLOR_OPTIONS = {
   white: {
     value: 'white',
@@ -1547,18 +1547,12 @@ const AdminProductApproval = () => {
     fetchProducts();
   }, [dispatch]);
 // Move this inside AdminProductApproval component
-const calculatePricing = useCallback((productType) => {
-  // Default to t-shirt if product type is invalid
-  const config = PRODUCT_TYPES[productType] || PRODUCT_TYPES['t-shirt'];
-  
-  if (!config) {
-    console.error(`Invalid product type: ${productType}`);
-    return {
-      originalPrice: PRODUCT_TYPES['t-shirt'].basePrice,
-      discountPrice: null
-    };
+const calculatePricing = useCallback((productType = 't-shirt') => {
+  if (!productType || !PRODUCT_TYPES[productType]) {
+    productType = 't-shirt';
   }
 
+  const config = PRODUCT_TYPES[productType];
   const basePrice = config.basePrice;
   const recommendedPrice = Math.ceil(basePrice * (1 + config.margins.recommended));
   const discountPrice = Math.round(recommendedPrice * 0.85);
@@ -1585,6 +1579,11 @@ const calculatePricing = useCallback((productType) => {
   }, [pendingProducts, state.searchQuery, state.filterStatus]);
 
   const handleProductSelect = useCallback((product) => {
+    // Ensure product type is valid
+    if (!PRODUCT_TYPES[product.ProductType]) {
+      product.ProductType = 't-shirt';
+    }
+  
     setState({
       type: 'SET_STATE',
       payload: {
@@ -1624,59 +1623,56 @@ const calculatePricing = useCallback((productType) => {
     });
   }, []);
 
-
- const handleStatusChange = useCallback(async (newStatus) => {
-  if (!state.editedProduct) {
-    toast.error('No product selected');
-    return;
-  }
-
-  try {
-    setState({ type: 'SET_STATE', payload: { isSubmitting: true } });
-
-    // Validate product type
-    const productType = state.editedProduct.ProductType;
-    if (!PRODUCT_TYPES[productType]) {
-      toast.error(`Invalid product type: ${productType}`);
+  const handleStatusChange = useCallback(async (newStatus) => {
+    if (!state.editedProduct) {
+      toast.error('No product selected');
       return;
     }
-
-    let updates = {
-      ...state.editedProduct,
-      status: newStatus
-    };
-
-    if (newStatus === 'public') {
-      const pricing = calculatePricing(productType);
-      updates = {
-        ...updates,
-        ...pricing
+  
+    try {
+      setState({ type: 'SET_STATE', payload: { isSubmitting: true } });
+  
+      const productType = state.editedProduct.ProductType;
+      // Make sure we have a valid product type
+      if (!PRODUCT_TYPES[productType]) {
+        console.warn(`Invalid product type: ${productType}, defaulting to t-shirt`);
+        state.editedProduct.ProductType = 't-shirt';
+      }
+  
+      let updates = {
+        ...state.editedProduct,
+        status: newStatus
       };
+  
+      if (newStatus === 'public') {
+        const pricing = calculatePricing(state.editedProduct.ProductType);
+        updates = {
+          ...updates,
+          ...pricing
+        };
+      }
+  
+      const result = await dispatch(
+        approveRejectProduct(
+          state.editedProduct._id,
+          newStatus,
+          state.editedProduct.rejectionReason || '',
+          updates
+        )
+      );
+  
+      if (result.success) {
+        toast.success(`Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully`);
+        setState({ type: 'RESET_STATE' });
+        dispatch(fetchPendingProducts());
+      }
+    } catch (error) {
+      console.error('Status change failed:', error);
+      toast.error(error.response?.data?.message || 'Failed to update product status');
+    } finally {
+      setState({ type: 'SET_STATE', payload: { isSubmitting: false } });
     }
-
-    const result = await dispatch(
-      approveRejectProduct(
-        state.editedProduct._id,
-        newStatus,
-        state.editedProduct.rejectionReason || '',
-        updates
-      )
-    );
-
-    if (result.success) {
-      toast.success(`Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully`);
-      setState({ type: 'RESET_STATE' });
-      dispatch(fetchPendingProducts());
-    }
-  } catch (error) {
-    console.error('Status change failed:', error);
-    toast.error(error.response?.data?.message || 'Failed to update product status');
-  } finally {
-    setState({ type: 'SET_STATE', payload: { isSubmitting: false } });
-  }
-}, [state.editedProduct, dispatch, calculatePricing]);
-
-
+  }, [state.editedProduct, dispatch, calculatePricing]);
 
 
   // Loading and error states
