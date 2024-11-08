@@ -1461,10 +1461,12 @@ const ValidationSystem = memo(({ product, onValidationChange }) => {
         id: 'basePrice',
         name: 'Base Price',
         validate: (product) => {
-          const basePrice = PRODUCT_TYPES[product.ProductType].basePrice;
+          const productConfig = PRODUCT_TYPES[product.ProductType];
+          if (!productConfig) return { valid: false, message: 'Invalid product type' };
+          
           return {
-            valid: product.originalPrice >= basePrice,
-            message: `Price must be at least ${CURRENCY.format(basePrice)} for ${PRODUCT_TYPES[product.ProductType].label}`
+            valid: product.originalPrice >= productConfig.basePrice,
+            message: `Price must be at least ${CURRENCY.format(productConfig.basePrice)} for ${productConfig.label}`
           };
         }
       },
@@ -2011,7 +2013,32 @@ const AdminProductApproval = () => {
     try {
       setIsSubmitting(true);
       console.log('Starting approval process for:', editedProduct._id);
-  
+      const handleApprove = (product) => {
+        if (!product?.ProductType || !PRODUCT_TYPES[product.ProductType]) {
+          toast.error("Invalid product type");
+          return;
+        }
+      
+        try {
+          const productConfig = PRODUCT_TYPES[product.ProductType];
+          const recommendedPrice = productConfig.basePrice; // Use base price directly
+          const discountPrice = Math.round(recommendedPrice * 0.85); // 15% discount
+      
+          setEditedProduct({
+            ...product,
+            originalPrice: recommendedPrice,
+            discountPrice: discountPrice,
+            status: 'public'
+          });
+      
+          // Show approval modal or directly submit
+          handleStatusChange('public');
+        } catch (error) {
+          console.error("Price calculation error:", error);
+          toast.error("Error calculating product price");
+        }
+      };
+      
       const result = await dispatch(
         approveRejectProduct(
           editedProduct._id,
