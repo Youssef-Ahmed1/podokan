@@ -276,20 +276,7 @@ ErrorBoundary.propTypes = {
 };
 
 // Utility Functions
-const calculatePricing = (productType) => {
-  const productConfig = PRODUCT_TYPES[productType];
-  if (!productConfig) {
-    throw new Error(`Invalid product type: ${productType}`);
-  }
 
-  const recommendedPrice = productConfig.basePrice;
-  const discountPrice = Math.round(recommendedPrice * 0.85); // 15% discount
-
-  return {
-    originalPrice: recommendedPrice,
-    discountPrice: discountPrice
-  };
-};
 
 const getMockupUrl = (productType = 't-shirt', color = 'white', view = 'front') => {
   const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
@@ -718,7 +705,7 @@ ProductPreview.displayName = 'ProductPreview';const PriceCalculator = memo(({
   onChange, 
   disabled = false 
 }) => {
-  const basePrice = PRODUCT_TYPES[productType]?.basePrice || 0;
+  const basePrice = PRODUCT_TYPES[productType]?.basePrice || PRODUCT_TYPES['t-shirt'].basePrice;
   const [errors, setErrors] = useState({});
   const [localPrices, setLocalPrices] = useState({
     originalPrice: originalPrice || '',
@@ -1485,7 +1472,12 @@ StatusManager.propTypes = {
   disabled: PropTypes.bool
 };
 
-StatusManager.displayName = 'StatusManager';const AdminProductApprovalWrapper = () => (
+StatusManager.displayName = 'StatusManager';
+
+
+
+
+const AdminProductApprovalWrapper = () => (
   <ErrorBoundary>
     <AdminProductApproval />
   </ErrorBoundary>
@@ -1502,6 +1494,7 @@ const AdminProductApproval = () => {
     filterStatus: 'all',
     showGridLines: false
   };
+
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
   const { isLoading, pendingProducts } = useSelector((state) => state.product);
@@ -1546,7 +1539,21 @@ const AdminProductApproval = () => {
 
     fetchProducts();
   }, [dispatch]);
+// Move this inside AdminProductApproval component
+const calculatePricing = useCallback((productType) => {
+  if (!productType || !PRODUCT_TYPES[productType]) {
+    productType = 't-shirt'; // Default fallback
+  }
 
+  const productConfig = PRODUCT_TYPES[productType];
+  const recommendedPrice = productConfig.basePrice;
+  const discountPrice = Math.round(recommendedPrice * 0.85);
+
+  return {
+    originalPrice: recommendedPrice,
+    discountPrice: discountPrice
+  };
+}, []);
   // Filter products
   const filteredProducts = useMemo(() => {
     if (!pendingProducts) return [];
@@ -1593,21 +1600,20 @@ const AdminProductApproval = () => {
       }
     });
   }, []);
-
   const handleStatusChange = useCallback(async (newStatus) => {
     if (!state.editedProduct) {
       toast.error('No product selected');
       return;
     }
-
+  
     try {
       setState({ type: 'SET_STATE', payload: { isSubmitting: true } });
-
+  
       let updates = {
         ...state.editedProduct,
         status: newStatus
       };
-
+  
       if (newStatus === 'public') {
         const pricing = calculatePricing(state.editedProduct.ProductType);
         updates = {
@@ -1615,7 +1621,7 @@ const AdminProductApproval = () => {
           ...pricing
         };
       }
-
+  
       const result = await dispatch(
         approveRejectProduct(
           state.editedProduct._id,
@@ -1624,7 +1630,7 @@ const AdminProductApproval = () => {
           updates
         )
       );
-
+  
       if (result.success) {
         toast.success(`Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully`);
         setState({ type: 'RESET_STATE' });
@@ -1636,7 +1642,7 @@ const AdminProductApproval = () => {
     } finally {
       setState({ type: 'SET_STATE', payload: { isSubmitting: false } });
     }
-  }, [state.editedProduct, dispatch]);
+  }, [state.editedProduct, dispatch, calculatePricing]);
 
   const handleValidationChange = useCallback((isValid) => {
     setState({
@@ -1801,13 +1807,12 @@ const AdminProductApproval = () => {
                 product={state.editedProduct}
                 onValidationChange={handleValidationChange}
               />
-
-              <StatusManager
-                product={state.editedProduct}
-                onStatusChange={handleStatusChange}
-                onReasonChange={(reason) => handleProductUpdate({ rejectionReason: reason })}
-                disabled={!state.validationStatus.isValid || state.isSubmitting}
-              />
+<StatusManager
+  product={state.editedProduct}
+  onStatusChange={handleStatusChange}
+  onReasonChange={(reason) => handleProductUpdate({ rejectionReason: reason })}
+  disabled={!state.validationStatus.isValid || state.isSubmitting}
+/>
             </div>
           ) : (
             <div className="w-full lg:w-2/3 flex items-center justify-center bg-white rounded-xl shadow-lg p-8">
