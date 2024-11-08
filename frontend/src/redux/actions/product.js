@@ -24,18 +24,21 @@ const getAuthHeaders = (isMultipart = false) => {
 };
 
 // Create product
-// redux/actions/product.js
 export const createProduct = (formData) => async (dispatch) => {
   try {
     dispatch({ type: "productCreateRequest" });
 
     const config = {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: { 
+        "Content-Type": "multipart/form-data",
+        // Add authorization header
+        "Authorization": `Bearer ${localStorage.getItem("seller_token")}`
+      },
       withCredentials: true
     };
 
     const response = await axios.post(
-      `${server}/api/v2/product/create-product`,
+      `${server}/product/create-product`,
       formData,
       config
     );
@@ -48,6 +51,11 @@ export const createProduct = (formData) => async (dispatch) => {
     return response.data;
 
   } catch (error) {
+    if (error.response?.status === 401) {
+      toast.error("Please login to continue");
+ 
+    }
+    
     dispatch({
       type: "productCreateFail",
       payload: error.response?.data?.message || "Failed to create product"
