@@ -698,7 +698,14 @@ ProductPreview.propTypes = {
   disabled: PropTypes.bool
 };
 
-ProductPreview.displayName = 'ProductPreview';const PriceCalculator = memo(({ 
+ProductPreview.displayName = 'ProductPreview';
+
+
+
+
+
+
+const PriceCalculator = memo(({ 
   productType, 
   originalPrice, 
   discountPrice, 
@@ -1608,7 +1615,14 @@ const calculatePricing = useCallback((productType) => {
     });
   }, []);
 
-
+  const handleValidationChange = useCallback((isValid) => {
+    setState({
+      type: 'SET_STATE',
+      payload: { 
+        validationStatus: { isValid } 
+      }
+    });
+  }, []);
 
 
  const handleStatusChange = useCallback(async (newStatus) => {
@@ -1817,10 +1831,10 @@ const calculatePricing = useCallback((productType) => {
                 disabled={state.isSubmitting}
               />
 
-              <ValidationSystem
-                product={state.editedProduct}
-                onValidationChange={handleValidationChange}
-              />
+<ValidationSystem
+  product={state.editedProduct}
+  onValidationChange={handleValidationChange}
+/>
 <StatusManager
   product={state.editedProduct}
   onStatusChange={handleStatusChange}
