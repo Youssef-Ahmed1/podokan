@@ -40,22 +40,6 @@ const checkBoundaries = (position, productType) => {
   );
 };
 
-const handleDesignDrag = useCallback((e) => {
-  if (!mockupContainerRef.current || !isDragging) return;
-
-  const rect = mockupContainerRef.current.getBoundingClientRect();
-  const x = ((e.clientX - rect.left) / rect.width) * 100;
-  const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-  const newPosition = { x, y };
-  const isWithinBounds = checkBoundaries(newPosition, formState.ProductType);
-
-  setIsDesignVisible(isWithinBounds);
-  setFormState(prev => ({
-    ...prev,
-    designPosition: newPosition
-  }));
-}, [isDragging, formState.ProductType]);
 
 const COLOR_OPTIONS = {
   white: { value: 'white', label: 'White', hex: '#ffffff', textColor: 'text-gray-800' },
@@ -426,12 +410,12 @@ const validateForm = (formState, designFile) => {
 );
 
 const CreateProduct = () => {
+  const mockupContainerRef = useRef(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { seller } = useSelector((state) => state.seller);
 
   const designPreviewRef = useRef(null);
-  const mockupContainerRef = useRef(null);
   const designPositionRef = useRef({ x: 0, y: 0 });
   const dragStartRef = useRef(null);
   const compressionTimeoutRef = useRef(null);
@@ -598,6 +582,36 @@ const CreateProduct = () => {
     }
   }, [validationErrors]);
 
+
+
+  const handleDesignDrag = useCallback((e) => {
+    if (!mockupContainerRef.current || !isDragging) return;
+  
+    const rect = mockupContainerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+  
+    requestAnimationFrame(() => {
+      const newPosition = { x, y };
+      const boundaries = BOUNDARY_LIMITS[formState.ProductType];
+      
+      if (boundaries) {
+        const isWithinBounds = 
+          newPosition.x >= boundaries.left && 
+          newPosition.x <= boundaries.right && 
+          newPosition.y >= boundaries.top && 
+          newPosition.y <= boundaries.bottom;
+  
+        setIsDesignVisible(isWithinBounds);
+        setFormState(prev => ({
+          ...prev,
+          designPosition: newPosition
+        }));
+      }
+    });
+  }, [isDragging, formState.ProductType]);
+
+  
   const handleDesignUpload = useCallback(async (file) => {
     try {
       if (!file) return;
@@ -705,22 +719,6 @@ const CreateProduct = () => {
     }
   }, [handleDesignUpload]);
 
-  const handleDesignDrag = useCallback((e) => {
-    if (!mockupContainerRef.current || !isDragging) return;
-  
-    const rect = mockupContainerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-  
-    requestAnimationFrame(() => {
-      checkBoundariesAndUpdate(
-        { x, y }, 
-        formState.ProductType,
-        setIsDesignVisible,
-        setFormState
-      );
-    });
-  }, [isDragging, formState.ProductType]);
 
   const handleScaleChange = useCallback((newScale) => {
     setIsScaling(true);
@@ -1079,7 +1077,7 @@ const CreateProduct = () => {
                   <div className="relative">
                     <div 
                       ref={mockupContainerRef}
-                      className="relative w-full aspect-square bg-gray-100 rounded-lg 
+                      className="relative w-full aspect-square... bg-gray-100 rounded-lg 
                         overflow-hidden shadow-inner"
                       onMouseMove={handleDesignDrag}
                       onMouseDown={() => setIsDragging(true)}
