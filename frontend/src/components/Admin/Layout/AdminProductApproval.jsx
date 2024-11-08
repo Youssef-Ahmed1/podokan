@@ -1492,6 +1492,16 @@ StatusManager.displayName = 'StatusManager';const AdminProductApprovalWrapper = 
 );
 
 const AdminProductApproval = () => {
+
+  const initialState = {
+    selectedProduct: null,
+    editedProduct: null,
+    validationStatus: { isValid: false },
+    isSubmitting: false,
+    searchQuery: '',
+    filterStatus: 'all',
+    showGridLines: false
+  };
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
   const { isLoading, pendingProducts } = useSelector((state) => state.product);
