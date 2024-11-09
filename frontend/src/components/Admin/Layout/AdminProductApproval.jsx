@@ -1881,19 +1881,6 @@ StatusManager.displayName = 'StatusManager';
 
 const AdminProductApproval = () => {
 
-  const calculatePricing = useCallback((productType) => {
-    // Default to t-shirt if product type is invalid
-    const validProductType = PRODUCT_TYPES[productType] ? productType : 't-shirt';
-    const config = PRODUCT_TYPES[validProductType];
-    
-    const recommendedPrice = config.basePrice;
-    const discountPrice = Math.round(recommendedPrice * 0.85); // 15% discount
-  
-    return {
-      originalPrice: recommendedPrice,
-      discountPrice: discountPrice
-    };
-  }, []);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -1908,6 +1895,22 @@ const AdminProductApproval = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [showGridLines, setShowGridLines] = useState(false);
 
+
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token || !user) {
+      toast.error('Please login to continue');
+      navigate('/login');
+      return;
+    }
+
+    if (user.role !== 'admin') {
+      toast.error('Access denied. Admin privileges required.');
+      navigate('/');
+      return;
+    }
+  }, [user, navigate]);
   // Load pending products
   useEffect(() => {
     dispatch(fetchPendingProducts());
@@ -1931,6 +1934,21 @@ const AdminProductApproval = () => {
   }, [pendingProducts, searchQuery, filterStatus]);
 
   // Handle product selection
+  const calculatePricing = useCallback((productType) => {
+    // Default to t-shirt if product type is invalid
+    const validProductType = PRODUCT_TYPES[productType] ? productType : 't-shirt';
+    const config = PRODUCT_TYPES[validProductType];
+    
+    const recommendedPrice = config.basePrice;
+    const discountPrice = Math.round(recommendedPrice * 0.85); // 15% discount
+  
+    return {
+      originalPrice: recommendedPrice,
+      discountPrice: discountPrice
+    };
+  }, []);
+
+
   const handleProductSelect = useCallback((product) => {
     if (!product) {
       console.warn('No product provided to handleProductSelect');
@@ -2045,49 +2063,50 @@ const AdminProductApproval = () => {
       isValid
     }));
   }, []);
-  const handleStatusChange = useCallback(async (newStatus) => {
+  const handleStatusChange = async (newStatus) => {
     if (!editedProduct) {
       toast.error('No product selected');
       return;
     }
-
+  
     try {
       setIsSubmitting(true);
-
-      // Use the user from the component scope instead of useSelector
-      if (!user || !user.token) {
-        throw new Error('Authentication required');
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        toast.error('Please login to continue');
+        navigate('/login');
+        return;
       }
-
+  
       const config = {
         headers: {
-          'Authorization': `Bearer ${user.token}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       };
-
+  
       const updates = {
         ...editedProduct,
         status: newStatus,
         ProductType: editedProduct.ProductType || 't-shirt',
       };
-
+  
       if (newStatus === 'public') {
         const pricing = calculatePricing(updates.ProductType);
         Object.assign(updates, pricing);
       }
-
+  
       const result = await dispatch(
         approveRejectProduct(
           editedProduct._id,
           newStatus,
           editedProduct.rejectionReason || '',
-          updates,
-          config
+          updates
         )
       );
-
-      if (result.success) {
+  
+      if (result?.success) {
         toast.success(`Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully`);
         setSelectedProduct(null);
         setEditedProduct(null);
@@ -2095,16 +2114,16 @@ const AdminProductApproval = () => {
       }
     } catch (error) {
       console.error('Status change failed:', error);
-      if (error.response?.status === 401) {
-        toast.error('Please login again');
+      if (error?.response?.status === 401) {
+        toast.error('Session expired. Please login again');
         navigate('/login');
       } else {
-        toast.error(error.response?.data?.message || 'Failed to update product status');
+        toast.error(error?.response?.data?.message || 'Failed to update product status');
       }
     } finally {
       setIsSubmitting(false);
     }
-  }, [editedProduct, dispatch, navigate, calculatePricing, user]); 
+  };
 
   
   // Check if user has admin access
