@@ -742,3 +742,73 @@
 2024-11-09T16:27:42:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)
 2024-11-09T16:27:42:     at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)
 2024-11-09T16:27:42:     at Function.handle (/var/www/podokan/backend/node_modules/express/lib/router/index.js:175:3)
+2024-11-09T17:26:14: Seller auth error: TokenExpiredError: jwt expired
+2024-11-09T17:26:14:     at /var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:190:21
+2024-11-09T17:26:14:     at getSecret (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:97:14)
+2024-11-09T17:26:14:     at module.exports [as verify] (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:101:10)
+2024-11-09T17:26:14:     at /var/www/podokan/backend/middleware/auth.js:66:25
+2024-11-09T17:26:14:     at /var/www/podokan/backend/middleware/catchAsyncErrors.js:3:19
+2024-11-09T17:26:14:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-09T17:26:14:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-09T17:26:14:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-09T17:26:14:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-09T17:26:14:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15 {
+2024-11-09T17:26:14:   expiredAt: 2024-11-09T12:41:31.000Z
+2024-11-09T17:26:14: }
+2024-11-09T17:26:15: Error: Authentication failed
+2024-11-09T17:26:15:     at /var/www/podokan/backend/middleware/auth.js:77:17
+2024-11-09T17:26:15:     at /var/www/podokan/backend/middleware/catchAsyncErrors.js:3:19
+2024-11-09T17:26:15:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-09T17:26:15:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-09T17:26:15:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-09T17:26:15:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-09T17:26:15:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-09T17:26:15:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)
+2024-11-09T17:26:15:     at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)
+2024-11-09T17:26:15:     at Function.handle (/var/www/podokan/backend/node_modules/express/lib/router/index.js:175:3)
+2024-11-09T17:26:28: Seller auth error: TokenExpiredError: jwt expired
+2024-11-09T17:26:28:     at /var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:190:21
+2024-11-09T17:26:28:     at getSecret (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:97:14)
+2024-11-09T17:26:28:     at module.exports [as verify] (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:101:10)
+2024-11-09T17:26:28:     at /var/www/podokan/backend/middleware/auth.js:66:25
+2024-11-09T17:26:28:     at /var/www/podokan/backend/middleware/catchAsyncErrors.js:3:19
+2024-11-09T17:26:28:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-09T17:26:28:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-09T17:26:28:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-09T17:26:28:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-09T17:26:28:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15 {
+2024-11-09T17:26:28:   expiredAt: 2024-11-09T12:41:31.000Z
+2024-11-09T17:26:28: }
+2024-11-09T17:26:28: Error: Authentication failed
+2024-11-09T17:26:28:     at /var/www/podokan/backend/middleware/auth.js:77:17
+2024-11-09T17:26:28:     at /var/www/podokan/backend/middleware/catchAsyncErrors.js:3:19
+2024-11-09T17:26:28:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-09T17:26:28:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-09T17:26:28:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-09T17:26:28:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-09T17:26:28:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-09T17:26:28:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)
+2024-11-09T17:26:28:     at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)
+2024-11-09T17:26:28:     at Function.handle (/var/www/podokan/backend/node_modules/express/lib/router/index.js:175:3)
+2024-11-09T17:26:46: Error: Please login to continue
+2024-11-09T17:26:46:     at /var/www/podokan/backend/middleware/auth.js:23:19
+2024-11-09T17:26:46:     at /var/www/podokan/backend/middleware/catchAsyncErrors.js:3:19
+2024-11-09T17:26:46:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-09T17:26:46:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-09T17:26:46:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-09T17:26:46:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-09T17:26:46:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-09T17:26:46:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)
+2024-11-09T17:26:46:     at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)
+2024-11-09T17:26:46:     at Function.handle (/var/www/podokan/backend/node_modules/express/lib/router/index.js:175:3)
+2024-11-09T17:26:48: Error: Please login as seller to continue
+2024-11-09T17:26:48:     at /var/www/podokan/backend/middleware/auth.js:63:19
+2024-11-09T17:26:48:     at /var/www/podokan/backend/middleware/catchAsyncErrors.js:3:19
+2024-11-09T17:26:48:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-09T17:26:48:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-09T17:26:48:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-09T17:26:48:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-09T17:26:48:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-09T17:26:48:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)
+2024-11-09T17:26:48:     at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)
+2024-11-09T17:26:48:     at Function.handle (/var/www/podokan/backend/node_modules/express/lib/router/index.js:175:3)
