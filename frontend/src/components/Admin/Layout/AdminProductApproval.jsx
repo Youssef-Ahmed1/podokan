@@ -8,6 +8,11 @@ import { AiOutlineWarning, AiOutlineInfoCircle } from 'react-icons/ai';
 import { debounce } from 'lodash';
 import PropTypes from 'prop-types';
 
+
+console.log('Current auth state:', {
+  user: localStorage.getItem('user'),
+  token: localStorage.getItem('token')
+});
 // Constants
 const PRODUCT_TYPES = {
   't-shirt': {
@@ -160,7 +165,22 @@ const CURRENCY = {
   symbol: 'EGP',
   format: (amount) => `${amount} EGP`
 };
-
+const testAuth = async () => {
+  const token = localStorage.getItem('token');
+  console.log('Testing auth with token:', token);
+  
+  try {
+    const response = await fetch('/api/v2/user/getuser', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log('Auth test response:', await response.json());
+  } catch (error) {
+    console.error('Auth test failed:', error);
+  }
+};
 // Utility Functions
 const getImageFormat = (url) => {
   const extension = url.split('.').pop().toLowerCase();
