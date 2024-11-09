@@ -2054,8 +2054,7 @@ const AdminProductApproval = () => {
     try {
       setIsSubmitting(true);
 
-      const { user } = useSelector((state) => state.user);
-      
+      // Use the user from the component scope instead of useSelector
       if (!user || !user.token) {
         throw new Error('Authentication required');
       }
@@ -2105,7 +2104,7 @@ const AdminProductApproval = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [editedProduct, dispatch, navigate, calculatePricing, user]);
+  }, [editedProduct, dispatch, navigate, calculatePricing, user]); 
 
   
   // Check if user has admin access
