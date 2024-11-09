@@ -1,5 +1,6 @@
 import React, { useEffect, useState, memo, useCallback, useMemo, useRef ,Fragment} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from "react-router-dom";
 import { toast } from 'react-toastify';
 import { fetchPendingProducts, approveRejectProduct , getAllProducts} from '../../../redux/actions/product';
 import { BsZoomIn, BsZoomOut } from 'react-icons/bs';
@@ -2022,7 +2023,7 @@ const AdminProductApproval = () => {
 
       return updated;
     });
-  }, []);
+  }, [navigate, user]);
 
   // Handle design position update
   const handlePositionChange = useCallback((position) => {
@@ -2049,33 +2050,34 @@ const AdminProductApproval = () => {
       toast.error('No product selected');
       return;
     }
-  
+
     try {
       setIsSubmitting(true);
-  
-      const { user } = store.getState().user;
+
+      const { user } = useSelector((state) => state.user);
+      
       if (!user || !user.token) {
         throw new Error('Authentication required');
       }
-  
+
       const config = {
         headers: {
           'Authorization': `Bearer ${user.token}`,
           'Content-Type': 'application/json',
         },
       };
-  
+
       const updates = {
         ...editedProduct,
         status: newStatus,
         ProductType: editedProduct.ProductType || 't-shirt',
       };
-  
+
       if (newStatus === 'public') {
         const pricing = calculatePricing(updates.ProductType);
         Object.assign(updates, pricing);
       }
-  
+
       const result = await dispatch(
         approveRejectProduct(
           editedProduct._id,
@@ -2085,7 +2087,7 @@ const AdminProductApproval = () => {
           config
         )
       );
-  
+
       if (result.success) {
         toast.success(`Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully`);
         setSelectedProduct(null);
@@ -2103,7 +2105,7 @@ const AdminProductApproval = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [editedProduct, dispatch, navigate, calculatePricing]);
+  }, [editedProduct, dispatch, navigate, calculatePricing, user]);
 
   
   // Check if user has admin access
