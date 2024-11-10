@@ -125,56 +125,80 @@ router.post("/create-product",
   validateProductData,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      console.log('Creating product with data:', {
+      console.log('Request data:', {
         body: req.body,
         file: req.file,
         seller: req.seller?._id
       });
 
+      // Parse design position and tags
+      let designPosition = { x: 50, y: 50 };
+      try {
+        if (req.body.designPosition) {
+          designPosition = JSON.parse(req.body.designPosition);
+        }
+      } catch (e) {
+        console.error('Error parsing designPosition:', e);
+      }
+
+      let designTags = [];
+      try {
+        if (req.body.Designtags) {
+          designTags = JSON.parse(req.body.Designtags);
+        }
+      } catch (e) {
+        console.error('Error parsing Designtags:', e);
+      }
+
+      // Validate required data
       if (!req.file) {
         return next(new ErrorHandler("Design image is required", 400));
       }
 
-      // Upload to cloudinary with error handling
-      let cloudinaryResult;
-      try {
-        cloudinaryResult = await cloudinary.uploader.upload(req.file.path, {
-          folder: "products",
-          transformation: [
-            { quality: "auto:best" },
-            { fetch_format: "auto" }
-          ]
-        });
-      } catch (uploadError) {
-        console.error('Cloudinary upload error:', uploadError);
-        return next(new ErrorHandler("Failed to upload image", 500));
+      if (!req.body.ProductColor || !VALID_COLORS.includes(req.body.ProductColor)) {
+        return next(new ErrorHandler(`Invalid color. Must be one of: ${VALID_COLORS.join(', ')}`, 400));
       }
 
-      // Create product with proper error handling
-      const product = await Product.create({
+      // Upload to cloudinary
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "products",
+        transformation: [
+          { quality: "auto:best" },
+          { fetch_format: "auto" }
+        ]
+      });
+
+      // Create product data object
+      const productData = {
         DesignTitle: req.body.DesignTitle,
         Description: req.body.Description,
         Maintag: req.body.Maintag,
-        Designtags: Array.isArray(req.body.Designtags) 
-          ? req.body.Designtags 
-          : JSON.parse(req.body.Designtags || '[]'),
+        Designtags: designTags,
         ProductType: req.body.ProductType,
         ProductColor: req.body.ProductColor,
         ProductView: req.body.ProductView || 'front',
         DesignScale: parseFloat(req.body.DesignScale) || 1,
-        designPosition: req.body.designPosition 
-          ? JSON.parse(req.body.designPosition) 
-          : { x: 50, y: 50 },
+        designPosition,
         shopId: req.seller._id,
+        shop: req.seller._id,
         designImage: {
-          public_id: cloudinaryResult.public_id,
-          url: cloudinaryResult.secure_url
+          public_id: result.public_id,
+          url: result.secure_url
         },
-        status: 'pending'
-      });
+        availableColors: [req.body.ProductColor],
+        status: 'pending',
+        createdBy: req.seller._id
+      };
+
+      // Create product
+      const product = await Product.create(productData);
 
       // Clean up uploaded file
-      await fs.unlink(req.file.path).catch(console.error);
+      if (req.file.path) {
+        await fs.unlink(req.file.path).catch(err => 
+          console.error('Error deleting file:', err)
+        );
+      }
 
       res.status(201).json({
         success: true,
@@ -185,13 +209,18 @@ router.post("/create-product",
     } catch (error) {
       // Clean up on error
       if (req.file?.path) {
-        await fs.unlink(req.file.path).catch(console.error);
+        await fs.unlink(req.file.path).catch(() => {});
       }
-      console.error('Product creation error:', error);
+      console.error('Product creation error:', {
+        message: error.message,
+        stack: error.stack,
+        body: req.body
+      });
       return next(new ErrorHandler(error.message || "Failed to create product", 500));
     }
   })
 );
+
 // Get all products for admin
 router.get(
   "/admin-all-products",
