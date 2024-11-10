@@ -12,39 +12,20 @@ const verifyToken = async (token, secretKey) => {
   }
 };
 
-const checkAndRefreshAuth = async () => {
-  try {
-    const response = await fetch('/api/v2/user/getuser', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include' // Important for cookies
-    });
 
-    if (!response.ok) {
-      throw new Error('Auth check failed');
-    }
-
-    const data = await response.json();
-    return data.user;
-  } catch (error) {
-    return null;
-  }
-};
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   try {
     const token = 
       req.cookies.token ||
-      (req.headers.authorization ? req.headers.authorization.replace('Bearer ', '') : null);
+      (req.headers.authorization ? req.headers.authorization.replace("Bearer ", "") : null);
 
     if (!token) {
       return next(new ErrorHandler("Please login to continue", 401));
     }
 
-    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const user = await User.findById(decoded.id).select('-password').lean();
+    // Remove any potential recursion here
+    const user = await User.findById(decoded.id).select('-password');
 
     if (!user) {
       return next(new ErrorHandler("User not found", 401));
@@ -53,38 +34,21 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    // Clear invalid token
-    res.cookie('token', '', { 
-      expires: new Date(0),
-      httpOnly: true,
-      sameSite: 'none',
-      secure: true
-    });
-
-    if (error.name === 'JsonWebTokenError') {
-      return next(new ErrorHandler("Invalid token, please login again", 401));
-    }
-    if (error.name === 'TokenExpiredError') {
-      return next(new ErrorHandler("Token expired, please login again", 401));
-    }
     return next(new ErrorHandler("Authentication failed", 401));
   }
 });
 
-
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
-    const token = 
-      req.cookies.seller_token ||
-      (req.headers['seller-authorization'] ? req.headers['seller-authorization'].replace('Bearer ', '') : null);
+    const token = req.cookies.seller_token;
 
     if (!token) {
       return next(new ErrorHandler("Please login as seller to continue", 401));
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const seller = await Shop.findById(decoded.id);
-
+    const seller = await Shop.findById(decoded.id).select('-password');
+    
     if (!seller) {
       return next(new ErrorHandler("Seller not found", 401));
     }
@@ -92,20 +56,27 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
     req.seller = seller;
     next();
   } catch (error) {
-    console.error('Seller auth error:', error);
-    return next(new ErrorHandler("Authentication failed", 401));
+    if (error.name === 'JsonWebTokenError') {
+      return next(new ErrorHandler("Invalid seller token", 401));
+    }
+    if (error.name === 'TokenExpiredError') {
+      return next(new ErrorHandler("Seller token expired", 401));
+    }
+    return next(new ErrorHandler("Seller authentication failed", 401));
   }
 });
 
-
+// Combined auth for dual-role endpoints
 
 
 // Change back to the original format
-exports.isAdmin = catchAsyncErrors(async (req, res, next) => {
-  if (!req.user || req.user.role !== 'Admin') {
-    return next(new ErrorHandler("Access denied. Admin only.", 403));
-  }
-  next();
-});
+exports.isAdmin = (role) => {
+  return (req, res, next) => {
+    if (!req.user || req.user.role !== role) {
+      return next(new ErrorHandler(`${role} access denied`, 403));
+    }
+    next();
+  };
+};
 
 module.exports = exports;
