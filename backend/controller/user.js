@@ -6,10 +6,49 @@ const cloudinary = require("cloudinary");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const jwt = require("jsonwebtoken");
-const sendToken = require("../utils/jwtToken");
+const sendToken = require("../utils/jwtToken"); // Import it here
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
 
+const createActivationToken = (user) => {
+  return jwt.sign(user, process.env.ACTIVATION_SECRET, {
+    expiresIn: "5m",
+  });
+};
 
+router.post(
+  "/activation",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { activation_token } = req.body;
+
+      const newUser = jwt.verify(
+        activation_token,
+        process.env.ACTIVATION_SECRET
+      );
+
+      if (!newUser) {
+        return next(new ErrorHandler("Invalid token", 400));
+      }
+      const { name, email, password, avatar } = newUser;
+
+      let user = await User.findOne({ email });
+
+      if (user) {
+        return next(new ErrorHandler("User already exists", 400));
+      }
+      user = await User.create({
+        name,
+        email,
+        avatar,
+        password,
+      });
+
+      sendToken(user, 201, res);
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
 // controller/user.js - update the create-user route
 router.post("/create-user", async (req, res, next) => {
   try {
@@ -106,49 +145,7 @@ router.post("/create-user", async (req, res, next) => {
     });
   }
 });
-// create activation token
-const createActivationToken = (user) => {
-  return jwt.sign(user, process.env.ACTIVATION_SECRET, {
-    expiresIn: "5m",
-  });
-};
 
-
-// activate user
-router.post(
-  "/activation",
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const { activation_token } = req.body;
-
-      const newUser = jwt.verify(
-        activation_token,
-        process.env.ACTIVATION_SECRET
-      );
-
-      if (!newUser) {
-        return next(new ErrorHandler("Invalid token", 400));
-      }
-      const { name, email, password, avatar } = newUser;
-
-      let user = await User.findOne({ email });
-
-      if (user) {
-        return next(new ErrorHandler("User already exists", 400));
-      }
-      user = await User.create({
-        name,
-        email,
-        avatar,
-        password,
-      });
-
-      sendToken(user, 201, res);
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
 
 router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
   try {
@@ -168,12 +165,12 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
       return next(new ErrorHandler("Invalid credentials", 401));
     }
 
-    // Use the imported sendToken function
-    sendToken(user, 200, res);
+    return sendToken(user, 200, res);
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
 }));
+
 
 router.get("/getuser", isAuthenticated, catchAsyncErrors(async (req, res, next) => {
   try {
