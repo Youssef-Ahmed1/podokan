@@ -95,17 +95,13 @@ export const loadUser = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadUserRequest" });
     
-    const token = localStorage.getItem('token');
-    const config = {
+    const { data } = await axios.get(`${server}/user/getuser`, {
       withCredentials: true,
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
+        'Content-Type': 'application/json'
       }
-    };
-    
-    const { data } = await axios.get(`${server}/user/getuser`, config);
+    });
     
     dispatch({ 
       type: "LoadUserSuccess", 
@@ -124,17 +120,14 @@ export const loadSeller = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadSellerRequest" });
     
-    const sellerToken = localStorage.getItem('seller_token');
-    const config = {
+    const { data } = await axios.get(`${server}/shop/getSeller`, {
       withCredentials: true,
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Seller-Authorization': sellerToken ? `Bearer ${sellerToken}` : ''
+        'Seller-Authorization': `Bearer ${localStorage.getItem('seller_token')}`
       }
-    };
-    
-    const { data } = await axios.get(`${server}/shop/getSeller`, config);
+    });
     
     dispatch({ 
       type: "LoadSellerSuccess", 
