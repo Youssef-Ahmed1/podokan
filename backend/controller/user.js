@@ -8,7 +8,8 @@ const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 const sendToken = require("../utils/jwtToken");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
-//.
+
+
 // controller/user.js - update the create-user route
 router.post("/create-user", async (req, res, next) => {
   try {
@@ -112,6 +113,7 @@ const createActivationToken = (user) => {
   });
 };
 
+
 // activate user
 router.post(
   "/activation",
@@ -166,28 +168,8 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
       return next(new ErrorHandler("Invalid credentials", 401));
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
-      expiresIn: "7d"
-    });
-
-    // Send user data without password
-    const userData = user.toObject();
-    delete userData.password;
-
-    res.status(200)
-      .cookie("token", token, {
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
-        domain: '.testpodokan.store',
-        path: '/'
-      })
-      .json({
-        success: true,
-        user: userData,
-        token
-      });
+    // Use the imported sendToken function
+    sendToken(user, 200, res);
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
