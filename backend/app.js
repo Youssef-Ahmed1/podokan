@@ -25,37 +25,54 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
 
 // CORS configuration
 app.use(cors({
-  origin: function(origin, callback) {
-    callback(null, origin);
-  },
-  credentials: true
+  origin: ['https://testpodokan.store', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Seller-Authorization',
+    'x-requested-with'
+  ]
 }));
-
-// Security headers
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,UPDATE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization, Seller-Authorization');
-  next();
-});
 
 // Authentication middleware
 app.use((req, res, next) => {
-  const token = req.cookies.token || 
-    (req.headers.authorization && req.headers.authorization.replace('Bearer ', ''));
-    
-  const sellerToken = req.cookies.seller_token || 
-    (req.headers['seller-authorization'] && req.headers['seller-authorization'].replace('Bearer ', ''));
+  try {
+    // Extract tokens from cookies and headers
+    const authToken = req.cookies.token || 
+      (req.headers.authorization?.startsWith('Bearer ') ? 
+        req.headers.authorization.slice(7) : null);
 
-  // Set clean headers for downstream middleware
-  if (token) {
-    req.headers.authorization = `Bearer ${token}`;
-  }
-  if (sellerToken) {
-    req.headers['seller-authorization'] = `Bearer ${sellerToken}`;
-  }
+    const sellerToken = req.cookies.seller_token || 
+      (req.headers['seller-authorization']?.startsWith('Bearer ') ? 
+        req.headers['seller-authorization'].slice(7) : null);
 
-  next();
+    // Set clean headers
+    if (authToken) {
+      req.headers.authorization = `Bearer ${authToken}`;
+    }
+    if (sellerToken) {
+      req.headers['seller-authorization'] = `Bearer ${sellerToken}`;
+    }
+
+    // Cookie settings for responses
+    res.cookie = (name, value, options = {}) => {
+      const defaultOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'PRODUCTION',
+        sameSite: 'strict',
+        domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined,
+        path: '/'
+      };
+      return express.response.cookie.call(res, name, value, { ...defaultOptions, ...options });
+    };
+
+    next();
+  } catch (error) {
+    console.error('Auth middleware error:', error);
+    next();
+  }
 });
 
 // Routes
@@ -82,24 +99,42 @@ app.use("/api/v2/conversation", conversation);
 app.use("/api/v2/message", message);
 app.use("/api/v2/withdraw", withdraw);
 
-// Error handling middleware
+// Error handling
 app.use((err, req, res, next) => {
-  if (err.name === 'UnauthorizedError') {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid token or no token provided"
-    });
-  }
-
   console.error('Error:', {
     path: req.path,
     method: req.method,
     error: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 
-  res.status(err.status || 500).json({
+  // Handle specific errors
+  if (err.name === 'UnauthorizedError' || err.statusCode === 401) {
+    return res.status(401).json({
+      success: false,
+      message: "Authentication failed"
+    });
+  }
+
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({
+      success: false,
+      message: "Request entity too large"
+    });
+  }
+
+  // Default error response
+  res.status(err.statusCode || 500).json({
     success: false,
     message: err.message || "Internal server error"
+  });
+});
+
+// Handle unhandled routes
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found"
   });
 });
 
