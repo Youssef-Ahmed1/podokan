@@ -7,7 +7,7 @@ const connectDatabase = () => {
     console.log("Already connected to MongoDB");
     return;
   }
-
+//.
   mongoose
     .connect(process.env.DB_URL, {
       useNewUrlParser: true,
