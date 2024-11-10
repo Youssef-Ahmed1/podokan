@@ -5,15 +5,37 @@ const cors = require("cors");
 
 const app = express();
 
-// Essential middleware
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
+    headers: req.headers,
+    cookies: req.cookies,
+    query: req.query,
+    body: req.method !== 'GET' ? req.body : undefined
+  });
+  next();
+});
+
+// Error handling for body parsing
 app.use(express.json({ 
   limit: '50mb',
   verify: (req, res, buf) => {
     req.rawBody = buf.toString();
   }
 }));
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+
+app.use(bodyParser.json({ 
+  limit: '50mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf.toString();
+  }
+}));
+
+app.use(bodyParser.urlencoded({ 
+  extended: true, 
+  limit: '50mb' 
+}));
+
 app.use(cookieParser());
 
 // Environment config
@@ -31,38 +53,33 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Seller-Authorization'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Seller-Authorization'
+  ],
   exposedHeaders: ['Authorization', 'Seller-Authorization']
 }));
 
-// Security headers
+// Token handling middleware
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,UPDATE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization, Seller-Authorization');
-  
-  // Handle preflight
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
-});
+  try {
+    const token = req.cookies.token || 
+      (req.headers.authorization?.startsWith('Bearer ') ? 
+        req.headers.authorization.split(' ')[1] : null);
+        
+    const sellerToken = req.cookies.seller_token || 
+      (req.headers['seller-authorization']?.startsWith('Bearer ') ? 
+        req.headers['seller-authorization'].split(' ')[1] : null);
 
-// Cookie config middleware
-app.use((req, res, next) => {
-  res.cookie = (name, value, options = {}) => {
-    const defaultOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'PRODUCTION',
-      sameSite: 'strict',
-      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined,
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    };
-    
-    return res.cookie(name, value, { ...defaultOptions, ...options });
-  };
-  next();
+    if (token) req.headers.authorization = `Bearer ${token}`;
+    if (sellerToken) req.headers['seller-authorization'] = `Bearer ${sellerToken}`;
+
+    next();
+  } catch (error) {
+    console.error('Token middleware error:', error);
+    next();
+  }
 });
 
 // Routes
@@ -84,18 +101,28 @@ Object.entries(routes).forEach(([name, router]) => {
   app.use(`/api/v2/${name}`, router);
 });
 
-// Error handling
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', {
     path: req.path,
     method: req.method,
     error: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    headers: req.headers,
+    cookies: req.cookies
   });
+
+  // Handle specific errors
+  if (err.name === 'UnauthorizedError') {
+    return res.status(401).json({
+      success: false,
+      message: "Authentication failed"
+    });
+  }
 
   res.status(err.statusCode || 500).json({
     success: false,
-    message: err.message || 'Internal Server Error'
+    message: err.message || "Internal server error"
   });
 });
 
