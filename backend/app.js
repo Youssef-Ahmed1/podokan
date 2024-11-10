@@ -1,20 +1,22 @@
 const express = require("express");
-const ErrorHandler = require("./middleware/error");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const path = require('path');
 
-// Initialize express
 const app = express();
 
-// Essential middleware with optimized settings
-app.use(express.json({ limit: '50mb' }));
+// Security and parsing middleware
+app.use(express.json({ 
+  limit: '50mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf.toString();
+  }
+}));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
-// Load environment variables
+// Environment config
 if (process.env.NODE_ENV !== "PRODUCTION") {
   require("dotenv").config({
     path: "config/.env",
@@ -22,85 +24,88 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
 }
 
 // CORS configuration
-const corsOptions = {
-  origin: ['https://testpodokan.store', 'http://localhost:3000'],
+app.use(cors({
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      'https://testpodokan.store', 
+      'https://www.testpodokan.store',
+      'http://localhost:3000'
+    ];
+    callback(null, allowedOrigins.includes(origin) ? origin : allowedOrigins[0]);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
-    'Content-Type',
-    'Authorization',
+    'Content-Type', 
+    'Authorization', 
     'Seller-Authorization',
     'x-requested-with'
   ],
   exposedHeaders: ['Authorization', 'Seller-Authorization']
-};
+}));
 
-app.use(cors(corsOptions));
-
-// Cookie settings
-const cookieConfig = {
-  secure: process.env.NODE_ENV === 'PRODUCTION',
-  httpOnly: true,
-  sameSite: process.env.NODE_ENV === 'PRODUCTION' ? 'strict' : 'lax',
-  domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined,
-  path: '/'
-};
-
-// Token extraction middleware
+// Cookie and token middleware
 app.use((req, res, next) => {
-  // Extract tokens
+  // Get tokens from cookies or headers
   const token = req.cookies.token || 
-                (req.headers.authorization?.startsWith('Bearer') ? 
-                 req.headers.authorization.split(' ')[1] : null);
-                 
+    (req.headers.authorization && req.headers.authorization.startsWith('Bearer') 
+      ? req.headers.authorization.split(' ')[1] 
+      : null);
+
   const sellerToken = req.cookies.seller_token || 
-                     (req.headers['seller-authorization']?.startsWith('Bearer') ? 
-                      req.headers['seller-authorization'].split(' ')[1] : null);
+    (req.headers['seller-authorization'] && req.headers['seller-authorization'].startsWith('Bearer')
+      ? req.headers['seller-authorization'].split(' ')[1]
+      : null);
 
-  // Set tokens in headers
-  if (token) req.headers.authorization = `Bearer ${token}`;
-  if (sellerToken) req.headers['seller-authorization'] = `Bearer ${sellerToken}`;
-
-  // Override res.cookie to always use secure settings
-  const originalCookie = res.cookie;
-  res.cookie = function(name, value, options = {}) {
-    return originalCookie.call(this, name, value, { ...cookieConfig, ...options });
-  };
+  // Set tokens in headers if they exist
+  if (token) {
+    req.headers.authorization = `Bearer ${token}`;
+  }
+  if (sellerToken) {
+    req.headers['seller-authorization'] = `Bearer ${sellerToken}`;
+  }
 
   next();
 });
 
-// Import routes
-const routes = {
-  user: require("./controller/user"),
-  shop: require("./controller/shop"),
-  product: require("./controller/product"),
-  event: require("./controller/event"),
-  coupon: require("./controller/coupounCode"),
-  payment: require("./controller/payment"),
-  order: require("./controller/order"),
-  conversation: require("./controller/conversation"),
-  message: require("./controller/message"),
-  withdraw: require("./controller/withdraw")
-};
+// Routes
+const user = require("./controller/user");
+const shop = require("./controller/shop");
+const product = require("./controller/product");
+const event = require("./controller/event");
+const coupon = require("./controller/coupounCode");
+const payment = require("./controller/payment");
+const order = require("./controller/order");
+const conversation = require("./controller/conversation");
+const message = require("./controller/message");
+const withdraw = require("./controller/withdraw");
 
-// API Routes with prefix
-const API_PREFIX = "/api/v2";
-Object.entries(routes).forEach(([name, router]) => {
-  app.use(`${API_PREFIX}/${name}`, router);
+// Route mounting
+app.use("/api/v2/user", user);
+app.use("/api/v2/shop", shop);
+app.use("/api/v2/product", product);
+app.use("/api/v2/event", event);
+app.use("/api/v2/coupon", coupon);
+app.use("/api/v2/payment", payment);
+app.use("/api/v2/order", order);
+app.use("/api/v2/conversation", conversation);
+app.use("/api/v2/message", message);
+app.use("/api/v2/withdraw", withdraw);
+
+// Request timeout middleware
+app.use((req, res, next) => {
+  res.setTimeout(30000, () => {
+    res.status(408).json({
+      success: false,
+      message: "Request timeout"
+    });
+  });
+  next();
 });
 
-// Global error handling
+// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', {
-    path: req.path,
-    method: req.method,
-    message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-  });
-
-  // Handle specific errors
-  if (err instanceof SyntaxError && err.status === 400) {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
     return res.status(400).json({
       success: false,
       message: 'Invalid JSON'
@@ -114,7 +119,13 @@ app.use((err, req, res, next) => {
     });
   }
 
-  // Default error response
+  console.error('Error:', {
+    path: req.path,
+    method: req.method,
+    error: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({
     success: false,
@@ -123,23 +134,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 Handler
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Route not found'
+    message: 'Route not found',
+    path: req.originalUrl
   });
-});
-
-// Error handling for uncaught exceptions and unhandled rejections
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Rejection:', err);
-  process.exit(1);
 });
 
 module.exports = app;
