@@ -18,7 +18,7 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-      const user = await User.findById(decoded.id).select("-password");
+      const user = await User.findById(decoded.id);
 
       if (!user) {
         return next(new ErrorHandler("User not found", 401));
@@ -27,11 +27,9 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
       req.user = user;
       next();
     } catch (jwtError) {
-      console.error("JWT Verification failed:", jwtError);
       return next(new ErrorHandler("Invalid token", 401));
     }
   } catch (error) {
-    console.error("Auth error:", error);
     return next(new ErrorHandler("Authentication failed", 401));
   }
 });
@@ -50,7 +48,7 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(sellerToken, process.env.JWT_SECRET_KEY);
-      const seller = await Shop.findById(decoded.id).select("-password");
+      const seller = await Shop.findById(decoded.id);
 
       if (!seller) {
         return next(new ErrorHandler("Seller not found", 401));
@@ -59,27 +57,24 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
       req.seller = seller;
       next();
     } catch (jwtError) {
-      console.error("Seller JWT Verification failed:", jwtError);
       return next(new ErrorHandler("Invalid seller token", 401));
     }
   } catch (error) {
-    console.error("Seller auth error:", error);
     return next(new ErrorHandler("Seller authentication failed", 401));
   }
 });
 
 exports.isAdmin = catchAsyncErrors(async (req, res, next) => {
-  try {
-    const user = req.user;
-    
-    if (!user || user.role !== "admin") {
-      return next(new ErrorHandler("Access denied. Admin only.", 403));
-    }
-
-    next();
-  } catch (error) {
-    return next(new ErrorHandler("Admin authorization failed", 403));
+  if (!req.user) {
+    return next(new ErrorHandler("Please login first", 401));
   }
+
+  if (req.user.role !== "admin") {
+    return next(new ErrorHandler("Access denied. Admin only.", 403));
+  }
+
+  next();
 });
 
-module.exports = exports;
+// Combined middleware for routes that need both authentication and admin rights
+exports.isAuthenticatedAdmin = [exports.isAuthenticated, exports.isAdmin];
