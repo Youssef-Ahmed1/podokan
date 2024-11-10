@@ -106,54 +106,49 @@ router.post(
 );
 
 // login shop
-router.post("/login-shop", async (req, res) => {
+router.post("/login-shop", catchAsyncErrors(async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide email and password"
-      });
+      return next(new ErrorHandler("Please provide email and password", 400));
     }
 
-    const shop = await Shop.findOne({ email }).select('+password');
-
-    if (!shop || !(await shop.comparePassword(password))) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials"
-      });
+    const seller = await Shop.findOne({ email }).select("+password");
+    if (!seller) {
+      return next(new ErrorHandler("Seller not found", 401));
     }
 
-    // Generate token
-    const token = jwt.sign(
-      { id: shop._id },
-      process.env.JWT_SECRET_KEY,
-      { expiresIn: '7d' }
-    );
+    const isPasswordValid = await seller.comparePassword(password);
+    if (!isPasswordValid) {
+      return next(new ErrorHandler("Invalid credentials", 401));
+    }
 
-    const shopResponse = shop.toObject();
-    delete shopResponse.password;
+    const token = jwt.sign({ id: seller._id }, process.env.JWT_SECRET_KEY, {
+      expiresIn: "7d"
+    });
 
-    // Set cookie and send response
-    return res
-      .status(200)
-      .cookie("seller_token", token, cookieOptions)
-      .header('Seller-Authorization', `Bearer ${token}`)
+    const sellerData = seller.toObject();
+    delete sellerData.password;
+
+    res.status(200)
+      .cookie("seller_token", token, {
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        domain: '.testpodokan.store',
+        path: '/'
+      })
       .json({
         success: true,
-        seller: shopResponse,
+        seller: sellerData,
         token
       });
   } catch (error) {
-    console.error("Login error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Login failed"
-    });
+    return next(new ErrorHandler(error.message, 500));
   }
-});
+}));
 router.get(
   "/getSeller",
   isSeller,
