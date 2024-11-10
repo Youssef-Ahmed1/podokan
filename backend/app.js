@@ -28,6 +28,7 @@ app.use(cors({
   origin: function(origin, callback) {
     const allowedOrigins = ['http://localhost:3000', 'https://testpodokan.store' , 'http://testpodokan.store'] ;
     // Allow requests with no origin (mobile apps, curl)
+    
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
       callback(null, origin);
@@ -35,9 +36,10 @@ app.use(cors({
       callback(null, allowedOrigins[0]);
     }
   },
+  
   credentials: true,
-  exposedHeaders: ['Authorization', 'Seller-Authorization']
-}));
+  exposedHeaders: ['Authorization', 'Seller-Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Seller-Authorization']}));
 
 // Cookie settings
 app.use(cookieParser());
