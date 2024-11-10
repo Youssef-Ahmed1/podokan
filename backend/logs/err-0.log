@@ -1485,3 +1485,1773 @@
 2024-11-10T18:39:09:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)
 2024-11-10T18:39:09:     at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)
 2024-11-10T18:39:09:     at Function.handle (/var/www/podokan/backend/node_modules/express/lib/router/index.js:175:3)
+2024-11-10T18:46:04: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:46:04: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:46:04:       ^
+2024-11-10T18:46:04: 
+2024-11-10T18:46:04: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:46:04:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:46:04:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:46:04:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:46:04:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:46:04:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:46:04:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:46:04:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:46:04:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:46:04:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:46:04:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:46:08: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:46:08: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:46:08:       ^
+2024-11-10T18:46:08: 
+2024-11-10T18:46:08: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:46:08:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:46:08:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:46:08:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:46:08:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:46:08:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:46:08:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:46:08:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:46:08:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:46:08:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:46:08:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:46:13: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:46:13: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:46:13:       ^
+2024-11-10T18:46:13: 
+2024-11-10T18:46:13: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:46:13:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:46:13:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:46:13:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:46:13:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:46:13:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:46:13:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:46:13:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:46:13:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:46:13:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:46:13:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:46:17: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:46:17: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:46:17:       ^
+2024-11-10T18:46:17: 
+2024-11-10T18:46:17: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:46:17:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:46:17:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:46:17:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:46:17:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:46:17:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:46:17:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:46:17:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:46:17:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:46:17:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:46:17:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:46:22: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:46:22: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:46:22:       ^
+2024-11-10T18:46:22: 
+2024-11-10T18:46:22: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:46:22:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:46:22:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:46:22:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:46:22:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:46:22:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:46:22:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:46:22:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:46:22:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:46:22:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:46:22:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:46:26: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:46:26: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:46:26:       ^
+2024-11-10T18:46:26: 
+2024-11-10T18:46:26: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:46:26:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:46:26:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:46:26:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:46:26:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:46:26:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:46:26:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:46:26:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:46:26:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:46:26:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:46:26:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:46:31: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:46:31: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:46:31:       ^
+2024-11-10T18:46:31: 
+2024-11-10T18:46:31: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:46:31:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:46:31:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:46:31:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:46:31:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:46:31:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:46:31:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:46:31:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:46:31:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:46:31:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:46:31:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:46:35: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:46:35: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:46:35:       ^
+2024-11-10T18:46:35: 
+2024-11-10T18:46:35: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:46:35:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:46:35:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:46:35:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:46:35:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:46:35:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:46:35:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:46:35:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:46:35:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:46:35:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:46:35:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:46:40: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:46:40: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:46:40:       ^
+2024-11-10T18:46:40: 
+2024-11-10T18:46:40: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:46:40:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:46:40:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:46:40:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:46:40:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:46:40:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:46:40:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:46:40:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:46:40:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:46:40:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:46:40:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:46:44: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:46:44: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:46:44:       ^
+2024-11-10T18:46:44: 
+2024-11-10T18:46:44: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:46:44:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:46:44:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:46:44:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:46:44:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:46:44:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:46:44:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:46:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:46:44:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:46:44:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:46:44:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:46:49: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:46:49: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:46:49:       ^
+2024-11-10T18:46:49: 
+2024-11-10T18:46:49: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:46:49:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:46:49:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:46:49:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:46:49:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:46:49:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:46:49:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:46:49:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:46:49:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:46:49:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:46:49:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:46:53: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:46:53: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:46:53:       ^
+2024-11-10T18:46:53: 
+2024-11-10T18:46:53: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:46:53:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:46:53:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:46:53:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:46:53:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:46:53:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:46:53:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:46:53:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:46:53:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:46:53:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:46:53:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:46:58: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:46:58: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:46:58:       ^
+2024-11-10T18:46:58: 
+2024-11-10T18:46:58: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:46:58:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:46:58:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:46:58:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:46:58:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:46:58:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:46:58:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:46:58:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:46:58:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:46:58:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:46:58:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:47:02: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:47:02: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:47:02:       ^
+2024-11-10T18:47:02: 
+2024-11-10T18:47:02: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:47:02:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:47:02:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:47:02:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:47:02:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:47:02:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:47:02:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:47:02:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:47:02:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:47:02:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:47:02:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:47:07: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:47:07: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:47:07:       ^
+2024-11-10T18:47:07: 
+2024-11-10T18:47:07: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:47:07:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:47:07:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:47:07:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:47:07:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:47:07:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:47:07:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:47:07:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:47:07:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:47:07:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:47:07:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:47:11: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:47:11: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:47:11:       ^
+2024-11-10T18:47:11: 
+2024-11-10T18:47:11: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:47:11:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:47:11:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:47:11:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:47:11:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:47:11:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:47:11:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:47:11:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:47:11:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:47:11:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:47:11:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:47:16: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:47:16: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:47:16:       ^
+2024-11-10T18:47:16: 
+2024-11-10T18:47:16: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:47:16:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:47:16:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:47:16:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:47:16:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:47:16:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:47:16:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:47:16:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:47:16:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:47:16:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:47:16:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:47:20: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:47:20: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:47:20:       ^
+2024-11-10T18:47:20: 
+2024-11-10T18:47:20: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:47:20:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:47:20:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:47:20:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:47:20:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:47:20:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:47:20:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:47:20:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:47:20:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:47:20:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:47:20:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:47:25: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:47:25: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:47:25:       ^
+2024-11-10T18:47:25: 
+2024-11-10T18:47:25: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:47:25:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:47:25:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:47:25:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:47:25:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:47:25:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:47:25:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:47:25:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:47:25:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:47:25:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:47:25:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:47:29: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:47:29: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:47:29:       ^
+2024-11-10T18:47:29: 
+2024-11-10T18:47:29: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:47:29:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:47:29:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:47:29:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:47:29:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:47:29:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:47:29:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:47:29:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:47:29:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:47:29:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:47:29:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:47:34: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:47:34: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:47:34:       ^
+2024-11-10T18:47:34: 
+2024-11-10T18:47:34: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:47:34:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:47:34:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:47:34:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:47:34:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:47:34:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:47:34:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:47:34:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:47:34:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:47:34:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:47:34:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:47:38: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:47:38: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:47:38:       ^
+2024-11-10T18:47:38: 
+2024-11-10T18:47:38: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:47:38:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:47:38:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:47:38:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:47:38:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:47:38:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:47:38:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:47:38:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:47:38:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:47:38:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:47:38:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:47:43: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:47:43: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:47:43:       ^
+2024-11-10T18:47:43: 
+2024-11-10T18:47:43: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:47:43:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:47:43:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:47:43:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:47:43:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:47:43:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:47:43:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:47:43:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:47:43:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:47:43:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:47:43:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:47:47: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:47:47: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:47:47:       ^
+2024-11-10T18:47:47: 
+2024-11-10T18:47:47: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:47:47:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:47:47:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:47:47:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:47:47:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:47:47:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:47:47:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:47:47:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:47:47:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:47:47:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:47:47:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:47:52: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:47:52: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:47:52:       ^
+2024-11-10T18:47:52: 
+2024-11-10T18:47:52: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:47:52:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:47:52:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:47:52:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:47:52:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:47:52:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:47:52:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:47:52:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:47:52:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:47:52:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:47:52:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:47:56: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:47:56: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:47:56:       ^
+2024-11-10T18:47:56: 
+2024-11-10T18:47:56: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:47:56:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:47:56:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:47:56:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:47:56:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:47:56:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:47:56:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:47:56:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:47:56:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:47:56:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:47:56:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:48:00: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:48:00: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:48:00:       ^
+2024-11-10T18:48:00: 
+2024-11-10T18:48:00: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:48:00:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:48:00:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:48:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:48:00:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:48:00:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:48:00:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:48:00:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:48:00:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:48:00:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:48:00:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:48:05: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:48:05: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:48:05:       ^
+2024-11-10T18:48:05: 
+2024-11-10T18:48:05: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:48:05:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:48:05:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:48:05:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:48:05:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:48:05:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:48:05:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:48:05:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:48:05:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:48:05:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:48:05:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:48:09: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:48:09: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:48:09:       ^
+2024-11-10T18:48:09: 
+2024-11-10T18:48:09: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:48:09:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:48:09:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:48:09:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:48:09:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:48:09:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:48:09:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:48:09:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:48:09:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:48:09:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:48:09:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:48:14: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:48:14: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:48:14:       ^
+2024-11-10T18:48:14: 
+2024-11-10T18:48:14: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:48:14:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:48:14:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:48:14:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:48:14:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:48:14:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:48:14:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:48:14:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:48:14:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:48:14:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:48:14:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:48:18: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:48:18: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:48:18:       ^
+2024-11-10T18:48:18: 
+2024-11-10T18:48:18: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:48:18:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:48:18:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:48:18:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:48:18:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:48:18:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:48:18:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:48:18:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:48:18:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:48:18:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:48:18:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:48:23: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:48:23: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:48:23:       ^
+2024-11-10T18:48:23: 
+2024-11-10T18:48:23: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:48:23:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:48:23:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:48:23:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:48:23:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:48:23:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:48:23:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:48:23:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:48:23:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:48:23:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:48:23:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:48:27: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:48:27: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:48:27:       ^
+2024-11-10T18:48:27: 
+2024-11-10T18:48:27: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:48:27:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:48:27:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:48:27:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:48:27:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:48:27:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:48:27:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:48:27:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:48:27:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:48:27:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:48:27:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:48:32: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:48:32: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:48:32:       ^
+2024-11-10T18:48:32: 
+2024-11-10T18:48:32: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:48:32:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:48:32:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:48:32:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:48:32:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:48:32:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:48:32:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:48:32:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:48:32:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:48:32:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:48:32:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:48:36: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:48:36: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:48:36:       ^
+2024-11-10T18:48:36: 
+2024-11-10T18:48:36: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:48:36:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:48:36:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:48:36:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:48:36:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:48:36:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:48:36:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:48:36:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:48:36:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:48:36:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:48:36:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:48:41: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:48:41: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:48:41:       ^
+2024-11-10T18:48:41: 
+2024-11-10T18:48:41: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:48:41:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:48:41:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:48:41:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:48:41:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:48:41:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:48:41:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:48:41:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:48:41:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:48:41:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:48:41:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:48:45: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:48:45: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:48:45:       ^
+2024-11-10T18:48:45: 
+2024-11-10T18:48:45: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:48:45:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:48:45:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:48:45:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:48:45:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:48:45:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:48:45:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:48:45:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:48:45:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:48:45:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:48:45:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:48:50: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:48:50: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:48:50:       ^
+2024-11-10T18:48:50: 
+2024-11-10T18:48:50: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:48:50:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:48:50:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:48:50:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:48:50:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:48:50:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:48:50:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:48:50:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:48:50:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:48:50:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:48:50:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:48:54: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:48:54: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:48:54:       ^
+2024-11-10T18:48:54: 
+2024-11-10T18:48:54: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:48:54:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:48:54:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:48:54:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:48:54:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:48:54:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:48:54:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:48:54:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:48:54:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:48:54:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:48:54:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:48:59: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:48:59: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:48:59:       ^
+2024-11-10T18:48:59: 
+2024-11-10T18:48:59: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:48:59:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:48:59:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:48:59:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:48:59:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:48:59:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:48:59:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:48:59:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:48:59:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:48:59:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:48:59:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:49:03: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:49:03: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:49:03:       ^
+2024-11-10T18:49:03: 
+2024-11-10T18:49:03: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:49:03:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:49:03:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:49:03:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:49:03:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:49:03:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:49:03:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:49:03:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:49:03:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:49:03:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:49:03:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:49:08: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:49:08: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:49:08:       ^
+2024-11-10T18:49:08: 
+2024-11-10T18:49:08: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:49:08:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:49:08:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:49:08:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:49:08:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:49:08:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:49:08:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:49:08:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:49:08:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:49:08:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:49:08:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:49:12: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:49:12: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:49:12:       ^
+2024-11-10T18:49:12: 
+2024-11-10T18:49:12: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:49:12:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:49:12:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:49:12:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:49:12:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:49:12:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:49:12:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:49:12:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:49:12:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:49:12:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:49:12:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:49:17: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:49:17: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:49:17:       ^
+2024-11-10T18:49:17: 
+2024-11-10T18:49:17: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:49:17:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:49:17:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:49:17:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:49:17:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:49:17:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:49:17:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:49:17:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:49:17:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:49:17:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:49:17:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:49:21: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:49:21: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:49:21:       ^
+2024-11-10T18:49:21: 
+2024-11-10T18:49:21: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:49:21:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:49:21:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:49:21:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:49:21:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:49:21:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:49:21:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:49:21:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:49:21:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:49:21:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:49:21:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:49:26: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:49:26: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:49:26:       ^
+2024-11-10T18:49:26: 
+2024-11-10T18:49:26: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:49:26:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:49:26:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:49:26:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:49:26:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:49:26:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:49:26:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:49:26:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:49:26:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:49:26:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:49:26:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:49:30: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:49:30: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:49:30:       ^
+2024-11-10T18:49:30: 
+2024-11-10T18:49:30: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:49:30:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:49:30:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:49:30:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:49:30:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:49:30:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:49:30:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:49:30:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:49:30:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:49:30:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:49:30:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:49:35: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:49:35: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:49:35:       ^
+2024-11-10T18:49:35: 
+2024-11-10T18:49:35: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:49:35:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:49:35:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:49:35:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:49:35:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:49:35:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:49:35:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:49:35:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:49:35:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:49:35:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:49:35:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:49:39: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:49:39: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:49:39:       ^
+2024-11-10T18:49:39: 
+2024-11-10T18:49:39: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:49:39:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:49:39:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:49:39:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:49:39:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:49:39:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:49:39:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:49:39:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:49:39:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:49:39:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:49:39:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:49:44: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:49:44: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:49:44:       ^
+2024-11-10T18:49:44: 
+2024-11-10T18:49:44: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:49:44:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:49:44:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:49:44:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:49:44:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:49:44:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:49:44:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:49:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:49:44:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:49:44:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:49:44:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:49:48: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:49:48: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:49:48:       ^
+2024-11-10T18:49:48: 
+2024-11-10T18:49:48: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:49:48:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:49:48:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:49:48:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:49:48:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:49:48:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:49:48:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:49:48:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:49:48:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:49:48:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:49:48:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:49:53: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:49:53: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:49:53:       ^
+2024-11-10T18:49:53: 
+2024-11-10T18:49:53: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:49:53:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:49:53:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:49:53:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:49:53:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:49:53:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:49:53:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:49:53:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:49:53:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:49:53:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:49:53:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:49:57: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:49:57: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:49:57:       ^
+2024-11-10T18:49:57: 
+2024-11-10T18:49:57: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:49:57:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:49:57:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:49:57:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:49:57:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:49:57:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:49:57:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:49:57:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:49:57:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:49:57:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:49:57:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:50:02: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:50:02: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:50:02:       ^
+2024-11-10T18:50:02: 
+2024-11-10T18:50:02: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:50:02:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:50:02:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:50:02:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:50:02:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:50:02:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:50:02:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:50:02:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:50:02:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:50:02:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:50:02:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:50:06: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:50:06: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:50:06:       ^
+2024-11-10T18:50:06: 
+2024-11-10T18:50:06: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:50:06:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:50:06:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:50:06:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:50:06:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:50:06:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:50:06:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:50:06:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:50:06:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:50:06:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:50:06:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:50:11: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:50:11: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:50:11:       ^
+2024-11-10T18:50:11: 
+2024-11-10T18:50:11: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:50:11:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:50:11:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:50:11:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:50:11:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:50:11:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:50:11:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:50:11:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:50:11:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:50:11:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:50:11:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:50:15: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:50:15: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:50:15:       ^
+2024-11-10T18:50:15: 
+2024-11-10T18:50:15: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:50:15:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:50:15:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:50:15:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:50:15:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:50:15:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:50:15:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:50:15:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:50:15:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:50:15:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:50:15:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:50:20: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:50:20: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:50:20:       ^
+2024-11-10T18:50:20: 
+2024-11-10T18:50:20: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:50:20:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:50:20:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:50:20:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:50:20:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:50:20:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:50:20:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:50:20:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:50:20:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:50:20:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:50:20:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:50:24: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:50:24: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:50:24:       ^
+2024-11-10T18:50:24: 
+2024-11-10T18:50:24: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:50:24:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:50:24:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:50:24:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:50:24:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:50:24:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:50:24:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:50:24:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:50:24:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:50:24:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:50:24:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:50:29: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:50:29: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:50:29:       ^
+2024-11-10T18:50:29: 
+2024-11-10T18:50:29: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:50:29:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:50:29:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:50:29:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:50:29:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:50:29:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:50:29:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:50:29:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:50:29:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:50:29:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:50:29:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:50:33: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:50:33: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:50:33:       ^
+2024-11-10T18:50:33: 
+2024-11-10T18:50:33: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:50:33:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:50:33:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:50:33:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:50:33:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:50:33:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:50:33:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:50:33:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:50:33:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:50:33:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:50:33:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:50:38: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:50:38: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:50:38:       ^
+2024-11-10T18:50:38: 
+2024-11-10T18:50:38: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:50:38:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:50:38:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:50:38:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:50:38:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:50:38:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:50:38:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:50:38:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:50:38:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:50:38:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:50:38:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:50:42: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:50:42: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:50:42:       ^
+2024-11-10T18:50:42: 
+2024-11-10T18:50:42: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:50:42:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:50:42:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:50:42:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:50:42:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:50:42:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:50:42:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:50:42:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:50:42:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:50:42:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:50:42:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:50:47: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:50:47: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:50:47:       ^
+2024-11-10T18:50:47: 
+2024-11-10T18:50:47: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:50:47:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:50:47:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:50:47:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:50:47:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:50:47:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:50:47:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:50:47:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:50:47:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:50:47:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:50:47:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:50:51: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:50:51: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:50:51:       ^
+2024-11-10T18:50:51: 
+2024-11-10T18:50:51: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:50:51:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:50:51:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:50:51:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:50:51:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:50:51:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:50:51:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:50:51:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:50:51:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:50:51:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:50:51:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:50:55: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:50:55: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:50:55:       ^
+2024-11-10T18:50:55: 
+2024-11-10T18:50:55: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:50:55:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:50:55:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:50:55:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:50:55:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:50:55:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:50:55:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:50:55:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:50:55:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:50:55:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:50:55:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:51:00: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:51:00: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:51:00:       ^
+2024-11-10T18:51:00: 
+2024-11-10T18:51:00: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:51:00:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:51:00:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:51:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:51:00:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:51:00:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:51:00:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:51:00:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:51:00:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:51:00:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:51:00:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:51:04: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:51:04: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:51:04:       ^
+2024-11-10T18:51:04: 
+2024-11-10T18:51:04: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:51:04:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:51:04:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:51:04:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:51:04:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:51:04:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:51:04:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:51:04:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:51:04:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:51:04:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:51:04:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:51:09: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:51:09: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:51:09:       ^
+2024-11-10T18:51:09: 
+2024-11-10T18:51:09: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:51:09:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:51:09:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:51:09:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:51:09:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:51:09:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:51:09:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:51:09:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:51:09:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:51:09:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:51:09:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:51:13: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:51:13: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:51:13:       ^
+2024-11-10T18:51:13: 
+2024-11-10T18:51:13: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:51:13:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:51:13:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:51:13:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:51:13:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:51:13:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:51:13:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:51:13:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:51:13:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:51:13:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:51:13:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:51:18: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:51:18: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:51:18:       ^
+2024-11-10T18:51:18: 
+2024-11-10T18:51:18: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:51:18:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:51:18:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:51:18:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:51:18:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:51:18:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:51:18:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:51:18:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:51:18:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:51:18:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:51:18:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:51:22: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:51:22: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:51:22:       ^
+2024-11-10T18:51:22: 
+2024-11-10T18:51:22: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:51:22:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:51:22:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:51:22:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:51:22:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:51:22:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:51:22:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:51:22:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:51:22:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:51:22:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:51:22:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:51:27: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:51:27: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:51:27:       ^
+2024-11-10T18:51:27: 
+2024-11-10T18:51:27: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:51:27:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:51:27:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:51:27:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:51:27:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:51:27:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:51:27:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:51:27:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:51:27:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:51:27:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:51:27:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:51:31: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:51:31: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:51:31:       ^
+2024-11-10T18:51:31: 
+2024-11-10T18:51:31: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:51:31:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:51:31:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:51:31:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:51:31:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:51:31:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:51:31:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:51:31:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:51:31:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:51:31:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:51:31:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:51:36: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:51:36: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:51:36:       ^
+2024-11-10T18:51:36: 
+2024-11-10T18:51:36: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:51:36:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:51:36:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:51:36:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:51:36:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:51:36:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:51:36:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:51:36:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:51:36:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:51:36:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:51:36:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:51:40: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:51:40: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:51:40:       ^
+2024-11-10T18:51:40: 
+2024-11-10T18:51:40: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:51:40:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:51:40:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:51:40:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:51:40:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:51:40:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:51:40:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:51:40:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:51:40:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:51:40:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:51:40:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:51:45: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:51:45: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:51:45:       ^
+2024-11-10T18:51:45: 
+2024-11-10T18:51:45: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:51:45:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:51:45:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:51:45:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:51:45:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:51:45:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:51:45:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:51:45:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:51:45:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:51:45:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:51:45:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:51:49: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:51:49: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:51:49:       ^
+2024-11-10T18:51:49: 
+2024-11-10T18:51:49: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:51:49:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:51:49:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:51:49:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:51:49:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:51:49:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:51:49:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:51:49:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:51:49:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:51:49:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:51:49:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:51:54: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:51:54: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:51:54:       ^
+2024-11-10T18:51:54: 
+2024-11-10T18:51:54: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:51:54:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:51:54:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:51:54:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:51:54:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:51:54:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:51:54:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:51:54:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:51:54:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:51:54:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:51:54:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:51:58: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:51:58: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:51:58:       ^
+2024-11-10T18:51:58: 
+2024-11-10T18:51:58: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:51:58:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:51:58:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:51:58:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:51:58:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:51:58:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:51:58:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:51:58:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:51:58:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:51:58:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:51:58:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:52:03: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:52:03: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:52:03:       ^
+2024-11-10T18:52:03: 
+2024-11-10T18:52:03: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:52:03:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:52:03:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:52:03:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:52:03:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:52:03:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:52:03:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:52:03:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:52:03:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:52:03:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:52:03:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:52:07: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:52:07: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:52:07:       ^
+2024-11-10T18:52:07: 
+2024-11-10T18:52:07: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:52:07:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:52:07:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:52:07:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:52:07:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:52:07:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:52:07:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:52:07:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:52:07:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:52:07:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:52:07:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:52:12: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:52:12: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:52:12:       ^
+2024-11-10T18:52:12: 
+2024-11-10T18:52:12: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:52:12:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:52:12:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:52:12:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:52:12:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:52:12:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:52:12:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:52:12:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:52:12:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:52:12:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:52:12:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:52:16: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:52:16: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:52:16:       ^
+2024-11-10T18:52:16: 
+2024-11-10T18:52:16: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:52:16:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:52:16:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:52:16:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:52:16:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:52:16:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:52:16:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:52:16:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:52:16:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:52:16:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:52:16:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:52:21: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:52:21: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:52:21:       ^
+2024-11-10T18:52:21: 
+2024-11-10T18:52:21: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:52:21:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:52:21:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:52:21:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:52:21:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:52:21:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:52:21:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:52:21:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:52:21:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:52:21:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:52:21:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:52:25: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:52:25: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:52:25:       ^
+2024-11-10T18:52:25: 
+2024-11-10T18:52:25: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:52:25:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:52:25:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:52:25:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:52:25:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:52:25:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:52:25:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:52:25:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:52:25:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:52:25:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:52:25:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:52:30: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:52:30: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:52:30:       ^
+2024-11-10T18:52:30: 
+2024-11-10T18:52:30: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:52:30:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:52:30:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:52:30:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:52:30:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:52:30:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:52:30:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:52:30:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:52:30:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:52:30:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:52:30:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:52:34: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:52:34: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:52:34:       ^
+2024-11-10T18:52:34: 
+2024-11-10T18:52:34: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:52:34:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:52:34:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:52:34:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:52:34:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:52:34:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:52:34:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:52:34:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:52:34:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:52:34:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:52:34:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:52:39: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:52:39: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:52:39:       ^
+2024-11-10T18:52:39: 
+2024-11-10T18:52:39: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:52:39:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:52:39:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:52:39:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:52:39:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:52:39:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:52:39:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:52:39:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:52:39:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:52:39:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:52:39:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:52:43: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:52:43: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:52:43:       ^
+2024-11-10T18:52:43: 
+2024-11-10T18:52:43: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:52:43:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:52:43:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:52:43:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:52:43:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:52:43:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:52:43:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:52:43:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:52:43:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:52:43:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:52:43:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:52:48: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:52:48: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:52:48:       ^
+2024-11-10T18:52:48: 
+2024-11-10T18:52:48: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:52:48:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:52:48:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:52:48:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:52:48:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:52:48:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:52:48:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:52:48:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:52:48:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:52:48:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:52:48:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:52:52: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:52:52: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:52:52:       ^
+2024-11-10T18:52:52: 
+2024-11-10T18:52:52: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:52:52:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:52:52:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:52:52:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:52:52:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:52:52:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:52:52:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:52:52:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:52:52:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:52:52:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:52:52:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:52:57: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:52:57: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:52:57:       ^
+2024-11-10T18:52:57: 
+2024-11-10T18:52:57: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:52:57:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:52:57:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:52:57:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:52:57:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:52:57:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:52:57:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:52:57:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:52:57:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:52:57:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:52:57:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:53:01: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:53:01: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:53:01:       ^
+2024-11-10T18:53:01: 
+2024-11-10T18:53:01: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:53:01:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:53:01:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:53:01:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:53:01:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:53:01:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:53:01:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:53:01:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:53:01:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:53:01:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:53:01:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:53:06: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:53:06: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:53:06:       ^
+2024-11-10T18:53:06: 
+2024-11-10T18:53:06: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:53:06:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:53:06:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:53:06:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:53:06:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:53:06:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:53:06:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:53:06:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:53:06:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:53:06:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:53:06:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:53:10: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:53:10: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:53:10:       ^
+2024-11-10T18:53:10: 
+2024-11-10T18:53:10: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:53:10:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:53:10:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:53:10:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:53:10:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:53:10:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:53:10:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:53:10:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:53:10:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:53:10:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:53:10:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:53:15: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:53:15: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:53:15:       ^
+2024-11-10T18:53:15: 
+2024-11-10T18:53:15: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:53:15:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:53:15:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:53:15:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:53:15:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:53:15:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:53:15:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:53:15:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:53:15:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:53:15:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:53:15:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:53:19: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:53:19: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:53:19:       ^
+2024-11-10T18:53:19: 
+2024-11-10T18:53:19: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:53:19:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:53:19:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:53:19:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:53:19:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:53:19:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:53:19:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:53:19:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:53:19:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:53:19:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:53:19:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:53:24: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:53:24: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:53:24:       ^
+2024-11-10T18:53:24: 
+2024-11-10T18:53:24: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:53:24:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:53:24:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:53:24:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:53:24:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:53:24:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:53:24:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:53:24:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:53:24:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:53:24:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:53:24:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:53:28: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:53:28: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:53:28:       ^
+2024-11-10T18:53:28: 
+2024-11-10T18:53:28: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:53:28:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:53:28:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:53:28:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:53:28:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:53:28:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:53:28:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:53:28:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:53:28:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:53:28:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:53:28:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:53:33: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:53:33: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:53:33:       ^
+2024-11-10T18:53:33: 
+2024-11-10T18:53:33: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:53:33:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:53:33:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:53:33:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:53:33:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:53:33:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:53:33:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:53:33:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:53:33:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:53:33:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:53:33:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:53:37: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:53:37: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:53:37:       ^
+2024-11-10T18:53:37: 
+2024-11-10T18:53:37: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:53:37:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:53:37:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:53:37:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:53:37:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:53:37:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:53:37:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:53:37:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:53:37:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:53:37:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:53:37:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:53:42: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:53:42: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:53:42:       ^
+2024-11-10T18:53:42: 
+2024-11-10T18:53:42: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:53:42:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:53:42:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:53:42:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:53:42:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:53:42:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:53:42:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:53:42:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:53:42:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:53:42:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:53:42:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:53:46: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:53:46: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:53:46:       ^
+2024-11-10T18:53:46: 
+2024-11-10T18:53:46: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:53:46:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:53:46:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:53:46:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:53:46:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:53:46:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:53:46:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:53:46:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:53:46:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:53:46:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:53:46:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:53:51: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:53:51: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:53:51:       ^
+2024-11-10T18:53:51: 
+2024-11-10T18:53:51: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:53:51:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:53:51:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:53:51:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:53:51:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:53:51:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:53:51:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:53:51:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:53:51:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:53:51:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:53:51:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:53:55: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:53:55: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:53:55:       ^
+2024-11-10T18:53:55: 
+2024-11-10T18:53:55: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:53:55:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:53:55:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:53:55:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:53:55:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:53:55:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:53:55:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:53:55:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:53:55:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:53:55:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:53:55:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:54:00: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:54:00: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:54:00:       ^
+2024-11-10T18:54:00: 
+2024-11-10T18:54:00: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:54:00:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:54:00:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:54:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:54:00:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:54:00:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:54:00:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:54:00:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:54:00:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:54:00:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:54:00:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:54:04: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:54:04: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:54:04:       ^
+2024-11-10T18:54:04: 
+2024-11-10T18:54:04: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:54:04:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:54:04:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:54:04:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:54:04:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:54:04:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:54:04:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:54:04:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:54:04:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:54:04:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:54:04:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:54:09: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:54:09: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:54:09:       ^
+2024-11-10T18:54:09: 
+2024-11-10T18:54:09: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:54:09:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:54:09:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:54:09:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:54:09:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:54:09:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:54:09:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:54:09:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:54:09:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:54:09:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:54:09:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:54:13: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:54:13: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:54:13:       ^
+2024-11-10T18:54:13: 
+2024-11-10T18:54:13: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:54:13:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:54:13:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:54:13:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:54:13:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:54:13:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:54:13:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:54:13:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:54:13:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:54:13:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:54:13:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:54:18: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:54:18: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:54:18:       ^
+2024-11-10T18:54:18: 
+2024-11-10T18:54:18: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:54:18:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:54:18:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:54:18:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:54:18:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:54:18:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:54:18:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:54:18:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:54:18:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:54:18:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:54:18:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:54:22: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:54:22: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:54:22:       ^
+2024-11-10T18:54:22: 
+2024-11-10T18:54:22: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:54:22:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:54:22:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:54:22:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:54:22:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:54:22:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:54:22:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:54:22:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:54:22:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:54:22:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:54:22:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:54:27: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:54:27: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:54:27:       ^
+2024-11-10T18:54:27: 
+2024-11-10T18:54:27: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:54:27:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:54:27:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:54:27:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:54:27:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:54:27:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:54:27:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:54:27:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:54:27:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:54:27:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:54:27:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:54:31: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:54:31: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:54:31:       ^
+2024-11-10T18:54:31: 
+2024-11-10T18:54:31: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:54:31:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:54:31:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:54:31:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:54:31:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:54:31:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:54:31:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:54:31:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:54:31:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:54:31:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:54:31:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:54:36: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:54:36: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:54:36:       ^
+2024-11-10T18:54:36: 
+2024-11-10T18:54:36: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:54:36:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:54:36:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:54:36:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:54:36:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:54:36:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:54:36:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:54:36:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:54:36:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:54:36:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:54:36:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:54:40: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:54:40: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:54:40:       ^
+2024-11-10T18:54:40: 
+2024-11-10T18:54:40: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:54:40:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:54:40:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:54:40:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:54:40:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:54:40:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:54:40:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:54:40:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:54:40:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:54:40:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:54:40:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:54:44: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:54:44: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:54:44:       ^
+2024-11-10T18:54:44: 
+2024-11-10T18:54:44: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:54:44:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:54:44:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:54:44:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:54:44:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:54:44:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:54:44:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:54:44:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:54:44:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:54:44:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:54:44:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:54:49: /var/www/podokan/backend/controller/user.js:114
+2024-11-10T18:54:49: const sendToken = (user, statusCode, res) => {
+2024-11-10T18:54:49:       ^
+2024-11-10T18:54:49: 
+2024-11-10T18:54:49: SyntaxError: Identifier 'sendToken' has already been declared
+2024-11-10T18:54:49:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-10T18:54:49:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-10T18:54:49:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-10T18:54:49:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-10T18:54:49:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-10T18:54:49:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-10T18:54:49:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-10T18:54:49:     at require (node:internal/modules/helpers:179:18)
+2024-11-10T18:54:49:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
+2024-11-10T18:54:49:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
