@@ -72,8 +72,7 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-
-
+//.
 // Change back to the original format
 exports.isAdmin = (role) => {
   return (req, res, next) => {

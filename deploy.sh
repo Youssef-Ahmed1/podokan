@@ -26,5 +26,5 @@ pm2 save
 
 # Nginx restart
 sudo systemctl restart nginx
-
+sudo pm2 restart all 
 echo "Deployment completed!"
