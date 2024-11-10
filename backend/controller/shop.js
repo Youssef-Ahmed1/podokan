@@ -3,7 +3,7 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/sendMail");
 const Shop = require("../model/shop");
-const { isAuthenticated, isSeller, isAdmin  , isAuthenticatedAdmin} = require("../middleware/auth");
+const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
 const cloudinary = require("cloudinary");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
@@ -106,49 +106,54 @@ router.post(
 );
 
 // login shop
-router.post("/login-shop", catchAsyncErrors(async (req, res, next) => {
+router.post("/login-shop", async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return next(new ErrorHandler("Please provide email and password", 400));
+      return res.status(400).json({
+        success: false,
+        message: "Please provide email and password"
+      });
     }
 
-    const seller = await Shop.findOne({ email }).select("+password");
-    if (!seller) {
-      return next(new ErrorHandler("Seller not found", 401));
+    const shop = await Shop.findOne({ email }).select('+password');
+
+    if (!shop || !(await shop.comparePassword(password))) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials"
+      });
     }
 
-    const isPasswordValid = await seller.comparePassword(password);
-    if (!isPasswordValid) {
-      return next(new ErrorHandler("Invalid credentials", 401));
-    }
+    // Generate token
+    const token = jwt.sign(
+      { id: shop._id },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: '7d' }
+    );
 
-    const token = jwt.sign({ id: seller._id }, process.env.JWT_SECRET_KEY, {
-      expiresIn: "7d"
-    });
+    const shopResponse = shop.toObject();
+    delete shopResponse.password;
 
-    const sellerData = seller.toObject();
-    delete sellerData.password;
-
-    res.status(200)
-      .cookie("seller_token", token, {
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
-        domain: '.testpodokan.store',
-        path: '/'
-      })
+    // Set cookie and send response
+    return res
+      .status(200)
+      .cookie("seller_token", token, cookieOptions)
+      .header('Seller-Authorization', `Bearer ${token}`)
       .json({
         success: true,
-        seller: sellerData,
+        seller: shopResponse,
         token
       });
   } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
+    console.error("Login error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Login failed"
+    });
   }
-}));
+});
 router.get(
   "/getSeller",
   isSeller,
@@ -278,17 +283,22 @@ router.put(
 // controller/shop.js
 
 // Get all sellers -- admin only
-router.get("/admin-all-sellers", isAuthenticatedAdmin, catchAsyncErrors(async (req, res, next) => {
-  try {
-    const sellers = await Shop.find().sort({ createdAt: -1 });
-    res.status(200).json({
-      success: true,
-      sellers,
-    });
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
-  }
-}));
+router.get(
+  "/admin-all-sellers",
+  isAuthenticated,
+  isAdmin,  
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const sellers = await Shop.find().sort({ createdAt: -1 });
+      res.status(200).json({
+        success: true,
+        sellers,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
 
 // Delete seller -- admin only
 router.delete(
