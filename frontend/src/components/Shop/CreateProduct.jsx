@@ -3,7 +3,6 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { createProduct } from "../../redux/actions/product";
-
 import { 
   AiOutlineCloudUpload, 
   AiOutlineDelete, 
@@ -136,44 +135,16 @@ const calculateDPI = (width, height) => {
   return Math.min(width, height) / PRINT_SIZE;
 };
 
-const getMockupUrl = (productType, color, view) => {
-  // Add defensive checks
-  if (!productType || !color || !view) {
-    console.warn('Missing parameters for mockup URL:', { productType, color, view });
-    return '';
-  }
-
-  const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/v1/";
+const getMockupUrl = (productType = 't-shirt', color = 'white', view = 'front') => {
+  const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
+  const config = PRODUCT_TYPES[productType]?.mockupConfig;
   
-  // Make sure we're using string values
-  const safeProductType = String(productType).toLowerCase();
-  const safeColor = String(color).toLowerCase();
-  const safeView = String(view).toLowerCase();
-
-  // Map product types to their folders
-  const folderMap = {
-    't-shirt': 't-shirts',
-    'hoodie': 'hoodies',
-    'long-sleeve': 'long-sleeves'
-  };
-
-  const folder = folderMap[safeProductType] || 't-shirts';
+  if (!config) return "";
   
-  // Construct filename based on product type
-  let filename;
-  switch(safeProductType) {
-    case 'hoodie':
-      filename = `hoodie-${safeColor}-${safeView}`;
-      break;
-    case 'long-sleeve':
-      filename = `long-sleeve-${safeColor}-${safeView}`;
-      break;
-    default:
-      filename = `t-shirt-${safeColor}-${safeView}`;
-  }
-
-  return `${baseUrl}${folder}/${filename}.png`;
+  const filename = config.getFilename(color, view);
+  return `${baseUrl}${config.version}/${config.folder}/${filename}.png`;
 };
+
 const compressDesign = async (file) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -469,14 +440,14 @@ const CreateProduct = () => {
     Description: "",
     Maintag: "",
     Designtags: "",
-    ProductType: "t-shirt",  
+    ProductType: "t-shirt",
     ProductColor: "white",
     ProductView: "front",
     DesignScale: 1,
     designPosition: { x: 50, y: 50 },
     availableColors: ["white"],
     price: {
-      original: PRODUCT_TYPES['t-shirt'].basePrice,
+      original: calculateMinimumPrice("t-shirt"),
       discount: 0
     }
   });
@@ -615,11 +586,11 @@ const CreateProduct = () => {
 
   const handleDesignDrag = useCallback((e) => {
     if (!mockupContainerRef.current || !isDragging) return;
-  
+
     const rect = mockupContainerRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-  
+
     requestAnimationFrame(() => {
       const newPosition = { x, y };
       const boundaries = BOUNDARY_LIMITS[formState.ProductType];
@@ -630,7 +601,7 @@ const CreateProduct = () => {
           newPosition.x <= boundaries.right && 
           newPosition.y >= boundaries.top && 
           newPosition.y <= boundaries.bottom;
-  
+
         setIsDesignVisible(isWithinBounds);
         setFormState(prev => ({
           ...prev,
@@ -639,7 +610,6 @@ const CreateProduct = () => {
       }
     });
   }, [isDragging, formState.ProductType]);
-
 
   const handleDesignUpload = useCallback(async (file) => {
     try {
