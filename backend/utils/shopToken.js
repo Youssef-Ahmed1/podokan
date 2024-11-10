@@ -8,7 +8,8 @@ const sendShopToken = (shop, statusCode, res) => {
         sameSite: 'none',
         secure: true,
         domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : 'localhost'
-    };
+      };
+      
     
     // For user login
     res.cookie('token', token, cookieOptions)
