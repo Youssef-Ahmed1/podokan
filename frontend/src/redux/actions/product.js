@@ -69,36 +69,32 @@ export const fetchPendingProducts = () => async (dispatch) => {
   try {
     dispatch({ type: 'productPendingRequest' });
     
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No token found');
+    const response = await fetch('/api/v2/product/admin/pending-products', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include' // Important for cookies
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch products');
     }
 
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    };
-
-    const { data } = await axios.get(
-      `${server}/api/v2/product/admin/pending-products`,
-      config
-    );
+    const data = await response.json();
 
     dispatch({
       type: 'productPendingSuccess',
-      payload: data.products,
+      payload: data.products
     });
   } catch (error) {
     dispatch({
       type: 'productPendingFail',
-      payload: error.response?.data?.message || 'Failed to fetch pending products',
+      payload: error.message
     });
     throw error;
   }
 };
-
 // Approve/Reject product
 
 export const approveRejectProduct = (productId, status, reason) => async (dispatch) => {
