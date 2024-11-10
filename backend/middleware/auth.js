@@ -23,16 +23,19 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
       return next(new ErrorHandler("Please login to continue", 401));
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    // Remove any potential recursion here
-    const user = await User.findById(decoded.id).select('-password');
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      const user = await User.findById(decoded.id).select('-password');
 
-    if (!user) {
-      return next(new ErrorHandler("User not found", 401));
+      if (!user) {
+        return next(new ErrorHandler("User not found", 401));
+      }
+
+      req.user = user;
+      next();
+    } catch (jwtError) {
+      return next(new ErrorHandler("Invalid or expired token", 401));
     }
-
-    req.user = user;
-    next();
   } catch (error) {
     return next(new ErrorHandler("Authentication failed", 401));
   }
@@ -40,33 +43,34 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
-    const token = req.cookies.seller_token;
+    const token = 
+      req.cookies.seller_token ||
+      (req.headers['seller-authorization'] ? req.headers['seller-authorization'].replace("Bearer ", "") : null);
 
     if (!token) {
       return next(new ErrorHandler("Please login as seller to continue", 401));
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const seller = await Shop.findById(decoded.id).select('-password');
-    
-    if (!seller) {
-      return next(new ErrorHandler("Seller not found", 401));
-    }
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      const seller = await Shop.findById(decoded.id).select('-password');
+      
+      if (!seller) {
+        return next(new ErrorHandler("Seller not found", 401));
+      }
 
-    req.seller = seller;
-    next();
+      req.seller = seller;
+      next();
+    } catch (jwtError) {
+      return next(new ErrorHandler("Invalid or expired seller token", 401));
+    }
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      return next(new ErrorHandler("Invalid seller token", 401));
-    }
-    if (error.name === 'TokenExpiredError') {
-      return next(new ErrorHandler("Seller token expired", 401));
-    }
     return next(new ErrorHandler("Seller authentication failed", 401));
   }
 });
 
-// Combined auth for dual-role endpoints
+
+
 
 
 // Change back to the original format
