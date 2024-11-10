@@ -5023,3 +5023,9 @@
 2024-11-10T18:54:49:     at require (node:internal/modules/helpers:179:18)
 2024-11-10T18:54:49:     at Object.<anonymous> (/var/www/podokan/backend/server.js:18:25)
 2024-11-10T18:54:49:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-10T18:54:54: Server running on port 8000
+2024-11-10T18:54:55: Database connected
+2024-11-10T18:56:31: Server running on port 8000
+2024-11-10T18:56:32: Database connected
+2024-11-10T18:57:02: Server running on port 8000
+2024-11-10T18:57:03: Database connected
