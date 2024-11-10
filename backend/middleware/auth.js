@@ -12,7 +12,26 @@ const verifyToken = async (token, secretKey) => {
   }
 };
 
+const checkAndRefreshAuth = async () => {
+  try {
+    const response = await fetch('/api/v2/user/getuser', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include' // Important for cookies
+    });
 
+    if (!response.ok) {
+      throw new Error('Auth check failed');
+    }
+
+    const data = await response.json();
+    return data.user;
+  } catch (error) {
+    return null;
+  }
+};
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   try {
     const token = 
