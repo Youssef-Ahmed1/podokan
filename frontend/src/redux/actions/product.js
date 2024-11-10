@@ -2,6 +2,8 @@
 import axios from "axios";
 import { server } from "../../server";
 
+
+axios.defaults.withCredentials = true;
 const getAuthHeaders = (isMultipart = false) => {
   const token = localStorage.getItem('token');
   const sellerToken = localStorage.getItem('seller_token');
