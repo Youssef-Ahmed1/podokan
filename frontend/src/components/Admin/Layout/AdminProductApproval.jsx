@@ -1,6 +1,5 @@
 import React, { useEffect, useState, memo, useCallback, useMemo, useRef ,Fragment} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from "react-router-dom";
 import { toast } from 'react-toastify';
 import { fetchPendingProducts, approveRejectProduct , getAllProducts} from '../../../redux/actions/product';
 import { BsZoomIn, BsZoomOut } from 'react-icons/bs';
@@ -8,27 +7,6 @@ import { AiOutlineWarning, AiOutlineInfoCircle } from 'react-icons/ai';
 import { debounce } from 'lodash';
 import PropTypes from 'prop-types';
 
-
-const checkAndRefreshAuth = async () => {
-  try {
-    const response = await fetch('/api/v2/user/getuser', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include' // Important for cookies
-    });
-
-    if (!response.ok) {
-      throw new Error('Auth check failed');
-    }
-
-    const data = await response.json();
-    return data.user;
-  } catch (error) {
-    return null;
-  }
-};
 // Constants
 const PRODUCT_TYPES = {
   't-shirt': {
@@ -46,7 +24,11 @@ const PRODUCT_TYPES = {
       designArea: {
         front: { width: 300, height: 400, top: '25%', left: '50%' },
         back: { width: 300, height: 400, top: '25%', left: '50%' }
-      }
+      },
+      defaultScale: 1,
+      minScale: 0.5,
+      maxScale: 2,
+      gridLines: true
     }
   },
   'hoodie': {
@@ -59,16 +41,20 @@ const PRODUCT_TYPES = {
     },
     mockupConfig: {
       version: 'v1',
-      folder: 'hoodies',
+      folder: '/hoodies',
       getFilename: (color, view) => `hoodie-${color}-${view}`,
       designArea: {
         front: { width: 280, height: 380, top: '30%', left: '50%' },
         back: { width: 300, height: 400, top: '25%', left: '50%' }
-      }
+      },
+      defaultScale: 1,
+      minScale: 0.5,
+      maxScale: 2,
+      gridLines: true
     }
   },
-  'long-sleeve': {  
-    label: 'Long Sleeve',
+  'long-sleeves': {
+    label: 'Long Sleeves',
     basePrice: 370,
     productionCost: 200,
     margins: {
@@ -77,12 +63,16 @@ const PRODUCT_TYPES = {
     },
     mockupConfig: {
       version: 'v1',
-      folder: 'long-sleeves',
-      getFilename: (color, view) => `long-sleeve-${color}-${view}`,
+      folder: '/long-sleeves',
+      getFilename: (color, view) => `longseleves-${color}-${view}`,
       designArea: {
         front: { width: 280, height: 380, top: '30%', left: '50%' },
         back: { width: 300, height: 400, top: '25%', left: '50%' }
-      }
+      },
+      defaultScale: 1,
+      minScale: 0.5,
+      maxScale: 2,
+      gridLines: true
     }
   }
 };
@@ -181,22 +171,7 @@ const CURRENCY = {
   symbol: 'EGP',
   format: (amount) => `${amount} EGP`
 };
-const testAuth = async () => {
-  const token = localStorage.getItem('token');
-  console.log('Testing auth with token:', token);
-  
-  try {
-    const response = await fetch('/api/v2/user/getuser', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    console.log('Auth test response:', await response.json());
-  } catch (error) {
-    console.error('Auth test failed:', error);
-  }
-};
+
 // Utility Functions
 const getImageFormat = (url) => {
   const extension = url.split('.').pop().toLowerCase();
@@ -276,27 +251,35 @@ const ProductPreview = memo(({
 
   // Design area calculation
   const getDesignAreaStyle = useCallback(() => {
-    if (!containerRef.current || !designArea) return {};
+    if (!containerRef.current) return {};
     
     const container = containerRef.current.getBoundingClientRect();
-    const width = designArea.width || 300;
-    const height = designArea.height || 400;
-    const top = designArea.top || '25%';
-    const left = designArea.left || '50%';
- 
+    
+    // Calculate dimensions based on container size
+    const containerWidth = container.width;
+    const containerHeight = container.height;
+    
+    // Use percentage values from designArea
+    const width = (containerWidth * parseFloat(designArea.width)) / 100;
+    const height = (containerHeight * parseFloat(designArea.height)) / 100;
+    
+    // Calculate position
+    const top = (containerHeight * parseFloat(designArea.top)) / 100;
+    const left = (containerWidth * parseFloat(designArea.left)) / 100;
+  
     return {
       position: 'absolute',
-      top,
-      left,
+      top: `${top}px`,
+      left: `${left}px`,
       width: `${width}px`,
       height: `${height}px`,
       transform: 'translate(-50%, -50%)',
-      border: showGrid ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
+      border: '2px dashed rgba(59, 130, 246, 0.5)',
       pointerEvents: 'none',
       zIndex: 10,
-      backgroundColor: showGrid ? 'rgba(59, 130, 246, 0.1)' : 'transparent'
+      backgroundColor: 'rgba(59, 130, 246, 0.1)'
     };
-  }, [designArea, showGrid]);
+  }, [designArea]);
   // Check boundaries
   const checkBoundary = useCallback(() => {
     if (!designRef.current || !containerRef.current) return;
@@ -414,21 +397,16 @@ const ProductPreview = memo(({
   }, [position, zoom, checkBoundary]);
 
   // Get mockup URL
-// In ProductPreview component, update the mockupUrl useMemo:
-const mockupUrl = useMemo(() => {
-  if (!editedProduct?.ProductType || !editedProduct?.ProductColor || !editedProduct?.ProductView) {
-    return '';
-  }
-  const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-  const config = PRODUCT_TYPES[editedProduct.ProductType]?.mockupConfig;
-  if (!config) return '';
-  
-  const filename = config.getFilename(
-    editedProduct.ProductColor || 'white', 
-    editedProduct.ProductView || 'front'
-  );
-  return `${baseUrl}${config.version}/${config.folder.replace('/', '')}/${filename}.png`;
-}, [editedProduct?.ProductType, editedProduct?.ProductColor, editedProduct?.ProductView]);
+  const mockupUrl = useMemo(() => {
+    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
+    const config = productConfig.mockupConfig;
+    const filename = config.getFilename(
+      editedProduct.ProductColor, 
+      editedProduct.ProductView
+    );
+    return `${baseUrl}${config.version}/${config.folder}/${filename}.png`;
+  }, [editedProduct.ProductType, editedProduct.ProductColor, editedProduct.ProductView, productConfig]);
+
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       {/* Controls Header */}
@@ -538,50 +516,48 @@ const mockupUrl = useMemo(() => {
 
         {/* Mockup Image */}
         <img
-  src={mockupUrl}
-  alt={`${editedProduct.ProductType || ''} ${editedProduct.ProductColor || ''} ${editedProduct.ProductView || ''} view`}
-  className="w-full h-full object-contain"
-  style={{
-    filter: colorConfig?.mockupModifier && colorConfig.mockupModifier !== 'none' 
-      ? colorConfig.mockupModifier 
-      : undefined
-  }}
-  onLoad={() => setLoading(false)}
-  onError={() => {
-    setLoading(false);
-    setError('Failed to load mockup');
-  }}
-/>
+          src={mockupUrl}
+          alt={`${editedProduct.ProductType} ${editedProduct.ProductColor} ${editedProduct.ProductView} view`}
+          className="w-full h-full object-contain"
+          style={{
+            filter: colorConfig.mockupModifier !== 'none' ? colorConfig.mockupModifier : undefined
+          }}
+          onLoad={() => setLoading(false)}
+          onError={() => {
+            setLoading(false);
+            setError('Failed to load mockup');
+          }}
+        />
 
         {/* Design Layer */}
         {!loading && !error && editedProduct.designImage && (
-         <div
-         ref={designRef}
-         className={`
-           absolute transform -translate-x-1/2 -translate-y-1/2
-           ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
-           ${disabled ? 'cursor-not-allowed' : ''}
-           ${isOutOfBounds ? 'opacity-50' : 'opacity-100'}
-           transition-opacity duration-200
-         `}
-         style={{
-           left: `${position?.x || 50}%`,
-           top: `${position?.y || 50}%`,
-           width: `${designArea?.width || 300}px`,
-           height: `${designArea?.height || 400}px`,
-           transform: `translate(-50%, -50%) scale(${zoom || 1})`,
-           mixBlendMode: colorConfig?.designBlendMode || 'multiply'
-         }}
-         onMouseDown={handleDragStart}
-         onTouchStart={handleDragStart}
-       >
-         <img
-           src={editedProduct.designImage}
-           alt="Design"
-           className="w-full h-full object-contain"
-           draggable={false}
-         />
-       </div>
+          <div
+            ref={designRef}
+            className={`
+              absolute transform -translate-x-1/2 -translate-y-1/2
+              ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
+              ${disabled ? 'cursor-not-allowed' : ''}
+              ${isOutOfBounds ? 'opacity-50' : 'opacity-100'}
+              transition-opacity duration-200
+            `}
+            style={{
+              left: `${position.x}%`,
+              top: `${position.y}%`,
+              width: `${designArea.width}px`,
+              height: `${designArea.height}px`,
+              transform: `translate(-50%, -50%) scale(${zoom})`,
+              mixBlendMode: colorConfig.designBlendMode
+            }}
+            onMouseDown={handleDragStart}
+            onTouchStart={handleDragStart}
+          >
+            <img
+              src={editedProduct.designImage}
+              alt="Design"
+              className="w-full h-full object-contain"
+              draggable={false}
+            />
+          </div>
         )}
 
         {/* Loading State */}
@@ -653,11 +629,12 @@ const PriceCalculator = memo(({
     if (!price) return 'Price is required';
     if (isNaN(price)) return 'Must be a valid number';
     if (price < basePrice) return `Minimum price is ${CURRENCY.format(basePrice)}`;
-    if (type === 'discount' && price >= originalPrice) {
+    if (type === 'discount' && price > localPrices.originalPrice) {
       return 'Discount price must be less than original price';
     }
     return null;
-  }, [basePrice, originalPrice]);
+  }, [basePrice, localPrices.originalPrice]);
+
   const handlePriceChange = useCallback((e) => {
     const { name, value } = e.target;
     const numValue = parseFloat(value);
@@ -684,10 +661,9 @@ const PriceCalculator = memo(({
     }
   }, [onChange, originalPrice, discountPrice, validatePrice]);
 
-
-
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      {/* ... rest of your PriceCalculator component ... */}
       <div className="p-4 space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1485,12 +1461,10 @@ const ValidationSystem = memo(({ product, onValidationChange }) => {
         id: 'basePrice',
         name: 'Base Price',
         validate: (product) => {
-          const productConfig = PRODUCT_TYPES[product.ProductType];
-          if (!productConfig) return { valid: false, message: 'Invalid product type' };
-          
+          const basePrice = PRODUCT_TYPES[product.ProductType].basePrice;
           return {
-            valid: product.originalPrice >= productConfig.basePrice,
-            message: `Price must be at least ${CURRENCY.format(productConfig.basePrice)} for ${productConfig.label}`
+            valid: product.originalPrice >= basePrice,
+            message: `Price must be at least ${CURRENCY.format(basePrice)} for ${PRODUCT_TYPES[product.ProductType].label}`
           };
         }
       },
@@ -1917,13 +1891,10 @@ StatusManager.displayName = 'StatusManager';
 
 
 const AdminProductApproval = () => {
-
-
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { user } = useSelector((state) => state.user);
-  const { seller } = useSelector((state) => state.seller);
   const { isLoading, pendingProducts } = useSelector((state) => state.product);
+
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editedProduct, setEditedProduct] = useState(null);
   const [validationStatus, setValidationStatus] = useState({});
@@ -1931,38 +1902,6 @@ const AdminProductApproval = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showGridLines, setShowGridLines] = useState(false);
-  const [isAuthChecked, setIsAuthChecked] = useState(false);
-
-
-
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        const authenticatedUser = await checkAndRefreshAuth();
-        
-        if (!authenticatedUser) {
-          toast.error('Please login to continue');
-          navigate('/login');
-          return;
-        }
-
-        if (authenticatedUser.role !== 'admin') {
-          toast.error('Access denied. Admin privileges required.');
-          navigate('/');
-          return;
-        }
-
-        setIsAuthChecked(true);
-        await dispatch(fetchPendingProducts());
-      } catch (error) {
-        console.error('Auth initialization failed:', error);
-        toast.error('Authentication failed. Please login again.');
-        navigate('/login');
-      }
-    };
-
-    initializeAuth();
-  }, [dispatch, navigate]);
 
   // Load pending products
   useEffect(() => {
@@ -1987,74 +1926,19 @@ const AdminProductApproval = () => {
   }, [pendingProducts, searchQuery, filterStatus]);
 
   // Handle product selection
-  const calculatePricing = useCallback((productType) => {
-    // Default to t-shirt if product type is invalid
-    const validProductType = PRODUCT_TYPES[productType] ? productType : 't-shirt';
-    const config = PRODUCT_TYPES[validProductType];
-    
-    const recommendedPrice = config.basePrice;
-    const discountPrice = Math.round(recommendedPrice * 0.85); // 15% discount
-  
-    return {
-      originalPrice: recommendedPrice,
-      discountPrice: discountPrice
-    };
-  }, []);
-
-
   const handleProductSelect = useCallback((product) => {
-    if (!product) {
-      console.warn('No product provided to handleProductSelect');
-      return;
-    }
-  
-    // Log the incoming product for debugging
-    console.log('Selecting product:', product);
-  
-    try {
-      const defaultProductType = 't-shirt';
-      const defaultColor = 'white';
-      const defaultView = 'front';
-  
-      // Ensure we have valid product type and color
-      const productType = PRODUCT_TYPES[product.ProductType] 
-        ? product.ProductType 
-        : defaultProductType;
-        
-      const productColor = COLOR_OPTIONS[product.ProductColor]
-        ? product.ProductColor
-        : defaultColor;
-  
-      const processedProduct = {
-        ...product,
-        ProductType: productType,
-        ProductColor: productColor,
-        ProductView: product.ProductView || defaultView,
-        DesignScale: product.DesignScale || 1,
-        DesignPosition: product.DesignPosition || { x: 50, y: 25 },
-        originalPrice: product.originalPrice || PRODUCT_TYPES[productType].basePrice,
-        availableColors: Array.isArray(product.availableColors) 
-          ? product.availableColors 
-          : [productColor],
-        availableProductTypes: Array.isArray(product.availableProductTypes)
-          ? product.availableProductTypes
-          : [productType],
-        mainTags: Array.isArray(product.mainTags) ? product.mainTags : [],
-        Designtags: Array.isArray(product.Designtags) ? product.Designtags : [],
-        status: product.status || 'pending'
-      };
-  
-      // Log the processed product for debugging
-      console.log('Processed product:', processedProduct);
-  
-      setSelectedProduct(product);
-      setEditedProduct(processedProduct);
-      
-    } catch (error) {
-      console.error('Error in handleProductSelect:', error);
-      toast.error('Failed to load product details');
-    }
+    setSelectedProduct(product);
+    setEditedProduct({
+      ...product,
+      DesignScale: product.DesignScale || 1,
+      DesignPosition: product.DesignPosition || { x: 50, y: 25 },
+      originalPrice: product.originalPrice || PRODUCT_TYPES[product.ProductType].basePrice,
+      availableColors: product.availableColors || [product.ProductColor],
+      availableProductTypes: product.availableProductTypes || [product.ProductType],
+      mainTags: product.mainTags || []
+    });
   }, []);
+
   // Handle product updates with validation
   const handleProductUpdate = useCallback((updates) => {
     setEditedProduct(prev => {
@@ -2094,7 +1978,7 @@ const AdminProductApproval = () => {
 
       return updated;
     });
-  }, [navigate, user]);
+  }, []);
 
   // Handle design position update
   const handlePositionChange = useCallback((position) => {
@@ -2116,49 +2000,47 @@ const AdminProductApproval = () => {
       isValid
     }));
   }, []);
-  const handleStatusChange = async (newStatus) => {
-  if (!editedProduct) {
-    toast.error('No product selected');
-    return;
-  }
 
-  try {
-    setIsSubmitting(true);
-
-    const response = await fetch(`/api/v2/product/admin-update/${editedProduct._id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        status: newStatus,
-        rejectionReason: editedProduct.rejectionReason || '',
-        ...editedProduct
-      })
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to update status');
+  // Handle status change
+  const handleStatusChange = useCallback(async (newStatus) => {
+    if (!editedProduct) {
+      toast.error('No product selected');
+      return;
     }
-
-    toast.success(`Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully`);
-    setSelectedProduct(null);
-    setEditedProduct(null);
-    dispatch(fetchPendingProducts());
-  } catch (error) {
-    console.error('Status change failed:', error);
-    toast.error(error.message || 'Failed to update product status');
-    
-    if (error.message.includes('Authentication')) {
-      navigate('/login');
-    }
-  } finally {
-    setIsSubmitting(false);
-  }
-};
   
+    try {
+      setIsSubmitting(true);
+      console.log('Starting approval process for:', editedProduct._id);
+  
+      const result = await dispatch(
+        approveRejectProduct(
+          editedProduct._id,
+          newStatus,
+          editedProduct.rejectionReason || '',
+          {
+            originalPrice: editedProduct.originalPrice,
+            discountPrice: editedProduct.discountPrice,
+            ProductType: editedProduct.ProductType,
+            ProductColor: editedProduct.ProductColor,
+            ProductView: editedProduct.ProductView,
+            availableColors: editedProduct.availableColors
+          }
+        )
+      );
+  
+      if (result.success) {
+        toast.success(result.message);
+        setSelectedProduct(null);
+        setEditedProduct(null);
+      }
+    } catch (error) {
+      console.error('Status change failed:', error);
+      toast.error(error.response?.data?.message || 'Failed to update product status');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [editedProduct, dispatch]);
+
   // Check if user has admin access
   if (!user?.role === 'admin') {
     return (
@@ -2174,13 +2056,7 @@ const AdminProductApproval = () => {
       </div>
     );
   }
-  if (!isAuthChecked) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
-      </div>
-    );
-  }
+
   return (
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
