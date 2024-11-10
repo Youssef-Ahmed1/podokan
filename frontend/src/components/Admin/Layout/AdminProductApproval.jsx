@@ -668,9 +668,16 @@ const PriceCalculator = memo(({
     }
   }, [onChange, originalPrice, discountPrice, validatePrice]);
 
+
+  if (!isAuthChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
+      </div>
+    );
+  }
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-      {/* ... rest of your PriceCalculator component ... */}
       <div className="p-4 space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1914,23 +1921,39 @@ const AdminProductApproval = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showGridLines, setShowGridLines] = useState(false);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
 
 
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token || !user) {
-      toast.error('Please login to continue');
-      navigate('/login');
-      return;
-    }
+    const initializeAuth = async () => {
+      try {
+        const authenticatedUser = await checkAndRefreshAuth();
+        
+        if (!authenticatedUser) {
+          toast.error('Please login to continue');
+          navigate('/login');
+          return;
+        }
 
-    if (user.role !== 'admin') {
-      toast.error('Access denied. Admin privileges required.');
-      navigate('/');
-      return;
-    }
-  }, [user, navigate]);
+        if (authenticatedUser.role !== 'admin') {
+          toast.error('Access denied. Admin privileges required.');
+          navigate('/');
+          return;
+        }
+
+        setIsAuthChecked(true);
+        await dispatch(fetchPendingProducts());
+      } catch (error) {
+        console.error('Auth initialization failed:', error);
+        toast.error('Authentication failed. Please login again.');
+        navigate('/login');
+      }
+    };
+
+    initializeAuth();
+  }, [dispatch, navigate]);
+
   // Load pending products
   useEffect(() => {
     dispatch(fetchPendingProducts());
@@ -2084,67 +2107,47 @@ const AdminProductApproval = () => {
     }));
   }, []);
   const handleStatusChange = async (newStatus) => {
-    if (!editedProduct) {
-      toast.error('No product selected');
-      return;
-    }
-  
-    try {
-      setIsSubmitting(true);
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        toast.error('Please login to continue');
-        navigate('/login');
-        return;
-      }
-  
-      const config = {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      };
-  
-      const updates = {
-        ...editedProduct,
-        status: newStatus,
-        ProductType: editedProduct.ProductType || 't-shirt',
-      };
-  
-      if (newStatus === 'public') {
-        const pricing = calculatePricing(updates.ProductType);
-        Object.assign(updates, pricing);
-      }
-  
-      const result = await dispatch(
-        approveRejectProduct(
-          editedProduct._id,
-          newStatus,
-          editedProduct.rejectionReason || '',
-          updates
-        )
-      );
-  
-      if (result?.success) {
-        toast.success(`Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully`);
-        setSelectedProduct(null);
-        setEditedProduct(null);
-        dispatch(fetchPendingProducts());
-      }
-    } catch (error) {
-      console.error('Status change failed:', error);
-      if (error?.response?.status === 401) {
-        toast.error('Session expired. Please login again');
-        navigate('/login');
-      } else {
-        toast.error(error?.response?.data?.message || 'Failed to update product status');
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  if (!editedProduct) {
+    toast.error('No product selected');
+    return;
+  }
 
+  try {
+    setIsSubmitting(true);
+
+    const response = await fetch(`/api/v2/product/admin-update/${editedProduct._id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        status: newStatus,
+        rejectionReason: editedProduct.rejectionReason || '',
+        ...editedProduct
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update status');
+    }
+
+    toast.success(`Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully`);
+    setSelectedProduct(null);
+    setEditedProduct(null);
+    dispatch(fetchPendingProducts());
+  } catch (error) {
+    console.error('Status change failed:', error);
+    toast.error(error.message || 'Failed to update product status');
+    
+    if (error.message.includes('Authentication')) {
+      navigate('/login');
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   
   // Check if user has admin access
   if (!user?.role === 'admin') {
