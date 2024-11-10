@@ -8,7 +8,7 @@ const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 const sendToken = require("../utils/jwtToken");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
-
+//.
 // controller/user.js - update the create-user route
 router.post("/create-user", async (req, res, next) => {
   try {
