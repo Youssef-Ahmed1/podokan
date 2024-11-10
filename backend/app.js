@@ -25,79 +25,64 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
 
 // CORS configuration
 app.use(cors({
-  origin: ['https://testpodokan.store', 'http://localhost:3000'],
+  origin: function(origin, callback) {
+    const allowedOrigins = ['https://testpodokan.store', 'http://localhost:3000'];
+    callback(null, allowedOrigins.includes(origin) ? origin : allowedOrigins[0]);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'Seller-Authorization',
-    'x-requested-with'
-  ]
+  allowedHeaders: ['Content-Type', 'Authorization', 'Seller-Authorization'],
+  exposedHeaders: ['Authorization', 'Seller-Authorization']
 }));
 
-// Authentication middleware
+// Security headers
 app.use((req, res, next) => {
-  try {
-    // Extract tokens from cookies and headers
-    const authToken = req.cookies.token || 
-      (req.headers.authorization?.startsWith('Bearer ') ? 
-        req.headers.authorization.slice(7) : null);
-
-    const sellerToken = req.cookies.seller_token || 
-      (req.headers['seller-authorization']?.startsWith('Bearer ') ? 
-        req.headers['seller-authorization'].slice(7) : null);
-
-    // Set clean headers
-    if (authToken) {
-      req.headers.authorization = `Bearer ${authToken}`;
-    }
-    if (sellerToken) {
-      req.headers['seller-authorization'] = `Bearer ${sellerToken}`;
-    }
-
-    // Cookie settings for responses
-    res.cookie = (name, value, options = {}) => {
-      const defaultOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'PRODUCTION',
-        sameSite: 'strict',
-        domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined,
-        path: '/'
-      };
-      return express.response.cookie.call(res, name, value, { ...defaultOptions, ...options });
-    };
-
-    next();
-  } catch (error) {
-    console.error('Auth middleware error:', error);
-    next();
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,UPDATE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization, Seller-Authorization');
+  
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
+  next();
+});
+
+// Cookie config middleware
+app.use((req, res, next) => {
+  res.cookie = (name, value, options = {}) => {
+    const defaultOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'PRODUCTION',
+      sameSite: 'strict',
+      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined,
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    };
+    
+    return res.cookie(name, value, { ...defaultOptions, ...options });
+  };
+  next();
 });
 
 // Routes
-const user = require("./controller/user");
-const shop = require("./controller/shop");
-const product = require("./controller/product");
-const event = require("./controller/event");
-const coupon = require("./controller/coupounCode");
-const payment = require("./controller/payment");
-const order = require("./controller/order");
-const conversation = require("./controller/conversation");
-const message = require("./controller/message");
-const withdraw = require("./controller/withdraw");
+const routes = {
+  user: require("./controller/user"),
+  shop: require("./controller/shop"),
+  product: require("./controller/product"),
+  event: require("./controller/event"),
+  coupon: require("./controller/coupounCode"),
+  payment: require("./controller/payment"),
+  order: require("./controller/order"),
+  conversation: require("./controller/conversation"),
+  message: require("./controller/message"),
+  withdraw: require("./controller/withdraw")
+};
 
-// API Routes
-app.use("/api/v2/user", user);
-app.use("/api/v2/shop", shop);
-app.use("/api/v2/product", product);
-app.use("/api/v2/event", event);
-app.use("/api/v2/coupon", coupon);
-app.use("/api/v2/payment", payment);
-app.use("/api/v2/order", order);
-app.use("/api/v2/conversation", conversation);
-app.use("/api/v2/message", message);
-app.use("/api/v2/withdraw", withdraw);
+// Mount routes
+Object.entries(routes).forEach(([name, router]) => {
+  app.use(`/api/v2/${name}`, router);
+});
 
 // Error handling
 app.use((err, req, res, next) => {
@@ -108,33 +93,17 @@ app.use((err, req, res, next) => {
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 
-  // Handle specific errors
-  if (err.name === 'UnauthorizedError' || err.statusCode === 401) {
-    return res.status(401).json({
-      success: false,
-      message: "Authentication failed"
-    });
-  }
-
-  if (err.type === 'entity.too.large') {
-    return res.status(413).json({
-      success: false,
-      message: "Request entity too large"
-    });
-  }
-
-  // Default error response
   res.status(err.statusCode || 500).json({
     success: false,
-    message: err.message || "Internal server error"
+    message: err.message || 'Internal Server Error'
   });
 });
 
-// Handle unhandled routes
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: "Route not found"
+    message: 'Route not found'
   });
 });
 
