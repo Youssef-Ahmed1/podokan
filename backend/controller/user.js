@@ -6,7 +6,7 @@ const cloudinary = require("cloudinary");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const jwt = require("jsonwebtoken");
-const sendToken = require("../utils/jwtToken");
+const sendToken2 = require("../utils/jwtToken");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
 
 // controller/user.js - update the create-user route
@@ -141,7 +141,7 @@ router.post(
         password,
       });
 
-      sendToken(user, 201, res);
+      sendToken2(user, 201, res);
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
@@ -167,8 +167,7 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
       return next(new ErrorHandler("Invalid credentials", 401));
     }
 
-    // Use your sendToken helper
-    sendToken(user, 200, res);
+    sendToken2(user, 200, res);
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
@@ -410,8 +409,6 @@ router.get(
   })
 );
 
-// all users --- for admin
-// controller/user.js
 
 // Get all users -- admin only
 router.get(
