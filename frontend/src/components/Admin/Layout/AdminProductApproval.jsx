@@ -685,13 +685,7 @@ const PriceCalculator = memo(({
   }, [onChange, originalPrice, discountPrice, validatePrice]);
 
 
-  if (!isAuthChecked) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
-      </div>
-    );
-  }
+
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       <div className="p-4 space-y-4">
@@ -1937,7 +1931,7 @@ const AdminProductApproval = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showGridLines, setShowGridLines] = useState(false);
-  const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [IsAuthChecked, setIsAuthChecked] = useState(false);
 
 
 
@@ -2180,7 +2174,13 @@ const AdminProductApproval = () => {
       </div>
     );
   }
-
+  if (!isAuthChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
