@@ -1,9 +1,7 @@
 
 import axios from "axios";
 import { server } from "../../server";
-import { toast } from 'react-toastify';
 
-axios.defaults.withCredentials = true;
 const getAuthHeaders = (isMultipart = false) => {
   const token = localStorage.getItem('token');
   const sellerToken = localStorage.getItem('seller_token');
@@ -29,37 +27,29 @@ export const createProduct = (formData) => async (dispatch) => {
     dispatch({ type: "productCreateRequest" });
 
     const config = {
-      headers: { 
-        "Content-Type": "multipart/form-data",
-        // Add authorization header
-        "Authorization": `Bearer ${localStorage.getItem("seller_token")}`
-      },
-      withCredentials: true
+      headers: getAuthHeaders(true), // true for multipart/form-data
+      withCredentials: true,
+      timeout: 30000
     };
 
-    const response = await axios.post(
+    const { data } = await axios.post(
       `${server}/product/create-product`,
       formData,
       config
     );
 
-    dispatch({
-      type: "productCreateSuccess",
-      payload: response.data.product
+    dispatch({ 
+      type: "productCreateSuccess", 
+      payload: data.product 
     });
 
-    return response.data;
-
+    return { 
+      success: true, 
+      product: data.product,
+      message: data.message
+    };
   } catch (error) {
-    if (error.response?.status === 401) {
-      toast.error("Please login to continue");
- 
-    }
-    
-    dispatch({
-      type: "productCreateFail",
-      payload: error.response?.data?.message || "Failed to create product"
-    });
+    console.error("Product creation error:", error);
     throw error;
   }
 };
@@ -67,35 +57,41 @@ export const createProduct = (formData) => async (dispatch) => {
 // Fetch pending products
 export const fetchPendingProducts = () => async (dispatch) => {
   try {
-    dispatch({ type: 'productPendingRequest' });
+    dispatch({ type: "fetchPendingProductsRequest" });
     
-    const response = await fetch('/api/v2/product/admin/pending-products', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include' // Important for cookies
-    });
+    const config = {
+      headers: getAuthHeaders(),
+      withCredentials: true,
+      timeout: 60000 
+    };
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch products');
-    }
+    const { data } = await axios.get(
+      `${server}/product/admin/pending-products?limit=10`, 
+      config
+    );
 
-    const data = await response.json();
-
-    dispatch({
-      type: 'productPendingSuccess',
-      payload: data.products
+    dispatch({ 
+      type: "fetchPendingProductsSuccess", 
+      payload: data.products 
     });
   } catch (error) {
-    dispatch({
-      type: 'productPendingFail',
-      payload: error.message
-    });
-    throw error;
+    if (error.code === 'ECONNABORTED') {
+      dispatch({
+        type: "fetchPendingProductsFail",
+        payload: "Request timed out - please try again"
+      });
+    } else {
+      dispatch({
+        type: "fetchPendingProductsFail",
+        payload: error.response?.data?.message || 
+                 "Failed to fetch pending products"
+      });
+    }
   }
 };
+
 // Approve/Reject product
+// frontend/redux/actions/product.js
 
 export const approveRejectProduct = (productId, status, reason) => async (dispatch) => {
   try {
