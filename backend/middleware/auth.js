@@ -1,80 +1,90 @@
 const ErrorHandler = require("../utils/ErrorHandler");
-const catchAsyncErrors = require("./catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 const User = require("../model/user");
 const Shop = require("../model/shop");
 
-exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
-  try {
-    let token = req.cookies.token;
+// Clean error response helper
+const sendAuthError = (res, message, status = 401) => {
+  return res.status(status).json({
+    success: false,
+    message
+  });
+};
 
-    if (!token && req.headers.authorization) {
-      token = req.headers.authorization.replace("Bearer ", "");
-    }
+exports.isAuthenticated = async (req, res, next) => {
+  try {
+    const token = req.cookies?.token || 
+                 (req.headers.authorization?.startsWith('Bearer') ? 
+                  req.headers.authorization.split(' ')[1] : null);
 
     if (!token) {
-      return next(new ErrorHandler("Please login to continue", 401));
+      return sendAuthError(res, "Please login to continue");
     }
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-      const user = await User.findById(decoded.id);
-
-      if (!user) {
-        return next(new ErrorHandler("User not found", 401));
+      req.user = await User.findById(decoded.id).select('-password');
+      
+      if (!req.user) {
+        return sendAuthError(res, "User not found");
       }
-
-      req.user = user;
+      
       next();
     } catch (jwtError) {
-      return next(new ErrorHandler("Invalid token", 401));
+      console.error("JWT Verification failed:", jwtError);
+      return sendAuthError(res, "Invalid or expired token");
     }
   } catch (error) {
-    return next(new ErrorHandler("Authentication failed", 401));
+    console.error("Auth error:", error);
+    return sendAuthError(res, "Authentication failed");
   }
-});
+};
 
-exports.isSeller = catchAsyncErrors(async (req, res, next) => {
+exports.isSeller = async (req, res, next) => {
   try {
-    let sellerToken = req.cookies.seller_token;
+    const token = req.cookies?.seller_token || 
+                 (req.headers['seller-authorization']?.startsWith('Bearer') ? 
+                  req.headers['seller-authorization'].split(' ')[1] : null);
 
-    if (!sellerToken && req.headers['seller-authorization']) {
-      sellerToken = req.headers['seller-authorization'].replace("Bearer ", "");
-    }
-
-    if (!sellerToken) {
-      return next(new ErrorHandler("Please login as seller to continue", 401));
+    if (!token) {
+      return sendAuthError(res, "Please login as seller to continue");
     }
 
     try {
-      const decoded = jwt.verify(sellerToken, process.env.JWT_SECRET_KEY);
-      const seller = await Shop.findById(decoded.id);
-
-      if (!seller) {
-        return next(new ErrorHandler("Seller not found", 401));
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      req.seller = await Shop.findById(decoded.id).select('-password');
+      
+      if (!req.seller) {
+        return sendAuthError(res, "Seller not found");
       }
-
-      req.seller = seller;
+      
       next();
     } catch (jwtError) {
-      return next(new ErrorHandler("Invalid seller token", 401));
+      console.error("Seller JWT Verification failed:", jwtError);
+      return sendAuthError(res, "Invalid or expired seller token");
     }
   } catch (error) {
-    return next(new ErrorHandler("Seller authentication failed", 401));
+    console.error("Seller auth error:", error);
+    return sendAuthError(res, "Seller authentication failed");
   }
-});
+};
 
-exports.isAdmin = catchAsyncErrors(async (req, res, next) => {
-  if (!req.user) {
-    return next(new ErrorHandler("Please login first", 401));
+exports.isAdmin = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return sendAuthError(res, "Please login first");
+    }
+
+    if (req.user.role !== "admin") {
+      return sendAuthError(res, "Access denied. Admin only.", 403);
+    }
+
+    next();
+  } catch (error) {
+    console.error("Admin auth error:", error);
+    return sendAuthError(res, "Admin authorization failed", 403);
   }
+};
 
-  if (req.user.role !== "admin") {
-    return next(new ErrorHandler("Access denied. Admin only.", 403));
-  }
-
-  next();
-});
-
-// Combined middleware for routes that need both authentication and admin rights
+// Combined middleware
 exports.isAuthenticatedAdmin = [exports.isAuthenticated, exports.isAdmin];
