@@ -1931,7 +1931,7 @@ const AdminProductApproval = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showGridLines, setShowGridLines] = useState(false);
-  const [IsAuthChecked, setIsAuthChecked] = useState(false);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
 
 
 
