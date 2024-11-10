@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 const sendToken = (user, statusCode, res) => {
   const token = user.getJwtToken();
 
