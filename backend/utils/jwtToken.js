@@ -1,19 +1,18 @@
-// utils/jwtToken.js
-const jwt = require("jsonwebtoken");
-
 const sendToken = (user, statusCode, res) => {
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
-    expiresIn: "7d",
-  });
+  const token = user.getJwtToken();
+
+  // Cookie options
+  const options = {
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'PRODUCTION',
+    sameSite: 'strict',
+    path: '/',
+    domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
+  };
 
   res.status(statusCode)
-    .cookie("token", token, {
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      domain: ".testpodokan.store"
-    })
+    .cookie("token", token, options)
     .json({
       success: true,
       user,
