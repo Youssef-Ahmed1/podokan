@@ -3,7 +3,7 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/sendMail");
 const Shop = require("../model/shop");
-const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
+const { isAuthenticated, isSeller, isAdmin  , isAuthenticatedAdmin} = require("../middleware/auth");
 const cloudinary = require("cloudinary");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
@@ -278,22 +278,17 @@ router.put(
 // controller/shop.js
 
 // Get all sellers -- admin only
-router.get(
-  "/admin-all-sellers",
-  isAuthenticated,
-  isAdmin,  
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const sellers = await Shop.find().sort({ createdAt: -1 });
-      res.status(200).json({
-        success: true,
-        sellers,
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
+router.get("/admin-all-sellers", isAuthenticatedAdmin, catchAsyncErrors(async (req, res, next) => {
+  try {
+    const sellers = await Shop.find().sort({ createdAt: -1 });
+    res.status(200).json({
+      success: true,
+      sellers,
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+}));
 
 // Delete seller -- admin only
 router.delete(
