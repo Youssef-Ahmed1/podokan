@@ -23,9 +23,10 @@ const cookieOptions = {
   secure: true,
   domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : 'localhost'
 };
+
 app.use(cors({
   origin: function(origin, callback) {
-    const allowedOrigins = ['http://localhost:3000', 'https://testpodokan.store'];
+    const allowedOrigins = ['http://localhost:3000', 'https://testpodokan.store' , 'http://testpodokan.store'] ;
     // Allow requests with no origin (mobile apps, curl)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
