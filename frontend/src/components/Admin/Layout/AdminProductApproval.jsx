@@ -9,10 +9,26 @@ import { debounce } from 'lodash';
 import PropTypes from 'prop-types';
 
 
-console.log('Current auth state:', {
-  user: localStorage.getItem('user'),
-  token: localStorage.getItem('token')
-});
+const checkAndRefreshAuth = async () => {
+  try {
+    const response = await fetch('/api/v2/user/getuser', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include' // Important for cookies
+    });
+
+    if (!response.ok) {
+      throw new Error('Auth check failed');
+    }
+
+    const data = await response.json();
+    return data.user;
+  } catch (error) {
+    return null;
+  }
+};
 // Constants
 const PRODUCT_TYPES = {
   't-shirt': {
