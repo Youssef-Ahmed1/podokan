@@ -63,6 +63,11 @@ import { getAllProducts } from "./redux/actions/product";
 import { getAllEvents } from "./redux/actions/event";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
+
+
+
+
+
 const history = createBrowserHistory({
   getUserConfirmation: (message, callback) => {
     setTimeout(() => callback(true), 100);
@@ -82,6 +87,20 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Set default axios config
+    axios.defaults.withCredentials = true;
+    
+    // Set tokens if they exist
+    const token = localStorage.getItem('token');
+    const sellerToken = localStorage.getItem('seller_token');
+
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+    if (sellerToken) {
+      axios.defaults.headers.common['Seller-Authorization'] = `Bearer ${sellerToken}`;
+    }
+
     const loadInitialData = async () => {
       try {
         setIsLoading(true);
@@ -107,20 +126,21 @@ const App = () => {
 
   return (
     <BrowserRouter>
-       <Routes>
-            <Route
-              path="/payment"
-              element={
-                <ProtectedRoute>
-                  <PaymentPage />
-                </ProtectedRoute>
-              }
-            />
+      <Routes>
+        {/* Payment Route */}
+        <Route
+          path="/payment"
+          element={
+            <ProtectedRoute>
+              <PaymentPage />
+            </ProtectedRoute>
+          }
+        />
           </Routes>
       
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<LoginPage />} />
         <Route path="/sign-up" element={<SignupPage />} />
         <Route
           path="/activation/:activation_token"
@@ -362,7 +382,7 @@ const App = () => {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="dark"
+        theme="Light"
       />
     </BrowserRouter>
   );
