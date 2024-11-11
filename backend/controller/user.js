@@ -154,22 +154,35 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return next(new ErrorHandler("Please provide all fields", 400));
+      return res.status(400).json({
+        success: false,
+        message: "Please provide email and password"
+      });
     }
 
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
-      return next(new ErrorHandler("User doesn't exist", 401));
+      return res.status(401).json({
+        success: false,
+        message: "User doesn't exist"
+      });
     }
 
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      return next(new ErrorHandler("Invalid credentials", 401));
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials"
+      });
     }
 
-    sendToken2(user, 200, res);
+    sendToken(user, 200, res);
   } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
+    console.error("Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Login failed"
+    });
   }
 }));
 
