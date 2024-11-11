@@ -1,26 +1,27 @@
+require("dotenv").config({
+  path: "config/.env",
+});
+
 const app = require("./app");
 const connectDatabase = require("./db/Database.js");
 const cloudinary = require("cloudinary").v2;
 
-if (process.env.NODE_ENV !== "PRODUCTION") {
-  require("dotenv").config({
-    path: "config/.env",
-  });
-}
-
+// Configure cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const server = require('http').createServer(app);
+// Create HTTP server
+const httpServer = require('http').createServer(app);
 
+// Database connection with retry
 const connectWithRetry = async (retries = 5) => {
   try {
     await connectDatabase();
     const port = process.env.PORT || 8000;
-    server.listen(port, () => {
+    httpServer.listen(port, () => {
       console.log(`Server running on port ${port}`);
       console.log('Database connected');
     });
@@ -36,14 +37,16 @@ const connectWithRetry = async (retries = 5) => {
   }
 };
 
+// Error handlers
 process.on("uncaughtException", (err) => {
   console.error("Uncaught Exception:", err);
-  server.close(() => process.exit(1));
+  httpServer.close(() => process.exit(1));
 });
 
 process.on("unhandledRejection", (err) => {
   console.error("Unhandled Rejection:", err);
-  server.close(() => process.exit(1));
+  httpServer.close(() => process.exit(1));
 });
 
+// Start the server
 connectWithRetry();
