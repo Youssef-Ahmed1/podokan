@@ -1,28 +1,49 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cookieParser = require("cookie-parser");
-const cors = require("cors");
-const app = express();
+const app = require("./app");
+const connectDatabase = require("./db/Database.js");
+const cloudinary = require("cloudinary").v2;
 
-app.use(express.json());
-app.use(cookieParser());
-app.use(cors({
-  origin: 'https://testpodokan.store',
-  credentials: true
-}));
+if (process.env.NODE_ENV !== "PRODUCTION") {
+  require("dotenv").config({
+    path: "config/.env",
+  });
+}
 
-// Routes without extra /api/v2
-app.use("/user", require("./controller/user"));
-app.use("/shop", require("./controller/shop"));
-app.use("/product", require("./controller/product"));
-app.use("/event", require("./controller/event"));
-app.use("/order", require("./controller/order"));
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-mongoose.connect(process.env.DB_URL)
-  .then(() => {
-    console.log("Database connected");
-    app.listen(8000, () => console.log("Server running on port 8000"));
-  })
-  .catch((err) => console.log("Database connection failed:", err));
+const server = require('http').createServer(app);
 
-module.exports = server.js;
+const connectWithRetry = async (retries = 5) => {
+  try {
+    await connectDatabase();
+    const port = process.env.PORT || 8000;
+    server.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+      console.log('Database connected');
+    });
+  } catch (err) {
+    console.error('Database connection failed:', err.message);
+    if (retries > 0) {
+      console.log(`Retrying in 5 seconds... (${retries} attempts remaining)`);
+      setTimeout(() => connectWithRetry(retries - 1), 5000);
+    } else {
+      console.error('Max retries reached, exiting...');
+      process.exit(1);
+    }
+  }
+};
+
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+  server.close(() => process.exit(1));
+});
+
+process.on("unhandledRejection", (err) => {
+  console.error("Unhandled Rejection:", err);
+  server.close(() => process.exit(1));
+});
+
+connectWithRetry();
