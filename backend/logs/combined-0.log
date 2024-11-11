@@ -5677,3 +5677,255 @@
 2024-11-11T16:01:39:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
 2024-11-11T16:01:39:     at Module.load (node:internal/modules/cjs/loader:1288:32)
 2024-11-11T16:01:39:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:00: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:00: <<<<<<< HEAD
+2024-11-11T16:20:00: ^^
+2024-11-11T16:20:00: 
+2024-11-11T16:20:00: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:00:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:00:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:00:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:00:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:00:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:00:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:00:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:00:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:00:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:20:00: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:00: <<<<<<< HEAD
+2024-11-11T16:20:00: ^^
+2024-11-11T16:20:00: 
+2024-11-11T16:20:00: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:00:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:00:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:00:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:00:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:00:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:00:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:00:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:00:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:00:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:20:01: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:01: <<<<<<< HEAD
+2024-11-11T16:20:01: ^^
+2024-11-11T16:20:01: 
+2024-11-11T16:20:01: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:01:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:01:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:01:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:01:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:01:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:01:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:01:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:01:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:01:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:01:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:20:01: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:01: <<<<<<< HEAD
+2024-11-11T16:20:01: ^^
+2024-11-11T16:20:01: 
+2024-11-11T16:20:01: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:01:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:01:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:01:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:01:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:01:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:01:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:01:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:01:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:01:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:01:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:20:01: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:01: <<<<<<< HEAD
+2024-11-11T16:20:01: ^^
+2024-11-11T16:20:01: 
+2024-11-11T16:20:01: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:01:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:01:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:01:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:01:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:01:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:01:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:01:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:01:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:01:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:01:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:20:01: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:01: <<<<<<< HEAD
+2024-11-11T16:20:01: ^^
+2024-11-11T16:20:01: 
+2024-11-11T16:20:01: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:01:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:01:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:01:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:01:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:01:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:01:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:01:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:01:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:01:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:01:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:20:01: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:01: <<<<<<< HEAD
+2024-11-11T16:20:01: ^^
+2024-11-11T16:20:01: 
+2024-11-11T16:20:01: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:01:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:01:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:01:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:01:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:01:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:01:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:01:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:01:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:01:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:01:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:20:02: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:02: <<<<<<< HEAD
+2024-11-11T16:20:02: ^^
+2024-11-11T16:20:02: 
+2024-11-11T16:20:02: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:02:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:02:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:02:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:02:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:02:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:02:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:02:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:02:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:02:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:02:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:20:02: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:02: <<<<<<< HEAD
+2024-11-11T16:20:02: ^^
+2024-11-11T16:20:02: 
+2024-11-11T16:20:02: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:02:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:02:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:02:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:02:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:02:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:02:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:02:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:02:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:02:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:02:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:20:02: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:02: <<<<<<< HEAD
+2024-11-11T16:20:02: ^^
+2024-11-11T16:20:02: 
+2024-11-11T16:20:02: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:02:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:02:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:02:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:02:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:02:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:02:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:02:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:02:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:02:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:02:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:20:02: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:02: <<<<<<< HEAD
+2024-11-11T16:20:02: ^^
+2024-11-11T16:20:02: 
+2024-11-11T16:20:02: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:02:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:02:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:02:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:02:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:02:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:02:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:02:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:02:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:02:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:02:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:20:03: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:03: <<<<<<< HEAD
+2024-11-11T16:20:03: ^^
+2024-11-11T16:20:03: 
+2024-11-11T16:20:03: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:03:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:03:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:03:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:03:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:03:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:03:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:03:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:03:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:03:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:03:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:20:03: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:03: <<<<<<< HEAD
+2024-11-11T16:20:03: ^^
+2024-11-11T16:20:03: 
+2024-11-11T16:20:03: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:03:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:03:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:03:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:03:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:03:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:03:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:03:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:03:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:03:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:03:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:20:03: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:03: <<<<<<< HEAD
+2024-11-11T16:20:03: ^^
+2024-11-11T16:20:03: 
+2024-11-11T16:20:03: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:03:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:03:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:03:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:03:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:03:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:03:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:03:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:03:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:03:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:03:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:20:03: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:03: <<<<<<< HEAD
+2024-11-11T16:20:03: ^^
+2024-11-11T16:20:03: 
+2024-11-11T16:20:03: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:03:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:03:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:03:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:03:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:03:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:03:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:03:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:03:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:03:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:03:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:20:03: /var/www/podokan/backend/app.js:60
+2024-11-11T16:20:03: <<<<<<< HEAD
+2024-11-11T16:20:03: ^^
+2024-11-11T16:20:03: 
+2024-11-11T16:20:03: SyntaxError: Unexpected token '<<'
+2024-11-11T16:20:03:     at wrapSafe (node:internal/modules/cjs/loader:1378:20)
+2024-11-11T16:20:03:     at Module._compile (node:internal/modules/cjs/loader:1428:41)
+2024-11-11T16:20:03:     at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+2024-11-11T16:20:03:     at Module.load (node:internal/modules/cjs/loader:1288:32)
+2024-11-11T16:20:03:     at Module._load (node:internal/modules/cjs/loader:1104:12)
+2024-11-11T16:20:03:     at Module.require (node:internal/modules/cjs/loader:1311:19)
+2024-11-11T16:20:03:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
+2024-11-11T16:20:03:     at require (node:internal/modules/helpers:179:18)
+2024-11-11T16:20:03:     at Object.<anonymous> (/var/www/podokan/backend/server.js:5:13)
+2024-11-11T16:20:03:     at Module._compile (node:internal/modules/cjs/loader:1469:14)
+2024-11-11T16:25:30: Server running on port 8000
+2024-11-11T16:25:30: Database connected
+2024-11-11T16:25:31: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-11T16:25:48: Server running on port 8000
+2024-11-11T16:25:48: Database connected
+2024-11-11T16:25:48: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-11T16:25:58: Server running on port 8000
+2024-11-11T16:25:58: Database connected
+2024-11-11T16:25:59: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
+2024-11-11T16:26:11: Server running on port 8000
+2024-11-11T16:26:11: Database connected
+2024-11-11T16:26:12: mongod connected with server: ac-u6kfsya-shard-00-00.iv8sqpb.mongodb.net
