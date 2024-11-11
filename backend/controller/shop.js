@@ -154,26 +154,27 @@ router.post("/login-shop", async (req, res) => {
     });
   }
 });
-router.get(
-  "/getSeller",
-  isSeller,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const seller = await Shop.findById(req.seller._id);
-
-      if (!seller) {
-        return next(new ErrorHandler("Seller not found", 404));
-      }
-
-      res.status(200).json({
-        success: true,
-        seller,
+router.get("/getSeller", isSeller, async (req, res) => {
+  try {
+    const seller = await Shop.findById(req.seller._id).select('-password');
+    if (!seller) {
+      return res.status(404).json({
+        success: false,
+        message: "Seller not found"
       });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
     }
-  })
-);
+    res.status(200).json({
+      success: true,
+      seller
+    });
+  } catch (error) {
+    console.error("Get seller error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get seller"
+    });
+  }
+});
 // log out from shop
 router.get(
   "/logout",
