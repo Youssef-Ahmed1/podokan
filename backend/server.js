@@ -1,32 +1,36 @@
-// server.js
 require('dotenv').config();
-const express = require("express");
-const mongoose = require("mongoose");
-const cookieParser = require("cookie-parser");
-const cors = require("cors");
-const app = express();
+const app = require('./app');
+const mongoose = require('mongoose');
 
-// Middlewares
-app.use(express.json());
-app.use(cookieParser());
-app.use(cors({
-  origin: 'https://testpodokan.store',
-  credentials: true
-}));
-
-// Routes
-app.use("/api/v2/user", require("./controller/user"));
-app.use("/api/v2/shop", require("./controller/shop"));
-app.use("/api/v2/product", require("./controller/product"));
-app.use("/api/v2/event", require("./controller/event"));
-app.use("/api/v2/order", require("./controller/order"));
+const PORT = process.env.PORT || 8000;
 
 // Connect to MongoDB
-mongoose.connect(process.env.DB_URL)
-  .then(() => console.log("Database connected"))
-  .catch((err) => console.log("Database connection failed:", err));
+mongoose.connect(process.env.DB_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  autoIndex: true,
+})
+.then(() => {
+  console.log("Database connected successfully");
+  
+  // Start server after DB connection
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+})
+.catch((err) => {
+  console.error("Database connection failed:", err);
+  process.exit(1);
+});
 
-// Start server
-app.listen(8000, () => {
-  console.log("Server running on port 8000");
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Rejection:', err);
+  process.exit(1);
 });
