@@ -14,31 +14,25 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+    
     try {
       const { data } = await axios.post(
-        `${server}/user/login-user`,
+        `${server}/api/v2/user/login-user`,
         { email, password },
-        { 
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" }
-        }
+        { withCredentials: true }
       );
   
       if (data.success) {
-        // Set token in localStorage
         localStorage.setItem('token', data.token);
-        
-        // Set axios default header
         axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-        
         toast.success("Login successful!");
         navigate("/");
+        window.location.reload();
       }
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Login failed");
     }
-  };//.
+  };
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">

@@ -16,20 +16,42 @@ export const getAllSellers = () => async (dispatch) => {
     });
   }
 };
+export const loginSeller = (email, password) => async (dispatch) => {
+  try {
+    dispatch({ type: "SellerLoginRequest" });
+
+    const { data } = await axios.post(
+      `${server}/shop/login-shop`,
+      { email, password }
+    );
+
+    localStorage.setItem('seller_token', data.token);
+    axios.defaults.headers.common['Seller-Authorization'] = `Bearer ${data.token}`;
+
+    dispatch({ 
+      type: "SellerLoginSuccess", 
+      payload: data.seller 
+    });
+  } catch (error) {
+    dispatch({
+      type: "SellerLoginFail",
+      payload: error.response?.data?.message || "Login failed"
+    });
+  }
+};
+
 export const logoutSeller = () => async (dispatch) => {
   try {
-    await axios.get(`${server}/shop/logout`, { withCredentials: true });
-    
-    // Clear localStorage
     localStorage.removeItem('seller_token');
+    delete axios.defaults.headers.common['Seller-Authorization'];
     
-    // Clear axios default header
-    delete axios.defaults.headers.common['Authorization'];
+    await axios.get(`${server}/shop/logout`);
     
-    dispatch({ type: "LoadSellerFail" });
-    
-    toast.success("Seller logout successful");
+    dispatch({ type: "SellerLogoutSuccess" });
   } catch (error) {
-    console.error("Seller logout error:", error);
+    dispatch({
+      type: "SellerLogoutFail",
+      payload: error.response?.data?.message || "Logout failed"
+    });
   }
 };
