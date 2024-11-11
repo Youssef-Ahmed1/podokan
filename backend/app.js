@@ -45,6 +45,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
 // Routes
+// Routes
 const routes = {
   user: require("./controller/user"),
   shop: require("./controller/shop"),
@@ -58,7 +59,7 @@ const routes = {
   withdraw: require("./controller/withdraw")
 };
 
-// Mount routes with API prefix
+// Mount routes with /api/v2 prefix
 Object.entries(routes).forEach(([name, router]) => {
   app.use(`/api/v2/${name}`, router);
 });
