@@ -24,42 +24,24 @@ const ShopLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (loading) return;
-  
     try {
-      setLoading(true);
-  
-      const config = {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        withCredentials: true
-      };
-  
       const { data } = await axios.post(
         `${server}/shop/login-shop`,
         { email, password },
-        config
+        { withCredentials: true }
       );
   
       if (data.success) {
         localStorage.setItem('seller_token', data.token);
-        
-        // Set default header for future requests
         axios.defaults.headers.common['Seller-Authorization'] = `Bearer ${data.token}`;
-        axios.defaults.withCredentials = true;
-  
-        toast.success("Login successful!");
+        toast.success("Seller login successful!");
         navigate("/dashboard");
+        window.location.reload();
       }
     } catch (error) {
-      console.error("Login error:", error);
       toast.error(error.response?.data?.message || "Login failed");
-    } finally {
-      setLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">

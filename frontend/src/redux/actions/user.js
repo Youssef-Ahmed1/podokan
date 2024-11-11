@@ -4,6 +4,7 @@ import { server } from "../../server";
 import { toast } from "react-toastify";
 
 
+
 axios.defaults.withCredentials = true;
 
 // Set auth token
@@ -95,20 +96,13 @@ export const loadUser = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadUserRequest" });
     
-    const { data } = await axios.get(`${server}/user/getuser`, {
-      withCredentials: true,
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    });
+    const { data } = await axios.get(`${server}/user/getuser`);
     
     dispatch({ 
       type: "LoadUserSuccess", 
       payload: data.user 
     });
   } catch (error) {
-    console.error("Load user error:", error.response?.data || error.message);
     dispatch({
       type: "LoadUserFail",
       payload: error.response?.data?.message || "Authentication failed"
@@ -120,14 +114,7 @@ export const loadSeller = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadSellerRequest" });
     
-    const { data } = await axios.get(`${server}/shop/getSeller`, {
-      withCredentials: true,
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Seller-Authorization': `Bearer ${localStorage.getItem('seller_token')}`
-      }
-    });
+    const { data } = await axios.get(`${server}/shop/getSeller`);
     
     dispatch({ 
       type: "LoadSellerSuccess", 
@@ -136,7 +123,7 @@ export const loadSeller = () => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: "LoadSellerFail",
-      payload: error.response?.data?.message || "Seller authentication failed"
+      payload: error.response?.data?.message || "Authentication failed"
     });
   }
 };
@@ -188,25 +175,44 @@ export const updateUserAddress =
       });
     }
   };
-  export const logout = () => async (dispatch) => {
+  export const login = (email, password) => async (dispatch) => {
     try {
-      await axios.get(`${server}/user/logout`, { withCredentials: true });
-      
-      // Clear localStorage
-      localStorage.removeItem('token');
-      localStorage.removeItem('seller_token');
-      
-      // Clear axios default header
-      delete axios.defaults.headers.common['Authorization'];
-      
-      dispatch({ type: "LoadUserFail" });
-      
-      toast.success("Logout successful");
+      dispatch({ type: "LoginRequest" });
+  
+      const { data } = await axios.post(
+        `${server}/user/login-user`,
+        { email, password }
+      );
+  
+      localStorage.setItem('token', data.token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+  
+      dispatch({ 
+        type: "LoginSuccess", 
+        payload: data.user 
+      });
     } catch (error) {
-      console.error("Logout error:", error);
+      dispatch({
+        type: "LoginFail",
+        payload: error.response?.data?.message || "Login failed"
+      });
     }
   };
-  
+  export const logout = () => async (dispatch) => {
+    try {
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+      
+      await axios.get(`${server}/user/logout`);
+      
+      dispatch({ type: "LogoutSuccess" });
+    } catch (error) {
+      dispatch({
+        type: "LogoutFail",
+        payload: error.response?.data?.message || "Logout failed"
+      });
+    }
+  };
 // delete user address
 export const deleteUserAddress = (id) => async (dispatch) => {
   try {
@@ -235,7 +241,7 @@ export const deleteUserAddress = (id) => async (dispatch) => {
 export const getAllUsers = () => async (dispatch) => {
   try {
     dispatch({ type: "getAllUsersRequest" });
-    const { data } = await axios.get(`${server}/api/v2/user/admin-all-users`, {
+    const { data } = await axios.get(`${server}/user/admin-all-users`, {
       withCredentials: true,
     });
     dispatch({ type: "getAllUsersSuccess", payload: data.users });
