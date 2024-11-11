@@ -1,12 +1,16 @@
-const jwt = require('jsonwebtoken');
-const User = require('../model/user');
-const Shop = require('../model/shop');
-const ErrorHandler = require('../utils/ErrorHandler');
+const jwt = require("jsonwebtoken");
+const User = require("../model/user");
+const Shop = require("../model/shop");
 
 exports.isAuthenticated = async (req, res, next) => {
   try {
-    const token = req.cookies?.token || 
-                 req.headers.authorization?.replace('Bearer ', '');
+    let token = req.cookies.token;
+    
+    // Check Authorization header if no cookie
+    const authHeader = req.headers.authorization;
+    if (!token && authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    }
 
     if (!token) {
       return res.status(401).json({
@@ -16,16 +20,15 @@ exports.isAuthenticated = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const user = await User.findById(decoded.id).select('-password');
+    req.user = await User.findById(decoded.id).select('-password');
 
-    if (!user) {
+    if (!req.user) {
       return res.status(401).json({
         success: false,
         message: "User not found"
       });
     }
 
-    req.user = user;
     next();
   } catch (error) {
     console.error("Auth error:", error);
@@ -38,8 +41,13 @@ exports.isAuthenticated = async (req, res, next) => {
 
 exports.isSeller = async (req, res, next) => {
   try {
-    const token = req.cookies?.seller_token || 
-                 req.headers['seller-authorization']?.replace('Bearer ', '');
+    let token = req.cookies.seller_token;
+    
+    // Check Seller-Authorization header if no cookie
+    const authHeader = req.headers['seller-authorization'];
+    if (!token && authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    }
 
     if (!token) {
       return res.status(401).json({
@@ -49,16 +57,15 @@ exports.isSeller = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const seller = await Shop.findById(decoded.id).select('-password');
+    req.seller = await Shop.findById(decoded.id).select('-password');
 
-    if (!seller) {
+    if (!req.seller) {
       return res.status(401).json({
         success: false,
         message: "Seller not found"
       });
     }
 
-    req.seller = seller;
     next();
   } catch (error) {
     console.error("Seller auth error:", error);
@@ -74,7 +81,7 @@ exports.isAdmin = async (req, res, next) => {
     if (!req.user || req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        message: "Access denied. Admin only."
+        message: "Admin access required"
       });
     }
     next();
