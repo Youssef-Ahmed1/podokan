@@ -1,100 +1,97 @@
 const ErrorHandler = require("../utils/ErrorHandler");
-const catchAsyncErrors = require("./catchAsyncErrors");
 const jwt = require("jsonwebtoken");
-const Shop = require("../model/shop");
 const User = require("../model/user");
+const Shop = require("../model/shop");
 
-const verifyToken = async (token, secretKey) => {
+exports.isAuthenticated = async (req, res, next) => {
   try {
-    return jwt.verify(token, secretKey);
-  } catch (error) {
-    return null;
-  }
-};
-
-
-exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
-  try {
-    let token;
-    
-    // Check authorization header first
-    const authHeader = req.headers.authorization;
-    if (authHeader?.startsWith('Bearer ')) {
-      token = authHeader.split(' ')[1];
-    }
-    
-    // Fall back to cookie if no header token
-    if (!token) {
-      token = req.cookies.token;
-    }
+    const token = req.cookies?.token || 
+      (req.headers.authorization?.startsWith('Bearer') ? 
+        req.headers.authorization.split(' ')[1] : null);
 
     if (!token) {
-      return next(new ErrorHandler("Please login to continue", 401));
+      return res.status(401).json({
+        success: false,
+        message: "Please login to continue"
+      });
     }
 
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-      const user = await User.findById(decoded.id || decoded._id).select('-password');
-      
-      if (!user) {
-        return next(new ErrorHandler("User not found", 401));
-      }
-      
-      req.user = user;
-      next();
-    } catch (err) {
-      return next(new ErrorHandler("Invalid token", 401));
-    }
-  } catch (error) {
-    return next(new ErrorHandler("Authentication failed", 401));
-  }
-});
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    req.user = await User.findById(decoded.id).select('-password');
 
-exports.isSeller = catchAsyncErrors(async (req, res, next) => {
-  try {
-    let token;
-    
-    // Check seller authorization header first
-    const authHeader = req.headers['seller-authorization'];
-    if (authHeader?.startsWith('Bearer ')) {
-      token = authHeader.split(' ')[1];
-    }
-    
-    // Fall back to cookie if no header token
-    if (!token) {
-      token = req.cookies.seller_token;
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found"
+      });
     }
 
-    if (!token) {
-      return next(new ErrorHandler("Please login as seller to continue", 401));
-    }
-
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-      const seller = await Shop.findById(decoded.id || decoded._id).select('-password');
-      
-      if (!seller) {
-        return next(new ErrorHandler("Seller not found", 401));
-      }
-      
-      req.seller = seller;
-      next();
-    } catch (err) {
-      return next(new ErrorHandler("Invalid seller token", 401));
-    }
-  } catch (error) {
-    return next(new ErrorHandler("Seller authentication failed", 401));
-  }
-});
-//.
-// Change back to the original format
-exports.isAdmin = (role) => {
-  return (req, res, next) => {
-    if (!req.user || req.user.role !== role) {
-      return next(new ErrorHandler(`${role} access denied`, 403));
-    }
     next();
-  };
+  } catch (error) {
+    console.error("Auth error:", error);
+    return res.status(401).json({
+      success: false,
+      message: "Authentication failed"
+    });
+  }
 };
 
-module.exports = exports;
+exports.isSeller = async (req, res, next) => {
+  try {
+    const token = req.cookies?.seller_token || 
+      (req.headers['seller-authorization']?.startsWith('Bearer') ? 
+        req.headers['seller-authorization'].split(' ')[1] : null);
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Please login as seller to continue"
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    req.seller = await Shop.findById(decoded.id).select('-password');
+
+    if (!req.seller) {
+      return res.status(401).json({
+        success: false,
+        message: "Seller not found"
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Seller auth error:", error);
+    return res.status(401).json({
+      success: false,
+      message: "Seller authentication failed"
+    });
+  }
+};
+
+exports.isAdmin = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Please login first"
+      });
+    }
+
+    if (req.user.role !== "admin") {
+      return res.status(401).json({
+        success: false,
+        message: "Access denied. Admin only."
+      });
+    }
+
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: "Admin authorization failed"
+    });
+  }
+};
+
+exports.isAuthenticatedAdmin = [exports.isAuthenticated, exports.isAdmin];
