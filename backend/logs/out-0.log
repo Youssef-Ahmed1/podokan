@@ -1800,3 +1800,71 @@
 2024-11-10T20:29:08: Database connected
 2024-11-10T20:31:00: Server running on port 8000
 2024-11-10T20:31:01: Database connected
+2024-11-11T14:10:44: Database connected successfully
+2024-11-11T14:10:44: Server running on port 8000
+2024-11-11T14:14:37: GET /user/getuser {
+2024-11-11T14:14:37:   query: {},
+2024-11-11T14:14:37:   body: {},
+2024-11-11T14:14:37:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:14:37: }
+2024-11-11T14:14:37: GET /shop/getSeller {
+2024-11-11T14:14:37:   query: {},
+2024-11-11T14:14:37:   body: {},
+2024-11-11T14:14:37:   headers: { authorization: undefined, 'seller-authorization': 'Bearer null' }
+2024-11-11T14:14:37: }
+2024-11-11T14:14:37: GET /product/get-all-products {
+2024-11-11T14:14:37:   query: {},
+2024-11-11T14:14:37:   body: {},
+2024-11-11T14:14:37:   headers: {
+2024-11-11T14:14:37:     authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMTI3MTY2MSwiZXhwIjoxNzMxODc2NDYxfQ.enWY2adj4B8OQT2gr6qht_0uZu6uClaXwV4UsRskJ78',
+2024-11-11T14:14:37:     'seller-authorization': undefined
+2024-11-11T14:14:37:   }
+2024-11-11T14:14:37: }
+2024-11-11T14:14:37: GET /event/get-all-events {
+2024-11-11T14:14:37:   query: {},
+2024-11-11T14:14:37:   body: {},
+2024-11-11T14:14:37:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:14:37: }
+2024-11-11T14:14:41: GET /user/getuser {
+2024-11-11T14:14:41:   query: {},
+2024-11-11T14:14:41:   body: {},
+2024-11-11T14:14:41:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:14:41: }
+2024-11-11T14:14:41: GET /shop/getSeller {
+2024-11-11T14:14:41:   query: {},
+2024-11-11T14:14:41:   body: {},
+2024-11-11T14:14:41:   headers: { authorization: undefined, 'seller-authorization': 'Bearer null' }
+2024-11-11T14:14:41: }
+2024-11-11T14:14:41: GET /product/get-all-products {
+2024-11-11T14:14:41:   query: {},
+2024-11-11T14:14:41:   body: {},
+2024-11-11T14:14:41:   headers: {
+2024-11-11T14:14:41:     authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMTI3MTY2MSwiZXhwIjoxNzMxODc2NDYxfQ.enWY2adj4B8OQT2gr6qht_0uZu6uClaXwV4UsRskJ78',
+2024-11-11T14:14:41:     'seller-authorization': undefined
+2024-11-11T14:14:41:   }
+2024-11-11T14:14:41: }
+2024-11-11T14:14:41: GET /event/get-all-events {
+2024-11-11T14:14:41:   query: {},
+2024-11-11T14:14:41:   body: {},
+2024-11-11T14:14:41:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:14:41: }
+2024-11-11T14:15:13: GET /user/getuser {
+2024-11-11T14:15:13:   query: {},
+2024-11-11T14:15:13:   body: {},
+2024-11-11T14:15:13:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:15:13: }
+2024-11-11T14:15:13: GET /event/get-all-events {
+2024-11-11T14:15:13:   query: {},
+2024-11-11T14:15:13:   body: {},
+2024-11-11T14:15:13:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:15:13: }
+2024-11-11T14:15:13: GET /shop/getSeller {
+2024-11-11T14:15:13:   query: {},
+2024-11-11T14:15:13:   body: {},
+2024-11-11T14:15:13:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:15:13: }
+2024-11-11T14:15:13: GET /product/get-all-products {
+2024-11-11T14:15:13:   query: {},
+2024-11-11T14:15:13:   body: {},
+2024-11-11T14:15:13:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:15:13: }

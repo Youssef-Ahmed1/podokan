@@ -5103,3 +5103,81 @@
 2024-11-10T20:31:23:     at Function.handle (/var/www/podokan/backend/node_modules/express/lib/router/index.js:175:3)
 2024-11-10T20:31:44: Login error: ReferenceError: cookieOptions is not defined
 2024-11-10T20:31:44:     at /var/www/podokan/backend/controller/shop.js:142:38
+2024-11-11T14:10:44: Database connected successfully
+2024-11-11T14:10:44: Server running on port 8000
+2024-11-11T14:14:37: ValidationError: The 'X-Forwarded-For' header is set but the Express 'trust proxy' setting is false (default). This could indicate a misconfiguration which would prevent express-rate-limit from accurately identifying users. See https://express-rate-limit.github.io/ERR_ERL_UNEXPECTED_X_FORWARDED_FOR/ for more information.
+2024-11-11T14:14:37:     at Object.xForwardedForHeader (/var/www/podokan/backend/node_modules/express-rate-limit/dist/index.cjs:167:13)
+2024-11-11T14:14:37:     at wrappedValidations.<computed> [as xForwardedForHeader] (/var/www/podokan/backend/node_modules/express-rate-limit/dist/index.cjs:362:22)
+2024-11-11T14:14:37:     at Object.keyGenerator (/var/www/podokan/backend/node_modules/express-rate-limit/dist/index.cjs:617:20)
+2024-11-11T14:14:37:     at /var/www/podokan/backend/node_modules/express-rate-limit/dist/index.cjs:670:32
+2024-11-11T14:14:37:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2024-11-11T14:14:37:     at async /var/www/podokan/backend/node_modules/express-rate-limit/dist/index.cjs:650:5 {
+2024-11-11T14:14:37:   code: 'ERR_ERL_UNEXPECTED_X_FORWARDED_FOR',
+2024-11-11T14:14:37:   help: 'https://express-rate-limit.github.io/ERR_ERL_UNEXPECTED_X_FORWARDED_FOR/'
+2024-11-11T14:14:37: }
+2024-11-11T14:14:37: GET /user/getuser {
+2024-11-11T14:14:37:   query: {},
+2024-11-11T14:14:37:   body: {},
+2024-11-11T14:14:37:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:14:37: }
+2024-11-11T14:14:37: GET /shop/getSeller {
+2024-11-11T14:14:37:   query: {},
+2024-11-11T14:14:37:   body: {},
+2024-11-11T14:14:37:   headers: { authorization: undefined, 'seller-authorization': 'Bearer null' }
+2024-11-11T14:14:37: }
+2024-11-11T14:14:37: GET /product/get-all-products {
+2024-11-11T14:14:37:   query: {},
+2024-11-11T14:14:37:   body: {},
+2024-11-11T14:14:37:   headers: {
+2024-11-11T14:14:37:     authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMTI3MTY2MSwiZXhwIjoxNzMxODc2NDYxfQ.enWY2adj4B8OQT2gr6qht_0uZu6uClaXwV4UsRskJ78',
+2024-11-11T14:14:37:     'seller-authorization': undefined
+2024-11-11T14:14:37:   }
+2024-11-11T14:14:37: }
+2024-11-11T14:14:37: GET /event/get-all-events {
+2024-11-11T14:14:37:   query: {},
+2024-11-11T14:14:37:   body: {},
+2024-11-11T14:14:37:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:14:37: }
+2024-11-11T14:14:41: GET /user/getuser {
+2024-11-11T14:14:41:   query: {},
+2024-11-11T14:14:41:   body: {},
+2024-11-11T14:14:41:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:14:41: }
+2024-11-11T14:14:41: GET /shop/getSeller {
+2024-11-11T14:14:41:   query: {},
+2024-11-11T14:14:41:   body: {},
+2024-11-11T14:14:41:   headers: { authorization: undefined, 'seller-authorization': 'Bearer null' }
+2024-11-11T14:14:41: }
+2024-11-11T14:14:41: GET /product/get-all-products {
+2024-11-11T14:14:41:   query: {},
+2024-11-11T14:14:41:   body: {},
+2024-11-11T14:14:41:   headers: {
+2024-11-11T14:14:41:     authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MWM2ZThjZTJlZGM1MzliYWJkMThhNCIsImlhdCI6MTczMTI3MTY2MSwiZXhwIjoxNzMxODc2NDYxfQ.enWY2adj4B8OQT2gr6qht_0uZu6uClaXwV4UsRskJ78',
+2024-11-11T14:14:41:     'seller-authorization': undefined
+2024-11-11T14:14:41:   }
+2024-11-11T14:14:41: }
+2024-11-11T14:14:41: GET /event/get-all-events {
+2024-11-11T14:14:41:   query: {},
+2024-11-11T14:14:41:   body: {},
+2024-11-11T14:14:41:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:14:41: }
+2024-11-11T14:15:13: GET /user/getuser {
+2024-11-11T14:15:13:   query: {},
+2024-11-11T14:15:13:   body: {},
+2024-11-11T14:15:13:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:15:13: }
+2024-11-11T14:15:13: GET /event/get-all-events {
+2024-11-11T14:15:13:   query: {},
+2024-11-11T14:15:13:   body: {},
+2024-11-11T14:15:13:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:15:13: }
+2024-11-11T14:15:13: GET /shop/getSeller {
+2024-11-11T14:15:13:   query: {},
+2024-11-11T14:15:13:   body: {},
+2024-11-11T14:15:13:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:15:13: }
+2024-11-11T14:15:13: GET /product/get-all-products {
+2024-11-11T14:15:13:   query: {},
+2024-11-11T14:15:13:   body: {},
+2024-11-11T14:15:13:   headers: { authorization: undefined, 'seller-authorization': undefined }
+2024-11-11T14:15:13: }
