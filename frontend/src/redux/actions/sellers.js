@@ -20,17 +20,17 @@ export const loginSeller = (email, password) => async (dispatch) => {
   try {
     dispatch({ type: "SellerLoginRequest" });
 
-    const { data } = await axios.post(
-      `${server}/shop/login-shop`,
-      { email, password }
-    );
+    const { data } = await axios.post(`${server}/shop/login-shop`, {
+      email,
+      password
+    });
 
     localStorage.setItem('seller_token', data.token);
-    axios.defaults.headers.common['Seller-Authorization'] = `Bearer ${data.token}`;
+    axios.defaults.headers['Seller-Authorization'] = `Bearer ${data.token}`;
 
     dispatch({ 
-      type: "SellerLoginSuccess", 
-      payload: data.seller 
+      type: "SellerLoginSuccess",
+      payload: data.seller
     });
   } catch (error) {
     dispatch({
@@ -43,7 +43,7 @@ export const loginSeller = (email, password) => async (dispatch) => {
 export const logoutSeller = () => async (dispatch) => {
   try {
     localStorage.removeItem('seller_token');
-    delete axios.defaults.headers.common['Seller-Authorization'];
+    delete axios.defaults.headers['Seller-Authorization'];
     
     await axios.get(`${server}/shop/logout`);
     
