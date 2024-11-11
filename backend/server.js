@@ -1,14 +1,9 @@
-require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const app = express();
 
-// Trust proxy - add this line
-app.set('trust proxy', 1);
-
-// Middlewares
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
@@ -16,14 +11,13 @@ app.use(cors({
   credentials: true
 }));
 
-// Routes
-app.use("/api/v2/user", require("./controller/user"));
-app.use("/api/v2/shop", require("./controller/shop"));
-app.use("/api/v2/product", require("./controller/product"));
-app.use("/api/v2/event", require("./controller/event"));
-app.use("/api/v2/order", require("./controller/order"));
+// Routes without extra /api/v2
+app.use("/user", require("./controller/user"));
+app.use("/shop", require("./controller/shop"));
+app.use("/product", require("./controller/product"));
+app.use("/event", require("./controller/event"));
+app.use("/order", require("./controller/order"));
 
-// Connect to MongoDB
 mongoose.connect(process.env.DB_URL)
   .then(() => {
     console.log("Database connected");
@@ -31,4 +25,4 @@ mongoose.connect(process.env.DB_URL)
   })
   .catch((err) => console.log("Database connection failed:", err));
 
-module.exports = app;
+module.exports = server.js;
