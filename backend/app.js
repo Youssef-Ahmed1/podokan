@@ -58,11 +58,10 @@ const routes = {
   withdraw: require("./controller/withdraw")
 };
 
-// Mount routes without extra /api/v2 prefix since it's in the frontend URL
+// Mount routes with API prefix
 Object.entries(routes).forEach(([name, router]) => {
-  app.use(`/${name}`, router);
+  app.use(`/api/v2/${name}`, router);
 });
-
 // Error handling
 app.use(ErrorHandler);
 
