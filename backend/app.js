@@ -57,7 +57,6 @@ const routes = {
   message: require("./controller/message"),
   withdraw: require("./controller/withdraw")
 };
-
 // Mount routes without extra /api/v2 prefix since it's in the frontend URL
 Object.entries(routes).forEach(([name, router]) => {
   app.use(`/${name}`, router);
