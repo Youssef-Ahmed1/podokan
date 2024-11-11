@@ -114,7 +114,14 @@ export const loadSeller = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadSellerRequest" });
     
-    const { data } = await axios.get(`${server}/shop/getSeller`);
+    const sellerToken = localStorage.getItem('seller_token');
+    const config = {
+      headers: {
+        'Seller-Authorization': sellerToken ? `Bearer ${sellerToken}` : '',
+      }
+    };
+    
+    const { data } = await axios.get(`${server}/api/v2/shop/getSeller`, config);
     
     dispatch({ 
       type: "LoadSellerSuccess", 
