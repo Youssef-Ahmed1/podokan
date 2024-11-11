@@ -5191,3 +5191,18 @@
 2024-11-11T14:26:23: Server running on port 8000
 2024-11-11T14:28:40: Database connected
 2024-11-11T14:28:40: Server running on port 8000
+2024-11-11T14:39:34: Database connected
+2024-11-11T14:39:34: Server running on port 8000
+2024-11-11T14:39:52: Seller auth error: JsonWebTokenError: jwt malformed
+2024-11-11T14:39:52:     at module.exports [as verify] (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:70:17)
+2024-11-11T14:39:52:     at exports.isSeller (/var/www/podokan/backend/middleware/auth.js:51:25)
+2024-11-11T14:39:52:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-11T14:39:52:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-11T14:39:52:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-11T14:39:52:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-11T14:39:52:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-11T14:39:52:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)
+2024-11-11T14:39:52:     at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)
+2024-11-11T14:39:52:     at Function.handle (/var/www/podokan/backend/node_modules/express/lib/router/index.js:175:3)
+2024-11-11T14:40:42: Database connected
+2024-11-11T14:40:42: Server running on port 8000
