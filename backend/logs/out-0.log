@@ -1868,3 +1868,9 @@
 2024-11-11T14:15:13:   body: {},
 2024-11-11T14:15:13:   headers: { authorization: undefined, 'seller-authorization': undefined }
 2024-11-11T14:15:13: }
+2024-11-11T14:23:23: Database connected
+2024-11-11T14:23:23: Server running on port 8000
+2024-11-11T14:25:22: Database connected
+2024-11-11T14:25:22: Server running on port 8000
+2024-11-11T14:25:29: Database connected
+2024-11-11T14:25:29: Server running on port 8000
