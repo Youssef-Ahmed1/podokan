@@ -187,30 +187,27 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
 }));
 
 
-router.get("/getuser", isAuthenticated, catchAsyncErrors(async (req, res, next) => {
+router.get("/getuser", isAuthenticated, async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
-    
     if (!user) {
-      return next(new ErrorHandler("User not found", 404));
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
     }
-
-    // Send successful response with user data
     res.status(200).json({
       success: true,
       user
     });
   } catch (error) {
-    // Log the error for debugging
-    console.error("getuser error:", {
-      error: error.message,
-      stack: error.stack,
-      userId: req?.user?._id
+    console.error("Get user error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get user"
     });
-    return next(new ErrorHandler(error.message, 500));
   }
-}));
-
+});
 
 // log out user
 router.get(
