@@ -58,11 +58,10 @@ const routes = {
   withdraw: require("./controller/withdraw")
 };
 
-// Mount routes with API prefix
+// Mount routes without /api/v2 prefix since nginx handles it
 Object.entries(routes).forEach(([name, router]) => {
-  app.use(`/api/v2/${name}`, router);
-});
-// Error handling
+  app.use(`/${name}`, router);
+});// Error handling
 app.use(ErrorHandler);
 
 // 404 Handler
