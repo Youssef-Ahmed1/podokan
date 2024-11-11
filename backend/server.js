@@ -48,5 +48,4 @@ process.on("unhandledRejection", (err) => {
   httpServer.close(() => process.exit(1));
 });
 
-// Start the server
 connectWithRetry();
