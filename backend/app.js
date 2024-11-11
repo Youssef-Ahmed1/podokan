@@ -1,185 +1,180 @@
 const express = require("express");
 const ErrorHandler = require("./middleware/error");
-const app = express();
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const multer = require('multer');
 const path = require('path');
-const appConfig = require('../backend/server');
+const helmet = require('helmet'); // Add this package for security headers
+
+const app = express();
+
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false
+}));
+
+// Environment configuration
+if (process.env.NODE_ENV !== "PRODUCTION") {
+  require("dotenv").config({ path: "config/.env" });
+}
+
+// Constants
+const ALLOWED_ORIGINS = ['https://testpodokan.store', 'http://localhost:3000'];
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const ALLOWED_IMAGE_TYPES = /jpeg|jpg|png|gif/;
+
+// Cookie configuration
+const getCookieOptions = (customOptions = {}) => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'PRODUCTION',
+  sameSite: process.env.NODE_ENV === 'PRODUCTION' ? 'strict' : 'lax',
+  domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined,
+  path: '/',
+  expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  ...customOptions
+});
 
 // CORS configuration
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Origin', req.headers.origin);
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,UPDATE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization, Seller-Authorization');
-  next();
-});
-const cookieOptions = {
-  expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-  httpOnly: true,
-  sameSite: 'none',
-  secure: true,
-  domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : 'localhost'
-};
-
 app.use(cors({
-  origin: ['https://testpodokan.store', 'http://localhost:3000'],
+  origin: (origin, callback) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
     'Content-Type',
     'Authorization',
     'Seller-Authorization',
-    'x-requested-with'
+    'X-Requested-With'
   ],
-  exposedHeaders: ['Authorization', 'Seller-Authorization']
+  exposedHeaders: ['Authorization', 'Seller-Authorization'],
+  maxAge: 86400 // 24 hours
 }));
 
-// Cookie settings
-app.use(cookieParser());
-app.use((req, res, next) => {
-  res.cookie = function(name, value, options = {}) {
-    return res.cookie(name, value, {
-      ...options,
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
-    });
-  };
-  next();
-});
-// Essential middleware
+// Request parsing middleware
 app.use(express.json({ 
   limit: '50mb',
   verify: (req, res, buf) => {
     req.rawBody = buf.toString();
   }
 }));
-
-
-app.use(cookieParser());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+app.use(cookieParser());
 
-// Load environment variables
-if (process.env.NODE_ENV !== "PRODUCTION") {
-  require("dotenv").config({
-    path: "config/.env",
-  });
-}
-
-// Configure multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(appConfig.fileUploadPath));
-  },
-  filename: function (req, file, cb) {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
+// Cookie middleware
+app.use((req, res, next) => {
+  const originalSetCookie = res.cookie;
+  res.cookie = function(name, value, options = {}) {
+    return originalSetCookie.call(this, name, value, getCookieOptions(options));
+  };
+  next();
 });
 
+// File upload configuration
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 },
-  fileFilter: function (req, file, cb) {
-    const filetypes = /jpeg|jpg|png|gif/;
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = filetypes.test(file.mimetype);
-    if (mimetype && extname) {
-      return cb(null, true);
+  limits: { fileSize: MAX_FILE_SIZE },
+  fileFilter: (req, file, cb) => {
+    const isValidType = ALLOWED_IMAGE_TYPES.test(path.extname(file.originalname).toLowerCase()) &&
+                       ALLOWED_IMAGE_TYPES.test(file.mimetype);
+    if (isValidType) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'));
     }
-    cb(new Error("Error: Images Only!"));
-  },
-});
-// app.js (add this before your routes)
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`, {
-    cookies: req.cookies,
-    headers: {
-      origin: req.headers.origin,
-      auth: req.headers.authorization,
-      sellerAuth: req.headers['seller-authorization']
-    }
-  });
-  next();
+  }
 });
 
-// Import routes
-const user = require("./controller/user");
-const shop = require("./controller/shop");
-const product = require("./controller/product");
-const event = require("./controller/event");
-const coupon = require("./controller/coupounCode");
-const payment = require("./controller/payment");
-const order = require("./controller/order");
-const conversation = require("./controller/conversation");
-const message = require("./controller/message");
-const withdraw = require("./controller/withdraw");
+// Request logging middleware
+app.use((req, res, next) => {
+  const startTime = Date.now();
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
+    ip: req.ip,
+    origin: req.headers.origin,
+    userAgent: req.headers['user-agent']
+  });
+
+  res.on('finish', () => {
+    const duration = Date.now() - startTime;
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} completed in ${duration}ms with status ${res.statusCode}`);
+  });
+
+  next();
+});
 
 // API Routes
-const API_PREFIX = "/api/v2";
+const routes = {
+  user: require("./controller/user"),
+  shop: require("./controller/shop"),
+  product: require("./controller/product"),
+  event: require("./controller/event"),
+  coupon: require("./controller/coupounCode"),
+  payment: require("./controller/payment"),
+  order: require("./controller/order"),
+  conversation: require("./controller/conversation"),
+  message: require("./controller/message"),
+  withdraw: require("./controller/withdraw")
+};
 
-app.use(`${API_PREFIX}/user`, user);
-app.use(`${API_PREFIX}/shop`, shop);
-app.use(`${API_PREFIX}/product`, product);
-app.use(`${API_PREFIX}/event`, event);
-app.use(`${API_PREFIX}/coupon`, coupon);
-app.use(`${API_PREFIX}/payment`, payment);
-app.use(`${API_PREFIX}/order`, order);
-app.use(`${API_PREFIX}/conversation`, conversation);
-app.use(`${API_PREFIX}/message`, message);
-app.use(`${API_PREFIX}/withdraw`, withdraw);
+// Mount routes with API prefix
+Object.entries(routes).forEach(([name, router]) => {
+  app.use(`/api/v2/${name}`, router);
+});
 
-// Timeout middleware
+// Request timeout middleware
 app.use((req, res, next) => {
-  res.setTimeout(30000, () => {
-    res.status(504).json({
-      success: false,
-      message: "Request timeout"
-    });
+  const timeout = 30000; // 30 seconds
+  req.setTimeout(timeout, () => {
+    const error = new Error('Request timeout');
+    error.status = 504;
+    next(error);
   });
   next();
 });
 
-// Global error handling
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', {
-    message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    path: req.path
+    timestamp: new Date().toISOString(),
+    path: req.path,
+    method: req.method,
+    error: {
+      name: err.name,
+      message: err.message,
+      status: err.status || 500,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    }
   });
-  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+
+  // Handle specific errors
+  if (err.name === 'ValidationError') {
     return res.status(400).json({
       success: false,
-      message: 'Invalid JSON'
+      message: 'Validation Error',
+      errors: err.errors
     });
   }
 
-  if (err.name === 'PayloadTooLargeError') {
-    return res.status(413).json({
+  if (err.name === 'UnauthorizedError') {
+    return res.status(401).json({
       success: false,
-      message: 'Request entity too large'
+      message: 'Authentication required'
     });
   }
 
-  if (err.code === 'ETIMEDOUT' || err.code === 'ECONNABORTED') {
-    return res.status(504).json({
-      success: false,
-      message: 'Request timeout'
-    });
-  }
-
-  const statusCode = err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
-
+  // Generic error response
+  const statusCode = err.status || 500;
   res.status(statusCode).json({
     success: false,
-    message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    path: req.originalUrl
+    message: err.message || 'Internal Server Error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 });
 
@@ -188,8 +183,10 @@ app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: 'Route not found',
-    path: req.originalUrl
+    path: req.originalUrl,
+    method: req.method
   });
 });
 
+// Export app
 module.exports = app;
