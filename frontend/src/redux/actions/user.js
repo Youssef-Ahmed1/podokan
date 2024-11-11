@@ -121,7 +121,7 @@ export const loadSeller = () => async (dispatch) => {
       }
     };
     
-    const { data } = await axios.get(`${server}/api/v2/shop/getSeller`, config);
+    const { data } = await axios.get(`${server}/shop/getSeller`, config);
     
     dispatch({ 
       type: "LoadSellerSuccess", 
