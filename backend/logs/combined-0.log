@@ -10,3 +10,188 @@
 2024-11-11T16:45:55: Server running on port 8000
 2024-11-11T16:45:55: Database connected
 2024-11-11T16:45:55: mongod connected with server: ac-u6kfsya-shard-00-02.iv8sqpb.mongodb.net
+2024-11-11T16:51:33: Server running on port 8000
+2024-11-11T16:51:33: Database connected
+2024-11-11T16:51:34: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
+2024-11-12T03:19:03: Error: {
+2024-11-12T03:19:03:   path: '/api/v2/user/getuser',
+2024-11-12T03:19:03:   method: 'GET',
+2024-11-12T03:19:03:   error: {
+2024-11-12T03:19:03:     message: 'Not allowed by CORS',
+2024-11-12T03:19:03:     stack: 'Error: Not allowed by CORS\n' +
+2024-11-12T03:19:03:       '    at origin (/var/www/podokan/backend/app.js:27:16)\n' +
+2024-11-12T03:19:03:       '    at /var/www/podokan/backend/node_modules/cors/lib/index.js:219:13\n' +
+2024-11-12T03:19:03:       '    at optionsCallback (/var/www/podokan/backend/node_modules/cors/lib/index.js:199:9)\n' +
+2024-11-12T03:19:03:       '    at corsMiddleware (/var/www/podokan/backend/node_modules/cors/lib/index.js:204:7)\n' +
+2024-11-12T03:19:03:       '    at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)\n' +
+2024-11-12T03:19:03:       '    at trim_prefix (/var/www/podokan/backend/node_modules/express/lib/router/index.js:328:13)\n' +
+2024-11-12T03:19:03:       '    at /var/www/podokan/backend/node_modules/express/lib/router/index.js:286:9\n' +
+2024-11-12T03:19:03:       '    at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)\n' +
+2024-11-12T03:19:03:       '    at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)\n' +
+2024-11-12T03:19:03:       '    at internalNext (/var/www/podokan/backend/node_modules/helmet/index.cjs:527:6)',
+2024-11-12T03:19:03:     status: undefined
+2024-11-12T03:19:03:   }
+2024-11-12T03:19:03: }
+2024-11-12T03:19:03: Error: {
+2024-11-12T03:19:03:   path: '/api/v2/event/get-all-events',
+2024-11-12T03:19:03:   method: 'GET',
+2024-11-12T03:19:03:   error: {
+2024-11-12T03:19:03:     message: 'Not allowed by CORS',
+2024-11-12T03:19:03:     stack: 'Error: Not allowed by CORS\n' +
+2024-11-12T03:19:03:       '    at origin (/var/www/podokan/backend/app.js:27:16)\n' +
+2024-11-12T03:19:03:       '    at /var/www/podokan/backend/node_modules/cors/lib/index.js:219:13\n' +
+2024-11-12T03:19:03:       '    at optionsCallback (/var/www/podokan/backend/node_modules/cors/lib/index.js:199:9)\n' +
+2024-11-12T03:19:03:       '    at corsMiddleware (/var/www/podokan/backend/node_modules/cors/lib/index.js:204:7)\n' +
+2024-11-12T03:19:03:       '    at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)\n' +
+2024-11-12T03:19:03:       '    at trim_prefix (/var/www/podokan/backend/node_modules/express/lib/router/index.js:328:13)\n' +
+2024-11-12T03:19:03:       '    at /var/www/podokan/backend/node_modules/express/lib/router/index.js:286:9\n' +
+2024-11-12T03:19:03:       '    at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)\n' +
+2024-11-12T03:19:03:       '    at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)\n' +
+2024-11-12T03:19:03:       '    at internalNext (/var/www/podokan/backend/node_modules/helmet/index.cjs:527:6)',
+2024-11-12T03:19:03:     status: undefined
+2024-11-12T03:19:03:   }
+2024-11-12T03:19:03: }
+2024-11-12T03:19:03: Error: {
+2024-11-12T03:19:03:   path: '/api/v2/product/get-all-products',
+2024-11-12T03:19:03:   method: 'GET',
+2024-11-12T03:19:03:   error: {
+2024-11-12T03:19:03:     message: 'Not allowed by CORS',
+2024-11-12T03:19:03:     stack: 'Error: Not allowed by CORS\n' +
+2024-11-12T03:19:03:       '    at origin (/var/www/podokan/backend/app.js:27:16)\n' +
+2024-11-12T03:19:03:       '    at /var/www/podokan/backend/node_modules/cors/lib/index.js:219:13\n' +
+2024-11-12T03:19:03:       '    at optionsCallback (/var/www/podokan/backend/node_modules/cors/lib/index.js:199:9)\n' +
+2024-11-12T03:19:03:       '    at corsMiddleware (/var/www/podokan/backend/node_modules/cors/lib/index.js:204:7)\n' +
+2024-11-12T03:19:03:       '    at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)\n' +
+2024-11-12T03:19:03:       '    at trim_prefix (/var/www/podokan/backend/node_modules/express/lib/router/index.js:328:13)\n' +
+2024-11-12T03:19:03:       '    at /var/www/podokan/backend/node_modules/express/lib/router/index.js:286:9\n' +
+2024-11-12T03:19:03:       '    at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)\n' +
+2024-11-12T03:19:03:       '    at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)\n' +
+2024-11-12T03:19:03:       '    at internalNext (/var/www/podokan/backend/node_modules/helmet/index.cjs:527:6)',
+2024-11-12T03:19:03:     status: undefined
+2024-11-12T03:19:03:   }
+2024-11-12T03:19:03: }
+2024-11-12T09:19:58: Error: {
+2024-11-12T09:19:58:   path: '/api/v2/user/getuser',
+2024-11-12T09:19:58:   method: 'GET',
+2024-11-12T09:19:58:   error: {
+2024-11-12T09:19:58:     message: 'Not allowed by CORS',
+2024-11-12T09:19:58:     stack: 'Error: Not allowed by CORS\n' +
+2024-11-12T09:19:58:       '    at origin (/var/www/podokan/backend/app.js:27:16)\n' +
+2024-11-12T09:19:58:       '    at /var/www/podokan/backend/node_modules/cors/lib/index.js:219:13\n' +
+2024-11-12T09:19:58:       '    at optionsCallback (/var/www/podokan/backend/node_modules/cors/lib/index.js:199:9)\n' +
+2024-11-12T09:19:58:       '    at corsMiddleware (/var/www/podokan/backend/node_modules/cors/lib/index.js:204:7)\n' +
+2024-11-12T09:19:58:       '    at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)\n' +
+2024-11-12T09:19:58:       '    at trim_prefix (/var/www/podokan/backend/node_modules/express/lib/router/index.js:328:13)\n' +
+2024-11-12T09:19:58:       '    at /var/www/podokan/backend/node_modules/express/lib/router/index.js:286:9\n' +
+2024-11-12T09:19:58:       '    at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12)\n' +
+2024-11-12T09:19:58:       '    at next (/var/www/podokan/backend/node_modules/express/lib/router/index.js:280:10)\n' +
+2024-11-12T09:19:58:       '    at internalNext (/var/www/podokan/backend/node_modules/helmet/index.cjs:527:6)',
+2024-11-12T09:19:58:     status: undefined
+2024-11-12T09:19:58:   }
+2024-11-12T09:19:58: }
+2024-11-12T12:32:25: Auth error: TokenExpiredError: jwt expired
+2024-11-12T12:32:25:     at /var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:190:21
+2024-11-12T12:32:25:     at getSecret (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:97:14)
+2024-11-12T12:32:25:     at module.exports [as verify] (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:101:10)
+2024-11-12T12:32:25:     at exports.isAuthenticated (/var/www/podokan/backend/middleware/auth.js:22:25)
+2024-11-12T12:32:25:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:25:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-12T12:32:25:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-12T12:32:25:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:25:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-12T12:32:25:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12) {
+2024-11-12T12:32:25:   expiredAt: 2024-10-28T17:17:53.000Z
+2024-11-12T12:32:25: }
+2024-11-12T12:32:25: Seller auth error: TokenExpiredError: jwt expired
+2024-11-12T12:32:25:     at /var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:190:21
+2024-11-12T12:32:25:     at getSecret (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:97:14)
+2024-11-12T12:32:25:     at module.exports [as verify] (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:101:10)
+2024-11-12T12:32:25:     at exports.isSeller (/var/www/podokan/backend/middleware/auth.js:59:25)
+2024-11-12T12:32:25:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:25:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-12T12:32:25:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-12T12:32:25:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:25:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-12T12:32:25:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12) {
+2024-11-12T12:32:25:   expiredAt: 2024-10-22T20:12:35.000Z
+2024-11-12T12:32:25: }
+2024-11-12T12:32:31: Auth error: TokenExpiredError: jwt expired
+2024-11-12T12:32:31:     at /var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:190:21
+2024-11-12T12:32:31:     at getSecret (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:97:14)
+2024-11-12T12:32:31:     at module.exports [as verify] (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:101:10)
+2024-11-12T12:32:31:     at exports.isAuthenticated (/var/www/podokan/backend/middleware/auth.js:22:25)
+2024-11-12T12:32:31:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:31:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-12T12:32:31:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-12T12:32:31:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:31:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-12T12:32:31:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12) {
+2024-11-12T12:32:31:   expiredAt: 2024-10-28T17:17:53.000Z
+2024-11-12T12:32:31: }
+2024-11-12T12:32:31: Seller auth error: TokenExpiredError: jwt expired
+2024-11-12T12:32:31:     at /var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:190:21
+2024-11-12T12:32:31:     at getSecret (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:97:14)
+2024-11-12T12:32:31:     at module.exports [as verify] (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:101:10)
+2024-11-12T12:32:31:     at exports.isSeller (/var/www/podokan/backend/middleware/auth.js:59:25)
+2024-11-12T12:32:31:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:31:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-12T12:32:31:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-12T12:32:31:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:31:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-12T12:32:31:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12) {
+2024-11-12T12:32:31:   expiredAt: 2024-10-22T20:12:35.000Z
+2024-11-12T12:32:31: }
+2024-11-12T12:32:37: Auth error: TokenExpiredError: jwt expired
+2024-11-12T12:32:37:     at /var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:190:21
+2024-11-12T12:32:37:     at getSecret (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:97:14)
+2024-11-12T12:32:37:     at module.exports [as verify] (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:101:10)
+2024-11-12T12:32:37:     at exports.isAuthenticated (/var/www/podokan/backend/middleware/auth.js:22:25)
+2024-11-12T12:32:37:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:37:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-12T12:32:37:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-12T12:32:37:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:37:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-12T12:32:37:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12) {
+2024-11-12T12:32:37:   expiredAt: 2024-10-28T17:17:53.000Z
+2024-11-12T12:32:37: }
+2024-11-12T12:32:37: Seller auth error: TokenExpiredError: jwt expired
+2024-11-12T12:32:37:     at /var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:190:21
+2024-11-12T12:32:37:     at getSecret (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:97:14)
+2024-11-12T12:32:37:     at module.exports [as verify] (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:101:10)
+2024-11-12T12:32:37:     at exports.isSeller (/var/www/podokan/backend/middleware/auth.js:59:25)
+2024-11-12T12:32:37:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:37:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-12T12:32:37:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-12T12:32:37:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:37:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-12T12:32:37:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12) {
+2024-11-12T12:32:37:   expiredAt: 2024-10-22T20:12:35.000Z
+2024-11-12T12:32:37: }
+2024-11-12T12:32:44: Auth error: TokenExpiredError: jwt expired
+2024-11-12T12:32:44:     at /var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:190:21
+2024-11-12T12:32:44:     at getSecret (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:97:14)
+2024-11-12T12:32:44:     at module.exports [as verify] (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:101:10)
+2024-11-12T12:32:44:     at exports.isAuthenticated (/var/www/podokan/backend/middleware/auth.js:22:25)
+2024-11-12T12:32:44:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:44:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-12T12:32:44:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-12T12:32:44:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:44:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-12T12:32:44:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12) {
+2024-11-12T12:32:44:   expiredAt: 2024-10-28T17:17:53.000Z
+2024-11-12T12:32:44: }
+2024-11-12T12:32:44: Seller auth error: TokenExpiredError: jwt expired
+2024-11-12T12:32:44:     at /var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:190:21
+2024-11-12T12:32:44:     at getSecret (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:97:14)
+2024-11-12T12:32:44:     at module.exports [as verify] (/var/www/podokan/backend/node_modules/jsonwebtoken/verify.js:101:10)
+2024-11-12T12:32:44:     at exports.isSeller (/var/www/podokan/backend/middleware/auth.js:59:25)
+2024-11-12T12:32:44:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:44:     at next (/var/www/podokan/backend/node_modules/express/lib/router/route.js:149:13)
+2024-11-12T12:32:44:     at Route.dispatch (/var/www/podokan/backend/node_modules/express/lib/router/route.js:119:3)
+2024-11-12T12:32:44:     at Layer.handle [as handle_request] (/var/www/podokan/backend/node_modules/express/lib/router/layer.js:95:5)
+2024-11-12T12:32:44:     at /var/www/podokan/backend/node_modules/express/lib/router/index.js:284:15
+2024-11-12T12:32:44:     at Function.process_params (/var/www/podokan/backend/node_modules/express/lib/router/index.js:346:12) {
+2024-11-12T12:32:44:   expiredAt: 2024-10-22T20:12:35.000Z
+2024-11-12T12:32:44: }
+2024-11-12T18:39:16: Login error: ReferenceError: cookieOptions is not defined
+2024-11-12T18:39:16:     at /var/www/podokan/backend/controller/shop.js:142:38
