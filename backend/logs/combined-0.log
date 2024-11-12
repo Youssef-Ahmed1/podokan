@@ -195,3 +195,6 @@
 2024-11-12T12:32:44: }
 2024-11-12T18:39:16: Login error: ReferenceError: cookieOptions is not defined
 2024-11-12T18:39:16:     at /var/www/podokan/backend/controller/shop.js:142:38
+2024-11-12T18:48:51: Server running on port 8000
+2024-11-12T18:48:51: Database connected
+2024-11-12T18:48:52: mongod connected with server: ac-u6kfsya-shard-00-01.iv8sqpb.mongodb.net
