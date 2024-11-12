@@ -154,6 +154,9 @@ router.post("/login-shop", async (req, res) => {
     });
   }
 });
+
+
+
 router.get("/getSeller", isSeller, async (req, res) => {
   try {
     const seller = await Shop.findById(req.seller._id).select('-password');

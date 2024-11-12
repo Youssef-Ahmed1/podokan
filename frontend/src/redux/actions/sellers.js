@@ -20,7 +20,7 @@ export const loginSeller = (email, password) => async (dispatch) => {
   try {
     dispatch({ type: "SellerLoginRequest" });
 
-    const { data } = await axios.post(`${server}/shop/login-shop`, {
+    const { data } = await axios.post(`${backend_url}/shop/login-shop`, {
       email,
       password
     });
