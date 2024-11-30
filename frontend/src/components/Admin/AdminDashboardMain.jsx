@@ -11,8 +11,8 @@ import { getAllSellers } from "../../redux/actions/sellers";
 
 const AdminDashboardMain = () => {
   const dispatch = useDispatch();
-  const { adminOrders, adminOrderLoading } = useSelector((state) => state.order);
-  const { sellers } = useSelector((state) => state.seller);
+  const { adminOrders = [], adminOrderLoading } = useSelector((state) => state.order);
+  const { sellers = [] } = useSelector((state) => state.seller);
 
   const [dashboardData, setDashboardData] = useState({
     adminBalance: 0,
@@ -27,16 +27,24 @@ const AdminDashboardMain = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (adminOrders && sellers) {
-      const adminEarning = adminOrders.reduce((acc, item) => acc + item.totalPrice * 0.10, 0);
+    // Add null checks and ensure arrays
+    if (Array.isArray(adminOrders) && Array.isArray(sellers)) {
+      // Calculate admin earnings
+      const adminEarning = adminOrders.reduce((acc, item) => {
+        const price = Number(item.totalPrice) || 0;
+        return acc + (price * 0.10);
+      }, 0);
       const adminBalance = adminEarning.toFixed(2);
 
+      // Process latest orders with null checks
       const latestOrders = adminOrders.map((item) => ({
         id: item._id,
-        itemsQty: item?.cart?.reduce((acc, item) => acc + item.qty, 0),
-        total: item?.totalPrice + " €",
-        status: item?.status,
-        createdAt: item?.createdAt.slice(0, 10),
+        itemsQty: Array.isArray(item?.cart) 
+          ? item.cart.reduce((acc, cartItem) => acc + (Number(cartItem.qty) || 0), 0)
+          : 0,
+        total: `${item?.totalPrice || 0} €`,
+        status: item?.status || 'Unknown',
+        createdAt: item?.createdAt ? item.createdAt.slice(0, 10) : 'N/A',
       }));
 
       setDashboardData({
@@ -47,6 +55,12 @@ const AdminDashboardMain = () => {
       });
     }
   }, [adminOrders, sellers]);
+
+  // Add error handling for data grid
+  const safeLatestOrders = Array.isArray(dashboardData.latestOrders) 
+    ? dashboardData.latestOrders 
+    : [];
+
 
   const columns = [
     { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
@@ -99,14 +113,13 @@ const AdminDashboardMain = () => {
                   className="mr-2"
                   fill="#00000085"
                 />
-                <h3
-                  className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}
-                >
+                <h3 className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}>
                   Total Earning
                 </h3>
               </div>
               <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">€ {dashboardData.adminBalance}</h5>
             </div>
+
 
             <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
               <div className="flex items-center">
@@ -143,11 +156,12 @@ const AdminDashboardMain = () => {
             </div>
           </div>
 
+ 
           <br />
           <h3 className="text-[22px] font-Poppins pb-2">Latest Orders</h3>
           <div className="w-full min-h-[45vh] bg-white rounded">
             <DataGrid
-              rows={dashboardData.latestOrders}
+              rows={safeLatestOrders}
               columns={columns}
               pageSize={4}
               disableSelectionOnClick
