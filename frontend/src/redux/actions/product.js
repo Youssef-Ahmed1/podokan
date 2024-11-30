@@ -29,9 +29,13 @@ export const createProduct = (formData) => async (dispatch) => {
     dispatch({ type: "productCreateRequest" });
 
     const config = {
-      headers: getAuthHeaders(true), // true for multipart/form-data
-      withCredentials: true,
-      timeout: 30000
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Seller-Authorization': `Bearer ${localStorage.getItem('seller_token')}`,
+        // Don't set Content-Type - let browser set it with boundary for multipart/form-data
+      },
+      withCredentials: true
     };
 
     const { data } = await axios.post(
@@ -45,13 +49,12 @@ export const createProduct = (formData) => async (dispatch) => {
       payload: data.product 
     });
 
-    return { 
-      success: true, 
-      product: data.product,
-      message: data.message
-    };
+    return data;
   } catch (error) {
-    console.error("Product creation error:", error);
+    dispatch({
+      type: "productCreateFail",
+      payload: error.response?.data?.message || "Failed to create product"
+    });
     throw error;
   }
 };

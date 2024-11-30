@@ -736,24 +736,7 @@ const CreateProduct = () => {
       setIsSubmitting(true);
       const formData = new FormData();
   
-      // Validate form
-      const errors = validateForm(formState, designFile);
-      if (Object.keys(errors).length > 0) {
-        setValidationErrors(errors);
-        toast.error("Please fix all validation errors");
-        return;
-      }
-  
-      // Add form data
-      Object.entries(formState).forEach(([key, value]) => {
-        if (key === 'designPosition' || key === 'price') {
-          formData.append(key, JSON.stringify(value));
-        } else {
-          formData.append(key, value);
-        }
-      });
-  
-      // Add design file
+      // Add design image first
       if (designFile.file) {
         formData.append('designImage', designFile.file);
       }
@@ -762,22 +745,14 @@ const CreateProduct = () => {
       formData.append('DesignTitle', formState.DesignTitle);
       formData.append('Description', formState.Description);
       formData.append('Maintag', formState.Maintag);
-      
-      // Convert tags array to string for backend
-      const designTags = formState.Designtags.split(',')
-        .map(tag => tag.trim())
-        .filter(Boolean);
-      formData.append('Designtags', JSON.stringify(designTags));
-  
-      // Add product configuration
+      formData.append('Designtags', JSON.stringify(formState.Designtags.split(',').map(tag => tag.trim()).filter(Boolean)));
       formData.append('ProductType', formState.ProductType);
       formData.append('ProductColor', formState.ProductColor);
       formData.append('ProductView', formState.ProductView);
       formData.append('DesignScale', formState.DesignScale.toString());
       formData.append('designPosition', JSON.stringify(formState.designPosition));
-  
-      // Add pricing
       formData.append('originalPrice', formState.price.original.toString());
+      
       if (formState.price.discount) {
         formData.append('discountPrice', formState.price.discount.toString());
       }
@@ -790,20 +765,11 @@ const CreateProduct = () => {
       if (response.success) {
         toast.success("Product created successfully");
         navigate("/dashboard");
-      } else {
-        throw new Error(response.message || "Failed to create product");
       }
   
     } catch (error) {
       console.error("Submit error:", error);
-      toast.error(error.message || "Failed to create product");
-      
-      // Handle specific error cases
-      if (error.response?.status === 401) {
-        toast.error("Please login to continue");
-        navigate("/login");
-      }
-      
+      toast.error(error.response?.data?.message || "Failed to create product");
     } finally {
       setIsSubmitting(false);
     }
