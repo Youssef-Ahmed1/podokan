@@ -8,7 +8,6 @@ const cloudinary = require("cloudinary");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
 const sendShopToken = require("../utils/shopToken");
-
 // create shop
 router.post("/create-shop", catchAsyncErrors(async (req, res, next) => {
   try {
@@ -106,7 +105,7 @@ router.post(
 );
 
 // login shop
-router.post("/login-shop", async (req, res) => {
+router.post("/login-shop", catchAsyncErrors(async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -117,43 +116,32 @@ router.post("/login-shop", async (req, res) => {
       });
     }
 
-    const shop = await Shop.findOne({ email }).select('+password');
+    const shop = await Shop.findOne({ email }).select("+password");
 
-    if (!shop || !(await shop.comparePassword(password))) {
+    if (!shop) {
+      return res.status(401).json({
+        success: false,
+        message: "Seller not found"
+      });
+    }
+
+    const isPasswordValid = await shop.comparePassword(password);
+    if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
         message: "Invalid credentials"
       });
     }
 
-    // Generate token
-    const token = jwt.sign(
-      { id: shop._id },
-      process.env.JWT_SECRET_KEY,
-      { expiresIn: '7d' }
-    );
-
-    const shopResponse = shop.toObject();
-    delete shopResponse.password;
-
-    // Set cookie and send response
-    return res
-      .status(200)
-      .cookie("seller_token", token, cookieOptions)
-      .header('Seller-Authorization', `Bearer ${token}`)
-      .json({
-        success: true,
-        seller: shopResponse,
-        token
-      });
+    sendShopToken(shop, 200, res);
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("Shop login error:", error);
     return res.status(500).json({
       success: false,
       message: "Login failed"
     });
   }
-});
+}));
 
 
 
