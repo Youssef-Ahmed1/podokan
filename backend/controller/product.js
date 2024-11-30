@@ -656,7 +656,7 @@ router.get(
 
       // Check if product is public or user has permission
       if (product.status !== 'public' && (!req.user || 
-          (req.user.role !== 'admin' ||'Admin' && 
+          (req.user.role !== 'admin' ||req.user.role !== 'Admin' && 
            (!product.shopId || product.shopId.owner !== req.user._id)))) {
         return next(new ErrorHandler("Product not available", 403));
       }

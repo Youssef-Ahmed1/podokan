@@ -81,7 +81,7 @@ exports.isAdmin = async (req, res, next) => {
       });
     }
 
-    if (req.user.role.toLowerCase() !== 'admin') {
+    if (!(req.user.role === 'admin' || req.user.role === 'Admin')){
       console.log('User role is not admin:', req.user.role);
       return res.status(403).json({
         success: false,
