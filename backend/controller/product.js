@@ -483,30 +483,23 @@ router.get(
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const limit = Math.min(parseInt(req.query.limit) || 10, 20);
-      const page = parseInt(req.query.page) || 1;
-      const skip = (page - 1) * limit;
+      console.log('Fetching pending products, user:', req.user);
 
-      const [products, total] = await Promise.all([
-        Product.find({ status: 'pending' })
-          .select('designImage shopId DesignTitle status createdAt')
-          .populate('shopId', 'name email')
-          .sort('-createdAt')
-          .skip(skip)
-          .limit(limit)
-          .lean(),
-        Product.countDocuments({ status: 'pending' })
-      ]);
+      const query = { status: 'pending' };
+      
+      const products = await Product.find(query)
+        .populate('shopId', 'name email avatar')
+        .sort('-createdAt')
+        .lean();
+
+      console.log('Found pending products:', products.length);
 
       res.status(200).json({
         success: true,
-        products,
-        currentPage: page,
-        totalPages: Math.ceil(total / limit),
-        total
+        products
       });
     } catch (error) {
-      console.error('Admin products error:', error);
+      console.error('Admin pending products error:', error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
