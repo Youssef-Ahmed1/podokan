@@ -2042,7 +2042,7 @@ const AdminProductApproval = () => {
   }, [editedProduct, dispatch]);
 
   // Check if user has admin access
-  if (!(user?.role === 'admin' || user?.role === 'Admin')) {
+  if (!user || !(user.role === 'Admin' || user.role === 'admin')) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -2056,6 +2056,14 @@ const AdminProductApproval = () => {
       </div>
     );
   }
+  useEffect(() => {
+    console.log('Current user:', {
+      isAuthenticated,
+      role: user?.role,
+      userId: user?._id
+    });
+  }, [user, isAuthenticated]);
+  
 
   return (
     <div className="min-h-screen bg-gray-100 py-8">

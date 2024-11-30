@@ -72,7 +72,11 @@ exports.isSeller = async (req, res, next) => {
 // middleware/auth.js
 exports.isAdmin = async (req, res, next) => {
   try {
-    console.log('Checking admin status for user:', req.user);
+    console.log('Auth check - User data:', {
+      id: req.user?._id,
+      role: req.user?.role,
+      email: req.user?.email
+    });
 
     if (!req.user) {
       return res.status(401).json({
@@ -81,8 +85,10 @@ exports.isAdmin = async (req, res, next) => {
       });
     }
 
-    if (!(req.user.role === 'admin' || req.user.role === 'Admin')){
-      console.log('User role is not admin:', req.user.role);
+    const isAdmin = req.user.role === 'Admin' || req.user.role === 'admin';
+    console.log('Is admin?', isAdmin);
+
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: "Access denied: Admin only"
@@ -98,3 +104,4 @@ exports.isAdmin = async (req, res, next) => {
     });
   }
 };
+
