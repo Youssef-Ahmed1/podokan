@@ -2042,7 +2042,7 @@ const AdminProductApproval = () => {
   }, [editedProduct, dispatch]);
 
   // Check if user has admin access
-  if (!user?.role === 'admin') {
+  if (!user?.role === 'admin' || 'Admin') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

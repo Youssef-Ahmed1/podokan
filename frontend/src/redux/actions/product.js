@@ -65,11 +65,11 @@ export const fetchPendingProducts = () => async (dispatch) => {
     dispatch({ type: "fetchPendingProductsRequest" });
 
     const token = localStorage.getItem('token');
+    console.log('Using auth token for admin request:', token ? 'Token present' : 'No token');
+
     const config = {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Authorization': `Bearer ${token}`
       },
       withCredentials: true
     };
@@ -86,7 +86,12 @@ export const fetchPendingProducts = () => async (dispatch) => {
       payload: data.products 
     });
   } catch (error) {
-    console.error('Fetch pending products error:', error);
+    console.error('Fetch pending products error:', {
+      status: error.response?.status,
+      message: error.response?.data?.message,
+      error: error.message
+    });
+    
     dispatch({
       type: "fetchPendingProductsFail",
       payload: error.response?.data?.message || "Failed to fetch pending products"

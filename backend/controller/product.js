@@ -259,7 +259,8 @@ router.get(
 
 // Approve/reject product
 
-router.put("/approve-reject-product/:id",
+router.put(
+  "/approve-reject-product/:id",
   isAuthenticated,
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
@@ -267,15 +268,23 @@ router.put("/approve-reject-product/:id",
       const { id } = req.params;
       const { status, statusReason } = req.body;
 
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Invalid product ID" 
-        });
-      }
+      console.log('Updating product status:', {
+        productId: id,
+        status,
+        adminUser: req.user.email
+      });
 
-      const product = await Product.findById(id);
-      
+      const product = await Product.findByIdAndUpdate(
+        id,
+        { 
+          status,
+          statusReason,
+          lastModified: new Date(),
+          lastModifiedBy: req.user._id
+        },
+        { new: true }
+      );
+
       if (!product) {
         return res.status(404).json({
           success: false,
@@ -283,35 +292,17 @@ router.put("/approve-reject-product/:id",
         });
       }
 
-      // Update product
-      product.status = status;
-      product.statusReason = statusReason || '';
-      product.lastModified = new Date();
-      product.lastModifiedBy = req.user._id;
-
-      await product.save();
-
       res.status(200).json({
         success: true,
         message: `Product ${status} successfully`,
         product
       });
-
     } catch (error) {
-      console.error("Product approval error:", {
-        id: req.params.id,
-        error: error.message,
-        stack: error.stack
-      });
-      
-      return res.status(500).json({
-        success: false,
-        message: "Failed to update product status"
-      });
+      console.error('Product status update error:', error);
+      return next(new ErrorHandler(error.message, 500));
     }
   })
 );
-
 // Update product design
 router.put("/update-product-design/:id", 
   isAuthenticated,
@@ -483,27 +474,24 @@ router.get(
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      console.log('Fetching pending products, user:', req.user);
-
-      const query = { status: 'pending' };
+      console.log('Fetching pending products for admin:', req.user.email);
       
-      const products = await Product.find(query)
+      const products = await Product.find({ status: 'pending' })
         .populate('shopId', 'name email avatar')
         .sort('-createdAt')
         .lean();
-
-      console.log('Found pending products:', products.length);
 
       res.status(200).json({
         success: true,
         products
       });
     } catch (error) {
-      console.error('Admin pending products error:', error);
+      console.error('Error fetching pending products:', error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
+
 router.put(
   "/create-new-review",
   isAuthenticated,
@@ -668,7 +656,7 @@ router.get(
 
       // Check if product is public or user has permission
       if (product.status !== 'public' && (!req.user || 
-          (req.user.role !== 'admin' && 
+          (req.user.role !== 'admin' ||'Admin' && 
            (!product.shopId || product.shopId.owner !== req.user._id)))) {
         return next(new ErrorHandler("Product not available", 403));
       }

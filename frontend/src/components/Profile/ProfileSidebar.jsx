@@ -128,7 +128,7 @@ const ProfileSidebar = ({ setActive, active }) => {
         </span>
       </div>
 
-      {user && user?.role === "Admin" && (
+      {user && user?.role === "Admin" || "admin" && (
         <Link to="/admin/dashboard">
           <div
             className="flex items-center cursor-pointer w-full mb-8"
