@@ -286,8 +286,6 @@ router.put(
   })
 );
 
-// all sellers --- for admin
-// controller/shop.js
 
 // Get all sellers -- admin only
 router.get(
