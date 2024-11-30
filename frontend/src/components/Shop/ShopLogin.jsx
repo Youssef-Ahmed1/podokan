@@ -26,7 +26,7 @@ const ShopLogin = () => {
     
     try {
       const { data } = await axios.post(
-        `${backend_url}/shop/login-shop`,
+        `${server}/shop/login-shop`,
         { email, password },
         { withCredentials: true }
       );
