@@ -6,7 +6,7 @@ const cloudinary = require("cloudinary");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const jwt = require("jsonwebtoken");
-const sendToken2 = require("../utils/jwtToken");
+const sendToken = require("../utils/jwtToken"); 
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
 
 // controller/user.js - update the create-user route
@@ -185,7 +185,6 @@ router.post("/login-user", catchAsyncErrors(async (req, res, next) => {
     });
   }
 }));
-
 
 router.get("/getuser", isAuthenticated, async (req, res) => {
   try {
