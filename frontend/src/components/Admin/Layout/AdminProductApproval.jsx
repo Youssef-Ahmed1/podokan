@@ -2056,14 +2056,7 @@ const AdminProductApproval = () => {
       </div>
     );
   }
-  useEffect(() => {
-    console.log('Current user:', {
-      isAuthenticated,
-      role: user?.role,
-      userId: user?._id
-    });
-  }, [user, isAuthenticated]);
-  
+
 
   return (
     <div className="min-h-screen bg-gray-100 py-8">
