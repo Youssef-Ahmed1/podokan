@@ -118,22 +118,37 @@ router.post("/login-shop", catchAsyncErrors(async (req, res, next) => {
 
     const shop = await Shop.findOne({ email }).select("+password");
 
-    if (!shop) {
-      return res.status(401).json({
-        success: false,
-        message: "Seller not found"
-      });
-    }
-
-    const isPasswordValid = await shop.comparePassword(password);
-    if (!isPasswordValid) {
+    if (!shop || !(await shop.comparePassword(password))) {
       return res.status(401).json({
         success: false,
         message: "Invalid credentials"
       });
     }
 
-    sendShopToken(shop, 200, res);
+    // Generate token
+    const token = shop.getJwtToken();
+
+    // Define cookieOptions here before using it
+    const cookieOptions = {
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
+    };
+
+    const shopData = shop.toObject();
+    delete shopData.password;
+
+    res
+      .status(200)
+      .cookie("seller_token", token, cookieOptions)
+      .header('Seller-Authorization', `Bearer ${token}`)
+      .json({
+        success: true,
+        seller: shopData,
+        token
+      });
   } catch (error) {
     console.error("Shop login error:", error);
     return res.status(500).json({
