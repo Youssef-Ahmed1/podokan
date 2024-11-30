@@ -4,13 +4,7 @@ const Shop = require("../model/shop");
 
 exports.isAuthenticated = async (req, res, next) => {
   try {
-    let token = req.cookies.token;
-    
-    // Check Authorization header if no cookie
-    const authHeader = req.headers.authorization;
-    if (!token && authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.split(' ')[1];
-    }
+    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
 
     if (!token) {
       return res.status(401).json({
@@ -20,15 +14,16 @@ exports.isAuthenticated = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    req.user = await User.findById(decoded.id).select('-password');
+    const user = await User.findById(decoded.id).select('-password');
 
-    if (!req.user) {
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: "User not found"
       });
     }
 
+    req.user = user;
     next();
   } catch (error) {
     console.error("Auth error:", error);
@@ -38,7 +33,6 @@ exports.isAuthenticated = async (req, res, next) => {
     });
   }
 };
-
 exports.isSeller = async (req, res, next) => {
   try {
     let token = req.cookies.seller_token;
@@ -78,14 +72,25 @@ exports.isSeller = async (req, res, next) => {
 
 exports.isAdmin = async (req, res, next) => {
   try {
-    if (!req.user || req.user.role !== 'admin') {
+    console.log('Checking admin status for user:', req.user);
+    
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Please login to continue"
+      });
+    }
+
+    if (req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: "Admin access required"
       });
     }
+
     next();
   } catch (error) {
+    console.error("Admin auth error:", error);
     return res.status(403).json({
       success: false,
       message: "Admin authorization failed"

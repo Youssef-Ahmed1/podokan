@@ -63,38 +63,36 @@ export const createProduct = (formData) => async (dispatch) => {
 export const fetchPendingProducts = () => async (dispatch) => {
   try {
     dispatch({ type: "fetchPendingProductsRequest" });
-    
+
+    const token = localStorage.getItem('token');
     const config = {
-      headers: getAuthHeaders(),
-      withCredentials: true,
-      timeout: 60000 
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      withCredentials: true
     };
 
     const { data } = await axios.get(
-      `${server}/product/admin/pending-products?limit=10`, 
+      `${server}/product/admin/pending-products`,
       config
     );
+
+    console.log('Pending products response:', data);
 
     dispatch({ 
       type: "fetchPendingProductsSuccess", 
       payload: data.products 
     });
   } catch (error) {
-    if (error.code === 'ECONNABORTED') {
-      dispatch({
-        type: "fetchPendingProductsFail",
-        payload: "Request timed out - please try again"
-      });
-    } else {
-      dispatch({
-        type: "fetchPendingProductsFail",
-        payload: error.response?.data?.message || 
-                 "Failed to fetch pending products"
-      });
-    }
+    console.error('Fetch pending products error:', error);
+    dispatch({
+      type: "fetchPendingProductsFail",
+      payload: error.response?.data?.message || "Failed to fetch pending products"
+    });
   }
 };
-
 // Approve/Reject product
 // frontend/redux/actions/product.js
 
