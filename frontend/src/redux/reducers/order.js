@@ -2,8 +2,9 @@ import { createReducer } from "@reduxjs/toolkit";
 
 const initialState = {
   isLoading: true,
+  adminOrders: [], // Add this
+  adminOrderLoading: false, // Add this
 };
-
 export const orderReducer = createReducer(initialState, (builder) => {
   builder.addCase("getAllOrdersUserRequest", (state) => {
       state.isLoading = true;
@@ -27,15 +28,16 @@ export const orderReducer = createReducer(initialState, (builder) => {
       state.isLoading = false;
       state.error = action.payload;
     })
-    .addCase("adminAllOrdersRequest", (state) => {
+    .addCase("getAllOrdersOfAdminRequest", (state) => {
       state.adminOrderLoading = true;
     })
-    .addCase("adminAllOrdersSuccess", (state, action) => {
+    .addCase("getAllOrdersOfAdminSuccess", (state, action) => {
       state.adminOrderLoading = false;
-      state.adminOrders = action.payload;
+      state.adminOrders = action.payload.orders || [];
     })
-    .addCase("adminAllOrdersFailed", (state, action) => {
+    .addCase("getAllOrdersOfAdminFailed", (state, action) => {
       state.adminOrderLoading = false;
       state.error = action.payload;
+      state.adminOrders = [];
     });
 });

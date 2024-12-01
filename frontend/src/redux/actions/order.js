@@ -57,16 +57,14 @@ export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
 // actions/order.js
 export const getAllOrdersOfAdmin = () => async (dispatch) => {
   try {
-    dispatch({ type: "adminAllOrdersRequest" });
+    dispatch({ type: "getAllOrdersOfAdminRequest" });
 
     const config = {
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
       },
-      withCredentials: true,
-      timeout: 30000 // 30 second timeout
+      withCredentials: true
     };
 
     const { data } = await axios.get(
@@ -75,20 +73,14 @@ export const getAllOrdersOfAdmin = () => async (dispatch) => {
     );
 
     dispatch({
-      type: "adminAllOrdersSuccess",
+      type: "getAllOrdersOfAdminSuccess",
       payload: data
     });
   } catch (error) {
-    if (error.code === 'ECONNABORTED') {
-      dispatch({
-        type: "adminAllOrdersFailed",
-        payload: "Request timed out - please try again"
-      });
-    } else {
-      dispatch({
-        type: "adminAllOrdersFailed",
-        payload: error.response?.data?.message || "Failed to fetch orders"
-      });
-    }
+    console.error('Admin orders error:', error);
+    dispatch({
+      type: "getAllOrdersOfAdminFailed",
+      payload: error.response?.data?.message || "Failed to fetch orders"
+    });
   }
 };
