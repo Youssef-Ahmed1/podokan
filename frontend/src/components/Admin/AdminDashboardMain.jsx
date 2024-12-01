@@ -26,6 +26,13 @@ const AdminDashboardMain = () => {
     dispatch(getAllSellers());
   }, [dispatch]);
 
+  
+  useEffect(() => {
+    console.log('Admin Orders:', adminOrders);
+    console.log('Admin Loading:', adminOrderLoading);
+    console.log('Sellers:', sellers);
+  }, [adminOrders, adminOrderLoading, sellers]);
+
   useEffect(() => {
     // Add null checks and ensure arrays
     if (Array.isArray(adminOrders) && Array.isArray(sellers)) {

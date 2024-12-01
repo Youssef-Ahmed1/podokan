@@ -396,6 +396,14 @@ const ProductPreview = memo(({
     checkBoundary();
   }, [position, zoom, checkBoundary]);
 
+  
+  useEffect(() => {
+    console.log('Design Data:', {
+      image: editedProduct.designImage,
+      scale: editedProduct.DesignScale,
+      position: editedProduct.designPosition
+    });
+  }, [editedProduct]);
   // Get mockup URL
   const mockupUrl = useMemo(() => {
     const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
