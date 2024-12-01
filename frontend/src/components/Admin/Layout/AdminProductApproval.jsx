@@ -244,6 +244,7 @@ const ProductPreview = memo(({
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(false);
   const [isOutOfBounds, setIsOutOfBounds] = useState(false);
+  const designImageUrl = editedProduct.designImage?.url || editedProduct.designImage;
 
   const productConfig = PRODUCT_TYPES[editedProduct.ProductType];
   const colorConfig = COLOR_OPTIONS[editedProduct.ProductColor];
@@ -371,9 +372,9 @@ const ProductPreview = memo(({
     
     setZoom(newZoom);
     onZoom?.(newZoom);
+    handleProductUpdate({ DesignScale: newZoom });
     setTimeout(checkBoundary, 0);
-  }, [zoom, disabled, productConfig, onZoom, checkBoundary]);
-
+  }, [zoom, disabled, productConfig, onZoom, handleProductUpdate, checkBoundary]);
   // Event listeners
   useEffect(() => {
     if (isDragging) {
@@ -396,7 +397,7 @@ const ProductPreview = memo(({
     checkBoundary();
   }, [position, zoom, checkBoundary]);
 
-  
+
   useEffect(() => {
     console.log('Design Data:', {
       image: editedProduct.designImage,
@@ -538,35 +539,36 @@ const ProductPreview = memo(({
         />
 
         {/* Design Layer */}
-        {!loading && !error && editedProduct.designImage && (
-          <div
-            ref={designRef}
-            className={`
-              absolute transform -translate-x-1/2 -translate-y-1/2
-              ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
-              ${disabled ? 'cursor-not-allowed' : ''}
-              ${isOutOfBounds ? 'opacity-50' : 'opacity-100'}
-              transition-opacity duration-200
-            `}
-            style={{
-              left: `${position.x}%`,
-              top: `${position.y}%`,
-              width: `${designArea.width}px`,
-              height: `${designArea.height}px`,
-              transform: `translate(-50%, -50%) scale(${zoom})`,
-              mixBlendMode: colorConfig.designBlendMode
-            }}
-            onMouseDown={handleDragStart}
-            onTouchStart={handleDragStart}
-          >
-            <img
-              src={editedProduct.designImage}
-              alt="Design"
-              className="w-full h-full object-contain"
-              draggable={false}
-            />
-          </div>
-        )}
+
+{!loading && !error && designImageUrl && (
+  <div
+    ref={designRef}
+    className={`
+      absolute transform -translate-x-1/2 -translate-y-1/2
+      ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
+      ${disabled ? 'cursor-not-allowed' : ''}
+      ${isOutOfBounds ? 'opacity-50' : 'opacity-100'}
+      transition-opacity duration-200
+    `}
+    style={{
+      left: `${position.x}%`,
+      top: `${position.y}%`,
+      width: `${designArea.width}px`,
+      height: `${designArea.height}px`,
+      transform: `translate(-50%, -50%) scale(${editedProduct.DesignScale || zoom})`,
+      mixBlendMode: colorConfig.designBlendMode
+    }}
+    onMouseDown={handleDragStart}
+    onTouchStart={handleDragStart}
+  >
+    <img
+      src={designImageUrl}
+      alt="Design"
+      className="w-full h-full object-contain"
+      draggable={false}
+    />
+  </div>
+)}
 
         {/* Loading State */}
         {loading && (
@@ -615,6 +617,7 @@ ProductPreview.propTypes = {
   onPositionChange: PropTypes.func,
   onViewChange: PropTypes.func,
   disabled: PropTypes.bool
+  
 };
 
 ProductPreview.displayName = 'ProductPreview';
@@ -1939,14 +1942,19 @@ const AdminProductApproval = () => {
     setEditedProduct({
       ...product,
       DesignScale: product.DesignScale || 1,
-      DesignPosition: product.DesignPosition || { x: 50, y: 25 },
+      DesignPosition: product.DesignPosition || { x: 50, y: 50 },
+      designImage: product.designImage?.url || product.designImage,
       originalPrice: product.originalPrice || PRODUCT_TYPES[product.ProductType].basePrice,
       availableColors: product.availableColors || [product.ProductColor],
       availableProductTypes: product.availableProductTypes || [product.ProductType],
       mainTags: product.mainTags || []
     });
   }, []);
-
+  useEffect(() => {
+    if (editedProduct?.DesignScale) {
+      setZoom(editedProduct.DesignScale);
+    }
+  }, [editedProduct?.DesignScale]);
   // Handle product updates with validation
   const handleProductUpdate = useCallback((updates) => {
     setEditedProduct(prev => {

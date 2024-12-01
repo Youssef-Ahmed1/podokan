@@ -21,7 +21,12 @@ const initialState = {
     currentPage: 1,
     totalPages: 1,
     itemsPerPage: 10
+  },
+  designDefaults: {
+    scale: 1,
+    position: { x: 50, y: 50 }
   }
+
 };
 
 export const productReducer = createReducer(initialState, (builder) => {
