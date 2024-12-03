@@ -1,6 +1,7 @@
 import axios from "axios";
-import { server , backend_url } from "../../server";
+import { server  } from "../../server";
 import { toast } from "react-toastify";
+import { isSeller } from "../../../../backend/middleware/auth";
 // get all sellers --- admin
 export const getAllSellers = () => async (dispatch) => {
   try {
