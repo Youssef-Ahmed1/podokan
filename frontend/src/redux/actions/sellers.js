@@ -1,7 +1,6 @@
 import axios from "axios";
 import { server  } from "../../server";
 import { toast } from "react-toastify";
-import { isSeller } from "../../../../backend/middleware/auth";
 // get all sellers --- admin
 export const getAllSellers = () => async (dispatch) => {
   try {
@@ -40,6 +39,7 @@ export const loginSeller = (email, password) => async (dispatch) => {
     });
   }
 };
+
 
 export const logoutSeller = () => async (dispatch) => {
   try {
