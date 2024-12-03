@@ -19,6 +19,7 @@ app.use(helmet({
 const ALLOWED_ORIGINS = ['https://testpodokan.store', 'http://localhost:3000'];
 
 // CORS configuration
+app.use(cookieParser());
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || ALLOWED_ORIGINS.includes(origin)) {
@@ -42,7 +43,6 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
-app.use(cookieParser());
 
 // Routes
 // Routes
