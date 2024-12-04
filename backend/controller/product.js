@@ -66,7 +66,7 @@ const validateProductData = [
   body('DesignScale')
     .optional()
     .isFloat({ min: 0.1, max: 2.0 })
-    .withMessage('Design scale must be between 0.1 and 5.0'),
+    .withMessage('Design scale must be between 0.1 and 2.0'),
   
   (req, res, next) => {
     const errors = validationResult(req);
@@ -491,7 +491,7 @@ router.get(
     }
   })
 );
-
+//.
 router.put(
   "/create-new-review",
   isAuthenticated,
