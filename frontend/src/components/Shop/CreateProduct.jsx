@@ -364,7 +364,7 @@ const validateForm = (formState, designFile) => {
     errors.discount = "Discount price must be less than original price";
   }
 
-  if (formState.DesignScale < 0.1 || formState.DesignScale > 5.0) {
+  if (formState.DesignScale < 0.3 || formState.DesignScale > 2.0) {
     errors.scale = "Design scale must be between 0.1 and 5.0";
   }
 

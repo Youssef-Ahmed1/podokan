@@ -65,7 +65,7 @@ const validateProductData = [
   
   body('DesignScale')
     .optional()
-    .isFloat({ min: 0.1, max: 5.0 })
+    .isFloat({ min: 0.1, max: 2.0 })
     .withMessage('Design scale must be between 0.1 and 5.0'),
   
   (req, res, next) => {

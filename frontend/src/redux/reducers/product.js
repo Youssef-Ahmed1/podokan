@@ -24,7 +24,7 @@ const initialState = {
   },
   designDefaults: {
     scale: 1,
-    position: { x: 50, y: 50 }
+    position: { x: 50, y: 25 }
   }
 
 };

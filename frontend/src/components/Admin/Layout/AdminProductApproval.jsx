@@ -26,7 +26,7 @@ const PRODUCT_TYPES = {
         back: { width: 300, height: 400, top: '25%', left: '50%' }
       },
       defaultScale: 1,
-      minScale: 0.5,
+      minScale: 0.3,
       maxScale: 2,
       gridLines: true
     }
@@ -48,7 +48,7 @@ const PRODUCT_TYPES = {
         back: { width: 300, height: 400, top: '25%', left: '50%' }
       },
       defaultScale: 1,
-      minScale: 0.5,
+      minScale: 0.3,
       maxScale: 2,
       gridLines: true
     }
@@ -70,7 +70,7 @@ const PRODUCT_TYPES = {
         back: { width: 300, height: 400, top: '25%', left: '50%' }
       },
       defaultScale: 1,
-      minScale: 0.5,
+      minScale: 0.3,
       maxScale: 2,
       gridLines: true
     }
@@ -1374,9 +1374,9 @@ const ValidationSystem = memo(({ product, onValidationChange }) => {
         validate: (product) => {
           const isWithinBounds = product.DesignPosition && 
             product.DesignPosition.x >= 0 && 
-            product.DesignPosition.x <= 100 && 
+            product.DesignPosition.x <= 50 && 
             product.DesignPosition.y >= 0 && 
-            product.DesignPosition.y <= 100;
+            product.DesignPosition.y <= 50;
           
           return {
             valid: isWithinBounds,
@@ -1942,7 +1942,7 @@ const AdminProductApproval = () => {
     setEditedProduct({
       ...product,
       DesignScale: product.DesignScale || 1,
-      DesignPosition: product.DesignPosition || { x: 50, y: 50 },
+      DesignPosition: product.DesignPosition || { x: 50, y: 25 },
       designImage: product.designImage?.url || product.designImage,
       originalPrice: product.originalPrice || PRODUCT_TYPES[product.ProductType].basePrice,
       availableColors: product.availableColors || [product.ProductColor],
