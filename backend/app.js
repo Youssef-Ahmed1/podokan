@@ -8,7 +8,7 @@ const path = require('path');
 const helmet = require('helmet');
 
 const app = express();
-
+//
 // Security headers
 app.use(helmet({
   contentSecurityPolicy: false,
