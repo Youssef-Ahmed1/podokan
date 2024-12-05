@@ -28,16 +28,18 @@ export const getAllOrdersOfUser = (userId) => async (dispatch) => {
 };
 
 // get all orders of seller
-export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
+export const getAllOrdersShop = (shopId) => async (dispatch) => {
   try {
-    dispatch({
-      type: "getAllOrdersShopRequest",
-    });
+    dispatch({ type: "getAllOrdersShopRequest" });
 
     const { data } = await axios.get(
-      `${server}/order/get-seller-all-orders/${shopId}`,
+      `${server}/order/get-seller-orders/${shopId}`,
       {
         withCredentials: true,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Seller-Authorization': `Bearer ${localStorage.getItem('seller_token')}`
+        }
       }
     );
 
@@ -48,7 +50,7 @@ export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: "getAllOrdersShopFailed",
-      payload: error.response.data.message,
+      payload: error.response?.data?.message || "Failed to fetch orders",
     });
   }
 };

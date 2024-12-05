@@ -9,7 +9,8 @@ const initialState = {
 };
 
 export const orderReducer = createReducer(initialState, (builder) => {
-  builder.addCase("getAllOrdersUserRequest", (state) => {
+  builder
+    .addCase("getAllOrdersUserRequest", (state) => {
       state.isLoading = true;
     })
     .addCase("getAllOrdersUserSuccess", (state, action) => {
@@ -31,6 +32,7 @@ export const orderReducer = createReducer(initialState, (builder) => {
       state.isLoading = false;
       state.error = action.payload;
     })
+  
     .addCase("getAllOrdersOfAdminRequest", (state) => {
       state.adminOrderLoading = true;
     })
@@ -46,5 +48,8 @@ export const orderReducer = createReducer(initialState, (builder) => {
       state.adminOrders = [];
       state.totalAmount = 0;
       state.ordersCount = 0;
+    })
+    .addCase("clearErrors", (state) => {
+      state.error = null;
     });
 });

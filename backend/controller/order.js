@@ -192,13 +192,11 @@ router.get(
         return next(new ErrorHandler("Unauthorized access to shop orders", 403));
       }
 
-      const orders = await Order.find({
-        "cart.shopId": req.params.shopId,
-      })
-        .sort({ createdAt: -1 })
-        .select('-paymentInfo.cardDetails')
-        .lean(); // Use lean() for better performance
-
+      const orders = await Order.find({ "cart.shopId": req.params.shopId })
+      .sort({ createdAt: -1 })
+      .populate("user", "name email")
+      .populate("cart.productId", "name price images")
+      .lean();
       // Calculate shop statistics
       const statistics = {
         totalOrders: orders.length,
@@ -308,34 +306,23 @@ router.get(
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const skip = (page - 1) * limit;
+      const orders = await Order.find()
+        .sort({ createdAt: -1 })
+        .populate("user", "name email")
+        .populate("shop", "name");
 
-      const [orders, total] = await Promise.all([
-        Order.find()
-          .sort({ createdAt: -1 })
-          .skip(skip)
-          .limit(limit)
-          .select('-paymentInfo.cardDetails')
-          .lean()
-          .maxTimeMS(25000),
-        
-        Order.countDocuments()
-      ]);
-
+      const ordersCount = await Order.countDocuments();
+      
       const totalAmount = orders.reduce(
-        (sum, order) => sum + order.totalPrice, 
+        (acc, order) => acc + order.totalPrice,
         0
       );
 
       res.status(200).json({
         success: true,
         orders,
+        ordersCount,
         totalAmount,
-        totalOrders: total,
-        currentPage: page,
-        totalPages: Math.ceil(total / limit)
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
