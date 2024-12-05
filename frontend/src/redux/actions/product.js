@@ -99,9 +99,7 @@ export const fetchPendingProducts = () => async (dispatch) => {
   }
 };
 // Approve/Reject product
-// frontend/redux/actions/product.js
-
-export const approveRejectProduct = (productId, status, reason) => async (dispatch) => {
+export const approveRejectProduct = (productId, status, reason, productData) => async (dispatch) => {
   try {
     dispatch({ type: "approveRejectProductRequest" });
 
@@ -110,16 +108,24 @@ export const approveRejectProduct = (productId, status, reason) => async (dispat
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       },
-      withCredentials: true,
-      timeout: 30000
+      withCredentials: true
+    };
+
+    // Include price data in the request
+    const requestData = {
+      status,
+      statusReason: reason || '',
+      originalPrice: productData.originalPrice,
+      discountPrice: productData.discountPrice,
+      ProductType: productData.ProductType,
+      ProductColor: productData.ProductColor,
+      ProductView: productData.ProductView,
+      availableColors: productData.availableColors
     };
 
     const response = await axios.put(
       `${server}/product/approve-reject-product/${productId}`,
-      {
-        status,
-        statusReason: reason || ''
-      },
+      requestData,
       config
     );
 
@@ -139,36 +145,38 @@ export const approveRejectProduct = (productId, status, reason) => async (dispat
     console.error('Approve/Reject Error:', error);
     dispatch({
       type: "approveRejectProductFail",
-      payload: error.response?.data?.message || 
-               "Failed to update product status"
+      payload: error.response?.data?.message || "Failed to update product status"
     });
     throw error;
   }
 };
+
 // Get all products
-export const getAllProducts = () => async (dispatch) => {
+// In redux/actions/product.js
+export const getAllProducts = (page = 1) => async (dispatch) => {
   try {
     dispatch({ type: "getAllProductsRequest" });
 
-    const { data } = await axios.get(`${server}/product/get-all-products`, {
+    const config = {
       headers: getAuthHeaders(),
-      withCredentials: true
-    });
+      withCredentials: true,
+      params: {
+        page,
+        limit: 20 // Adjust limit as needed
+      }
+    };
 
-    const products = data.products?.map(product => ({
-      ...product,
-      DesignScale: product.DesignScale || 1,
-      DesignPosition: product.DesignPosition || { x: 50, y: 25 },
-      originalPrice: product.originalPrice || 0,
-      discountPrice: product.discountPrice || null,
-      availableColors: Array.isArray(product.availableColors) 
-        ? product.availableColors 
-        : [product.ProductColor || 'white']
-    })) || [];
+    const { data } = await axios.get(`${server}/product/get-all-products`, config);
 
     dispatch({ 
       type: "getAllProductsSuccess", 
-      payload: products 
+      payload: {
+        products: data.products,
+        currentPage: data.currentPage,
+        totalPages: data.totalPages,
+        totalProducts: data.totalProducts,
+        hasMore: data.currentPage < data.totalPages
+      }
     });
   } catch (error) {
     console.error("Error fetching products:", error);

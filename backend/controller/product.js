@@ -266,22 +266,35 @@ router.put(
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { id } = req.params;
-      const { status, statusReason } = req.body;
+      const { 
+        status, 
+        statusReason,
+        originalPrice,
+        discountPrice,
+        ProductType,
+        ProductColor,
+        ProductView,
+        availableColors
+      } = req.body;
 
-      console.log('Updating product status:', {
-        productId: id,
+      const updateData = {
         status,
-        adminUser: req.user.email
-      });
+        statusReason,
+        lastModified: new Date(),
+        lastModifiedBy: req.user._id
+      };
+
+      // Only update price fields if they are provided
+      if (originalPrice) updateData.originalPrice = originalPrice;
+      if (discountPrice) updateData.discountPrice = discountPrice;
+      if (ProductType) updateData.ProductType = ProductType;
+      if (ProductColor) updateData.ProductColor = ProductColor;
+      if (ProductView) updateData.ProductView = ProductView;
+      if (availableColors) updateData.availableColors = availableColors;
 
       const product = await Product.findByIdAndUpdate(
         id,
-        { 
-          status,
-          statusReason,
-          lastModified: new Date(),
-          lastModifiedBy: req.user._id
-        },
+        updateData,
         { new: true }
       );
 

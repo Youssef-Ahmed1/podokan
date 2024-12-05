@@ -1,18 +1,33 @@
 import axios from "axios";
 import { server  } from "../../server";
 import { toast } from "react-toastify";
-// get all sellers --- admin
 export const getAllSellers = () => async (dispatch) => {
   try {
     dispatch({ type: "getAllSellersRequest" });
-    const { data } = await axios.get(`${server}/shop/admin-all-sellers`, {
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
       withCredentials: true,
+    };
+
+    const { data } = await axios.get(
+      `${server}/shop/admin-all-sellers`,
+      config
+    );
+
+    dispatch({
+      type: "getAllSellersSuccess",
+      payload: {
+        sellers: data.sellers,
+        sellersCount: data.sellersCount,
+      },
     });
-    dispatch({ type: "getAllSellersSuccess", payload: data.sellers });
   } catch (error) {
     dispatch({
       type: "getAllSellersFailed",
-      payload: error.response?.data?.message || error.message,
+      payload: error.response?.data?.message || "Failed to fetch sellers",
     });
   }
 };

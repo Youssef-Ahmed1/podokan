@@ -1,8 +1,9 @@
 import { createReducer } from "@reduxjs/toolkit";
 
-
 const sellerInitialState = {
   isLoading: true,
+  sellers: [],
+  sellersCount: 0,
 };
 
 export const sellerReducer = createReducer(sellerInitialState, (builder) => {
@@ -12,7 +13,7 @@ export const sellerReducer = createReducer(sellerInitialState, (builder) => {
     .addCase("LoadSellerSuccess", (state, action) => {
       state.isSeller = true;
       state.isLoading = false;
-      state.seller = action.payload;
+      state.sellers = action.payload;
     })
     .addCase("LoadSellerFail", (state, action) => {
       state.isLoading = false;
@@ -24,13 +25,13 @@ export const sellerReducer = createReducer(sellerInitialState, (builder) => {
     })
     .addCase("getAllSellersSuccess", (state, action) => {
       state.isLoading = false;
-      state.sellers = action.payload;
+      state.sellers = action.payload.sellers || [];
+      state.sellersCount = action.payload.sellersCount || 0;
     })
     .addCase("getAllSellerFailed", (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
-    })
-    .addCase("clearErrors", (state) => {
-      state.error = null;
+      state.sellers = [];
+      state.sellersCount = 0;
     });
 });
