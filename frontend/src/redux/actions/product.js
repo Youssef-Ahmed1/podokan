@@ -152,8 +152,7 @@ export const approveRejectProduct = (productId, status, reason, productData) => 
 };
 
 // Get all products
-// In redux/actions/product.js
-export const getAllProducts = (page = 1) => async (dispatch) => {
+export const getAllProducts = (page = 1, limit = 20) => async (dispatch) => {
   try {
     dispatch({ type: "getAllProductsRequest" });
 
@@ -162,22 +161,33 @@ export const getAllProducts = (page = 1) => async (dispatch) => {
       withCredentials: true,
       params: {
         page,
-        limit: 20 // Adjust limit as needed
+        limit
       }
     };
 
     const { data } = await axios.get(`${server}/product/get-all-products`, config);
 
+    // Handle the response with proper pagination
     dispatch({ 
       type: "getAllProductsSuccess", 
       payload: {
-        products: data.products,
+        products: data.products || [],
         currentPage: data.currentPage,
         totalPages: data.totalPages,
         totalProducts: data.totalProducts,
-        hasMore: data.currentPage < data.totalPages
       }
     });
+
+    // Update pagination separately
+    dispatch({
+      type: "updatePagination",
+      payload: {
+        currentPage: data.currentPage,
+        totalPages: data.totalPages,
+        itemsPerPage: limit
+      }
+    });
+
   } catch (error) {
     console.error("Error fetching products:", error);
     dispatch({
@@ -186,7 +196,6 @@ export const getAllProducts = (page = 1) => async (dispatch) => {
     });
   }
 };
-
 export const getAllProductsShop = (id) => async (dispatch) => {
   try {
     dispatch({ type: "getAllProductsShopRequest" });

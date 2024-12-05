@@ -95,12 +95,14 @@ export const productReducer = createReducer(initialState, (builder) => {
     })
     .addCase("getAllProductsSuccess", (state, action) => {
       state.isLoading = false;
-      state.allProducts = action.payload;
+      state.allProducts = action.payload.products;
       state.error = null;
       state.lastUpdated = new Date().toISOString();
-      console.log('Products in store:', action.payload.length); // Debug log
-      // Update pagination
-      state.pagination.totalPages = Math.ceil(action.payload.length / state.pagination.itemsPerPage);
+      state.pagination = {
+        ...state.pagination,
+        currentPage: action.payload.currentPage,
+        totalPages: action.payload.totalPages
+      };
     })
     .addCase("getAllProductsFailed", (state, action) => {
       state.isLoading = false;
