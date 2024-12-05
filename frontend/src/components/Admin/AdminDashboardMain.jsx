@@ -22,33 +22,49 @@ const AdminDashboardMain = () => {
     adminBalance: 0,
     totalSellers: 0,
     totalOrders: 0,
-    latestOrders: [],
+    latestOrders: []
   });
 
-  useEffect(() => {
-    dispatch(getAllOrdersOfAdmin());
-    dispatch(getAllSellers());
-  }, [dispatch]);
+  // Add loading state
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
-    if (adminOrders && sellers) {
-      // Calculate admin earnings (10% of total amount)
-      const adminEarning = totalAmount * 0.10;
+    const fetchData = async () => {
+      try {
+        await Promise.all([
+          dispatch(getAllOrdersOfAdmin()),
+          dispatch(getAllSellers())
+        ]);
+        setIsInitialLoad(false);
+      } catch (error) {
+        console.error('Dashboard data fetch error:', error);
+        setIsInitialLoad(false);
+      }
+    };
+
+    if (isInitialLoad) {
+      fetchData();
+    }
+  }, [dispatch, isInitialLoad]);
+
+  useEffect(() => {
+    if (!adminOrderLoading && !sellersLoading) {
+      const adminEarning = totalAmount ? totalAmount * 0.10 : 0;
       
       setDashboardData({
         adminBalance: adminEarning.toFixed(2),
-        totalSellers: sellersCount || sellers.length,
-        totalOrders: ordersCount || adminOrders.length,
-        latestOrders: adminOrders.slice(0, 5).map((order) => ({
+        totalSellers: sellersCount || 0,
+        totalOrders: ordersCount || 0,
+        latestOrders: adminOrders?.slice(0, 5).map(order => ({
           id: order._id,
-          itemsQty: order.cart.reduce((acc, item) => acc + item.qty, 0),
-          total: `${order.totalPrice.toFixed(2)} €`,
+          itemsQty: order.cart?.reduce((acc, item) => acc + (item.qty || 0), 0) || 0,
+          total: `${order.totalPrice?.toFixed(2) || 0} €`,
           status: order.status,
-          createdAt: new Date(order.createdAt).toLocaleDateString(),
-        })),
+          createdAt: new Date(order.createdAt).toLocaleDateString()
+        })) || []
       });
     }
-  }, [adminOrders, sellers, totalAmount, ordersCount, sellersCount]);
+  }, [adminOrders, adminOrderLoading, sellersLoading, totalAmount, ordersCount, sellersCount]);
 
   // Add error handling for data grid
   const safeLatestOrders = Array.isArray(dashboardData.latestOrders) 
@@ -91,6 +107,10 @@ const AdminDashboardMain = () => {
       flex: 0.8,
     },
   ];
+  
+  if (isInitialLoad || adminOrderLoading || sellersLoading) {
+    return <Loader />;
+  }
   return (
     <>
       {(adminOrderLoading || sellersLoading) ? (

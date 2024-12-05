@@ -5,6 +5,7 @@ import { FiPackage, FiShoppingBag } from "react-icons/fi";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { BiMessageSquareDetail } from "react-icons/bi";
+import siteLogo from "../../../Assests/siteLogo.png";
 
 const DashboardHeader = () => {
   const { seller } = useSelector((state) => state.seller);
@@ -13,7 +14,7 @@ const DashboardHeader = () => {
       <div>
         <Link to="/dashboard">
           <img
-            src="https://shopo.quomodothemes.website/assets/images/logo.svg"
+            src={`${siteLogo}`}
             alt=""
           />
         </Link>

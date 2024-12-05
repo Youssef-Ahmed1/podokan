@@ -58,31 +58,30 @@ export const getAllOrdersOfAdmin = () => async (dispatch) => {
   try {
     dispatch({ type: "adminAllOrdersRequest" });
 
-    const config = {
+    const { data } = await axios.get(`${server}/order/admin-all-orders`, {
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Authorization: `Bearer ${localStorage.getItem("token")}`
       },
-      withCredentials: true,
-    };
+      withCredentials: true
+    });
 
-    const { data } = await axios.get(
-      `${server}/order/admin-all-orders`,
-      config
-    );
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch orders');
+    }
 
     dispatch({
       type: "adminAllOrdersSuccess",
       payload: {
-        orders: data.orders,
-        totalAmount: data.totalAmount,
-        ordersCount: data.ordersCount,
-      },
+        orders: data.orders || [],
+        totalAmount: data.totalAmount || 0,
+        ordersCount: data.ordersCount || 0
+      }
     });
   } catch (error) {
+    console.error('Admin orders fetch error:', error);
     dispatch({
       type: "adminAllOrdersFailed",
-      payload: error.response?.data?.message || "Failed to fetch orders",
+      payload: error.response?.data?.message || error.message
     });
   }
 };
