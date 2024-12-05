@@ -225,14 +225,53 @@ class ErrorBoundary extends React.Component {
 ErrorBoundary.propTypes = {
   children: PropTypes.node.isRequired
 };
+const handleProductUpdate = useCallback((updates) => {
+  setEditedProduct(prev => {
+    const updated = {
+      ...prev,
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
 
+    // Validate base price based on product type
+    if (updates.ProductType || updates.originalPrice) {
+      const basePrice = PRODUCT_TYPES[updated.ProductType].basePrice;
+      if (updated.originalPrice < basePrice) {
+        updated.originalPrice = basePrice;
+      }
+      if (updated.discountPrice && updated.discountPrice < basePrice) {
+        updated.discountPrice = basePrice;
+      }
+    }
+
+    // Validate design tags count
+    if (updates.Designtags) {
+      if (updates.Designtags.length > 7) {
+        updated.Designtags = updates.Designtags.slice(0, 7);
+      }
+    }
+
+    // Ensure product color is in available colors
+    if (updates.availableColors && !updates.availableColors.includes(updated.ProductColor)) {
+      updated.availableColors = [...updates.availableColors, updated.ProductColor];
+    }
+
+    // Ensure product type is in available types
+    if (updates.availableProductTypes && !updates.availableProductTypes.includes(updated.ProductType)) {
+      updated.availableProductTypes = [...updates.availableProductTypes, updated.ProductType];
+    }
+
+    return updated;
+  });
+}, []);
 
 const ProductPreview = memo(({ 
   editedProduct,
   onZoom,
   onPositionChange,
   onViewChange,
-  disabled = false 
+  disabled = false ,
+  handleProductUpdate = handleProductUpdate
 }) => {
   const containerRef = useRef(null);
   const designRef = useRef(null);
@@ -242,7 +281,7 @@ const ProductPreview = memo(({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [zoom, setZoom] = useState(1);
-  const [showGrid, setShowGrid] = useState(false);
+    const [showGrid, setShowGrid] = useState(false);
   const [isOutOfBounds, setIsOutOfBounds] = useState(false);
   const designImageUrl = editedProduct.designImage?.url || editedProduct.designImage;
 
@@ -611,14 +650,16 @@ ProductPreview.propTypes = {
     ProductType: PropTypes.string.isRequired,
     ProductColor: PropTypes.string.isRequired,
     ProductView: PropTypes.string.isRequired,
-    designImage: PropTypes.string
+    designImage: PropTypes.string,
+    DesignScale: PropTypes.number
   }).isRequired,
   onZoom: PropTypes.func,
   onPositionChange: PropTypes.func,
   onViewChange: PropTypes.func,
-  disabled: PropTypes.bool
-  
+  disabled: PropTypes.bool,
+  handleProductUpdate: PropTypes.func.isRequired
 };
+
 
 ProductPreview.displayName = 'ProductPreview';
 
@@ -1956,45 +1997,7 @@ const AdminProductApproval = () => {
     }
   }, [editedProduct?.DesignScale]);
   // Handle product updates with validation
-  const handleProductUpdate = useCallback((updates) => {
-    setEditedProduct(prev => {
-      const updated = {
-        ...prev,
-        ...updates,
-        updatedAt: new Date().toISOString()
-      };
 
-      // Validate base price based on product type
-      if (updates.ProductType || updates.originalPrice) {
-        const basePrice = PRODUCT_TYPES[updated.ProductType].basePrice;
-        if (updated.originalPrice < basePrice) {
-          updated.originalPrice = basePrice;
-        }
-        if (updated.discountPrice && updated.discountPrice < basePrice) {
-          updated.discountPrice = basePrice;
-        }
-      }
-
-      // Validate design tags count
-      if (updates.Designtags) {
-        if (updates.Designtags.length > 7) {
-          updated.Designtags = updates.Designtags.slice(0, 7);
-        }
-      }
-
-      // Ensure product color is in available colors
-      if (updates.availableColors && !updates.availableColors.includes(updated.ProductColor)) {
-        updated.availableColors = [...updates.availableColors, updated.ProductColor];
-      }
-
-      // Ensure product type is in available types
-      if (updates.availableProductTypes && !updates.availableProductTypes.includes(updated.ProductType)) {
-        updated.availableProductTypes = [...updates.availableProductTypes, updated.ProductType];
-      }
-
-      return updated;
-    });
-  }, []);
 
   // Handle design position update
   const handlePositionChange = useCallback((position) => {
@@ -2179,16 +2182,17 @@ const AdminProductApproval = () => {
           {/* Review Area */}
           {selectedProduct && editedProduct ? (
             <div className="w-full lg:w-2/3 space-y-6">
-              <ProductPreview
-                editedProduct={editedProduct}
-                onPositionChange={handlePositionChange}
-                onCenterAlignment={handleCenterAlignment}
-                onZoom={(scale) => handleProductUpdate({ DesignScale: scale })}
-                onViewChange={(view) => handleProductUpdate({ ProductView: view })}
-                showGridLines={showGridLines}
-                onToggleGridLines={() => setShowGridLines(!showGridLines)}
-                disabled={isSubmitting}
-              />
+          <ProductPreview
+  editedProduct={editedProduct}
+  onPositionChange={handlePositionChange}
+  onCenterAlignment={handleCenterAlignment}
+  onZoom={(scale) => handleProductUpdate({ DesignScale: scale })}
+  onViewChange={(view) => handleProductUpdate({ ProductView: view })}
+  showGridLines={showGridLines}
+  onToggleGridLines={() => setShowGridLines(!showGridLines)}
+  disabled={isSubmitting}
+  handleProductUpdate={handleProductUpdate} 
+/>
 
               <ProductConfig
                 editedProduct={editedProduct}

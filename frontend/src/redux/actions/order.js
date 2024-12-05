@@ -54,33 +54,35 @@ export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
 };
 
 // get all orders of Admin
-// actions/order.js
 export const getAllOrdersOfAdmin = () => async (dispatch) => {
   try {
-    dispatch({ type: "getAllOrdersOfAdminRequest" });
+    dispatch({ type: "adminAllOrdersRequest" });
 
     const config = {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
-      withCredentials: true
+      withCredentials: true,
     };
 
     const { data } = await axios.get(
-      `${server}/order/admin-all-orders`, 
+      `${server}/order/admin-all-orders`,
       config
     );
 
     dispatch({
-      type: "getAllOrdersOfAdminSuccess",
-      payload: data
+      type: "adminAllOrdersSuccess",
+      payload: {
+        orders: data.orders,
+        totalAmount: data.totalAmount,
+        ordersCount: data.ordersCount,
+      },
     });
   } catch (error) {
-    console.error('Admin orders error:', error);
     dispatch({
-      type: "getAllOrdersOfAdminFailed",
-      payload: error.response?.data?.message || "Failed to fetch orders"
+      type: "adminAllOrdersFailed",
+      payload: error.response?.data?.message || "Failed to fetch orders",
     });
   }
 };
