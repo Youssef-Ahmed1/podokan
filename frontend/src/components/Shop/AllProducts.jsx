@@ -5,21 +5,23 @@ import { DataGrid } from "@material-ui/data-grid";
 import { AiOutlineDelete, AiOutlineEye } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { getAllProductsShop, deleteProduct } from "../../redux/actions/product";
+import { getAllProductsShop, deleteProduct } from "../../redux/actions/product.js";
 import Loader from "../Layout/Loader";
 
 const AllProducts = () => {
   const dispatch = useDispatch();
   const { allProducts, isLoading, pagination } = useSelector((state) => state.products);
+  const { seller } = useSelector((state) => state.seller);
   const [paginationModel, setPaginationModel] = useState({
-    page: 0,
+    page: 0, 
     pageSize: 10,
   });
 
   useEffect(() => {
-    dispatch(getAllProducts(paginationModel.page + 1, paginationModel.pageSize));
-  }, [dispatch, paginationModel]);
-
+    if (seller?._id) {
+      dispatch(getAllProductsShop(seller._id, paginationModel.page + 1, paginationModel.pageSize));
+    }
+  }, [dispatch, seller?._id, paginationModel]);
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
     

@@ -118,7 +118,7 @@ const productSchema = new mongoose.Schema({
     type: Number,
     default: 1,
     min: [0.1, "Design scale cannot be less than 0.1"],
-    max: [5.0, "Design scale cannot exceed 5.0"],
+    max: [2.0, "Design scale cannot exceed 2.0"],
     set: function(value) {
       return parseFloat(parseFloat(value).toFixed(2));
     }
