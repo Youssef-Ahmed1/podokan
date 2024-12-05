@@ -295,8 +295,8 @@ router.get(
   catchAsyncErrors(async (req, res, next) => {
     try {
       const sellers = await Shop.find()
-        .sort({ createdAt: -1 })
-        .populate("owner", "name email");
+        .select('-password') // Don't send passwords
+        .sort({ createdAt: -1 });
 
       const sellersCount = await Shop.countDocuments();
 
@@ -306,10 +306,12 @@ router.get(
         sellersCount,
       });
     } catch (error) {
+      console.error("Admin sellers fetch error:", error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
+
 // Delete seller -- admin only
 router.delete(
   "/delete-seller/:id",
