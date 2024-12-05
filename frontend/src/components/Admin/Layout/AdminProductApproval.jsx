@@ -225,53 +225,14 @@ class ErrorBoundary extends React.Component {
 ErrorBoundary.propTypes = {
   children: PropTypes.node.isRequired
 };
-const handleProductUpdate = useCallback((updates) => {
-  setEditedProduct(prev => {
-    const updated = {
-      ...prev,
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-
-    // Validate base price based on product type
-    if (updates.ProductType || updates.originalPrice) {
-      const basePrice = PRODUCT_TYPES[updated.ProductType].basePrice;
-      if (updated.originalPrice < basePrice) {
-        updated.originalPrice = basePrice;
-      }
-      if (updated.discountPrice && updated.discountPrice < basePrice) {
-        updated.discountPrice = basePrice;
-      }
-    }
-
-    // Validate design tags count
-    if (updates.Designtags) {
-      if (updates.Designtags.length > 7) {
-        updated.Designtags = updates.Designtags.slice(0, 7);
-      }
-    }
-
-    // Ensure product color is in available colors
-    if (updates.availableColors && !updates.availableColors.includes(updated.ProductColor)) {
-      updated.availableColors = [...updates.availableColors, updated.ProductColor];
-    }
-
-    // Ensure product type is in available types
-    if (updates.availableProductTypes && !updates.availableProductTypes.includes(updated.ProductType)) {
-      updated.availableProductTypes = [...updates.availableProductTypes, updated.ProductType];
-    }
-
-    return updated;
-  });
-}, []);
 
 const ProductPreview = memo(({ 
   editedProduct,
   onZoom,
   onPositionChange,
   onViewChange,
-  disabled = false ,
-  handleProductUpdate = handleProductUpdate
+  disabled = false,
+  handleProductUpdate
 }) => {
   const containerRef = useRef(null);
   const designRef = useRef(null);
@@ -1954,6 +1915,7 @@ const AdminProductApproval = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showGridLines, setShowGridLines] = useState(false);
+  const [zoom, setZoom] = useState(1);
 
   // Load pending products
   useEffect(() => {
@@ -1997,7 +1959,46 @@ const AdminProductApproval = () => {
     }
   }, [editedProduct?.DesignScale]);
   // Handle product updates with validation
-
+  const handleProductUpdate = useCallback((updates) => {
+    setEditedProduct(prev => {
+      const updated = {
+        ...prev,
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+  
+      // Validate base price based on product type
+      if (updates.ProductType || updates.originalPrice) {
+        const basePrice = PRODUCT_TYPES[updated.ProductType].basePrice;
+        if (updated.originalPrice < basePrice) {
+          updated.originalPrice = basePrice;
+        }
+        if (updated.discountPrice && updated.discountPrice < basePrice) {
+          updated.discountPrice = basePrice;
+        }
+      }
+  
+      // Validate design tags count
+      if (updates.Designtags) {
+        if (updates.Designtags.length > 7) {
+          updated.Designtags = updates.Designtags.slice(0, 7);
+        }
+      }
+  
+      // Ensure product color is in available colors
+      if (updates.availableColors && !updates.availableColors.includes(updated.ProductColor)) {
+        updated.availableColors = [...updates.availableColors, updated.ProductColor];
+      }
+  
+      // Ensure product type is in available types
+      if (updates.availableProductTypes && !updates.availableProductTypes.includes(updated.ProductType)) {
+        updated.availableProductTypes = [...updates.availableProductTypes, updated.ProductType];
+      }
+  
+      return updated;
+    });
+  }, []);
+  
 
   // Handle design position update
   const handlePositionChange = useCallback((position) => {
@@ -2182,7 +2183,7 @@ const AdminProductApproval = () => {
           {/* Review Area */}
           {selectedProduct && editedProduct ? (
             <div className="w-full lg:w-2/3 space-y-6">
-          <ProductPreview
+<ProductPreview
   editedProduct={editedProduct}
   onPositionChange={handlePositionChange}
   onCenterAlignment={handleCenterAlignment}
@@ -2191,7 +2192,7 @@ const AdminProductApproval = () => {
   showGridLines={showGridLines}
   onToggleGridLines={() => setShowGridLines(!showGridLines)}
   disabled={isSubmitting}
-  handleProductUpdate={handleProductUpdate} 
+  handleProductUpdate={handleProductUpdate}
 />
 
               <ProductConfig
