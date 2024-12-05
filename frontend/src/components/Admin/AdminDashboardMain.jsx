@@ -11,8 +11,12 @@ import { getAllSellers } from "../../redux/actions/sellers";
 
 const AdminDashboardMain = () => {
   const dispatch = useDispatch();
-  const { adminOrders = [], adminOrderLoading } = useSelector((state) => state.order);
-  const { sellers = [] } = useSelector((state) => state.seller);
+  const { adminOrders, adminOrderLoading, ordersCount, totalAmount } = useSelector(
+    (state) => state.order
+  );
+  const { sellers, isLoading: sellersLoading, sellersCount } = useSelector(
+    (state) => state.seller
+  );
 
   const [dashboardData, setDashboardData] = useState({
     adminBalance: 0,
@@ -26,42 +30,25 @@ const AdminDashboardMain = () => {
     dispatch(getAllSellers());
   }, [dispatch]);
 
-  
   useEffect(() => {
-    console.log('Admin Orders:', adminOrders);
-    console.log('Admin Loading:', adminOrderLoading);
-    console.log('Sellers:', sellers);
-  }, [adminOrders, adminOrderLoading, sellers]);
-
-  useEffect(() => {
-    // Add null checks and ensure arrays
-    if (Array.isArray(adminOrders) && Array.isArray(sellers)) {
-      // Calculate admin earnings
-      const adminEarning = adminOrders.reduce((acc, item) => {
-        const price = Number(item.totalPrice) || 0;
-        return acc + (price * 0.10);
-      }, 0);
-      const adminBalance = adminEarning.toFixed(2);
-
-      // Process latest orders with null checks
-      const latestOrders = adminOrders.map((item) => ({
-        id: item._id,
-        itemsQty: Array.isArray(item?.cart) 
-          ? item.cart.reduce((acc, cartItem) => acc + (Number(cartItem.qty) || 0), 0)
-          : 0,
-        total: `${item?.totalPrice || 0} €`,
-        status: item?.status || 'Unknown',
-        createdAt: item?.createdAt ? item.createdAt.slice(0, 10) : 'N/A',
-      }));
-
+    if (adminOrders && sellers) {
+      // Calculate admin earnings (10% of total amount)
+      const adminEarning = totalAmount * 0.10;
+      
       setDashboardData({
-        adminBalance,
-        totalSellers: sellers.length,
-        totalOrders: adminOrders.length,
-        latestOrders,
+        adminBalance: adminEarning.toFixed(2),
+        totalSellers: sellersCount || sellers.length,
+        totalOrders: ordersCount || adminOrders.length,
+        latestOrders: adminOrders.slice(0, 5).map((order) => ({
+          id: order._id,
+          itemsQty: order.cart.reduce((acc, item) => acc + item.qty, 0),
+          total: `${order.totalPrice.toFixed(2)} €`,
+          status: order.status,
+          createdAt: new Date(order.createdAt).toLocaleDateString(),
+        })),
       });
     }
-  }, [adminOrders, sellers]);
+  }, [adminOrders, sellers, totalAmount, ordersCount, sellersCount]);
 
   // Add error handling for data grid
   const safeLatestOrders = Array.isArray(dashboardData.latestOrders) 
@@ -104,10 +91,9 @@ const AdminDashboardMain = () => {
       flex: 0.8,
     },
   ];
-
   return (
     <>
-      {adminOrderLoading ? (
+      {(adminOrderLoading || sellersLoading) ? (
         <Loader />
       ) : (
         <div className="w-full p-4">
@@ -124,20 +110,21 @@ const AdminDashboardMain = () => {
                   Total Earning
                 </h3>
               </div>
-              <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">€ {dashboardData.adminBalance}</h5>
+              <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">
+                € {dashboardData.adminBalance}
+              </h5>
             </div>
-
 
             <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
               <div className="flex items-center">
                 <MdBorderClear size={30} className="mr-2" fill="#00000085" />
-                <h3
-                  className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}
-                >
+                <h3 className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}>
                   All Sellers
                 </h3>
               </div>
-              <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">{dashboardData.totalSellers}</h5>
+              <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">
+                {dashboardData.totalSellers}
+              </h5>
               <Link to="/admin-sellers">
                 <h5 className="pt-4 pl-2 text-[#077f9c]">View Sellers</h5>
               </Link>
@@ -150,13 +137,13 @@ const AdminDashboardMain = () => {
                   className="mr-2"
                   fill="#00000085"
                 />
-                <h3
-                  className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}
-                >
+                <h3 className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}>
                   All Orders
                 </h3>
               </div>
-              <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">{dashboardData.totalOrders}</h5>
+              <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">
+                {dashboardData.totalOrders}
+              </h5>
               <Link to="/admin-orders">
                 <h5 className="pt-4 pl-2 text-[#077f9c]">View Orders</h5>
               </Link>

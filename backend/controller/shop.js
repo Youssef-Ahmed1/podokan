@@ -291,20 +291,25 @@ router.put(
 router.get(
   "/admin-all-sellers",
   isAuthenticated,
-  isAdmin,  
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const sellers = await Shop.find().sort({ createdAt: -1 });
+      const sellers = await Shop.find()
+        .sort({ createdAt: -1 })
+        .populate("owner", "name email");
+
+      const sellersCount = await Shop.countDocuments();
+
       res.status(200).json({
         success: true,
         sellers,
+        sellersCount,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
-
 // Delete seller -- admin only
 router.delete(
   "/delete-seller/:id",
