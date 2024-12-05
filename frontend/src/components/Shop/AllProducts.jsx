@@ -10,18 +10,15 @@ import Loader from "../Layout/Loader";
 
 const AllProducts = () => {
   const dispatch = useDispatch();
-  const { products, isLoading } = useSelector((state) => state.products);
-  const { seller } = useSelector((state) => state.seller);
+  const { allProducts, isLoading, pagination } = useSelector((state) => state.products);
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 10,
   });
 
   useEffect(() => {
-    if (seller?._id) {
-      dispatch(getAllProductsShop(seller._id, paginationModel.page + 1, paginationModel.pageSize));
-    }
-  }, [dispatch, seller._id, paginationModel]);
+    dispatch(getAllProducts(paginationModel.page + 1, paginationModel.pageSize));
+  }, [dispatch, paginationModel]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
@@ -100,17 +97,26 @@ const AllProducts = () => {
     },
   ];
 
-  const rows = products?.map(product => ({
+  const handlePageChange = (newModel) => {
+    setPaginationModel(newModel);
+  };
+
+  // Process products for DataGrid
+  const rows = allProducts?.map(product => ({
     id: product._id,
     name: product.DesignTitle,
     price: product.discountPrice || product.originalPrice,
+    Stock: product.availableColors?.length || 1,
+    sold: product.sold_out || 0,
     status: product.status,
     designImage: product.designImage?.url || product.designImage,
+    ProductType: product.ProductType,
+    ProductColor: product.ProductColor
   })) || [];
 
   return (
     <div className="w-full p-4 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-semibold mb-4">My Products</h2>
+      <h2 className="text-xl font-semibold mb-4">All Products</h2>
       
       {isLoading ? (
         <Loader />
@@ -120,8 +126,10 @@ const AllProducts = () => {
           columns={columns}
           pagination
           paginationModel={paginationModel}
-          onPaginationModelChange={setPaginationModel}
+          onPaginationModelChange={handlePageChange}
           pageSizeOptions={[10, 25, 50]}
+          rowCount={pagination.totalPages * paginationModel.pageSize}
+          paginationMode="server"
           disableSelectionOnClick
           autoHeight
           className="border-none"
@@ -132,5 +140,4 @@ const AllProducts = () => {
     </div>
   );
 };
-
 export default AllProducts;
