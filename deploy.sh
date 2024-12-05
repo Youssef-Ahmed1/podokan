@@ -3,7 +3,7 @@
 
 echo "Deploying application..."
 
-# Go to project directory
+# Go to project directories
 cd /var/www/podokan
 
 # Pull latest changes
