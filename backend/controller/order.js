@@ -309,22 +309,19 @@ router.get(
       const orders = await Order.find()
         .sort({ createdAt: -1 })
         .populate("user", "name email")
-        .populate("shop", "name");
+        .populate("shopId", "name")
+        .lean();
 
-      const ordersCount = await Order.countDocuments();
-      
-      const totalAmount = orders.reduce(
-        (acc, order) => acc + order.totalPrice,
-        0
-      );
+      const totalAmount = orders.reduce((acc, order) => acc + order.totalPrice, 0);
 
       res.status(200).json({
         success: true,
         orders,
-        ordersCount,
         totalAmount,
+        ordersCount: orders.length
       });
     } catch (error) {
+      console.error('Admin orders fetch error:', error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
