@@ -1,4 +1,4 @@
-import React, { useEffect, useState , memo , useMemo} from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import styles from "../../styles/styles";
 import { AiOutlineArrowRight, AiOutlineMoneyCollect } from "react-icons/ai";
 import { MdBorderClear } from "react-icons/md";
@@ -64,7 +64,7 @@ const AdminDashboardMain = () => {
           status: order?.status || 'Processing',
           createdAt: order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : '-'
         })) : [];
-  
+
         setDashboardData({
           adminBalance: adminEarning.toFixed(2),
           totalSellers: sellersCount || 0,
@@ -84,8 +84,6 @@ const AdminDashboardMain = () => {
     }
   }, [adminOrders, adminOrderLoading, sellersLoading, totalAmount, ordersCount, sellersCount]);
 
-
-  
   const safeLatestOrders = useMemo(() => {
     if (!Array.isArray(dashboardData.latestOrders)) return [];
     return dashboardData.latestOrders.map(order => ({
@@ -93,7 +91,6 @@ const AdminDashboardMain = () => {
       id: order.id || Math.random().toString()
     }));
   }, [dashboardData.latestOrders]);
-  
 
   const columns = [
     { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
@@ -102,8 +99,10 @@ const AdminDashboardMain = () => {
       headerName: "Status",
       minWidth: 130,
       flex: 0.7,
-      cellClassName: (params) => 
-        params.getValue(params.id, "status") === "Delivered" ? "greenColor" : "redColor"
+      cellClassName: (params) => {
+        const status = params.getValue(params.id, "status");
+        return status === "Delivered" ? "greenColor" : "redColor";
+      }
     },
     {
       field: "itemsQty",
@@ -137,87 +136,89 @@ const AdminDashboardMain = () => {
       </div>
     );
   }
+
   return (
-    <>
-      {(adminOrderLoading || sellersLoading) ? (
-        <Loader />
-      ) : (
-        <div className="w-full p-4">
-          <h3 className="text-[22px] font-Poppins pb-2">Overview</h3>
-          <div className="w-full block 800px:flex items-center justify-between">
-            <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
-              <div className="flex items-center">
-                <AiOutlineMoneyCollect
-                  size={30}
-                  className="mr-2"
-                  fill="#00000085"
-                />
-                <h3 className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}>
-                  Total Earning
-                </h3>
-              </div>
-              <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">
-                € {dashboardData.adminBalance}
-              </h5>
-            </div>
-
-            <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
-              <div className="flex items-center">
-                <MdBorderClear size={30} className="mr-2" fill="#00000085" />
-                <h3 className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}>
-                  All Sellers
-                </h3>
-              </div>
-              <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">
-                {dashboardData.totalSellers}
-              </h5>
-              <Link to="/admin-sellers">
-                <h5 className="pt-4 pl-2 text-[#077f9c]">View Sellers</h5>
-              </Link>
-            </div>
-
-            <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
-              <div className="flex items-center">
-                <AiOutlineMoneyCollect
-                  size={30}
-                  className="mr-2"
-                  fill="#00000085"
-                />
-                <h3 className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}>
-                  All Orders
-                </h3>
-              </div>
-              <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">
-                {dashboardData.totalOrders}
-              </h5>
-              <Link to="/admin-orders">
-                <h5 className="pt-4 pl-2 text-[#077f9c]">View Orders</h5>
-              </Link>
-            </div>
+    <div className="w-full p-4">
+      <h3 className="text-[22px] font-Poppins pb-2">Overview</h3>
+      <div className="w-full block 800px:flex items-center justify-between">
+        <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
+          <div className="flex items-center">
+            <AiOutlineMoneyCollect
+              size={30}
+              className="mr-2"
+              fill="#00000085"
+            />
+            <h3 className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}>
+              Total Earning
+            </h3>
           </div>
+          <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">
+            € {dashboardData.adminBalance}
+          </h5>
+        </div>
 
- 
-          <br />
-          <h3 className="text-[22px] font-Poppins pb-2">Latest Orders</h3>
-          <div className="w-full min-h-[45vh] bg-white rounded">
-    {safeLatestOrders.length > 0 ? (
-      <DataGrid
-        rows={safeLatestOrders}
-        columns={columns}
-        pageSize={4}
-        disableSelectionOnClick
-        autoHeight
-        error={null}
-        loading={adminOrderLoading}
-      />
-    ) : (
-      <div className="w-full h-full flex items-center justify-center">
-        <p className="text-gray-500">No orders to display</p>
+        <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
+          <div className="flex items-center">
+            <MdBorderClear size={30} className="mr-2" fill="#00000085" />
+            <h3 className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}>
+              All Sellers
+            </h3>
+          </div>
+          <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">
+            {dashboardData.totalSellers}
+          </h5>
+          <Link to="/admin-sellers">
+            <h5 className="pt-4 pl-2 text-[#077f9c]">View Sellers</h5>
+          </Link>
+        </div>
+
+        <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
+          <div className="flex items-center">
+            <AiOutlineMoneyCollect
+              size={30}
+              className="mr-2"
+              fill="#00000085"
+            />
+            <h3 className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}>
+              All Orders
+            </h3>
+          </div>
+          <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">
+            {dashboardData.totalOrders}
+          </h5>
+          <Link to="/admin-orders">
+            <h5 className="pt-4 pl-2 text-[#077f9c]">View Orders</h5>
+          </Link>
+        </div>
       </div>
-    )}
-  </div>
 
-    </>
+      <br />
+      <h3 className="text-[22px] font-Poppins pb-2">Latest Orders</h3>
+      <div className="w-full min-h-[45vh] bg-white rounded">
+        {safeLatestOrders.length > 0 ? (
+          <DataGrid
+            rows={safeLatestOrders}
+            columns={columns}
+            pageSize={4}
+            disableSelectionOnClick
+            autoHeight
+            loading={adminOrderLoading}
+            error={null}
+            components={{
+              NoRowsOverlay: () => (
+                <div className="w-full h-[400px] flex items-center justify-center">
+                  <p className="text-gray-500">No orders to display</p>
+                </div>
+              )
+            }}
+          />
+        ) : (
+          <div className="w-full h-[400px] flex items-center justify-center">
+            <p className="text-gray-500">No orders to display</p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
