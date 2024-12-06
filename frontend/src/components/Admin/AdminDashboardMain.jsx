@@ -78,6 +78,12 @@ const AdminDashboardMain = () => {
     }
   }, [adminOrders, adminOrderLoading, sellersLoading, totalAmount, ordersCount, sellersCount]);
 
+
+  const safeLatestOrders = Array.isArray(dashboardData.latestOrders) 
+    ? dashboardData.latestOrders 
+    : [];
+
+
   const columns = [
     { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
     {
@@ -120,7 +126,6 @@ const AdminDashboardMain = () => {
       </div>
     );
   }
-
   return (
     <>
       {(adminOrderLoading || sellersLoading) ? (
