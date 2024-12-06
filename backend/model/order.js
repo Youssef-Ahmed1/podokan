@@ -1,17 +1,22 @@
 const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
-    cart: {
-        type: Array,
-        required: true,
-    },
+    cart: [{
+        _id: String,
+        qty: Number,
+        shopId: String,
+        productId: String,
+        price: Number,
+        // add other cart item fields you need
+    }],
     shippingAddress: {
         type: Object,
         required: true,
     },
     user: {
-        type: Object,
-        required: true,
+        _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        name: String,
+        email: String
     },
     totalPrice: {
         type: Number,
@@ -22,32 +27,25 @@ const orderSchema = new mongoose.Schema({
         default: "Processing",
     },
     paymentInfo: {
-        id: {
-            type: String,
-        },
-        status: {
-            type: String,
-        },
-        type: {
-            type: String,
-        },
+        id: String,
+        status: String,
+        type: String,
     },
     paidAt: {
         type: Date,
-        default: Date.now(),
+        default: Date.now,
     },
     deliveredAt: {
         type: Date,
     },
     createdAt: {
         type: Date,
-        default: Date.now(),
+        default: Date.now,
     },
-    
 });
+
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ status: 1 });
-orderSchema.index({ "user": 1 });
-
+orderSchema.index({ "user._id": 1 });
 
 module.exports = mongoose.model("Order", orderSchema);

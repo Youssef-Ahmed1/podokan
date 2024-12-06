@@ -68,19 +68,23 @@ export const getAllOrdersOfAdmin = () => async (dispatch) => {
       withCredentials: true
     });
 
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch orders');
+    }
+
     dispatch({
       type: "getAllOrdersOfAdminSuccess",
       payload: {
-        orders: data.orders,
-        totalAmount: data.totalAmount,
-        ordersCount: data.ordersCount
+        orders: data.orders || [],
+        totalAmount: data.totalAmount || 0,
+        ordersCount: data.ordersCount || 0
       }
     });
   } catch (error) {
     console.error('Admin orders fetch error:', error);
     dispatch({
       type: "getAllOrdersOfAdminFailed",
-      payload: error.response?.data?.message || "Failed to fetch orders"
+      payload: error.response?.data?.message || error.message || "Failed to fetch orders"
     });
   }
 };

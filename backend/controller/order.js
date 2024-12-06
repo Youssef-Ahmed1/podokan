@@ -308,11 +308,13 @@ router.get(
     try {
       const orders = await Order.find()
         .sort({ createdAt: -1 })
-        .populate("user", "name email")
-        .populate("shopId", "name")
+        .select('-paymentInfo.cardDetails')
         .lean();
 
-      const totalAmount = orders.reduce((acc, order) => acc + order.totalPrice, 0);
+      // Safely calculate total amount
+      const totalAmount = orders.reduce((acc, order) => {
+        return acc + (Number(order.totalPrice) || 0);
+      }, 0);
 
       res.status(200).json({
         success: true,
