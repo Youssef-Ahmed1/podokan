@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState , memo , useMemo} from "react";
 import styles from "../../styles/styles";
 import { AiOutlineArrowRight, AiOutlineMoneyCollect } from "react-icons/ai";
 import { MdBorderClear } from "react-icons/md";
@@ -58,13 +58,13 @@ const AdminDashboardMain = () => {
         const adminEarning = totalAmount ? Number(totalAmount) * 0.10 : 0;
         
         const processedOrders = Array.isArray(adminOrders) ? adminOrders.slice(0, 5).map(order => ({
-          id: order._id || String(Math.random()),
-          itemsQty: order.cart?.reduce((acc, item) => acc + (Number(item.qty) || 0), 0) || 0,
-          total: `${Number(order.totalPrice || 0).toFixed(2)} €`,
-          status: order.status || 'Processing',
-          createdAt: new Date(order.createdAt).toLocaleDateString()
+          id: order?._id || Math.random().toString(),
+          itemsQty: order?.cart?.reduce((acc, item) => acc + (Number(item?.qty) || 0), 0) || 0,
+          total: `${Number(order?.totalPrice || 0).toFixed(2)} €`,
+          status: order?.status || 'Processing',
+          createdAt: order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : '-'
         })) : [];
-
+  
         setDashboardData({
           adminBalance: adminEarning.toFixed(2),
           totalSellers: sellersCount || 0,
@@ -74,15 +74,26 @@ const AdminDashboardMain = () => {
       } catch (error) {
         console.error('Error processing dashboard data:', error);
         toast.error('Error processing dashboard data');
+        setDashboardData({
+          adminBalance: '0.00',
+          totalSellers: 0,
+          totalOrders: 0,
+          latestOrders: []
+        });
       }
     }
   }, [adminOrders, adminOrderLoading, sellersLoading, totalAmount, ordersCount, sellersCount]);
 
 
-  const safeLatestOrders = Array.isArray(dashboardData.latestOrders) 
-    ? dashboardData.latestOrders 
-    : [];
-
+  
+  const safeLatestOrders = useMemo(() => {
+    if (!Array.isArray(dashboardData.latestOrders)) return [];
+    return dashboardData.latestOrders.map(order => ({
+      ...order,
+      id: order.id || Math.random().toString()
+    }));
+  }, [dashboardData.latestOrders]);
+  
 
   const columns = [
     { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
@@ -189,16 +200,23 @@ const AdminDashboardMain = () => {
           <br />
           <h3 className="text-[22px] font-Poppins pb-2">Latest Orders</h3>
           <div className="w-full min-h-[45vh] bg-white rounded">
-            <DataGrid
-              rows={safeLatestOrders}
-              columns={columns}
-              pageSize={4}
-              disableSelectionOnClick
-              autoHeight
-            />
-          </div>
-        </div>
-      )}
+    {safeLatestOrders.length > 0 ? (
+      <DataGrid
+        rows={safeLatestOrders}
+        columns={columns}
+        pageSize={4}
+        disableSelectionOnClick
+        autoHeight
+        error={null}
+        loading={adminOrderLoading}
+      />
+    ) : (
+      <div className="w-full h-full flex items-center justify-center">
+        <p className="text-gray-500">No orders to display</p>
+      </div>
+    )}
+  </div>
+
     </>
   );
 };

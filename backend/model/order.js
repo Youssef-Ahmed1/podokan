@@ -4,10 +4,13 @@ const orderSchema = new mongoose.Schema({
     cart: [{
         _id: String,
         qty: Number,
-        shopId: String,
+        shopId: { type: mongoose.Schema.Types.ObjectId, ref: 'Shop' },
         productId: String,
         price: Number,
-        // add other cart item fields you need
+        designImage: String,
+        DesignTitle: String,
+        ProductType: String,
+        ProductColor: String
     }],
     shippingAddress: {
         type: Object,
@@ -47,5 +50,6 @@ const orderSchema = new mongoose.Schema({
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ status: 1 });
 orderSchema.index({ "user._id": 1 });
+orderSchema.index({ "cart.shopId": 1 });
 
 module.exports = mongoose.model("Order", orderSchema);
