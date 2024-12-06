@@ -27,8 +27,9 @@ export const getAllOrdersOfUser = (userId) => async (dispatch) => {
   }
 };
 
-// get all orders of seller
-export const getAllOrdersShop = (shopId) => async (dispatch) => {
+// get all orders of seller  if it disappeared it will cause an error
+// that the seller won't be able to see the order that are is 
+export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
   try {
     dispatch({ type: "getAllOrdersShopRequest" });
 
