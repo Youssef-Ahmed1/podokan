@@ -308,19 +308,30 @@ router.get(
     try {
       const orders = await Order.find()
         .sort({ createdAt: -1 })
-        .select('-paymentInfo.cardDetails')
         .lean();
 
-      // Safely calculate total amount
-      const totalAmount = orders.reduce((acc, order) => {
-        return acc + (Number(order.totalPrice) || 0);
-      }, 0);
+      // Process orders to include shop details
+      const processedOrders = orders.map(order => {
+        const cartItems = order.cart.map(item => ({
+          ...item,
+          shop: item.shopId // Shop details are already embedded
+        }));
+
+        return {
+          ...order,
+          cart: cartItems
+        };
+      });
+
+      const totalAmount = processedOrders.reduce((acc, order) => 
+        acc + (Number(order.totalPrice) || 0), 0
+      );
 
       res.status(200).json({
         success: true,
-        orders,
+        orders: processedOrders,
         totalAmount,
-        ordersCount: orders.length
+        ordersCount: processedOrders.length
       });
     } catch (error) {
       console.error('Admin orders fetch error:', error);
@@ -328,6 +339,7 @@ router.get(
     }
   })
 );
+
 
 // Refund order
 router.put(
