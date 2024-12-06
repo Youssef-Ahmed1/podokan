@@ -1,3 +1,5 @@
+javascript
+
 import React, { useEffect, useState } from "react";
 import styles from "../../styles/styles";
 import { AiOutlineArrowRight, AiOutlineMoneyCollect } from "react-icons/ai";
@@ -6,14 +8,17 @@ import { Link } from "react-router-dom";
 import { DataGrid } from "@material-ui/data-grid";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllOrdersOfAdmin } from "../../redux/actions/order";
-import Loader from "../Layout/Loader";
 import { getAllSellers } from "../../redux/actions/sellers";
+import Loader from "../Layout/Loader";
+import { toast } from "react-toastify";
 
 const AdminDashboardMain = () => {
   const dispatch = useDispatch();
+  
   const { adminOrders, adminOrderLoading, ordersCount, totalAmount } = useSelector(
     (state) => state.order
   );
+  
   const { sellers, isLoading: sellersLoading, sellersCount } = useSelector(
     (state) => state.seller
   );
@@ -25,8 +30,8 @@ const AdminDashboardMain = () => {
     latestOrders: []
   });
 
-  // Add loading state
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,9 +40,11 @@ const AdminDashboardMain = () => {
           dispatch(getAllOrdersOfAdmin()),
           dispatch(getAllSellers())
         ]);
-        setIsInitialLoad(false);
       } catch (error) {
         console.error('Dashboard data fetch error:', error);
+        setError(error.message || 'Failed to load dashboard data');
+        toast.error(error.message || 'Failed to load dashboard data');
+      } finally {
         setIsInitialLoad(false);
       }
     };
@@ -49,28 +56,29 @@ const AdminDashboardMain = () => {
 
   useEffect(() => {
     if (!adminOrderLoading && !sellersLoading) {
-      const adminEarning = totalAmount ? totalAmount * 0.10 : 0;
-      
-      setDashboardData({
-        adminBalance: adminEarning.toFixed(2),
-        totalSellers: sellersCount || 0,
-        totalOrders: ordersCount || 0,
-        latestOrders: adminOrders?.slice(0, 5).map(order => ({
-          id: order._id,
-          itemsQty: order.cart?.reduce((acc, item) => acc + (item.qty || 0), 0) || 0,
-          total: `${order.totalPrice?.toFixed(2) || 0} €`,
-          status: order.status,
+      try {
+        const adminEarning = totalAmount ? Number(totalAmount) * 0.10 : 0;
+        
+        const processedOrders = Array.isArray(adminOrders) ? adminOrders.slice(0, 5).map(order => ({
+          id: order._id || String(Math.random()),
+          itemsQty: order.cart?.reduce((acc, item) => acc + (Number(item.qty) || 0), 0) || 0,
+          total: `${Number(order.totalPrice || 0).toFixed(2)} €`,
+          status: order.status || 'Processing',
           createdAt: new Date(order.createdAt).toLocaleDateString()
-        })) || []
-      });
+        })) : [];
+
+        setDashboardData({
+          adminBalance: adminEarning.toFixed(2),
+          totalSellers: sellersCount || 0,
+          totalOrders: ordersCount || 0,
+          latestOrders: processedOrders
+        });
+      } catch (error) {
+        console.error('Error processing dashboard data:', error);
+        toast.error('Error processing dashboard data');
+      }
     }
   }, [adminOrders, adminOrderLoading, sellersLoading, totalAmount, ordersCount, sellersCount]);
-
-  // Add error handling for data grid
-  const safeLatestOrders = Array.isArray(dashboardData.latestOrders) 
-    ? dashboardData.latestOrders 
-    : [];
-
 
   const columns = [
     { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
@@ -79,11 +87,8 @@ const AdminDashboardMain = () => {
       headerName: "Status",
       minWidth: 130,
       flex: 0.7,
-      cellClassName: (params) => {
-        return params.getValue(params.id, "status") === "Delivered"
-          ? "greenColor"
-          : "redColor";
-      },
+      cellClassName: (params) => 
+        params.getValue(params.id, "status") === "Delivered" ? "greenColor" : "redColor"
     },
     {
       field: "itemsQty",
@@ -95,22 +100,29 @@ const AdminDashboardMain = () => {
     {
       field: "total",
       headerName: "Total",
-      type: "number",
       minWidth: 130,
       flex: 0.8,
     },
     {
       field: "createdAt",
       headerName: "Order Date",
-      type: "number",
       minWidth: 130,
       flex: 0.8,
     },
   ];
-  
+
   if (isInitialLoad || adminOrderLoading || sellersLoading) {
     return <Loader />;
   }
+
+  if (error) {
+    return (
+      <div className="w-full p-4">
+        <div className="text-red-500">Error: {error}</div>
+      </div>
+    );
+  }
+
   return (
     <>
       {(adminOrderLoading || sellersLoading) ? (
