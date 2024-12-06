@@ -1,5 +1,3 @@
-javascript
-
 import React, { useEffect, useState } from "react";
 import styles from "../../styles/styles";
 import { AiOutlineArrowRight, AiOutlineMoneyCollect } from "react-icons/ai";
