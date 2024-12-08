@@ -45,7 +45,6 @@ exports.isSeller = async (req, res, next) => {
   try {
     let token = req.cookies.seller_token;
     
-    // Check Seller-Authorization header
     const authHeader = req.headers['seller-authorization'];
     if (!token && authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.split(' ')[1];
@@ -58,17 +57,30 @@ exports.isSeller = async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    req.seller = await Shop.findById(decoded.id).select('-password');
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      
+      const seller = await Shop.findById(decoded.id).select('-password');
+      
+      if (!seller) {
+        return res.status(401).json({
+          success: false,
+          message: "Seller not found"
+        });
+      }
 
-    if (!req.seller) {
-      return res.status(401).json({
-        success: false,
-        message: "Seller not found"
-      });
+      req.seller = seller;
+      next();
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          success: false,
+          message: "Token expired, please login again",
+          tokenExpired: true
+        });
+      }
+      throw error;
     }
-
-    next();
   } catch (error) {
     console.error("Seller auth error:", error);
     return res.status(401).json({
