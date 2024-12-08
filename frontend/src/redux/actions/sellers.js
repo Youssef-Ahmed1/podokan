@@ -31,6 +31,8 @@ export const getAllSellers = () => async (dispatch) => {
     });
   }
 };
+
+
 export const loginSeller = (email, password) => async (dispatch) => {
   try {
     dispatch({ type: "SellerLoginRequest" });
@@ -38,16 +40,26 @@ export const loginSeller = (email, password) => async (dispatch) => {
     const { data } = await axios.post(`${server}/shop/login-shop`, {
       email,
       password
+    }, {
+      withCredentials: true,
+      headers: {
+        'Content-Type': 'application/json'
+      }
     });
 
-    localStorage.setItem('seller_token', data.token);
-    axios.defaults.headers['Seller-Authorization'] = `Bearer ${data.token}`;
+    if (data.success && data.token) {
+      localStorage.setItem('seller_token', data.token);
+      
+      // Set the token in headers for future requests
+      axios.defaults.headers.common['Seller-Authorization'] = `Bearer ${data.token}`;
+    }
 
     dispatch({ 
       type: "SellerLoginSuccess",
       payload: data.seller
     });
   } catch (error) {
+    console.error('Seller login error:', error);
     dispatch({
       type: "SellerLoginFail",
       payload: error.response?.data?.message || "Login failed"

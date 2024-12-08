@@ -4,22 +4,24 @@ const orderSchema = new mongoose.Schema({
     cart: [{
         _id: String,
         qty: Number,
-        shopId: { type: mongoose.Schema.Types.ObjectId, ref: 'Shop' },
-        productId: String,
+        shopId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Shop'
+        },
         price: Number,
         designImage: String,
         DesignTitle: String,
         ProductType: String,
-        ProductColor: String
+        ProductColor: String,
+        // Add other cart item fields you need
     }],
     shippingAddress: {
         type: Object,
         required: true,
     },
     user: {
-        _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        name: String,
-        email: String
+        type: Object,
+        required: true,
     },
     totalPrice: {
         type: Number,
@@ -36,14 +38,14 @@ const orderSchema = new mongoose.Schema({
     },
     paidAt: {
         type: Date,
-        default: Date.now,
+        default: Date.now(),
     },
     deliveredAt: {
         type: Date,
     },
     createdAt: {
         type: Date,
-        default: Date.now,
+        default: Date.now(),
     },
 });
 

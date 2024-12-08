@@ -32,23 +32,24 @@ export const orderReducer = createReducer(initialState, (builder) => {
       state.isLoading = false;
       state.error = action.payload;
     })
-  
-    .addCase("getAllOrdersOfAdminRequest", (state) => {
-      state.adminOrderLoading = true;
-    })
-    .addCase("getAllOrdersOfAdminSuccess", (state, action) => {
-      state.adminOrderLoading = false;
-      state.adminOrders = action.payload.orders || [];
-      state.totalAmount = action.payload.totalAmount || 0;
-      state.ordersCount = action.payload.ordersCount || 0;
-    })
-    .addCase("getAllOrdersOfAdminFailed", (state, action) => {
-      state.adminOrderLoading = false;
-      state.error = action.payload;
-      state.adminOrders = [];
-      state.totalAmount = 0;
-      state.ordersCount = 0;
-    })
+  .addCase("getAllOrdersOfAdminRequest", (state) => {
+  state.adminOrderLoading = true;
+  state.error = null;
+})
+.addCase("getAllOrdersOfAdminSuccess", (state, action) => {
+  state.adminOrderLoading = false;
+  state.adminOrders = action.payload.orders;
+  state.totalAmount = action.payload.totalAmount;
+  state.ordersCount = action.payload.ordersCount;
+  state.error = null;
+})
+.addCase("getAllOrdersOfAdminFailed", (state, action) => {
+  state.adminOrderLoading = false;
+  state.error = action.payload;
+  state.adminOrders = [];
+  state.totalAmount = 0;
+  state.ordersCount = 0;
+})
     .addCase("clearErrors", (state) => {
       state.error = null;
     });
