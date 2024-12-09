@@ -9,24 +9,20 @@ import { getAllProductsShop } from "../../redux/actions/product";
 import { Button } from "@material-ui/core";
 import { DataGrid } from "@material-ui/data-grid";
 
+
 const DashboardHero = () => {
   const dispatch = useDispatch();
-  const { orders, isLoading: orderLoading } = useSelector((state) => state.order);
+  const { orders, isLoading } = useSelector((state) => state.order);
   const { seller } = useSelector((state) => state.seller);
-  const { products, isLoading: productLoading } = useSelector((state) => state.products);
-
-  const [dashboardData, setDashboardData] = useState({
-    availableBalance: "0.00",
-    orders: [],
-    products: []
-  });
+  const { products } = useSelector((state) => state.products);
 
   useEffect(() => {
-    if (seller?._id) {
+    if(seller?._id) {
       dispatch(getAllOrdersOfShop(seller._id));
       dispatch(getAllProductsShop(seller._id));
     }
   }, [dispatch, seller?._id]);
+
 
   useEffect(() => {
     if (!orderLoading && !productLoading) {
@@ -89,16 +85,14 @@ const DashboardHero = () => {
     },
   ];
 
-  const row = useMemo(() => {
-    if (!Array.isArray(orders)) return [];
-    
-    return orders.map((item) => ({
-      id: item._id || Math.random().toString(),
-      itemsQty: item.cart?.reduce((acc, item) => acc + (Number(item.qty) || 0), 0) || 0,
-      total: `€${Number(item.totalPrice || 0).toFixed(2)}`,
-      status: item.status || "Processing"
-    }));
-  }, [orders]);
+
+  const row = orders?.map((item) => ({
+    id: item._id,
+    itemsQty: item.cart?.length || 0,
+    total: "egp" + (item.totalPrice || 0).toFixed(2),
+    status: item.status,
+  })) || [];
+
 
   if (!seller?._id) {
     return (
@@ -119,11 +113,11 @@ const DashboardHero = () => {
       </div>
     );
   }
-
   return (
     <div className="w-full p-8">
       <h3 className="text-[22px] font-Poppins pb-2">Overview</h3>
       <div className="w-full block 800px:flex items-center justify-between">
+        {/* Account Balance Card */}
         <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
           <div className="flex items-center">
             <AiOutlineMoneyCollect size={30} className="mr-2" fill="#00000085" />
@@ -131,57 +125,52 @@ const DashboardHero = () => {
               Account Balance <span className="text-[16px]">(with 10% service charge)</span>
             </h3>
           </div>
-          <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">€{dashboardData.availableBalance}</h5>
+          <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">€{seller?.availableBalance?.toFixed(2) || "0.00"}</h5>
           <Link to="/dashboard-withdraw-money">
             <h5 className="pt-4 pl-2 text-[#077f9c]">Withdraw Money</h5>
           </Link>
         </div>
 
-        
+        {/* Orders Count Card */}
         <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
           <div className="flex items-center">
             <MdBorderClear size={30} className="mr-2" fill="#00000085" />
-            <h3
-              className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}
-            >
+            <h3 className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}>
               All Orders
             </h3>
           </div>
-          <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">{orders && orders.length}</h5>
+          <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">{orders?.length || 0}</h5>
           <Link to="/dashboard-orders">
             <h5 className="pt-4 pl-2 text-[#077f9c]">View Orders</h5>
           </Link>
         </div>
 
+        {/* Products Card */}
         <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
           <div className="flex items-center">
-            <AiOutlineMoneyCollect
-              size={30}
-              className="mr-2"
-              fill="#00000085"
-            />
-            <h3
-              className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}
-            >
+            <AiOutlineMoneyCollect size={30} className="mr-2" fill="#00000085" />
+            <h3 className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}>
               All Products
             </h3>
           </div>
-          <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">{products && products.length}</h5>
+          <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">{products?.length || 0}</h5>
           <Link to="/dashboard-products">
             <h5 className="pt-4 pl-2 text-[#077f9c]">View Products</h5>
           </Link>
         </div>
       </div>
+
       <br />
       <h3 className="text-[22px] font-Poppins pb-2">Latest Orders</h3>
       <div className="w-full min-h-[45vh] bg-white rounded">
-      <DataGrid
-        rows={row}
-        columns={columns}
-        pageSize={10}
-        disableSelectionOnClick
-        autoHeight
-      />
+        <DataGrid
+          rows={row}
+          columns={columns}
+          pageSize={10}
+          disableSelectionOnClick
+          autoHeight
+          loading={isLoading}
+        />
       </div>
     </div>
   );
