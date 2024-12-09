@@ -8,14 +8,16 @@ import { AiOutlineArrowRight } from "react-icons/ai";
 import Loader from "../Layout/Loader";
 
 const AllOrders = () => {
-  const { orders, adminOrderLoading, error } = useSelector((state) => state.order);
+  const { orders, isLoading, error } = useSelector((state) => state.order);
   const { seller } = useSelector((state) => state.seller);
 
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(getAllOrdersOfShop(seller._id));
-  }, [dispatch, seller._id]);
+    if(seller?._id) {
+      dispatch(getAllOrdersOfShop(seller._id));
+    }
+  }, [dispatch, seller?._id]);
 
   const columns = [
     { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
@@ -64,12 +66,12 @@ const AllOrders = () => {
 
   const row = orders?.map((item) => ({
     id: item._id,
-    itemsQty: item.cart.length,
-    total: "egp" + item.totalPrice.toFixed(2),
+    itemsQty: item.cart?.length || 0,
+    total: "egp" + (item.totalPrice || 0).toFixed(2),
     status: item.status,
   })) || [];
 
-  if (adminOrderLoading) return <Loader />;
+    if (isLoading) return <Loader />;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
@@ -80,7 +82,7 @@ const AllOrders = () => {
         pageSize={10}
         disableSelectionOnClick
         autoHeight
-        loading={adminOrderLoading}
+        loading={isLoading}
       />
     </div>
   );
