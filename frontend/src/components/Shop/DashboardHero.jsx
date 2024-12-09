@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState , useMemo } from "react";
 import { AiOutlineArrowRight, AiOutlineMoneyCollect } from "react-icons/ai";
 import styles from "../../styles/styles";
 import { Link } from "react-router-dom";
@@ -11,9 +11,15 @@ import { DataGrid } from "@material-ui/data-grid";
 
 const DashboardHero = () => {
   const dispatch = useDispatch();
-  const { orders } = useSelector((state) => state.order);
+  const { orders, isLoading: orderLoading } = useSelector((state) => state.order);
   const { seller } = useSelector((state) => state.seller);
-  const { products } = useSelector((state) => state.products);
+  const { products, isLoading: productLoading } = useSelector((state) => state.products);
+
+  const [dashboardData, setDashboardData] = useState({
+    availableBalance: "0.00",
+    orders: [],
+    products: []
+  });
 
   useEffect(() => {
     if (seller?._id) {
@@ -22,7 +28,16 @@ const DashboardHero = () => {
     }
   }, [dispatch, seller?._id]);
 
-  const availableBalance = seller?.availableBalance?.toFixed(2) || "0.00";
+  useEffect(() => {
+    if (!orderLoading && !productLoading) {
+      setDashboardData({
+        availableBalance: seller?.availableBalance?.toFixed(2) || "0.00",
+        orders: orders || [],
+        products: products || []
+      });
+    }
+  }, [seller, orders, products, orderLoading, productLoading]);
+
   const columns = [
     { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
 
@@ -74,40 +89,55 @@ const DashboardHero = () => {
     },
   ];
 
-  const row = [];
+  const row = useMemo(() => {
+    if (!Array.isArray(orders)) return [];
+    
+    return orders.map((item) => ({
+      id: item._id || Math.random().toString(),
+      itemsQty: item.cart?.reduce((acc, item) => acc + (Number(item.qty) || 0), 0) || 0,
+      total: `€${Number(item.totalPrice || 0).toFixed(2)}`,
+      status: item.status || "Processing"
+    }));
+  }, [orders]);
 
-  orders && orders.forEach((item) => {
-    row.push({
-        id: item._id,
-        itemsQty: item.cart.reduce((acc, item) => acc + item.qty, 0),
-        total: "egp€ " + item.totalPrice,
-        status: item.status,
-      });
-  });
+  if (!seller?._id) {
+    return (
+      <div className="w-full p-8">
+        <div className="text-center text-gray-600">
+          Please log in as a seller to view dashboard
+        </div>
+      </div>
+    );
+  }
+  
+  if (!seller?._id) {
+    return (
+      <div className="w-full p-8">
+        <div className="text-center text-gray-600">
+          Please log in as a seller to view dashboard
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full p-8">
       <h3 className="text-[22px] font-Poppins pb-2">Overview</h3>
       <div className="w-full block 800px:flex items-center justify-between">
         <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
           <div className="flex items-center">
-            <AiOutlineMoneyCollect
-              size={30}
-              className="mr-2"
-              fill="#00000085"
-            />
-            <h3
-              className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}
-            >
-              Account Balance{" "}
-              <span className="text-[16px]">(with 10% service charge)</span>
+            <AiOutlineMoneyCollect size={30} className="mr-2" fill="#00000085" />
+            <h3 className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}>
+              Account Balance <span className="text-[16px]">(with 10% service charge)</span>
             </h3>
           </div>
-          <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">${availableBalance}</h5>
+          <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">€{dashboardData.availableBalance}</h5>
           <Link to="/dashboard-withdraw-money">
-            <h5 className="pt-4 pl-[2] text-[#077f9c]">Withdraw Money</h5>
+            <h5 className="pt-4 pl-2 text-[#077f9c]">Withdraw Money</h5>
           </Link>
         </div>
 
+        
         <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
           <div className="flex items-center">
             <MdBorderClear size={30} className="mr-2" fill="#00000085" />

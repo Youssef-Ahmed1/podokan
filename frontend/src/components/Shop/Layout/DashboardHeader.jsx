@@ -12,7 +12,7 @@ const DashboardHeader = () => {
     <div className="w-full h-[80px] bg-white shadow sticky top-0 left-0 z-30 flex items-center justify-between px-4">
       <div>
         <Link to="/dashboard">
-          <img src={siteLogo} alt="" className="h-16" />
+          <img src={siteLogo} alt="" className="h-16 w-48" />
         </Link>
       </div>
       <div className="flex items-center">
