@@ -181,7 +181,7 @@ router.get(
 
 // Get all orders of a seller
 router.get(
-  "/get-seller-all-orders/:shopId",
+  "/get-seller-orders/:shopId",
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
@@ -192,22 +192,14 @@ router.get(
         return next(new ErrorHandler("Unauthorized access to shop orders", 403));
       }
 
-      const orders = await Order.find({ "cart.shopId": req.params.shopId })
+      const orders = await Order.find({ 
+        "cart.shopId": req.params.shopId 
+      })
       .sort({ createdAt: -1 })
-      .populate("user", "name email")
-      .populate("cart.productId", "name price images")
       .lean();
-      // Calculate shop statistics
-      const statistics = {
-        totalOrders: orders.length,
-        totalRevenue: orders.reduce((sum, order) => sum + order.totalPrice, 0),
-        pendingOrders: orders.filter(order => order.status === ORDER_STATUSES.PENDING).length,
-        deliveredOrders: orders.filter(order => order.status === ORDER_STATUSES.DELIVERED).length,
-      };
 
       res.status(200).json({
         success: true,
-        statistics,
         orders,
       });
     } catch (error) {
