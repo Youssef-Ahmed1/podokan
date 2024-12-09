@@ -24,15 +24,6 @@ const DashboardHero = () => {
   }, [dispatch, seller?._id]);
 
 
-  useEffect(() => {
-    if (!orderLoading && !productLoading) {
-      setDashboardData({
-        availableBalance: seller?.availableBalance?.toFixed(2) || "0.00",
-        orders: orders || [],
-        products: products || []
-      });
-    }
-  }, [seller, orders, products, orderLoading, productLoading]);
 
   const columns = [
     { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
