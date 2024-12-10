@@ -96,7 +96,7 @@ const UserOrderDetails = () => {
             <div className="w-full pl-3">
               <h5 className="text-[20px]">{item.DesignTitle}</h5>
               <h5 className="text-[20px] text-[#00000091]">
-                egp€{item.discountPrice} x {item.qty}
+                egp{item.discountPrice} x {item.qty}
               </h5>
             </div>
             {!item.isReviewed && data?.status === "Delivered" && (
@@ -133,7 +133,7 @@ const UserOrderDetails = () => {
               <div className="pl-3">
                 <h4 className="text-[20px]">{selectedItem?.DesignTitle}</h4>
                 <h4 className="text-[20px]">
-                  egp€{selectedItem?.discountPrice} x {selectedItem?.qty}
+                  egp{selectedItem?.discountPrice} x {selectedItem?.qty}
                 </h4>
               </div>
             </div>
@@ -191,7 +191,7 @@ const UserOrderDetails = () => {
 
       <div className="border-t w-full text-right">
         <h5 className="pt-3 text-[18px]">
-          Total Price: <strong>egp€{data?.totalPrice}</strong>
+          Total Price: <strong>EGP{data?.totalPrice}</strong>
         </h5>
       </div>
       <br />

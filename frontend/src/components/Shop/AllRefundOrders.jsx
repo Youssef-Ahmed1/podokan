@@ -77,7 +77,7 @@ const AllRefundOrders = () => {
       row.push({
         id: item._id,
         itemsQty: item.cart.length,
-        total: "egp€ " + item.totalPrice,
+        total: "EGP " + item.totalPrice,
         status: item.status,
       });
     });

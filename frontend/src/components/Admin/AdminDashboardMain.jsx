@@ -60,7 +60,7 @@ const AdminDashboardMain = () => {
         const processedOrders = Array.isArray(adminOrders) ? adminOrders.slice(0, 5).map(order => ({
           id: order?._id || Math.random().toString(),
           itemsQty: order?.cart?.reduce((acc, item) => acc + (Number(item?.qty) || 0), 0) || 0,
-          total: `${Number(order?.totalPrice || 0).toFixed(2)} €`,
+          total: `${Number(order?.totalPrice || 0).toFixed(2)} `,
           status: order?.status || 'Processing',
           createdAt: order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : '-'
         })) : [];
@@ -153,7 +153,7 @@ const AdminDashboardMain = () => {
             </h3>
           </div>
           <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">
-            € {dashboardData.adminBalance}
+          EGP{dashboardData.adminBalance}
           </h5>
         </div>
 
