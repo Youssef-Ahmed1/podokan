@@ -200,13 +200,14 @@ router.get(
 
       res.status(200).json({
         success: true,
-        orders,
+        orders
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, error.statusCode || 500));
     }
   })
 );
+
 
 // Update order status (seller)
 router.put(
