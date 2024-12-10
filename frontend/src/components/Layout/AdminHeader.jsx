@@ -18,7 +18,7 @@ const AdminHeader = () => {
           size={20}
             src={`${siteLogo}`}
             alt=""
-            className='w-48'
+            className="w-48"
           />
         </Link>
       </div>
