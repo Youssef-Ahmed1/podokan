@@ -153,7 +153,7 @@ const AdminDashboardMain = () => {
             </h3>
           </div>
           <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">
-          EGP{dashboardData.adminBalance}
+          EGP {dashboardData.adminBalance}
           </h5>
         </div>
 
