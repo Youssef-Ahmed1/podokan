@@ -46,16 +46,16 @@ export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
 
     dispatch({
       type: "getAllOrdersShopSuccess",
-      payload: data.orders,
+      payload: data.orders || []
     });
   } catch (error) {
+    console.error('Shop orders fetch error:', error);
     dispatch({
       type: "getAllOrdersShopFailed",
-      payload: error.response?.data?.message || "Failed to fetch orders",
+      payload: error.response?.data?.message || "Failed to fetch orders"
     });
   }
 };
-
 // get all orders of Admin
 export const getAllOrdersOfAdmin = () => async (dispatch) => {
   try {
