@@ -23,9 +23,6 @@ const DashboardHero = () => {
     }
   }, [dispatch, seller?._id]);
 
-  if (error) {
-    console.error('Orders error:', error);
-  }
 
   const columns = [
     { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
@@ -82,7 +79,7 @@ const DashboardHero = () => {
   const row = orders?.map((item) => ({
     id: item._id,
     itemsQty: item.cart?.length || 0,
-    total: "egp" + (item.totalPrice || 0).toFixed(2),
+    total: "EGP" + (item.totalPrice || 0).toFixed(2),
     status: item.status,
   })) || [];
 
