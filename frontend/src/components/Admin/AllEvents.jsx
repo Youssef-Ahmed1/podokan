@@ -74,7 +74,7 @@ const AllEvents = () => {
   const rows = events.map((item) => ({
     id: item._id,
     name: item.name,
-    price: `egp€ ${item.discountPrice}`,
+    price: `EGP ${item.discountPrice}`,
     Stock: item.stock,
     sold: item.sold_out,
   }));
