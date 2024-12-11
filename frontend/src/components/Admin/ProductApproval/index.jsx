@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { fetchPendingProducts, approveRejectProduct } from '../../../../redux/actions/product';
 import { useDesignPosition } from '../../../../hooks/useDesignPosition';
-import DesignPreview from '../../../shared/DesignPreview';
+import DesignPreview from '../../shared/DesignPreview';
 
 // Import sub-components
 import ProductConfig from '../../ProductApproval/ProductConfig';
