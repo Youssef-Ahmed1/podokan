@@ -20,7 +20,8 @@ import {
   MdTitle,
   MdDescription
 } from "react-icons/md";
-
+import { useDesignPosition } from '../../hooks/useDesignPosition';
+import DesignPreview from '../shared/DesignPreview';
 // Constants
 const BOUNDARY_LIMITS = {
   't-shirt': { top: 30, bottom: 65, left: 30, right: 70 },
