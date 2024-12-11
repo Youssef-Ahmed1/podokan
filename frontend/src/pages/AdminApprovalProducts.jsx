@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AdminHeader from '../components/Layout/AdminHeader';
 import AdminSideBar from '../components/Admin/Layout/AdminSideBar';
-import AdminProductApproval from '../components/Admin/Layout/AdminProductApproval';
+import AdminProductApproval from '../components/Admin/ProductApproval/index';
 
 const AdminApprovalProducts = () => {
   const [active, setActive] = useState(3);
