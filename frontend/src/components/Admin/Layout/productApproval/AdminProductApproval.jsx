@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { fetchPendingProducts, approveRejectProduct } from '../../../../redux/actions/product';
 import { useDesignPosition } from '../../../../hooks/useDesignPosition';
-import DesignPreview from '../../shared/DesignPreview';
+import DesignPreview from '../../../shared/DesignPreview';
 
 // Import sub-components
 import ProductConfig from '../../ProductApproval/ProductConfig';
@@ -12,7 +12,7 @@ import StatusManager from '../../ProductApproval/StatusManager';
 import PriceCalculator from '../../ProductApproval/PriceCalculator';
 
 // Import constants
-import { STATUS_CONFIG, PRODUCT_TYPES } from '../../constants/productConfig';
+import { STATUS_CONFIG, PRODUCT_TYPES } from '../../ProductApproval/constants/productConfig';
 
 const AdminProductApproval = () => {
   const dispatch = useDispatch();
