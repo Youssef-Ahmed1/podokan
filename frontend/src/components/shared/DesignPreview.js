@@ -1,110 +1,132 @@
-// components/shared/DesignPreview.js
-import React from 'react';
-import { useDesignPosition } from '../../hooks/useDesignPosition';
+import React, { forwardRef } from 'react';
+import PropTypes from 'prop-types';
+import { HiPlus as PlusIcon, HiMinus as MinusIcon } from 'react-icons/hi';
+import { BsGrid3X3 } from 'react-icons/bs';
 
-const DesignPreview = ({
+const DesignPreview = forwardRef(({
   product,
-  onUpdateDesign,
-  disabled = false
-}) => {
-  const {
-    containerRef,
-    position,
-    scale,
-    isDragging,
-    isOutOfBounds,
-    handleDragStart,
-    handleScaleChange,
-    centerDesign
-  } = useDesignPosition({
-    initialPosition: editedProduct.designPosition,
-    initialScale: editedProduct.DesignScale,
-    productType: editedProduct.ProductType,
-    disabled: isSubmitting
-  });
-  
+  position,
+  scale,
+  isDragging,
+  isOutOfBounds,
+  onDragStart,
+  onScaleChange,
+  onPositionChange,
+  onCenter,
+  showGridLines,
+  onToggleGridLines,
+  disabled
+}, ref) => {
+  // Get mockup image based on product type and color
+  const mockupUrl = `/mockups/${product.ProductType}/${product.ProductColor}/${product.ProductView || 'front'}.png`;
 
   return (
-    <div className="relative w-full">
-      {/* Container with aspect ratio */}
-      <div className="relative w-full aspect-square bg-gray-50 rounded-lg overflow-hidden">
-        <div 
-          ref={containerRef}
-          className="absolute inset-0 flex items-center justify-center"
-        >
-          {/* Mockup Image */}
-          <img
-            src={product.mockupUrl}
-            alt={`${product.ProductType} Preview`}
-            className="w-full h-full object-contain"
-          />
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+        <h3 className="text-lg font-semibold text-gray-800">
+          Design Preview
+        </h3>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => onScaleChange(scale - 0.1)}
+            disabled={disabled || scale <= 0.1}
+            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+          >
+            <MinusIcon className="w-5 h-5 text-gray-600" />
+          </button>
+          <span className="text-sm text-gray-600">
+            {Math.round(scale * 100)}%
+          </span>
+          <button
+            onClick={() => onScaleChange(scale + 0.1)}
+            disabled={disabled || scale >= 2}
+            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+          >
+            <PlusIcon className="w-5 h-5 text-gray-600" />
+          </button>
+          <button
+            onClick={onToggleGridLines}
+            className={`p-2 rounded-lg ${showGridLines ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-600'}`}
+          >
+            <BsGrid3X3 className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
 
-          {/* Design Overlay */}
+      <div 
+        ref={ref}
+        className="relative w-full aspect-[3/4] bg-gray-50"
+        onMouseDown={onDragStart}
+        style={{
+          cursor: disabled ? 'default' : isDragging ? 'grabbing' : 'grab'
+        }}
+      >
+        {/* Mockup Image */}
+        <img
+          src={mockupUrl}
+          alt="Product mockup"
+          className="absolute inset-0 w-full h-full object-contain"
+        />
+
+        {/* Design Image */}
+        {product.designImage && (
           <div
-            className={`
-              absolute
-              transform -translate-x-1/2 -translate-y-1/2
-              transition-all duration-300
-              xs:w-[45%] sm:w-[40%] md:w-[35%] lg:w-[30%] xl:w-[25%]
-              xs:h-[55%] sm:h-[50%] md:h-[45%] lg:h-[40%] xl:h-[35%]
-              ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
-              ${disabled ? 'cursor-not-allowed' : ''}
-              ${isOutOfBounds ? 'opacity-50' : 'opacity-100'}
-            `}
+            className={`absolute transition-transform ${isDragging ? '' : 'duration-200'}`}
             style={{
               left: `${position.x}%`,
               top: `${position.y}%`,
-              transform: `translate(-50%, -50%) scale(${scale})`
+              transform: `translate(-50%, -50%) scale(${scale})`,
+              width: '33%',
+              opacity: isOutOfBounds ? 0.5 : 1
             }}
-            onMouseDown={handleDragStart}
-            onTouchStart={handleDragStart}
           >
             <img
               src={product.designImage}
               alt="Design"
               className="w-full h-full object-contain"
-              draggable={false}
+              draggable="false"
             />
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* Controls */}
-      <div className="mt-4 space-y-4">
-        <div className="flex justify-between items-center">
-          <button
-            onClick={centerDesign}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg"
-            disabled={disabled}
-          >
-            Center Design
-          </button>
-          
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => handleScaleChange(scale - 0.1)}
-              disabled={disabled || scale <= 0.1}
-              className="p-2 rounded hover:bg-gray-100"
-            >
-              <MinusIcon className="w-5 h-5" />
-            </button>
-            
-            <span className="min-w-[4rem] text-center">
-              {Math.round(scale * 100)}%
-            </span>
-            
-            <button
-              onClick={() => handleScaleChange(scale + 0.1)}
-              disabled={disabled || scale >= 2.0}
-              className="p-2 rounded hover:bg-gray-100"
-            >
-              <PlusIcon className="w-5 h-5" />
-            </button>
+        {/* Grid Lines */}
+        {showGridLines && (
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="w-full h-full grid grid-cols-3 grid-rows-3">
+              {[...Array(9)].map((_, i) => (
+                <div key={i} className="border border-blue-200 opacity-50" />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
+});
+
+DesignPreview.propTypes = {
+  product: PropTypes.shape({
+    ProductType: PropTypes.string.isRequired,
+    ProductColor: PropTypes.string.isRequired,
+    ProductView: PropTypes.string,
+    designImage: PropTypes.string
+  }).isRequired,
+  position: PropTypes.shape({
+    x: PropTypes.number.isRequired,
+    y: PropTypes.number.isRequired
+  }).isRequired,
+  scale: PropTypes.number.isRequired,
+  isDragging: PropTypes.bool.isRequired,
+  isOutOfBounds: PropTypes.bool.isRequired,
+  onDragStart: PropTypes.func.isRequired,
+  onScaleChange: PropTypes.func.isRequired,
+  onPositionChange: PropTypes.func.isRequired,
+  onCenter: PropTypes.func.isRequired,
+  showGridLines: PropTypes.bool.isRequired,
+  onToggleGridLines: PropTypes.func.isRequired,
+  disabled: PropTypes.bool
 };
+
+DesignPreview.displayName = 'DesignPreview';
 
 export default DesignPreview;
