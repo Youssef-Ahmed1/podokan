@@ -1,12 +1,113 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import { HiX } from 'react-icons/hi';
-import { PRODUCT_TYPES, AVAILABLE_COLORS, AVAILABLE_TYPES } from './constants/productConfig';
+import { 
+  PRODUCT_TYPES, 
+  AVAILABLE_COLORS, 
+  AVAILABLE_TYPES,
+  CLOUDINARY_BASE 
+} from './constants/productConfig';
 
 const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
   const [newTag, setNewTag] = useState('');
+  const [selectedView, setSelectedView] = useState('front');
+  const [mockupUrl, setMockupUrl] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    updateMockupUrl();
+  }, [editedProduct.ProductType, editedProduct.ProductColor, selectedView]);
+
+  const updateMockupUrl = () => {
+    if (!editedProduct.ProductType || !editedProduct.ProductColor) {
+      setMockupUrl('');
+      return;
+    }
+
+    const productConfig = PRODUCT_TYPES[editedProduct.ProductType];
+    if (!productConfig) {
+      setMockupUrl('');
+      return;
+    }
+
+    const { mockupConfig } = productConfig;
+    const filename = mockupConfig.getFilename(editedProduct.ProductColor, selectedView);
+    const url = `${CLOUDINARY_BASE}/${mockupConfig.version}/${mockupConfig.folder}/${filename}.png`;
+    setMockupUrl(url);
+  };
+
+  const handleImageError = () => {
+    setIsLoading(false);
+    toast.error('Failed to load product mockup');
+  };
+
+  const handleImageLoad = () => {
+    setIsLoading(false);
+  };
+
+  // Mockup Preview Component
+  const renderMockupPreview = () => {
+    if (!editedProduct.ProductType || !editedProduct.ProductColor) {
+      return (
+        <div className="text-center text-gray-500 p-4">
+          Select a product type and color to view mockup
+        </div>
+      );
+    }
+
+    return (
+      <div className="mb-6">
+        <h4 className="text-lg font-semibold text-gray-800 mb-4">
+          Product Preview
+        </h4>
+        <div className="flex flex-col items-center">
+          <div className="relative w-full max-w-md aspect-square mb-4">
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
+              </div>
+            )}
+            {mockupUrl && (
+              <img
+                src={mockupUrl}
+                alt={`${editedProduct.ProductType} ${selectedView} view`}
+                className={`w-full h-full object-contain transition-opacity duration-300 ${
+                  isLoading ? 'opacity-0' : 'opacity-100'
+                }`}
+                onError={handleImageError}
+                onLoad={handleImageLoad}
+              />
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSelectedView('front')}
+              className={`px-4 py-2 rounded-lg ${
+                selectedView === 'front'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-700'
+              }`}
+            >
+              Front View
+            </button>
+            <button
+              onClick={() => setSelectedView('back')}
+              className={`px-4 py-2 rounded-lg ${
+                selectedView === 'back'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-700'
+              }`}
+            >
+              Back View
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Tag Management Functions
   const handleAddTag = (type, tag = newTag) => {
     const tagToAdd = tag.trim().toLowerCase();
     if (!tagToAdd) return;
@@ -46,14 +147,16 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
 
   return (
     <div className="space-y-6">
-      {/* Basic Product Information */}
+      {/* Product Information Section */}
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
           Product Configuration
         </h3>
 
+        {renderMockupPreview()}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Product Type */}
+          {/* Product Type Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Product Type
@@ -72,7 +175,7 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
             </select>
           </div>
 
-          {/* Product Color */}
+          {/* Color Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Product Color
@@ -130,7 +233,7 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
         </div>
       </div>
 
-      {/* Tags Management */}
+      {/* Tags Management Section */}
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
           Tags Management
