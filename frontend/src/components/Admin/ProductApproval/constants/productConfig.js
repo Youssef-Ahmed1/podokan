@@ -1,6 +1,8 @@
 
 import { HiClock, HiCheck, HiX, HiExclamation } from 'react-icons/hi';
 
+const CLOUDINARY_BASE = 'https://res.cloudinary.com/dkot9tyjm/image/upload';
+
 export const PRODUCT_TYPES = {
   't-shirt': {
     label: 'T-Shirt',
@@ -95,3 +97,4 @@ export const STATUS_CONFIG = {
     description: 'Under detailed review'
   }
 };
+export { CLOUDINARY_BASE };
