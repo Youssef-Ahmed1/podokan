@@ -1,4 +1,5 @@
-// ./constants/productConfig.js
+
+import { HiClock, HiCheck, HiX, HiExclamation } from 'react-icons/hi';
 
 export const PRODUCT_TYPES = {
   't-shirt': {
