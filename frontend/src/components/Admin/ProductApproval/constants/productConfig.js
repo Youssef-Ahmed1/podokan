@@ -60,3 +60,37 @@ export const AVAILABLE_TYPES = [
   { name: 'Hoodie', value: 'hoodie' },
   { name: 'Long Sleeves', value: 'long-sleeves' }
 ];
+export const STATUS_CONFIG = {
+  pending: {
+    label: 'Pending Review',
+    color: 'bg-yellow-100',
+    textColor: 'text-yellow-800',
+    borderColor: 'border-yellow-200',
+    icon: HiClock,
+    description: 'Awaiting admin review'
+  },
+  public: {
+    label: 'Approved',
+    color: 'bg-green-100',
+    textColor: 'text-green-800',
+    borderColor: 'border-green-200',
+    icon: HiCheck,
+    description: 'Product is live and available for purchase'
+  },
+  rejected: {
+    label: 'Rejected',
+    color: 'bg-red-100',
+    textColor: 'text-red-800',
+    borderColor: 'border-red-200',
+    icon: HiX,
+    description: 'Product has been rejected'
+  },
+  review: {
+    label: 'In Review',
+    color: 'bg-blue-100',
+    textColor: 'text-blue-800',
+    borderColor: 'border-blue-200',
+    icon: HiExclamation,
+    description: 'Under detailed review'
+  }
+};
