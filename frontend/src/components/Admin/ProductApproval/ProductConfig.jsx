@@ -9,7 +9,7 @@ import {
   CLOUDINARY_BASE 
 } from './constants/productConfig';
 
-const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
+const ProductConfig = ({ editedProduct, onUpdate, disabled, designImageUrl }) => {
   const [newTag, setNewTag] = useState('');
   const [selectedView, setSelectedView] = useState('front');
   const [mockupUrl, setMockupUrl] = useState('');
@@ -37,16 +37,31 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
     setMockupUrl(url);
   };
 
-  const handleImageError = () => {
-    setIsLoading(false);
-    toast.error('Failed to load product mockup');
-  };
+  // Preview Components
+  const renderDesignPreview = () => (
+    <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+      <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        Design Preview
+      </h3>
+      <div className="flex justify-center">
+        <div className="relative w-full max-w-md aspect-square">
+          {designImageUrl ? (
+            <img
+              src={designImageUrl}
+              alt="Design Preview"
+              className="w-full h-full object-contain"
+              onError={() => toast.error('Failed to load design preview')}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+              No design uploaded
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
-  const handleImageLoad = () => {
-    setIsLoading(false);
-  };
-
-  // Mockup Preview Component
   const renderMockupPreview = () => {
     if (!editedProduct.ProductType || !editedProduct.ProductColor) {
       return (
@@ -75,8 +90,11 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
                 className={`w-full h-full object-contain transition-opacity duration-300 ${
                   isLoading ? 'opacity-0' : 'opacity-100'
                 }`}
-                onError={handleImageError}
-                onLoad={handleImageLoad}
+                onError={() => {
+                  setIsLoading(false);
+                  toast.error('Failed to load product mockup');
+                }}
+                onLoad={() => setIsLoading(false)}
               />
             )}
           </div>
@@ -147,7 +165,10 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
 
   return (
     <div className="space-y-6">
-      {/* Product Information Section */}
+      {/* Design Preview Section */}
+      {renderDesignPreview()}
+
+      {/* Product Configuration Section */}
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
           Product Configuration
@@ -331,7 +352,8 @@ ProductConfig.propTypes = {
     Designtags: PropTypes.arrayOf(PropTypes.string)
   }).isRequired,
   onUpdate: PropTypes.func.isRequired,
-  disabled: PropTypes.bool
+  disabled: PropTypes.bool,
+  designImageUrl: PropTypes.string
 };
 
 export default ProductConfig;
