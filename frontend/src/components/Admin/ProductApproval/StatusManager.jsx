@@ -37,7 +37,16 @@ const STATUS_CONFIG = {
     description: 'Under detailed review'
   }
 };
-
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
 const StatusManager = ({ 
   product, 
   onStatusChange, 
@@ -127,8 +136,8 @@ const StatusManager = ({
                         {statusConfig?.label || entry.status}
                       </span>
                       <span className="text-gray-500">
-                        {format(new Date(entry.timestamp), 'MMM d, yyyy HH:mm')}
-                      </span>
+                      {formatDate(entry.timestamp)}
+                                            </span>
                     </div>
                     {entry.reason && (
                       <p className="text-gray-600 mt-1">
