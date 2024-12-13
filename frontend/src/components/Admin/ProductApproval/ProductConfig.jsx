@@ -5,8 +5,7 @@ import { HiX } from 'react-icons/hi';
 import { 
   PRODUCT_TYPES, 
   AVAILABLE_COLORS, 
-  AVAILABLE_TYPES,
-  CLOUDINARY_BASE 
+  AVAILABLE_TYPES 
 } from './constants/productConfig';
 import DesignPreview from '../../shared/DesignPreview';
 
@@ -15,7 +14,6 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
   const [showGridLines, setShowGridLines] = useState(false);
   const previewRef = useRef(null);
 
-  // Tag Management Functions
   const handleAddTag = (type, tag = newTag) => {
     const tagToAdd = tag.trim().toLowerCase();
     if (!tagToAdd) return;
@@ -34,6 +32,7 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
     }
 
     onUpdate({
+      ...editedProduct,
       [tagField]: [...currentTags, tagToAdd]
     });
     setNewTag('');
@@ -42,6 +41,7 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
   const handleRemoveTag = (type, tagToRemove) => {
     const tagField = type === 'main' ? 'mainTags' : 'Designtags';
     onUpdate({
+      ...editedProduct,
       [tagField]: (editedProduct[tagField] || []).filter(tag => tag !== tagToRemove)
     });
   };
@@ -54,7 +54,26 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
   };
 
   const handleUpdateDesign = (designUpdates) => {
-    onUpdate(designUpdates);
+    onUpdate({
+      ...editedProduct,
+      ...designUpdates
+    });
+  };
+
+  const handleProductTypeChange = (type) => {
+    onUpdate({
+      ...editedProduct,
+      ProductType: type,
+      DesignPosition: { x: 50, y: 25 }, // Reset position for new product type
+      DesignScale: 0.5 // Reset scale for new product type
+    });
+  };
+
+  const handleProductColorChange = (color) => {
+    onUpdate({
+      ...editedProduct,
+      ProductColor: color
+    });
   };
 
   return (
@@ -64,7 +83,7 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
         ref={previewRef}
         product={{
           ...editedProduct,
-          designImage: editedProduct.designImageUrl // Make sure this prop name matches
+          designImage: editedProduct.designImageUrl
         }}
         onUpdateDesign={handleUpdateDesign}
         disabled={disabled}
@@ -86,7 +105,7 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
             </label>
             <select
               value={editedProduct.ProductType}
-              onChange={(e) => onUpdate({ ProductType: e.target.value })}
+              onChange={(e) => handleProductTypeChange(e.target.value)}
               disabled={disabled}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
             >
@@ -107,7 +126,7 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
               {AVAILABLE_COLORS.map(color => (
                 <button
                   key={color.value}
-                  onClick={() => onUpdate({ ProductColor: color.value })}
+                  onClick={() => handleProductColorChange(color.value)}
                   disabled={disabled}
                   className={`
                     w-8 h-8 rounded-full border-2 transition-all
@@ -132,7 +151,7 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
             <input
               type="text"
               value={editedProduct.DesignTitle || ''}
-              onChange={(e) => onUpdate({ DesignTitle: e.target.value })}
+              onChange={(e) => onUpdate({ ...editedProduct, DesignTitle: e.target.value })}
               disabled={disabled}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               placeholder="Enter design title"
@@ -146,7 +165,7 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
             </label>
             <textarea
               value={editedProduct.Description || ''}
-              onChange={(e) => onUpdate({ Description: e.target.value })}
+              onChange={(e) => onUpdate({ ...editedProduct, Description: e.target.value })}
               disabled={disabled}
               rows={3}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
