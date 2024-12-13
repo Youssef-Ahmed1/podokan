@@ -114,6 +114,8 @@ const handleProductUpdate = useCallback((updates) => {
       't-shirt': { basePrice: 0 },
       // Add other default product types as needed
     };
+    const productTypes = PRODUCT_TYPES || DEFAULT_PRODUCT_TYPES;
+
     // Add null checks for ProductType
     if (updates.ProductType && updates.ProductType !== prev.ProductType) {
       resetDesignPosition();
@@ -136,7 +138,6 @@ const handleDesignPositionUpdate = useCallback((newPosition, newScale) => {
     DesignScale: newScale
   });
 }, [updatePosition, handleScaleChange, handleProductUpdate]);
-const productTypes = PRODUCT_TYPES || DEFAULT_PRODUCT_TYPES;
 
 // Enhanced status change handling with better error handling
 const handleStatusChange = useCallback(async (newStatus) => {
