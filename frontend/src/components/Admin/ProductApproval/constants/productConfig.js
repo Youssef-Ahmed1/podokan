@@ -1,7 +1,20 @@
-
 import { HiClock, HiCheck, HiX, HiExclamation } from 'react-icons/hi';
 
 const CLOUDINARY_BASE = 'https://res.cloudinary.com/dkot9tyjm/image/upload';
+
+const VIEWS = ['front', 'back'];
+
+const getMockupUrl = (productType, color, view) => {
+  try {
+    const config = PRODUCT_TYPES[productType]?.mockupConfig;
+    if (!config) return null;
+
+    return `${CLOUDINARY_BASE}/${config.version}/${config.folder}/${config.getFilename(color, view)}.png`;
+  } catch (error) {
+    console.error('Error generating mockup URL:', error);
+    return null;
+  }
+};
 
 export const PRODUCT_TYPES = {
   't-shirt': {
@@ -16,7 +29,9 @@ export const PRODUCT_TYPES = {
     mockupConfig: {
       version: "v1728393898",
       folder: "t-shirts",
-      getFilename: (color, view) => `t-shirt-${color}-${view}`
+      getFilename: (color, view) => `t-shirt-${color}-${view}`,
+      availableColors: ['white', 'black', 'red', 'blue', 'gray', 'green'],
+      views: VIEWS
     }
   },
   'long-sleeve': {
@@ -31,7 +46,9 @@ export const PRODUCT_TYPES = {
     mockupConfig: {
       version: "v1728394665",
       folder: "long-sleeves",
-      getFilename: (color, view) => `long-sleeve-${color}-${view}`
+      getFilename: (color, view) => `longsleeves-${color}-${view}`,
+      availableColors: ['white', 'black', 'red', 'blue', 'gray'],
+      views: VIEWS
     }
   },
   'hoodie': {
@@ -46,7 +63,9 @@ export const PRODUCT_TYPES = {
     mockupConfig: {
       version: "v1728392918",
       folder: "hoodies",
-      getFilename: (color, view) => `hoodie-${color}-${view}`
+      getFilename: (color, view) => `hoodie-${color}-${view}`,
+      availableColors: ['white', 'black', 'red', 'blue', 'gray'],
+      views: VIEWS
     }
   }
 };
@@ -54,15 +73,21 @@ export const PRODUCT_TYPES = {
 export const AVAILABLE_COLORS = [
   { name: 'White', value: 'white' },
   { name: 'Black', value: 'black' },
-  { name: 'Navy', value: 'navy' },
-  { name: 'Gray', value: 'gray' }
-];
+  { name: 'Red', value: 'red' },
+  { name: 'Blue', value: 'blue' },
+  { name: 'Gray', value: 'gray' },
+  { name: 'Green', value: 'green' }
+].filter(color => {
+  return Object.values(PRODUCT_TYPES).some(
+    product => product.mockupConfig.availableColors.includes(color.value)
+  );
+});
 
-export const AVAILABLE_TYPES = [
-  { name: 'T-Shirt', value: 't-shirt' },
-  { name: 'Hoodie', value: 'hoodie' },
-  { name: 'Long Sleeves', value: 'long-sleeves' }
-];
+export const AVAILABLE_TYPES = Object.entries(PRODUCT_TYPES).map(([value, config]) => ({
+  name: config.label,
+  value
+}));
+
 export const STATUS_CONFIG = {
   pending: {
     label: 'Pending Review',
@@ -97,4 +122,24 @@ export const STATUS_CONFIG = {
     description: 'Under detailed review'
   }
 };
-export { CLOUDINARY_BASE };
+
+export const isMockupAvailable = (productType, color, view) => {
+  const config = PRODUCT_TYPES[productType]?.mockupConfig;
+  if (!config) return false;
+  return config.availableColors.includes(color) && config.views.includes(view);
+};
+
+export const getAvailableColorsForProduct = (productType) => {
+  const colors = PRODUCT_TYPES[productType]?.mockupConfig?.availableColors || [];
+  return AVAILABLE_COLORS.filter(color => colors.includes(color.value));
+};
+
+export const getAvailableViews = (productType) => {
+  return PRODUCT_TYPES[productType]?.mockupConfig?.views || VIEWS;
+};
+
+export {
+  CLOUDINARY_BASE,
+  getMockupUrl,
+  VIEWS
+};
