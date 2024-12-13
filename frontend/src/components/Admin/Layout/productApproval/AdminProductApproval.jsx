@@ -84,20 +84,22 @@ const AdminProductApproval = () => {
 
   // Handle product selection
   const handleProductSelect = useCallback((product) => {
+    if (!product) return; // Guard clause
+  
     setSelectedProduct(product);
     setEditedProduct({
       ...product,
       DesignScale: product.DesignScale || 0.5,
       DesignPosition: product.DesignPosition || { x: 50, y: 30 },
       designImage: product.designImage?.url || product.designImage,
-      originalPrice: product.originalPrice || PRODUCT_TYPES[product.ProductType]?.basePrice || 0,
+      // Add null check for PRODUCT_TYPES
+      originalPrice: product.originalPrice || (PRODUCT_TYPES[product.ProductType]?.basePrice ?? 0),
       mainTags: product.mainTags || [],
       Designtags: product.Designtags || []
     });
-
+  
     resetDesignPosition();
   }, [resetDesignPosition]);
-
 // Enhanced product update handling
 const handleProductUpdate = useCallback((updates) => {
   setEditedProduct(prev => {
@@ -108,11 +110,15 @@ const handleProductUpdate = useCallback((updates) => {
       ...updates,
       updatedAt: new Date().toISOString()
     };
-
-    // If product type changes, handle special cases
+    const DEFAULT_PRODUCT_TYPES = {
+      't-shirt': { basePrice: 0 },
+      // Add other default product types as needed
+    };
+    // Add null checks for ProductType
     if (updates.ProductType && updates.ProductType !== prev.ProductType) {
       resetDesignPosition();
-      updated.originalPrice = PRODUCT_TYPES[updates.ProductType]?.basePrice || prev.originalPrice;
+      // Add null check for PRODUCT_TYPES
+      updated.originalPrice = PRODUCT_TYPES[updates.ProductType]?.basePrice ?? prev.originalPrice;
       updated.DesignPosition = { x: 50, y: 30 };
       updated.DesignScale = 0.5;
     }
@@ -120,7 +126,6 @@ const handleProductUpdate = useCallback((updates) => {
     return updated;
   });
 }, [resetDesignPosition]);
-
 // Enhanced design position update handling
 const handleDesignPositionUpdate = useCallback((newPosition, newScale) => {
   updatePosition(newPosition);

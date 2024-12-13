@@ -4,17 +4,6 @@ const CLOUDINARY_BASE = 'https://res.cloudinary.com/dkot9tyjm/image/upload';
 
 const VIEWS = ['front', 'back'];
 
-const getMockupUrl = (productType, color, view) => {
-  try {
-    const config = PRODUCT_TYPES[productType]?.mockupConfig;
-    if (!config) return null;
-
-    return `${CLOUDINARY_BASE}/${config.version}/${config.folder}/${config.getFilename(color, view)}.png`;
-  } catch (error) {
-    console.error('Error generating mockup URL:', error);
-    return null;
-  }
-};
 
 export const PRODUCT_TYPES = {
   't-shirt': {
@@ -120,6 +109,19 @@ export const STATUS_CONFIG = {
     borderColor: 'border-blue-200',
     icon: HiExclamation,
     description: 'Under detailed review'
+  }
+};
+const productTypes = PRODUCT_TYPES || DEFAULT_PRODUCT_TYPES;
+
+const getMockupUrl = (productType, color, view) => {
+  try {
+    const config = PRODUCT_TYPES[productType]?.mockupConfig;
+    if (!config) return null;
+
+    return `${CLOUDINARY_BASE}/${config.version}/${config.folder}/${config.getFilename(color, view)}.png`;
+  } catch (error) {
+    console.error('Error generating mockup URL:', error);
+    return null;
   }
 };
 
