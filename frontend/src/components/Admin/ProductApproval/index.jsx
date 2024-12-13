@@ -136,6 +136,7 @@ const handleDesignPositionUpdate = useCallback((newPosition, newScale) => {
     DesignScale: newScale
   });
 }, [updatePosition, handleScaleChange, handleProductUpdate]);
+const productTypes = PRODUCT_TYPES || DEFAULT_PRODUCT_TYPES;
 
 // Enhanced status change handling with better error handling
 const handleStatusChange = useCallback(async (newStatus) => {

@@ -111,7 +111,6 @@ export const STATUS_CONFIG = {
     description: 'Under detailed review'
   }
 };
-const productTypes = PRODUCT_TYPES || DEFAULT_PRODUCT_TYPES;
 
 const getMockupUrl = (productType, color, view) => {
   try {

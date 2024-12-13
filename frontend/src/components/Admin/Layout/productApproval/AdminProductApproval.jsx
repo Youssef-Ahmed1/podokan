@@ -126,6 +126,8 @@ const handleProductUpdate = useCallback((updates) => {
     return updated;
   });
 }, [resetDesignPosition]);
+const productTypes = PRODUCT_TYPES || DEFAULT_PRODUCT_TYPES;
+
 // Enhanced design position update handling
 const handleDesignPositionUpdate = useCallback((newPosition, newScale) => {
   updatePosition(newPosition);
