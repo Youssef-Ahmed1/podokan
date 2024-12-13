@@ -3,9 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { fetchPendingProducts, approveRejectProduct } from '../../../redux/actions/product';
 import { useDesignPosition } from '../../../hooks/useDesignPosition';
-import DesignPreview from '../../shared/DesignPreview';
 
-// Import sub-components
+import DesignPreview from '../../shared/DesignPreview';
 import ProductConfig from '../ProductApproval/ProductConfig';
 import ValidationSystem from '../ProductApproval/ValidationSystem';
 import StatusManager from '../ProductApproval/StatusManager';
@@ -28,26 +27,27 @@ const AdminProductApproval = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [showGridLines, setShowGridLines] = useState(false);
 
-  // Design position hook
+  // Design position management using custom hook
   const {
-    containerRef,
     position,
     scale,
     isDragging,
     isOutOfBounds,
     handleDragStart,
     handleScaleChange,
-    centerDesign
+    updatePosition,
+    centerDesign,
+    reset: resetDesignPosition,
+    bounds
   } = useDesignPosition({
-    initialPosition: editedProduct?.DesignPosition || { x: 50, y: 25 },
-    initialScale: editedProduct?.DesignScale || 1,
+    initialPosition: editedProduct?.DesignPosition || { x: 50, y: 30 },
+    initialScale: editedProduct?.DesignScale || 0.5,
     productType: editedProduct?.ProductType || 't-shirt',
     disabled: isSubmitting
   });
 
-
-   // Load pending products
-   useEffect(() => {
+  // Load pending products
+  useEffect(() => {
     dispatch(fetchPendingProducts());
   }, [dispatch]);
 
@@ -73,17 +73,19 @@ const AdminProductApproval = () => {
     setSelectedProduct(product);
     setEditedProduct({
       ...product,
-      DesignScale: product.DesignScale || 1,
-      DesignPosition: product.DesignPosition || { x: 50, y: 25 },
+      DesignScale: product.DesignScale || 0.5,
+      DesignPosition: product.DesignPosition || { x: 50, y: 30 },
       designImage: product.designImage?.url || product.designImage,
       originalPrice: product.originalPrice || PRODUCT_TYPES[product.ProductType].basePrice,
-      availableColors: product.availableColors || [product.ProductColor],
-      availableProductTypes: product.availableProductTypes || [product.ProductType],
-      mainTags: product.mainTags || []
+      mainTags: product.mainTags || [],
+      Designtags: product.Designtags || []
     });
-  }, []);
 
-  // Handle product updates with validation
+    // Reset design position and scale
+    resetDesignPosition();
+  }, [resetDesignPosition]);
+
+  // Handle product updates
   const handleProductUpdate = useCallback((updates) => {
     setEditedProduct(prev => {
       if (!prev) return prev;
@@ -94,53 +96,25 @@ const AdminProductApproval = () => {
         updatedAt: new Date().toISOString()
       };
 
-      // Validate base price based on product type
-      if (updates.ProductType || updates.originalPrice) {
-        const basePrice = PRODUCT_TYPES[updated.ProductType].basePrice;
-        if (updated.originalPrice < basePrice) {
-          updated.originalPrice = basePrice;
-        }
-        if (updated.discountPrice && updated.discountPrice < basePrice) {
-          updated.discountPrice = basePrice;
-        }
-      }
-
-      // Validate design tags count
-      if (updates.Designtags) {
-        if (updates.Designtags.length > 7) {
-          updated.Designtags = updates.Designtags.slice(0, 7);
-        }
-      }
-
-      // Ensure product color is in available colors
-      if (updates.availableColors && !updates.availableColors.includes(updated.ProductColor)) {
-        updated.availableColors = [...updates.availableColors, updated.ProductColor];
-      }
-
-      // Ensure product type is in available types
-      if (updates.availableProductTypes && !updates.availableProductTypes.includes(updated.ProductType)) {
-        updated.availableProductTypes = [...updates.availableProductTypes, updated.ProductType];
+      // If product type changes, reset design position
+      if (updates.ProductType && updates.ProductType !== prev.ProductType) {
+        resetDesignPosition();
       }
 
       return updated;
     });
-  }, []);
+  }, [resetDesignPosition]);
 
   // Handle design position updates
   const handleDesignPositionUpdate = useCallback((newPosition, newScale) => {
+    updatePosition(newPosition);
+    handleScaleChange(newScale);
+    
     handleProductUpdate({
       DesignPosition: newPosition,
       DesignScale: newScale
     });
-  }, [handleProductUpdate]);
-
-  // Handle validation status updates
-  const handleValidationUpdate = useCallback((isValid) => {
-    setValidationStatus(prev => ({
-      ...prev,
-      isValid
-    }));
-  }, []);
+  }, [updatePosition, handleScaleChange, handleProductUpdate]);
 
   // Handle status change
   const handleStatusChange = useCallback(async (newStatus) => {
@@ -162,10 +136,10 @@ const AdminProductApproval = () => {
             discountPrice: editedProduct.discountPrice,
             ProductType: editedProduct.ProductType,
             ProductColor: editedProduct.ProductColor,
-            ProductView: editedProduct.ProductView,
-            DesignScale: editedProduct.DesignScale,
-            DesignPosition: editedProduct.DesignPosition,
-            availableColors: editedProduct.availableColors
+            DesignScale: scale,
+            DesignPosition: position,
+            mainTags: editedProduct.mainTags,
+            Designtags: editedProduct.Designtags
           }
         )
       );
@@ -182,8 +156,9 @@ const AdminProductApproval = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [editedProduct, dispatch]);
+  }, [editedProduct, dispatch, scale, position]);
 
+  // Access check
   if (!user || !(user.role === 'Admin' || user.role === 'admin')) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -304,8 +279,8 @@ const AdminProductApproval = () => {
           {/* Review Area */}
           {selectedProduct && editedProduct ? (
             <div className="w-full lg:w-2/3 space-y-6">
+              {/* Design Preview with Updated Position Management */}
               <DesignPreview
-                ref={containerRef}
                 product={editedProduct}
                 position={position}
                 scale={scale}
@@ -318,14 +293,18 @@ const AdminProductApproval = () => {
                 showGridLines={showGridLines}
                 onToggleGridLines={() => setShowGridLines(!showGridLines)}
                 disabled={isSubmitting}
+                bounds={bounds}
               />
 
+              {/* Product Configuration */}
               <ProductConfig
                 editedProduct={editedProduct}
                 onUpdate={handleProductUpdate}
+                onDesignPositionUpdate={handleDesignPositionUpdate}
                 disabled={isSubmitting}
               />
 
+              {/* Price Calculator */}
               <PriceCalculator
                 productType={editedProduct.ProductType}
                 originalPrice={editedProduct.originalPrice}
@@ -335,11 +314,13 @@ const AdminProductApproval = () => {
                 disabled={isSubmitting}
               />
 
+              {/* Validation System */}
               <ValidationSystem
                 product={editedProduct}
-                onValidationChange={handleValidationUpdate}
+                onValidationChange={setValidationStatus}
               />
 
+              {/* Status Manager */}
               <StatusManager
                 product={editedProduct}
                 onStatusChange={handleStatusChange}
