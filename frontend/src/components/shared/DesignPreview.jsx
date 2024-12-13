@@ -53,8 +53,8 @@ const DesignPreview = forwardRef(({
 
     const rect = e.currentTarget.getBoundingClientRect();
     const newPosition = {
-      x: ((e.clientX - dragStart.x) / rect.width) * 100,
-      y: ((e.clientY - dragStart.y) / rect.height) * 100
+      x: ((e.clientX - onDragStart.x) / rect.width) * 100,
+      y: ((e.clientY - onDragStart.y) / rect.height) * 100
     };
 
     const { isValid, bounds } = checkBoundaries(newPosition);
