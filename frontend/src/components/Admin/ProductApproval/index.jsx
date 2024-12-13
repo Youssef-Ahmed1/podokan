@@ -2,15 +2,15 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { fetchPendingProducts, approveRejectProduct } from '../../../../redux/actions/product';
-import { useDesignPosition } from '../../../../hooks/useDesignPosition';
+import { useDesignPosition } from '../../../hooks/useDesignPosition';
 
-import DesignPreview from '../../../shared/DesignPreview';
-import ProductConfig from '../../ProductApproval/ProductConfig';
-import ValidationSystem from '../../ProductApproval/ValidationSystem';
-import StatusManager from '../../ProductApproval/StatusManager';
-import PriceCalculator from '../../ProductApproval/PriceCalculator';
+import DesignPreview from '../../shared/DesignPreview';
+import ProductConfig from '../ProductApproval/ProductConfig';
+import ValidationSystem from '../ProductApproval/ValidationSystem';
+import StatusManager from '../ProductApproval/StatusManager';
+import PriceCalculator from '../ProductApproval/PriceCalculator';
 
-import { STATUS_CONFIG, PRODUCT_TYPES  , productTypes} from '../../ProductApproval/constants/productConfig';
+import { STATUS_CONFIG, PRODUCT_TYPES  , productTypes} from '../ProductApproval/constants/productConfig';
 
 const AdminProductApproval = () => {
   const dispatch = useDispatch();
