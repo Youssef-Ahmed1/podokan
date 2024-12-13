@@ -3,10 +3,13 @@ import PropTypes from 'prop-types';
 import { HiPlus, HiMinus } from 'react-icons/hi';
 import { BsGrid3X3 } from 'react-icons/bs';
 import { BiReset } from 'react-icons/bi';
+import { toast } from 'react-toastify';
 
-const SCALE_STEP = 0.05; // Each click changes scale by 5%
-const MIN_SCALE = 0.3;   // 30% minimum size
-const MAX_SCALE = 2;     // 200% maximum size
+const SCALE_STEP = 0.02; // Each click changes scale by 2%
+const MIN_SCALE = 0.1;   // 10% minimum size
+const MAX_SCALE = 1;     // 100% maximum size
+
+const CLOUDINARY_BASE = 'https://res.cloudinary.com/dkot9tyjm/image/upload';
 
 const DesignPreview = forwardRef(({
   product,
@@ -18,15 +21,16 @@ const DesignPreview = forwardRef(({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [position, setPosition] = useState(product.DesignPosition || { x: 50, y: 25 });
-  const [scale, setScale] = useState(product.DesignScale || 1);
+  const [scale, setScale] = useState(product.DesignScale || 0.5);
   const [outOfBounds, setOutOfBounds] = useState(false);
+  const [mockupLoaded, setMockupLoaded] = useState(false);
 
   // Get boundaries based on product type
   const getBoundaries = () => {
     const boundaries = {
-      't-shirt': { x: [20, 80], y: [15, 45] },
-      'hoodie': { x: [25, 75], y: [20, 50] },
-      'long-sleeves': { x: [20, 80], y: [15, 45] }
+      't-shirt': { x: [35, 65], y: [20, 35] },
+      'hoodie': { x: [40, 60], y: [25, 40] },
+      'long-sleeve': { x: [35, 65], y: [20, 35] }
     };
     return boundaries[product.ProductType] || boundaries['t-shirt'];
   };
@@ -39,6 +43,10 @@ const DesignPreview = forwardRef(({
                pos.y >= bounds.y[0] && pos.y <= bounds.y[1],
       bounds
     };
+  };
+
+  const getMockupUrl = (productType, color, view) => {
+    return `${CLOUDINARY_BASE}/v1728392918/${productType}s/${productType}-${color}-${view}.png`;
   };
 
   // Handle mouse down for dragging
@@ -100,10 +108,10 @@ const DesignPreview = forwardRef(({
   const handleReset = () => {
     const defaultPosition = { x: 50, y: 25 };
     setPosition(defaultPosition);
-    setScale(1);
+    setScale(0.5);
     onUpdateDesign({
       DesignPosition: defaultPosition,
-      DesignScale: 1
+      DesignScale: 0.5
     });
   };
 
@@ -137,7 +145,7 @@ const DesignPreview = forwardRef(({
                 <HiMinus className="w-4 h-4" />
               </button>
               <span className="px-2 text-sm font-medium min-w-[4rem] text-center">
-                {Math.round(scale * 100)}%
+                {Math.round(scale * 50)}%
               </span>
               <button
                 onClick={() => handleScaleChange(scale + SCALE_STEP)}
@@ -181,12 +189,25 @@ const DesignPreview = forwardRef(({
           cursor: disabled ? 'default' : isDragging ? 'grabbing' : 'grab'
         }}
       >
-        {/* Mockup Image */}
+        {/* Background Mockup Image */}
         <img
-          src={`/mockups/${product.ProductType}/${product.ProductColor}/${product.ProductView || 'front'}.png`}
+          src={getMockupUrl(product.ProductType, product.ProductColor, 'front')}
           alt="Product mockup"
-          className="absolute inset-0 w-full h-full object-contain"
+          className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${
+            mockupLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          onError={(e) => {
+            console.error('Failed to load mockup:', e);
+            toast.error('Failed to load product mockup');
+          }}
+          onLoad={() => setMockupLoaded(true)}
         />
+        
+        {!mockupLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
+          </div>
+        )}
 
         {/* Design Image */}
         {product.designImage && (
@@ -196,8 +217,9 @@ const DesignPreview = forwardRef(({
               left: `${position.x}%`,
               top: `${position.y}%`,
               transform: `translate(-50%, -50%) scale(${scale})`,
-              width: '30%',
-              opacity: outOfBounds ? 0.5 : 1
+              width: '15%',
+              opacity: outOfBounds ? 0.5 : 1,
+              mixBlendMode: 'multiply'
             }}
           >
             <img
