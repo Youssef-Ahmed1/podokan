@@ -9,28 +9,30 @@ const SCALE_STEP = 0.02; // Each click changes scale by 2%
 const MIN_SCALE = 0.1;   // 10% minimum size
 const MAX_SCALE = 1;     // 100% maximum size
 
-const CLOUDINARY_BASE = 'https://res.cloudinary.com/dkot9tyjm/image/upload';
-
 const DesignPreview = forwardRef(({
   product,
   onUpdateDesign,
   disabled,
   showGridLines,
-  onToggleGridLines
+  onToggleGridLines,
+  position,
+  scale,
+  isDragging,
+  onDragStart,
+  onScaleChange,
+  onPositionChange,
+  onCenter
 }, ref) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [position, setPosition] = useState(product.DesignPosition || { x: 50, y: 25 });
-  const [scale, setScale] = useState(product.DesignScale || 0.5);
+
   const [outOfBounds, setOutOfBounds] = useState(false);
   const [mockupLoaded, setMockupLoaded] = useState(false);
 
   // Get boundaries based on product type
   const getBoundaries = () => {
     const boundaries = {
-      't-shirt': { x: [35, 65], y: [20, 35] },
-      'hoodie': { x: [40, 60], y: [25, 40] },
-      'long-sleeve': { x: [35, 65], y: [20, 35] }
+      't-shirt': { x: [30, 70], y: [20, 40] },
+      'hoodie': { x: [35, 65], y: [25, 45] },
+      'long-sleeve': { x: [30, 70], y: [20, 40] }
     };
     return boundaries[product.ProductType] || boundaries['t-shirt'];
   };
@@ -43,22 +45,6 @@ const DesignPreview = forwardRef(({
                pos.y >= bounds.y[0] && pos.y <= bounds.y[1],
       bounds
     };
-  };
-
-  const getMockupUrl = (productType, color, view) => {
-    return `${CLOUDINARY_BASE}/v1728392918/${productType}s/${productType}-${color}-${view}.png`;
-  };
-
-  // Handle mouse down for dragging
-  const handleMouseDown = (e) => {
-    if (disabled) return;
-    
-    const rect = e.currentTarget.getBoundingClientRect();
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX - (position.x * rect.width / 100),
-      y: e.clientY - (position.y * rect.height / 100)
-    });
   };
 
   // Handle mouse move while dragging
@@ -80,13 +66,12 @@ const DesignPreview = forwardRef(({
       y: Math.max(bounds.y[0], Math.min(bounds.y[1], newPosition.y))
     };
 
-    setPosition(clampedPosition);
+    onPositionChange(clampedPosition);
   };
 
   // Handle mouse up after dragging
   const handleMouseUp = () => {
     if (isDragging) {
-      setIsDragging(false);
       onUpdateDesign({
         DesignPosition: position,
         DesignScale: scale
@@ -97,35 +82,24 @@ const DesignPreview = forwardRef(({
   // Handle scale change
   const handleScaleChange = (newScale) => {
     const clampedScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
-    setScale(clampedScale);
-    onUpdateDesign({
-      DesignPosition: position,
-      DesignScale: clampedScale
-    });
+    onScaleChange(clampedScale);
   };
 
   // Reset design position and scale
   const handleReset = () => {
-    const defaultPosition = { x: 50, y: 25 };
-    setPosition(defaultPosition);
-    setScale(0.5);
+    const defaultPosition = { x: 50, y: 30 };
+    onPositionChange(defaultPosition);
+    onScaleChange(0.5);
     onUpdateDesign({
       DesignPosition: defaultPosition,
       DesignScale: 0.5
     });
   };
 
-  // Add/remove mouse move and up listeners
-  useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging]);
+  // Get mockup URL
+  const getMockupUrl = () => {
+    return `/mockups/${product.ProductType}/${product.ProductColor}/${product.ProductView || 'front'}.png`;
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -184,14 +158,14 @@ const DesignPreview = forwardRef(({
       <div 
         ref={ref}
         className="relative w-full aspect-[3/4] bg-gray-50"
-        onMouseDown={handleMouseDown}
+        onMouseDown={onDragStart}
         style={{
           cursor: disabled ? 'default' : isDragging ? 'grabbing' : 'grab'
         }}
       >
-        {/* Background Mockup Image */}
+        {/* Background Mockup */}
         <img
-          src={getMockupUrl(product.ProductType, product.ProductColor, 'front')}
+          src={getMockupUrl()}
           alt="Product mockup"
           className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${
             mockupLoaded ? 'opacity-100' : 'opacity-0'
@@ -202,7 +176,7 @@ const DesignPreview = forwardRef(({
           }}
           onLoad={() => setMockupLoaded(true)}
         />
-        
+
         {!mockupLoaded && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
@@ -217,9 +191,8 @@ const DesignPreview = forwardRef(({
               left: `${position.x}%`,
               top: `${position.y}%`,
               transform: `translate(-50%, -50%) scale(${scale})`,
-              width: '15%',
-              opacity: outOfBounds ? 0.5 : 1,
-              mixBlendMode: 'multiply'
+              width: '20%',
+              opacity: outOfBounds ? 0.5 : 1
             }}
           >
             <img
@@ -227,6 +200,7 @@ const DesignPreview = forwardRef(({
               alt="Design"
               className="w-full h-full object-contain pointer-events-none"
               draggable="false"
+              style={{ filter: 'none' }}
             />
           </div>
         )}
@@ -234,7 +208,6 @@ const DesignPreview = forwardRef(({
         {/* Boundaries Visualization */}
         {!disabled && (
           <div className="absolute inset-0 pointer-events-none">
-            {/* Safe Area */}
             <div className={`
               absolute 
               border-2 
@@ -263,6 +236,11 @@ const DesignPreview = forwardRef(({
           </div>
         )}
       </div>
+
+      {/* Product Configuration Fields */}
+      <div className="p-6 border-t border-gray-200">
+        {/* Configuration fields will be added here */}
+      </div>
     </div>
   );
 });
@@ -282,7 +260,17 @@ DesignPreview.propTypes = {
   onUpdateDesign: PropTypes.func.isRequired,
   disabled: PropTypes.bool,
   showGridLines: PropTypes.bool,
-  onToggleGridLines: PropTypes.func.isRequired
+  onToggleGridLines: PropTypes.func.isRequired,
+  position: PropTypes.shape({
+    x: PropTypes.number,
+    y: PropTypes.number
+  }).isRequired,
+  scale: PropTypes.number.isRequired,
+  isDragging: PropTypes.bool.isRequired,
+  onDragStart: PropTypes.func.isRequired,
+  onScaleChange: PropTypes.func.isRequired,
+  onPositionChange: PropTypes.func.isRequired,
+  onCenter: PropTypes.func.isRequired
 };
 
 DesignPreview.displayName = 'DesignPreview';

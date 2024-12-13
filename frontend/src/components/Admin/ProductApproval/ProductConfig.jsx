@@ -1,18 +1,19 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { toast } from 'react-toastify';
 import { HiX } from 'react-icons/hi';
+import { toast } from 'react-toastify';
 import { 
-  PRODUCT_TYPES, 
   AVAILABLE_COLORS, 
   AVAILABLE_TYPES 
 } from './constants/productConfig';
-import DesignPreview from '../../shared/DesignPreview';
 
-const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
+const ProductConfig = ({ 
+  editedProduct, 
+  onUpdate, 
+  disabled,
+  onDesignPositionUpdate 
+}) => {
   const [newTag, setNewTag] = useState('');
-  const [showGridLines, setShowGridLines] = useState(false);
-  const previewRef = useRef(null);
 
   const handleAddTag = (type, tag = newTag) => {
     const tagToAdd = tag.trim().toLowerCase();
@@ -46,30 +47,21 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
     });
   };
 
-  const handleKeyPress = (e, type) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddTag(type);
+  const handleProductTypeChange = (type) => {
+    // Reset design position when changing product type
+    const newProduct = {
+      ...editedProduct,
+      ProductType: type,
+      DesignPosition: { x: 50, y: 30 },
+      DesignScale: 0.5
+    };
+    onUpdate(newProduct);
+    if (onDesignPositionUpdate) {
+      onDesignPositionUpdate({ x: 50, y: 30 }, 0.5);
     }
   };
 
-  const handleUpdateDesign = (designUpdates) => {
-    onUpdate({
-      ...editedProduct,
-      ...designUpdates
-    });
-  };
-
-  const handleProductTypeChange = (type) => {
-    onUpdate({
-      ...editedProduct,
-      ProductType: type,
-      DesignPosition: { x: 50, y: 25 }, // Reset position for new product type
-      DesignScale: 0.5 // Reset scale for new product type
-    });
-  };
-
-  const handleProductColorChange = (color) => {
+  const handleColorChange = (color) => {
     onUpdate({
       ...editedProduct,
       ProductColor: color
@@ -78,23 +70,10 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
 
   return (
     <div className="space-y-6">
-      {/* Design Preview Section */}
-      <DesignPreview
-        ref={previewRef}
-        product={{
-          ...editedProduct,
-          designImage: editedProduct.designImageUrl
-        }}
-        onUpdateDesign={handleUpdateDesign}
-        disabled={disabled}
-        showGridLines={showGridLines}
-        onToggleGridLines={() => setShowGridLines(!showGridLines)}
-      />
-
-      {/* Product Configuration Section */}
+      {/* Product Details Section */}
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Product Configuration
+          Product Details
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -107,7 +86,7 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
               value={editedProduct.ProductType}
               onChange={(e) => handleProductTypeChange(e.target.value)}
               disabled={disabled}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
             >
               {AVAILABLE_TYPES.map(type => (
                 <option key={type.value} value={type.value}>
@@ -126,7 +105,7 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
               {AVAILABLE_COLORS.map(color => (
                 <button
                   key={color.value}
-                  onClick={() => handleProductColorChange(color.value)}
+                  onClick={() => handleColorChange(color.value)}
                   disabled={disabled}
                   className={`
                     w-8 h-8 rounded-full border-2 transition-all
@@ -136,7 +115,10 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
                     }
                     ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-gray-300'}
                   `}
-                  style={{ backgroundColor: color.value }}
+                  style={{ 
+                    backgroundColor: color.value,
+                    boxShadow: color.value === '#ffffff' ? 'inset 0 0 0 1px rgba(0,0,0,0.1)' : 'none'
+                  }}
                   title={color.name}
                 />
               ))}
@@ -153,7 +135,7 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
               value={editedProduct.DesignTitle || ''}
               onChange={(e) => onUpdate({ ...editedProduct, DesignTitle: e.target.value })}
               disabled={disabled}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
               placeholder="Enter design title"
             />
           </div>
@@ -168,7 +150,7 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
               onChange={(e) => onUpdate({ ...editedProduct, Description: e.target.value })}
               disabled={disabled}
               rows={3}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 resize-none"
               placeholder="Enter product description"
             />
           </div>
@@ -187,9 +169,9 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
             type="text"
             value={newTag}
             onChange={(e) => setNewTag(e.target.value)}
-            onKeyPress={(e) => handleKeyPress(e, 'main')}
+            onKeyPress={(e) => e.key === 'Enter' && handleAddTag('main')}
             disabled={disabled}
-            className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
             placeholder="Add new tag..."
           />
           <button
@@ -225,7 +207,7 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
                   <button
                     onClick={() => handleRemoveTag('main', tag)}
                     disabled={disabled}
-                    className="ml-2 text-blue-500 hover:text-blue-700"
+                    className="ml-2 text-blue-500 hover:text-blue-700 disabled:opacity-50"
                   >
                     <HiX className="w-4 h-4" />
                   </button>
@@ -249,7 +231,7 @@ const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
                   <button
                     onClick={() => handleRemoveTag('design', tag)}
                     disabled={disabled}
-                    className="ml-2 text-green-500 hover:text-green-700"
+                    className="ml-2 text-green-500 hover:text-green-700 disabled:opacity-50"
                   >
                     <HiX className="w-4 h-4" />
                   </button>
@@ -271,7 +253,6 @@ ProductConfig.propTypes = {
     Description: PropTypes.string,
     mainTags: PropTypes.arrayOf(PropTypes.string),
     Designtags: PropTypes.arrayOf(PropTypes.string),
-    designImageUrl: PropTypes.string,
     DesignPosition: PropTypes.shape({
       x: PropTypes.number,
       y: PropTypes.number
@@ -279,7 +260,8 @@ ProductConfig.propTypes = {
     DesignScale: PropTypes.number
   }).isRequired,
   onUpdate: PropTypes.func.isRequired,
-  disabled: PropTypes.bool
+  disabled: PropTypes.bool,
+  onDesignPositionUpdate: PropTypes.func
 };
 
 export default ProductConfig;
