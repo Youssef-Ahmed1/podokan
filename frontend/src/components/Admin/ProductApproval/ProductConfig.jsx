@@ -8,7 +8,7 @@ import {
   AVAILABLE_TYPES,
   CLOUDINARY_BASE 
 } from './constants/productConfig';
-import DesignPreview from './DesignPreview';
+import DesignPreview from '../../shared/DesignPreview';
 
 const ProductConfig = ({ editedProduct, onUpdate, disabled }) => {
   const [newTag, setNewTag] = useState('');
