@@ -33,6 +33,7 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
   const availableColors = getAvailableColorsForProduct(editedProduct.ProductType);
   const availableViews = getAvailableViews(editedProduct.ProductType);
   const productConfig = PRODUCT_TYPES[editedProduct.ProductType];
+
   return (
     <div className="space-y-6">
       {/* Product Type Selection */}
@@ -51,7 +52,7 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
                 px-4 py-3 text-sm font-medium rounded-lg
                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
                 ${disabled ? 'cursor-not-allowed opacity-50' : ''}
-                ${product.ProductType === type.value
+                ${editedProduct.ProductType === type.value
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}
               `}
@@ -78,7 +79,7 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
                 group relative px-4 py-3 text-sm font-medium rounded-lg
                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
                 ${disabled ? 'cursor-not-allowed opacity-50' : ''}
-                ${product.ProductColor === color.value
+                ${editedProduct.ProductColor === color.value
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}
               `}
@@ -105,7 +106,7 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
                 px-4 py-3 text-sm font-medium rounded-lg
                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
                 ${disabled ? 'cursor-not-allowed opacity-50' : ''}
-                ${product.ProductView === view
+                ${editedProduct.ProductView === view
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}
               `}
