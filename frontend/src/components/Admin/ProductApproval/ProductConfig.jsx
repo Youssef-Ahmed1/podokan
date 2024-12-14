@@ -5,6 +5,8 @@ import {
   getAvailableColorsForProduct,
   getAvailableViews 
 } from '../ProductApproval/constants/productConfig';
+
+
 const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabled }) => {
   // Add default product type if editedProduct.ProductType is undefined
   const defaultProductType = 'hoodie';

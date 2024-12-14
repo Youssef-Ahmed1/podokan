@@ -130,7 +130,7 @@ export const isMockupAvailable = (productType, color, view) => {
 };
 
 export const getAvailableColorsForProduct = (productType) => {
-  const colors = PRODUCT_TYPES[productType]?.mockupConfig?.availableColors || [];
+  const colors = PRODUCT_TYPES[productType]?.mockupConfig?.availableColors || ['white', 'black'];
   return AVAILABLE_COLORS.filter(color => colors.includes(color.value));
 };
 
