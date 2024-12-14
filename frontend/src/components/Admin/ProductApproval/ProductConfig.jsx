@@ -1,62 +1,56 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { 
   PRODUCT_TYPES, 
   AVAILABLE_TYPES, 
   getAvailableColorsForProduct,
-  getAvailableViews 
+  getAvailableViews,
+  DEFAULT_PRODUCT_CONFIG 
 } from '../ProductApproval/constants/productConfig';
-
 
 const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabled }) => {
   // Add default product type if editedProduct.ProductType is undefined
   const defaultProductType = 'hoodie';
   const currentProductType = editedProduct?.ProductType || defaultProductType;
 
-  const handleTypeChange = (type) => {
+  const handleTypeChange = useCallback((type) => {
+    if (!editedProduct || disabled) return;
+
+    const availableColors = getAvailableColorsForProduct(type);
     const newProduct = {
       ...editedProduct, 
       ProductType: type,
-      ProductColor: getAvailableColorsForProduct(type)[0]?.value || 'white'
+      ProductColor: availableColors[0]?.value || 'white',
+      ProductView: 'front', // Reset to front view when changing type
+      DesignScale: 1, // Reset scale
+      DesignPosition: { x: 50, y: 30 } // Reset position to center
     };
     onUpdate(newProduct);
-  };
+  }, [editedProduct, onUpdate, disabled]);
 
-  const handleColorChange = (color) => {
+  const handleColorChange = useCallback((color) => {
+    if (!editedProduct || disabled) return;
+
     onUpdate({
       ...editedProduct, 
       ProductColor: color
     });
-  };
+  }, [editedProduct, onUpdate, disabled]);
 
-  const handleViewChange = (view) => {
-    onUpdate({
+  const handleViewChange = useCallback((view) => {
+    if (!editedProduct || disabled) return;
+
+    const newProduct = {
       ...editedProduct,
-      ProductView: view
-    });
-  };
+      ProductView: view,
+      DesignPosition: { x: 50, y: 30 } // Reset position when changing view
+    };
+    onUpdate(newProduct);
+  }, [editedProduct, onUpdate, disabled]);
 
   // Add null checks and default values
   const availableColors = getAvailableColorsForProduct(currentProductType);
   const availableViews = getAvailableViews(currentProductType);
-  const productConfig = PRODUCT_TYPES[currentProductType] || PRODUCT_TYPES['hoodie'];
-
-  // Default price values
-  const defaultPrices = {
-    basePrice: 850,
-    productionCost: 650,
-    designCost: 200,
-    margins: {
-      recommended: 0.30
-    }
-  };
-
-  // Use either productConfig values or default values
-  const prices = {
-    basePrice: productConfig?.basePrice || defaultPrices.basePrice,
-    productionCost: productConfig?.productionCost || defaultPrices.productionCost,
-    designCost: productConfig?.designCost || defaultPrices.designCost,
-    margins: productConfig?.margins || defaultPrices.margins
-  };
+  const productConfig = PRODUCT_TYPES[currentProductType] || DEFAULT_PRODUCT_CONFIG;
 
   return (
     <div className="space-y-6">
@@ -150,25 +144,25 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Base Price:</span>
             <span className="text-gray-900">
-              {prices.basePrice.toFixed(2)} EGP
+              {productConfig.basePrice.toFixed(2)} EGP
             </span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Production Cost:</span>
             <span className="text-gray-900">
-              {prices.productionCost.toFixed(2)} EGP
+              {productConfig.productionCost.toFixed(2)} EGP
             </span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Design Cost:</span>
             <span className="text-gray-900">
-              {prices.designCost.toFixed(2)} EGP
+              {productConfig.designCost.toFixed(2)} EGP
             </span>
           </div>
           <div className="flex justify-between text-sm pt-1 border-t border-gray-200">
             <span className="text-gray-500">Recommended Margin:</span>
             <span className="text-gray-900">
-              {(prices.margins.recommended * 100).toFixed(0)}%
+              {(productConfig.margins.recommended * 100).toFixed(0)}%
             </span>
           </div>
         </div>
@@ -177,4 +171,4 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
   );
 };
 
-export default ProductConfig;
+export default React.memo(ProductConfig);
