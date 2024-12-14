@@ -7,7 +7,7 @@ const VIEWS = ['front', 'back'];
 export const PRODUCT_TYPES = {
   'hoodie': {
     label: 'Hoodie',
-    basePrice: 850, // Price in EGP
+    basePrice: 850,
     productionCost: 650,
     designCost: 200,
     margins: {
@@ -19,13 +19,16 @@ export const PRODUCT_TYPES = {
       folder: "hoodies",
       getFilename: (color, view) => `hoodie-${color}-${view}`,
       availableColors: ['white', 'black'],
-      views: VIEWS,
+      views: ['front', 'back'],
       boundaries: {
-        front: { x: [30, 70], y: [20, 50] }, // Front boundaries
-        back: { x: [20, 80], y: [15, 70] }   // Back boundaries, larger area including hood
+        front: { x: [30, 70], y: [20, 50] },
+        back: { x: [20, 80], y: [15, 70] }
       }
     }
   }
+
+// Add a default product type configuration
+
   // Commented out products for future use
   /*
   't-shirt': {
@@ -74,6 +77,24 @@ export const AVAILABLE_TYPES = Object.entries(PRODUCT_TYPES).map(([value, config
   name: config.label,
   value
 }));
+export const DEFAULT_PRODUCT_CONFIG = {
+  label: 'Hoodie',
+  basePrice: 850,
+  productionCost: 650,
+  designCost: 200,
+  margins: {
+    min: 0.15,
+    recommended: 0.30
+  },
+  mockupConfig: {
+    availableColors: ['white', 'black'],
+    views: ['front', 'back'],
+    boundaries: {
+      front: { x: [30, 70], y: [20, 50] },
+      back: { x: [20, 80], y: [15, 70] }
+    }
+  }
+};
 
 
 export const STATUS_CONFIG = {
