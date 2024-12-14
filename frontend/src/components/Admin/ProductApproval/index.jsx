@@ -101,6 +101,12 @@ const AdminProductApproval = () => {
     resetDesignPosition();
   }, [resetDesignPosition]);
 // Enhanced product update handling
+const DEFAULT_PRODUCT_TYPES = {
+  't-shirt': { basePrice: 19.99 },
+  'hoodie': { basePrice: 39.99 },
+  'sweatshirt': { basePrice: 29.99 }
+};
+
 const handleProductUpdate = useCallback((updates) => {
   setEditedProduct(prev => {
     if (!prev) return prev;
@@ -110,17 +116,11 @@ const handleProductUpdate = useCallback((updates) => {
       ...updates,
       updatedAt: new Date().toISOString()
     };
-    const DEFAULT_PRODUCT_TYPES = {
-      't-shirt': { basePrice: 0 },
-      // Add other default product types as needed
-    };
-    const productTypes = PRODUCT_TYPES || DEFAULT_PRODUCT_TYPES;
 
-    // Add null checks for ProductType
     if (updates.ProductType && updates.ProductType !== prev.ProductType) {
       resetDesignPosition();
-      // Add null check for PRODUCT_TYPES
-      updated.originalPrice = PRODUCT_TYPES[updates.ProductType]?.basePrice ?? prev.originalPrice;
+      const productTypes = PRODUCT_TYPES || DEFAULT_PRODUCT_TYPES;
+      updated.originalPrice = productTypes[updates.ProductType]?.basePrice ?? prev.originalPrice;
       updated.DesignPosition = { x: 50, y: 30 };
       updated.DesignScale = 0.5;
     }

@@ -6,35 +6,33 @@ import {
   getAvailableViews 
 } from '../ProductApproval/constants/productConfig';
 
-const ProductConfig = ({ product, onProductChange, disabled }) => {
+const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabled }) => {
   const handleTypeChange = (type) => {
     const newProduct = {
-      ...product,
+      ...editedProduct, 
       ProductType: type,
-      // Reset color if not available for new type
       ProductColor: getAvailableColorsForProduct(type)[0]?.value || 'white'
     };
-    onProductChange(newProduct);
+    onUpdate(newProduct);
   };
 
   const handleColorChange = (color) => {
-    onProductChange({
-      ...product,
+    onUpdate({
+      ...editedProduct, 
       ProductColor: color
     });
   };
 
   const handleViewChange = (view) => {
-    onProductChange({
-      ...product,
+    onUpdate({
+      ...editedProduct,
       ProductView: view
     });
   };
 
-  const availableColors = getAvailableColorsForProduct(product.ProductType);
-  const availableViews = getAvailableViews(product.ProductType);
-  const productConfig = PRODUCT_TYPES[product.ProductType];
-
+  const availableColors = getAvailableColorsForProduct(editedProduct.ProductType);
+  const availableViews = getAvailableViews(editedProduct.ProductType);
+  const productConfig = PRODUCT_TYPES[editedProduct.ProductType];
   return (
     <div className="space-y-6">
       {/* Product Type Selection */}
