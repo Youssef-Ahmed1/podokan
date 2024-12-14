@@ -3,11 +3,23 @@ import PropTypes from 'prop-types';
 import { HiCheck, HiX, HiExclamation } from 'react-icons/hi';
 import { PRODUCT_TYPES } from './constants/productConfig';
 
+// Add default product config
+const DEFAULT_PRODUCT_CONFIG = {
+  basePrice: 850,
+  productionCost: 650,
+  margins: {
+    min: 0.15,
+    recommended: 0.30
+  }
+};
+
+
 const ValidationSystem = ({ product, onValidationChange }) => {
+  // Add null checks for product type
+  const productConfig = PRODUCT_TYPES[product?.ProductType] || DEFAULT_PRODUCT_CONFIG;
+  
   // Validation rules with detailed checks
   const validationResults = useMemo(() => {
-    const productConfig = PRODUCT_TYPES[product.ProductType];
-    
     return {
       design: {
         label: 'Design Validation',
@@ -15,14 +27,14 @@ const ValidationSystem = ({ product, onValidationChange }) => {
           {
             id: 'designImage',
             label: 'Design image is present',
-            isValid: !!product.designImage,
+            isValid: !!product?.designImage,
             severity: 'error',
             message: 'Design image is required'
           },
           {
             id: 'designPosition',
             label: 'Design position is valid',
-            isValid: product.DesignPosition && 
+            isValid: product?.DesignPosition && 
                     product.DesignPosition.x >= 20 && 
                     product.DesignPosition.x <= 80 && 
                     product.DesignPosition.y >= 15 && 
@@ -80,16 +92,18 @@ const ValidationSystem = ({ product, onValidationChange }) => {
           {
             id: 'basePrice',
             label: 'Base price requirement',
-            isValid: product.originalPrice >= productConfig.basePrice,
+            isValid: (product?.originalPrice || 0) >= (productConfig?.basePrice || DEFAULT_PRODUCT_CONFIG.basePrice),
             severity: 'error',
-            message: `Price must be at least ${productConfig.basePrice} THB`
+            message: `Price must be at least ${productConfig?.basePrice || DEFAULT_PRODUCT_CONFIG.basePrice} THB`
           },
           {
             id: 'margin',
             label: 'Profit margin',
-            isValid: ((product.originalPrice - productConfig.productionCost) / product.originalPrice) >= productConfig.margins.min,
+            isValid: product?.originalPrice ? 
+              ((product.originalPrice - (productConfig?.productionCost || DEFAULT_PRODUCT_CONFIG.productionCost)) / product.originalPrice) >= 
+              (productConfig?.margins.min || DEFAULT_PRODUCT_CONFIG.margins.min) : false,
             severity: 'error',
-            message: `Margin must be at least ${productConfig.margins.min * 100}%`
+            message: `Margin must be at least ${(productConfig?.margins.min || DEFAULT_PRODUCT_CONFIG.margins.min) * 100}%`
           },
           {
             id: 'recommendedMargin',
@@ -223,10 +237,13 @@ const ValidationSystem = ({ product, onValidationChange }) => {
 
 ValidationSystem.propTypes = {
   product: PropTypes.shape({
-    ProductType: PropTypes.string.isRequired,
+    ProductType: PropTypes.string,
     DesignTitle: PropTypes.string,
     Description: PropTypes.string,
-    designImage: PropTypes.string,
+    designImage: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.object
+    ]),
     DesignPosition: PropTypes.shape({
       x: PropTypes.number,
       y: PropTypes.number
@@ -239,5 +256,6 @@ ValidationSystem.propTypes = {
   }).isRequired,
   onValidationChange: PropTypes.func.isRequired
 };
+
 
 export default ValidationSystem;

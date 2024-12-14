@@ -2,17 +2,32 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { PRODUCT_TYPES } from './constants/productConfig';
 
+// Add default product config
+const DEFAULT_PRODUCT_CONFIG = {
+  basePrice: 850,
+  productionCost: 650,
+  margins: {
+    min: 0.15,
+    recommended: 0.30
+  }
+};
+
+
 const PriceCalculator = ({ 
-  productType, 
+  productType = 'hoodie', // Add default value
   originalPrice, 
   discountPrice, 
   onChange, 
   disabled 
 }) => {
-  const productConfig = PRODUCT_TYPES[productType];
-  const minPrice = productConfig.basePrice;
-  const recommendedPrice = Math.ceil(productConfig.productionCost / (1 - productConfig.margins.recommended));
+  const productConfig = PRODUCT_TYPES[productType] || DEFAULT_PRODUCT_CONFIG;
+  const minPrice = productConfig?.basePrice || DEFAULT_PRODUCT_CONFIG.basePrice;
+  const recommendedPrice = Math.ceil(
+    (productConfig?.productionCost || DEFAULT_PRODUCT_CONFIG.productionCost) / 
+    (1 - (productConfig?.margins.recommended || DEFAULT_PRODUCT_CONFIG.margins.recommended))
+  );
 
+  // Rest of your component remains the same
   const handlePriceChange = (type, value) => {
     const numValue = Math.max(minPrice, Number(value));
     
@@ -31,7 +46,8 @@ const PriceCalculator = ({
 
   const calculateMargin = (price) => {
     if (!price) return 0;
-    return ((price - productConfig.productionCost) / price * 100).toFixed(1);
+    const prodCost = productConfig?.productionCost || DEFAULT_PRODUCT_CONFIG.productionCost;
+    return ((price - prodCost) / price * 100).toFixed(1);
   };
 
   return (
@@ -136,7 +152,7 @@ const PriceCalculator = ({
 };
 
 PriceCalculator.propTypes = {
-  productType: PropTypes.string.isRequired,
+  productType: PropTypes.string,
   originalPrice: PropTypes.number,
   discountPrice: PropTypes.number,
   onChange: PropTypes.func.isRequired,
