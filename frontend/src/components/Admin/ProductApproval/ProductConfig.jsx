@@ -119,38 +119,38 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
 
       {/* Price Information */}
       {productConfig && (
-        <div className="rounded-lg bg-gray-50 p-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-2">
-            Price Information
-          </h4>
-          <div className="space-y-1">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Base Price:</span>
-              <span className="text-gray-900">
-                ${(productConfig.basePrice / 100).toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Production Cost:</span>
-              <span className="text-gray-900">
-                ${(productConfig.productionCost / 100).toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Design Cost:</span>
-              <span className="text-gray-900">
-                ${(productConfig.designCost / 100).toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm pt-1 border-t border-gray-200">
-              <span className="text-gray-500">Recommended Margin:</span>
-              <span className="text-gray-900">
-                {(productConfig.margins.recommended * 100).toFixed(0)}%
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+  <div className="rounded-lg bg-gray-50 p-4">
+    <h4 className="text-sm font-medium text-gray-900 mb-2">
+      Price Information
+    </h4>
+    <div className="space-y-1">
+      <div className="flex justify-between text-sm">
+        <span className="text-gray-500">Base Price:</span>
+        <span className="text-gray-900">
+          {productConfig.basePrice.toFixed(2)} EGP
+        </span>
+      </div>
+      <div className="flex justify-between text-sm">
+        <span className="text-gray-500">Production Cost:</span>
+        <span className="text-gray-900">
+          {productConfig.productionCost.toFixed(2)} EGP
+        </span>
+      </div>
+      <div className="flex justify-between text-sm">
+        <span className="text-gray-500">Design Cost:</span>
+        <span className="text-gray-900">
+          {productConfig.designCost.toFixed(2)} EGP
+        </span>
+      </div>
+      <div className="flex justify-between text-sm pt-1 border-t border-gray-200">
+        <span className="text-gray-500">Recommended Margin:</span>
+        <span className="text-gray-900">
+          {(productConfig.margins.recommended * 100).toFixed(0)}%
+        </span>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };
