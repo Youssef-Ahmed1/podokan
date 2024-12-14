@@ -1,12 +1,8 @@
-import React from 'react';
-import { 
-  PRODUCT_TYPES, 
-  AVAILABLE_TYPES, 
-  getAvailableColorsForProduct,
-  getAvailableViews 
-} from '../ProductApproval/constants/productConfig';
-
 const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabled }) => {
+  // Add default product type if editedProduct.ProductType is undefined
+  const defaultProductType = 'hoodie';
+  const currentProductType = editedProduct?.ProductType || defaultProductType;
+
   const handleTypeChange = (type) => {
     const newProduct = {
       ...editedProduct, 
@@ -30,9 +26,28 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
     });
   };
 
-  const availableColors = getAvailableColorsForProduct(editedProduct.ProductType);
-  const availableViews = getAvailableViews(editedProduct.ProductType);
-  const productConfig = PRODUCT_TYPES[editedProduct.ProductType];
+  // Add null checks and default values
+  const availableColors = getAvailableColorsForProduct(currentProductType);
+  const availableViews = getAvailableViews(currentProductType);
+  const productConfig = PRODUCT_TYPES[currentProductType] || PRODUCT_TYPES['hoodie'];
+
+  // Default price values
+  const defaultPrices = {
+    basePrice: 850,
+    productionCost: 650,
+    designCost: 200,
+    margins: {
+      recommended: 0.30
+    }
+  };
+
+  // Use either productConfig values or default values
+  const prices = {
+    basePrice: productConfig?.basePrice || defaultPrices.basePrice,
+    productionCost: productConfig?.productionCost || defaultPrices.productionCost,
+    designCost: productConfig?.designCost || defaultPrices.designCost,
+    margins: productConfig?.margins || defaultPrices.margins
+  };
 
   return (
     <div className="space-y-6">
@@ -52,7 +67,7 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
                 px-4 py-3 text-sm font-medium rounded-lg
                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
                 ${disabled ? 'cursor-not-allowed opacity-50' : ''}
-                ${editedProduct.ProductType === type.value
+                ${currentProductType === type.value
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}
               `}
@@ -79,7 +94,7 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
                 group relative px-4 py-3 text-sm font-medium rounded-lg
                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
                 ${disabled ? 'cursor-not-allowed opacity-50' : ''}
-                ${editedProduct.ProductColor === color.value
+                ${editedProduct?.ProductColor === color.value
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}
               `}
@@ -106,7 +121,7 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
                 px-4 py-3 text-sm font-medium rounded-lg
                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
                 ${disabled ? 'cursor-not-allowed opacity-50' : ''}
-                ${editedProduct.ProductView === view
+                ${editedProduct?.ProductView === view
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}
               `}
@@ -118,39 +133,37 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
       </div>
 
       {/* Price Information */}
-      {productConfig && (
-  <div className="rounded-lg bg-gray-50 p-4">
-    <h4 className="text-sm font-medium text-gray-900 mb-2">
-      Price Information
-    </h4>
-    <div className="space-y-1">
-      <div className="flex justify-between text-sm">
-        <span className="text-gray-500">Base Price:</span>
-        <span className="text-gray-900">
-          {productConfig.basePrice.toFixed(2)} EGP
-        </span>
+      <div className="rounded-lg bg-gray-50 p-4">
+        <h4 className="text-sm font-medium text-gray-900 mb-2">
+          Price Information
+        </h4>
+        <div className="space-y-1">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Base Price:</span>
+            <span className="text-gray-900">
+              {prices.basePrice.toFixed(2)} EGP
+            </span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Production Cost:</span>
+            <span className="text-gray-900">
+              {prices.productionCost.toFixed(2)} EGP
+            </span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Design Cost:</span>
+            <span className="text-gray-900">
+              {prices.designCost.toFixed(2)} EGP
+            </span>
+          </div>
+          <div className="flex justify-between text-sm pt-1 border-t border-gray-200">
+            <span className="text-gray-500">Recommended Margin:</span>
+            <span className="text-gray-900">
+              {(prices.margins.recommended * 100).toFixed(0)}%
+            </span>
+          </div>
+        </div>
       </div>
-      <div className="flex justify-between text-sm">
-        <span className="text-gray-500">Production Cost:</span>
-        <span className="text-gray-900">
-          {productConfig.productionCost.toFixed(2)} EGP
-        </span>
-      </div>
-      <div className="flex justify-between text-sm">
-        <span className="text-gray-500">Design Cost:</span>
-        <span className="text-gray-900">
-          {productConfig.designCost.toFixed(2)} EGP
-        </span>
-      </div>
-      <div className="flex justify-between text-sm pt-1 border-t border-gray-200">
-        <span className="text-gray-500">Recommended Margin:</span>
-        <span className="text-gray-900">
-          {(productConfig.margins.recommended * 100).toFixed(0)}%
-        </span>
-      </div>
-    </div>
-  </div>
-)}
     </div>
   );
 };
