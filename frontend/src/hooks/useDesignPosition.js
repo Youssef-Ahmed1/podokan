@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
+import {  PRODUCT_TYPES  } from '../../src/components/Admin/ProductApproval/constants/productConfig';
 
 export const useDesignPosition = ({
   initialPosition = { x: 50, y: 30 },
