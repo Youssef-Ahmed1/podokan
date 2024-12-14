@@ -1,3 +1,10 @@
+import React from 'react';
+import { 
+  PRODUCT_TYPES, 
+  AVAILABLE_TYPES, 
+  getAvailableColorsForProduct,
+  getAvailableViews 
+} from '../ProductApproval/constants/productConfig';
 const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabled }) => {
   // Add default product type if editedProduct.ProductType is undefined
   const defaultProductType = 'hoodie';
