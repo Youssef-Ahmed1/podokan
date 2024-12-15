@@ -42,7 +42,7 @@ const AdminProductApproval = () => {
   } = useDesignPosition({
     initialPosition: editedProduct?.DesignPosition || { x: 50, y: 30 },
     initialScale: editedProduct?.DesignScale || 0.5,
-    productType: editedProduct?.ProductType || 't-shirt',
+    productType: editedProduct?.ProductType || 'hoodie',
     disabled: isSubmitting
   });
 

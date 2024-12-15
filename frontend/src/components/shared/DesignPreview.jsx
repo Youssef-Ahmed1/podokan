@@ -3,7 +3,6 @@ import { HiRefresh, HiViewGrid } from 'react-icons/hi';
 import { toast } from 'react-toastify';
 import { getMockupUrl } from '../Admin/ProductApproval/constants/productConfig';
 
-
 const DesignPreview = forwardRef(({
   product,
   position,
@@ -31,7 +30,7 @@ const DesignPreview = forwardRef(({
     
     if (!url) {
       console.warn('Mockup not available, falling back to default');
-      return getMockupUrl('t-shirt', 'white', 'front');
+      return getMockupUrl('hoodie', 'white', 'front');
     }
     
     return url;
@@ -52,16 +51,16 @@ const DesignPreview = forwardRef(({
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       {/* Control Panel */}
-      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+      <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <div className="flex items-center space-x-4">
           <button
             onClick={onCenter}
             disabled={disabled}
             className={`
-              flex items-center px-3 py-2 rounded-lg text-sm font-medium
+              flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors
               ${disabled 
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}
+                : 'bg-blue-50 text-blue-600 hover:bg-blue-100 active:bg-blue-200'}
             `}
           >
             <HiRefresh className="w-4 h-4 mr-2" />
@@ -71,7 +70,7 @@ const DesignPreview = forwardRef(({
             onClick={() => onToggleGridLines()}
             disabled={disabled}
             className={`
-              flex items-center px-3 py-2 rounded-lg text-sm font-medium
+              flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors
               ${disabled 
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 : showGridLines
@@ -84,20 +83,20 @@ const DesignPreview = forwardRef(({
           </button>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-4 w-full sm:w-auto">
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
             <label className="text-sm text-gray-600">Scale:</label>
             <input
               type="range"
               min="0.1"
-              max="1"
+              max="1.3"
               step="0.01"
               value={scale}
               onChange={(e) => onScaleChange(parseFloat(e.target.value))}
               disabled={disabled}
-              className="w-32"
+              className="w-full sm:w-32 h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             />
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-600 min-w-[3ch]">
               {Math.round(scale * 100)}%
             </span>
           </div>
@@ -117,15 +116,38 @@ const DesignPreview = forwardRef(({
         <img
           key={mockupUrl}
           src={mockupUrl}
-          alt={`${product.ProductType} ${product.ProductColor} ${product.ProductView} mockup`}
-          className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${
-            mockupLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
+          alt={`${product.ProductType} mockup`}
+          className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300
+            ${mockupLoaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={handleMockupLoad}
           onError={handleMockupError}
+          draggable="false"
         />
 
-        {/* Loading/Error States */}
+        {/* Design Image */}
+        {product.designImage && mockupLoaded && (
+          <div
+            className={`absolute select-none ${isDragging ? '' : 'transition-all duration-200'}`}
+            style={{
+              left: `${position.x}%`,
+              top: `${position.y}%`,
+              transform: `translate(-50%, -50%) scale(${scale})`,
+              width: '30%',
+              opacity: isOutOfBounds ? 0.5 : 1,
+              zIndex: isDragging ? 10 : 1,
+              touchAction: 'none',
+            }}
+          >
+            <img
+              src={typeof product.designImage === 'string' ? product.designImage : product.designImage.url}
+              alt="Design"
+              className="w-full h-full object-contain pointer-events-none select-none"
+              draggable="false"
+            />
+          </div>
+        )}
+
+        {/* Loading State */}
         {!mockupLoaded && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
             {mockupError ? (
@@ -146,29 +168,8 @@ const DesignPreview = forwardRef(({
                 <p className="mt-2">Failed to load mockup</p>
               </div>
             ) : (
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
             )}
-          </div>
-        )}
-
-        {/* Design Image */}
-        {product.designImage && mockupLoaded && (
-          <div
-            className={`absolute transition-transform ${isDragging ? '' : 'duration-200'}`}
-            style={{
-              left: `${position.x}%`,
-              top: `${position.y}%`,
-              transform: `translate(-50%, -50%) scale(${scale})`,
-              width: '20%',
-              opacity: isOutOfBounds ? 0.5 : 1
-            }}
-          >
-            <img
-              src={product.designImage}
-              alt="Design"
-              className="w-full h-full object-contain pointer-events-none"
-              draggable="false"
-            />
           </div>
         )}
 
@@ -176,25 +177,25 @@ const DesignPreview = forwardRef(({
         {showGridLines && (
           <div className="absolute inset-0 pointer-events-none">
             <div className="w-full h-full grid grid-cols-3 grid-rows-3">
-              {[...Array(9)].map((_, i) => (
+              {Array.from({ length: 9 }).map((_, i) => (
                 <div
                   key={i}
-                  className="border border-blue-300 border-opacity-50"
+                  className="border border-blue-300 border-opacity-30"
                 />
               ))}
             </div>
           </div>
         )}
 
-        {/* Boundaries */}
+        {/* Safe Area */}
         {bounds && (
           <div
-            className="absolute pointer-events-none border-2 border-red-500 border-dashed opacity-50"
+            className="absolute pointer-events-none border-2 border-blue-400 border-dashed opacity-30"
             style={{
-              left: `${bounds.left}%`,
-              top: `${bounds.top}%`,
-              width: `${bounds.width}%`,
-              height: `${bounds.height}%`
+              left: `${bounds.x?.[0] || 0}%`,
+              top: `${bounds.y?.[0] || 0}%`,
+              width: `${(bounds.x?.[1] || 100) - (bounds.x?.[0] || 0)}%`,
+              height: `${(bounds.y?.[1] || 100) - (bounds.y?.[0] || 0)}%`
             }}
           />
         )}

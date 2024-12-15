@@ -65,14 +65,20 @@ export const useDesignPosition = ({
 
   const handleDragStart = useCallback((e) => {
     if (disabled || !e.currentTarget) return;
-
+  
     const rect = e.currentTarget.getBoundingClientRect();
     setIsDragging(true);
+    
+    // Calculate initial offset
+    const designElement = e.currentTarget.querySelector('.design-image');
+    const designRect = designElement?.getBoundingClientRect();
+    if (!designRect) return;
+  
     dragStartRef.current = {
       x: e.clientX - (positionRef.current.x * rect.width / 100),
       y: e.clientY - (positionRef.current.y * rect.height / 100)
     };
-
+  
     const handleMouseMove = (moveEvent) => {
       if (!e.currentTarget) return;
       
@@ -81,20 +87,26 @@ export const useDesignPosition = ({
         x: ((moveEvent.clientX - dragStartRef.current.x) / rect.width) * 100,
         y: ((moveEvent.clientY - dragStartRef.current.y) / rect.height) * 100
       };
-
-      updatePosition(newPosition);
+  
+      const bounds = getBoundaries();
+      const clampedPosition = {
+        x: Math.max(bounds.x[0], Math.min(bounds.x[1], newPosition.x)),
+        y: Math.max(bounds.y[0], Math.min(bounds.y[1], newPosition.y))
+      };
+  
+      setPosition(clampedPosition);
+      positionRef.current = clampedPosition;
     };
-
+  
     const handleMouseUp = () => {
       setIsDragging(false);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-
+  
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-  }, [disabled, updatePosition]);
-
+  }, [disabled, getBoundaries]);
   useEffect(() => {
     centerDesign();
   }, [productType, productView, centerDesign]);
