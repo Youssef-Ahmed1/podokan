@@ -82,10 +82,11 @@ export const DEFAULT_PRODUCT_CONFIG = {
   basePrice: 850,
   productionCost: 650,
   designCost: 200,
+  position: { x: 50, y: 50 }, 
   margins: {
     min: 0.15,
     recommended: 0.30
-  },
+  },   scale: 0.5,
   mockupConfig: {
     availableColors: ['white', 'black'],
     views: ['front', 'back'],

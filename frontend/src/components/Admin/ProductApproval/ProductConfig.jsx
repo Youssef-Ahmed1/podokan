@@ -8,7 +8,6 @@ import {
 } from '../ProductApproval/constants/productConfig';
 
 const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabled }) => {
-  // Add default product type if editedProduct.ProductType is undefined
   const defaultProductType = 'hoodie';
   const currentProductType = editedProduct?.ProductType || defaultProductType;
 
@@ -20,9 +19,9 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
       ...editedProduct, 
       ProductType: type,
       ProductColor: availableColors[0]?.value || 'white',
-      ProductView: 'front', // Reset to front view when changing type
-      DesignScale: 1, // Reset scale
-      DesignPosition: { x: 50, y: 30 } // Reset position to center
+      ProductView: 'front',
+      DesignScale: 0.5, // Set default scale to 50%
+      DesignPosition: { x: 50, y: 50 } // Center position
     };
     onUpdate(newProduct);
   }, [editedProduct, onUpdate, disabled]);
@@ -32,7 +31,9 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
 
     onUpdate({
       ...editedProduct, 
-      ProductColor: color
+      ProductColor: color,
+      DesignPosition: { x: 50, y: 50 }, // Reset to center when changing color
+      DesignScale: 0.5 // Reset scale when changing color
     });
   }, [editedProduct, onUpdate, disabled]);
 
@@ -42,10 +43,12 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
     const newProduct = {
       ...editedProduct,
       ProductView: view,
-      DesignPosition: { x: 50, y: 30 } // Reset position when changing view
+      DesignPosition: { x: 50, y: 50 }, // Reset to center when changing view
+      DesignScale: 0.5 // Reset scale when changing view
     };
     onUpdate(newProduct);
   }, [editedProduct, onUpdate, disabled]);
+
 
   // Add null checks and default values
   const availableColors = getAvailableColorsForProduct(currentProductType);
