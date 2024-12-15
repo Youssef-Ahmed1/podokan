@@ -10,7 +10,7 @@ import ValidationSystem from '../ProductApproval/ValidationSystem';
 import StatusManager from '../ProductApproval/StatusManager';
 import PriceCalculator from '../ProductApproval/PriceCalculator';
 
-import { STATUS_CONFIG, PRODUCT_TYPES  , productTypes} from '../ProductApproval/constants/productConfig';
+import { STATUS_CONFIG, PRODUCT_TYPES  } from '../ProductApproval/constants/productConfig';
 
 const AdminProductApproval = () => {
   const dispatch = useDispatch();
@@ -84,27 +84,34 @@ const AdminProductApproval = () => {
 
   // Handle product selection
   const handleProductSelect = useCallback((product) => {
-    if (!product) return; // Guard clause
+    if (!product || typeof product !== 'object') {
+      console.error('Invalid product data:', product);
+      return;
+    }
   
-    setSelectedProduct(product);
-    setEditedProduct({
-      ...product,
-      DesignScale: product.DesignScale || 0.5,
-      DesignPosition: product.DesignPosition || { x: 50, y: 30 },
-      designImage: product.designImage?.url || product.designImage,
-      // Add null check for PRODUCT_TYPES
-      originalPrice: product.originalPrice || (PRODUCT_TYPES[product.ProductType]?.basePrice ?? 0),
-      mainTags: product.mainTags || [],
-      Designtags: product.Designtags || []
-    });
+    try {
+      setSelectedProduct(product);
+      setEditedProduct({
+        ...product,
+        DesignScale: product.DesignScale || 0.5,
+        DesignPosition: product.DesignPosition || { x: 50, y: 30 },
+        designImage: product.designImage?.url || product.designImage || '',
+        originalPrice: product.originalPrice || 
+                      (PRODUCT_TYPES[product.ProductType]?.basePrice || 
+                       DEFAULT_PRODUCT_CONFIG.basePrice),
+        mainTags: Array.isArray(product.mainTags) ? product.mainTags : [],
+        Designtags: Array.isArray(product.Designtags) ? product.Designtags : []
+      });
   
-    resetDesignPosition();
+      resetDesignPosition();
+    } catch (error) {
+      console.error('Error in handleProductSelect:', error);
+      toast.error('Failed to select product');
+    }
   }, [resetDesignPosition]);
 // Enhanced product update handling
 const DEFAULT_PRODUCT_TYPES = {
-  't-shirt': { basePrice: 19.99 },
-  'hoodie': { basePrice: 39.99 },
-  'sweatshirt': { basePrice: 29.99 }
+  'hoodie': { basePrice: 850 },
 };
 
 const handleProductUpdate = useCallback((updates) => {
@@ -119,8 +126,11 @@ const handleProductUpdate = useCallback((updates) => {
 
     if (updates.ProductType && updates.ProductType !== prev.ProductType) {
       resetDesignPosition();
-      const productTypes = PRODUCT_TYPES || DEFAULT_PRODUCT_TYPES;
-      updated.originalPrice = productTypes[updates.ProductType]?.basePrice ?? prev.originalPrice;
+      // Add null check and use DEFAULT_PRODUCT_CONFIG
+      const basePrice = PRODUCT_TYPES[updates.ProductType]?.basePrice || 
+                       DEFAULT_PRODUCT_CONFIG.basePrice;
+      
+      updated.originalPrice = basePrice;
       updated.DesignPosition = { x: 50, y: 30 };
       updated.DesignScale = 0.5;
     }
@@ -128,6 +138,7 @@ const handleProductUpdate = useCallback((updates) => {
     return updated;
   });
 }, [resetDesignPosition]);
+
 // Enhanced design position update handling
 const handleDesignPositionUpdate = useCallback((newPosition, newScale) => {
   updatePosition(newPosition);
