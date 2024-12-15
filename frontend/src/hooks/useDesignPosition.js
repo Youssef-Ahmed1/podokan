@@ -3,12 +3,12 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { PRODUCT_TYPES, DEFAULT_PRODUCT_CONFIG } from '../../src/components/Admin/ProductApproval/constants/productConfig';
 
 export const useDesignPosition = ({
-  initialPosition = { x: 50, y: 50 }, 
+  initialPosition = { x: 50, y: 30 }, 
   initialScale = 0.5,
   productType = 'hoodie',
   productView = 'front',
   disabled = false,
-  maxScale = 1.1 // Changed maximum scale to 110%
+  maxScale = 1.1
 }) => {
   const [position, setPosition] = useState(initialPosition);
   const [scale, setScale] = useState(initialScale);
@@ -16,65 +16,62 @@ export const useDesignPosition = ({
   const dragStartRef = useRef({ x: 0, y: 0 });
   const positionRef = useRef(position);
 
-  // Updated boundaries for better centering
+  // Updated boundaries to match the visible dotted line rectangle
   const getBoundaries = useCallback(() => {
     const defaultBounds = {
-      x: [20, 80], // Restrict horizontal movement to center area
-      y: [30, 70]  // Restrict vertical movement to center area
+      hoodie: {
+        x: [30, 70], // More restrictive horizontal boundaries
+        y: [20, 60]  // More restrictive vertical boundaries
+      },
+      't-shirt': {
+        x: [30, 70],
+        y: [20, 60]
+      }
     };
 
-    const productConfig = PRODUCT_TYPES[productType]?.mockupConfig?.boundaries || 
-                         DEFAULT_PRODUCT_CONFIG.mockupConfig.boundaries;
-    
-    return {
-      ...defaultBounds,
-      ...(productConfig[productView] || productConfig.front)
-    };
-  }, [productType, productView]);
+    return defaultBounds[productType] || defaultBounds.hoodie;
+  }, [productType]);
 
-  const handleScaleChange = useCallback((newScale) => {
-    const MIN_SCALE = 0.1;
-    const MAX_SCALE = maxScale; // Use the maxScale parameter
-    const clampedScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
-    setScale(clampedScale);
-  }, [maxScale]);
-
-  const checkBoundaries = useCallback((pos) => {
+  const checkBoundaries = useCallback((pos, currentScale) => {
     const bounds = getBoundaries();
-    return pos.x >= bounds.x[0] && 
-           pos.x <= bounds.x[1] && 
-           pos.y >= bounds.y[0] && 
-           pos.y <= bounds.y[1];
+    
+    // Calculate design dimensions based on scale
+    const designWidth = 20 * currentScale; // Arbitrary design width percentage
+    const designHeight = 20 * currentScale; // Arbitrary design height percentage
+
+    // Calculate actual boundaries considering design size
+    const leftBound = bounds.x[0] + (designWidth / 2);
+    const rightBound = bounds.x[1] - (designWidth / 2);
+    const topBound = bounds.y[0] + (designHeight / 2);
+    const bottomBound = bounds.y[1] - (designHeight / 2);
+
+    // Check if design is completely within boundaries
+    return pos.x >= leftBound && 
+           pos.x <= rightBound && 
+           pos.y >= topBound && 
+           pos.y <= bottomBound;
   }, [getBoundaries]);
 
-  const updatePosition = useCallback((newPosition) => {
+  const updatePosition = useCallback((newPosition, currentScale = scale) => {
     const bounds = getBoundaries();
+    const designWidth = 20 * currentScale;
+    const designHeight = 20 * currentScale;
+
+    // Calculate clamped position keeping design completely within boundaries
     const clampedPosition = {
-      x: Math.max(bounds.x[0], Math.min(bounds.x[1], newPosition.x)),
-      y: Math.max(bounds.y[0], Math.min(bounds.y[1], newPosition.y))
+      x: Math.max(
+        bounds.x[0] + (designWidth / 2),
+        Math.min(bounds.x[1] - (designWidth / 2), newPosition.x)
+      ),
+      y: Math.max(
+        bounds.y[0] + (designHeight / 2),
+        Math.min(bounds.y[1] - (designHeight / 2), newPosition.y)
+      )
     };
+
     setPosition(clampedPosition);
     positionRef.current = clampedPosition;
-  }, [getBoundaries]);
-
-  // Updated centerDesign to position in the middle of the allowed area
-  const centerDesign = useCallback(() => {
-    const bounds = getBoundaries();
-    const centerPosition = {
-      x: 50, // Center horizontally
-      y: 50  // Center vertically
-    };
-    setPosition(centerPosition);
-    positionRef.current = centerPosition;
-    setScale(0.5); // Reset scale to default
-  }, [getBoundaries]);
-
-  const reset = useCallback(() => {
-    const centerPosition = { x: 50, y: 50 };
-    setPosition(centerPosition);
-    setScale(0.5);
-    positionRef.current = centerPosition;
-  }, []);
+  }, [getBoundaries, scale]);
 
   const handleDragStart = useCallback((e) => {
     if (disabled || !e.currentTarget) return;
@@ -107,7 +104,10 @@ export const useDesignPosition = ({
         y: dragStartRef.current.startY + deltaY
       };
 
-      updatePosition(newPosition);
+      // Only update if the new position keeps design within boundaries
+      if (checkBoundaries(newPosition, scale)) {
+        updatePosition(newPosition);
+      }
     };
 
     const handleMouseUp = () => {
@@ -118,7 +118,27 @@ export const useDesignPosition = ({
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-  }, [disabled, updatePosition]);
+  }, [disabled, updatePosition, checkBoundaries, scale]);
+
+  const handleScaleChange = useCallback((newScale) => {
+    const MIN_SCALE = 0.1;
+    const MAX_SCALE = maxScale;
+    const clampedScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+    
+    // Check if new scale would push design outside boundaries
+    if (checkBoundaries(position, clampedScale)) {
+      setScale(clampedScale);
+    } else {
+      // If new scale would push design outside boundaries, adjust position
+      const bounds = getBoundaries();
+      const centerPosition = {
+        x: (bounds.x[0] + bounds.x[1]) / 2,
+        y: (bounds.y[0] + bounds.y[1]) / 2
+      };
+      updatePosition(centerPosition, clampedScale);
+      setScale(clampedScale);
+    }
+  }, [maxScale, position, checkBoundaries, getBoundaries, updatePosition]);
 
   // Center design when product type or view changes
   useEffect(() => {
@@ -134,20 +154,19 @@ export const useDesignPosition = ({
     };
   }, [isDragging]);
 
-  const bounds = getBoundaries();
-  const isOutOfBounds = !checkBoundaries(position);
+
 
   return {
     position,
     scale,
     isDragging,
-    isOutOfBounds,
+    isOutOfBounds: !checkBoundaries(position, scale),
     handleDragStart,
     handleScaleChange,
     updatePosition,
     centerDesign,
     reset,
-    bounds,
+    bounds: getBoundaries(),
     setPosition,
     setScale,
     checkBoundaries
