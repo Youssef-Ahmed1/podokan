@@ -87,6 +87,19 @@ export const useDesignPosition = ({
     positionRef.current = centerPosition;
   }, [productType, productView, getBoundaries]);
 
+  
+  const defaultReturn = {
+    position: { x: 50, y: 30 },
+    scale: 0.5,
+    isDragging: false,
+    isOutOfBounds: false,
+    handleDragStart: () => {},
+    handleScaleChange: () => {},
+    updatePosition: () => {},
+    centerDesign: () => {},
+    reset: () => {},
+    bounds: null
+  };
   // Cleanup on unmount
   useEffect(() => {
     return () => {
