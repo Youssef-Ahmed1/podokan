@@ -42,7 +42,7 @@ const AdminProductApproval = () => {
   } = useDesignPosition({
     initialPosition: editedProduct?.DesignPosition || { x: 50, y: 30 },
     initialScale: editedProduct?.DesignScale || 0.5,
-    productType: editedProduct?.ProductType || 't-shirt',
+    productType: editedProduct?.ProductType || 'hoodie',
     disabled: isSubmitting
   });
 
@@ -83,32 +83,26 @@ const AdminProductApproval = () => {
   }, [pendingProducts, searchQuery, filterStatus, sortConfig]);
 
   // Handle product selection
-const handleProductSelect = useCallback((product) => {
-  if (!product || typeof product !== 'object') {
-    console.error('Invalid product data:', product);
-    return;
-  }
-
-  try {
-    setSelectedProduct(product);
-    setEditedProduct({
-      ...product,
-      DesignScale: product.DesignScale || 0.5,
-      DesignPosition: product.DesignPosition || { x: 50, y: 30 },
-      designImage: product.designImage?.url || product.designImage || '',
-      originalPrice: product.originalPrice || 
-                    (PRODUCT_TYPES[product.ProductType]?.basePrice || 
-                     DEFAULT_PRODUCT_CONFIG.basePrice),
-      mainTags: Array.isArray(product.mainTags) ? product.mainTags : [],
-      Designtags: Array.isArray(product.Designtags) ? product.Designtags : []
-    });
-
-    resetDesignPosition();
-  } catch (error) {
-    console.error('Error in handleProductSelect:', error);
-    toast.error('Failed to select product');
-  }
-}, [resetDesignPosition]);
+  const handleProductSelect = useCallback((product) => {
+    if (!product || typeof product !== 'object') return;
+  
+    try {
+      setSelectedProduct(product);
+      setEditedProduct({
+        ...product,
+        DesignScale: product.DesignScale || 0.5,
+        DesignPosition: product.DesignPosition || { x: 50, y: 50 }, // Updated to center vertically
+        designImage: product.designImage?.url || product.designImage || '',
+        mainTags: Array.isArray(product.mainTags) ? product.mainTags : [],
+        Designtags: Array.isArray(product.Designtags) ? product.Designtags : []
+      });
+  
+      resetDesignPosition();
+    } catch (error) {
+      console.error('Error in handleProductSelect:', error);
+      toast.error('Failed to select product');
+    }
+  }, [resetDesignPosition]);
 // Enhanced product update handling
 const DEFAULT_PRODUCT_TYPES = {
   'hoodie': { basePrice: 850 }

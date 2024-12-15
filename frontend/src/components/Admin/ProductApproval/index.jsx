@@ -345,18 +345,24 @@ return (
                         <h3 className="font-medium text-gray-900 line-clamp-1">
                           {product.DesignTitle || 'Untitled Design'}
                         </h3>
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {product.mainTags?.slice(0, 3).map(tag => (
-                            <span key={tag} className="inline-block px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
-                              {tag}
-                            </span>
-                          ))}
-                          {(product.mainTags?.length || 0) > 3 && (
-                            <span className="text-xs text-gray-500">
-                              +{product.mainTags.length - 3} more
-                            </span>
-                          )}
-                        </div>
+                        <div className="mt-1 flex flex-wrap gap-2">
+  {/* Main Tag */}
+  {product.Maintag && (
+    <span className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+      {product.Maintag}
+    </span>
+  )}
+  
+  {/* Design Tags */}
+  {product.Designtags && product.Designtags.map(tag => (
+    <span 
+      key={tag} 
+      className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600"
+    >
+      {tag}
+    </span>
+  ))}
+</div>
                         <div className="flex items-center space-x-2 mt-2">
                           <p className="text-sm text-gray-500">
                             {new Date(product.createdAt).toLocaleDateString()}
