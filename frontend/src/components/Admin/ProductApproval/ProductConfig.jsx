@@ -53,8 +53,8 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
   const productConfig = PRODUCT_TYPES[currentProductType] || DEFAULT_PRODUCT_CONFIG;
 
   return (
-    <div className="space-y-6">
-      {/* Product Type Selection */}
+    <div className="bg-white rounded-xl shadow-lg p-6">
+            {/* Product Type Selection */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Product Type
@@ -134,7 +134,51 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
           ))}
         </div>
       </div>
-
+      {/* Main Tags */}
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-700">Main Tags</label>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {editedProduct.mainTags?.map((tag, index) => (
+            <span 
+              key={index}
+              className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+            >
+              {tag}
+              <button
+                onClick={() => {
+                  const newTags = editedProduct.mainTags.filter((_, i) => i !== index);
+                  onUpdate({ mainTags: newTags });
+                }}
+                className="ml-1.5 text-blue-600 hover:text-blue-800"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-700">Design Tags</label>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {editedProduct.Designtags?.map((tag, index) => (
+            <span 
+              key={index}
+              className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+            >
+              {tag}
+              <button
+                onClick={() => {
+                  const newTags = editedProduct.Designtags.filter((_, i) => i !== index);
+                  onUpdate({ Designtags: newTags });
+                }}
+                className="ml-1.5 text-gray-600 hover:text-gray-800"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      </div>
       {/* Price Information */}
       <div className="rounded-lg bg-gray-50 p-4">
         <h4 className="text-sm font-medium text-gray-900 mb-2">

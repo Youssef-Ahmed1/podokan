@@ -50,7 +50,8 @@ const DesignPreview = forwardRef(({
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-      {/* Control Panel */}
+      
+            {/* Control Panel */}
       <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <div className="flex items-center space-x-4">
           <button
@@ -104,9 +105,10 @@ const DesignPreview = forwardRef(({
       </div>
 
       {/* Preview Area */}
-      <div 
+       {/* Preview Area */}
+       <div 
         ref={ref}
-        className="relative w-full aspect-[3/4] bg-gray-50"
+        className="relative w-full aspect-[3/4] bg-gray-50 select-none"
         onMouseDown={!disabled ? onDragStart : undefined}
         style={{
           cursor: disabled ? 'default' : isDragging ? 'grabbing' : 'grab'
@@ -114,20 +116,20 @@ const DesignPreview = forwardRef(({
       >
         {/* Background Mockup */}
         <img
-          key={mockupUrl}
           src={mockupUrl}
           alt={`${product.ProductType} mockup`}
-          className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300
-            ${mockupLoaded ? 'opacity-100' : 'opacity-0'}`}
-          onLoad={handleMockupLoad}
-          onError={handleMockupError}
+          className="absolute inset-0 w-full h-full object-contain"
           draggable="false"
         />
 
         {/* Design Image */}
-        {product.designImage && mockupLoaded && (
+        {product.designImage && (
           <div
-            className={`absolute select-none ${isDragging ? '' : 'transition-all duration-200'}`}
+            className={`
+              absolute design-container select-none
+              ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
+              ${isDragging ? '' : 'transition-all duration-200'}
+            `}
             style={{
               left: `${position.x}%`,
               top: `${position.y}%`,
@@ -135,7 +137,6 @@ const DesignPreview = forwardRef(({
               width: '30%',
               opacity: isOutOfBounds ? 0.5 : 1,
               zIndex: isDragging ? 10 : 1,
-              touchAction: 'none',
             }}
           >
             <img
@@ -146,7 +147,6 @@ const DesignPreview = forwardRef(({
             />
           </div>
         )}
-
         {/* Loading State */}
         {!mockupLoaded && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50">

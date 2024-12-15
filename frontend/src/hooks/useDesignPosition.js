@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { PRODUCT_TYPES, DEFAULT_PRODUCT_CONFIG } from '../../src/components/Admin/ProductApproval/constants/productConfig';
 
 export const useDesignPosition = ({
-  initialPosition = { x: 50, y: 30 },
+  initialPosition = { x: 50, y: 50 }, 
   initialScale = 0.5,
   productType = 'hoodie',
   productView = 'front',
@@ -65,48 +65,49 @@ export const useDesignPosition = ({
 
   const handleDragStart = useCallback((e) => {
     if (disabled || !e.currentTarget) return;
-  
+    e.preventDefault();
+
     const rect = e.currentTarget.getBoundingClientRect();
+    const designElement = e.currentTarget.querySelector('.design-container');
+    
+    if (!designElement) return;
+
     setIsDragging(true);
     
-    // Calculate initial offset
-    const designElement = e.currentTarget.querySelector('.design-image');
-    const designRect = designElement?.getBoundingClientRect();
-    if (!designRect) return;
-  
+    // Calculate offset relative to design position
+    const designRect = designElement.getBoundingClientRect();
+    const offsetX = e.clientX - designRect.left;
+    const offsetY = e.clientY - designRect.top;
+
     dragStartRef.current = {
-      x: e.clientX - (positionRef.current.x * rect.width / 100),
-      y: e.clientY - (positionRef.current.y * rect.height / 100)
+      offsetX,
+      offsetY,
+      startX: positionRef.current.x,
+      startY: positionRef.current.y
     };
-  
+
     const handleMouseMove = (moveEvent) => {
-      if (!e.currentTarget) return;
-      
-      const rect = e.currentTarget.getBoundingClientRect();
+      const deltaX = ((moveEvent.clientX - e.clientX) / rect.width) * 100;
+      const deltaY = ((moveEvent.clientY - e.clientY) / rect.height) * 100;
+
       const newPosition = {
-        x: ((moveEvent.clientX - dragStartRef.current.x) / rect.width) * 100,
-        y: ((moveEvent.clientY - dragStartRef.current.y) / rect.height) * 100
+        x: dragStartRef.current.startX + deltaX,
+        y: dragStartRef.current.startY + deltaY
       };
-  
-      const bounds = getBoundaries();
-      const clampedPosition = {
-        x: Math.max(bounds.x[0], Math.min(bounds.x[1], newPosition.x)),
-        y: Math.max(bounds.y[0], Math.min(bounds.y[1], newPosition.y))
-      };
-  
-      setPosition(clampedPosition);
-      positionRef.current = clampedPosition;
+
+      updatePosition(newPosition);
     };
-  
+
     const handleMouseUp = () => {
       setIsDragging(false);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  
+
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-  }, [disabled, getBoundaries]);
+  }, [disabled, updatePosition]);
+
   useEffect(() => {
     centerDesign();
   }, [productType, productView, centerDesign]);
