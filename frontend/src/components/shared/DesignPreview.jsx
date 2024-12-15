@@ -22,36 +22,12 @@ const DesignPreview = forwardRef(({
   const [mockupError, setMockupError] = useState(false);
 
   const mockupUrl = useMemo(() => {
-    const url = getMockupUrl(
-      product.ProductType,
-      product.ProductColor,
-      product.ProductView || 'front'
-    );
-    
-    if (!url) {
-      console.warn('Mockup not available, falling back to default');
-      return getMockupUrl('hoodie', 'white', 'front');
-    }
-    
-    return url;
+    return `https://res.cloudinary.com/dkot9tyjm/image/upload/v1728392918/${product.ProductType}s/${product.ProductType}-${product.ProductColor}-${product.ProductView || 'front'}.png`;
   }, [product.ProductType, product.ProductColor, product.ProductView]);
-
-  const handleMockupError = (error) => {
-    console.error('Mockup loading failed:', error);
-    setMockupError(true);
-    setMockupLoaded(false);
-    toast.error('Failed to load product mockup');
-  };
-
-  const handleMockupLoad = () => {
-    setMockupLoaded(true);
-    setMockupError(false);
-  };
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-      
-            {/* Control Panel */}
+      {/* Control Panel */}
       <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <div className="flex items-center space-x-4">
           <button
@@ -68,7 +44,7 @@ const DesignPreview = forwardRef(({
             Center Design
           </button>
           <button
-            onClick={() => onToggleGridLines()}
+            onClick={onToggleGridLines}
             disabled={disabled}
             className={`
               flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors
@@ -105,10 +81,9 @@ const DesignPreview = forwardRef(({
       </div>
 
       {/* Preview Area */}
-       {/* Preview Area */}
-       <div 
+      <div 
         ref={ref}
-        className="relative w-full aspect-[3/4] bg-gray-50 select-none"
+        className="relative w-full aspect-[3/4] bg-gray-50"
         onMouseDown={!disabled ? onDragStart : undefined}
         style={{
           cursor: disabled ? 'default' : isDragging ? 'grabbing' : 'grab'
@@ -116,20 +91,22 @@ const DesignPreview = forwardRef(({
       >
         {/* Background Mockup */}
         <img
+          key={mockupUrl}
           src={mockupUrl}
           alt={`${product.ProductType} mockup`}
-          className="absolute inset-0 w-full h-full object-contain"
+          className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300
+            ${mockupLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setMockupLoaded(true)}
+          onError={() => setMockupError(true)}
           draggable="false"
         />
 
         {/* Design Image */}
-        {product.designImage && (
+        {product.designImage && mockupLoaded && (
           <div
-            className={`
-              absolute design-container select-none
-              ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
-              ${isDragging ? '' : 'transition-all duration-200'}
-            `}
+            className={`absolute design-container select-none ${
+              isDragging ? '' : 'transition-transform duration-200'
+            }`}
             style={{
               left: `${position.x}%`,
               top: `${position.y}%`,
@@ -142,48 +119,21 @@ const DesignPreview = forwardRef(({
             <img
               src={typeof product.designImage === 'string' ? product.designImage : product.designImage.url}
               alt="Design"
-              className="w-full h-full object-contain pointer-events-none select-none"
+              className="w-full h-full object-contain pointer-events-none"
               draggable="false"
             />
-          </div>
-        )}
-        {/* Loading State */}
-        {!mockupLoaded && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-            {mockupError ? (
-              <div className="text-center text-red-500">
-                <svg 
-                  className="mx-auto h-12 w-12" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
-                  />
-                </svg>
-                <p className="mt-2">Failed to load mockup</p>
-              </div>
-            ) : (
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
-            )}
           </div>
         )}
 
         {/* Grid Lines */}
         {showGridLines && (
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="w-full h-full grid grid-cols-3 grid-rows-3">
-              {Array.from({ length: 9 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="border border-blue-300 border-opacity-30"
-                />
-              ))}
-            </div>
+          <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div
+                key={i}
+                className="border border-blue-300 border-opacity-30"
+              />
+            ))}
           </div>
         )}
 
@@ -198,6 +148,13 @@ const DesignPreview = forwardRef(({
               height: `${(bounds.y?.[1] || 100) - (bounds.y?.[0] || 0)}%`
             }}
           />
+        )}
+
+        {/* Loading State */}
+        {!mockupLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
+          </div>
         )}
       </div>
     </div>
