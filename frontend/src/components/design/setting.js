@@ -1,13 +1,13 @@
 import React from 'react';
 
 const Setting = ({ onColorChange, uploadImage, onProductTypeChange, ProductType }) => {
-    const colors = ['white', 'black', 'gray', 'lightblue', 'red', 'indigo', 'green', 'darkblue', 'pictisho'];
-    const ProductTypes = ['t-shirt', 'hoodie', 'long-sleeve-shirt', 'kids-shirt', 'kids-hoodie'];
+     const colors = ['white', 'black', ] //'gray', 'lightblue', 'red', 'indigo', 'green', 'darkblue', 'pictisho'];
+    const ProductTypes =  ['hoodie']  // ['t-shirt' 'long-sleeve-shirt', 'kids-shirt', 'kids-hoodie'];
 
     return (
         <div className="bg-light container border-2 border-slate-700 p-4">
             <h3 className="text-center">Settings</h3>
-            <h4>T-shirt Color:</h4>
+            <h4>hoodieColor:</h4>
             <div className="tshirt-color flex flex-wrap justify-around my-4">
                 {colors.map(color => (
                     <button

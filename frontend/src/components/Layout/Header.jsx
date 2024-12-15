@@ -31,7 +31,7 @@ const Header = ({ activeHeading }) => {
   const location = useLocation();
 
   const placeholders = [
-    "Search for t-shirts...",
+    "Search for hoodies...",
     "Find your style...",
     "Discover unique designs...",
     "Explore our collection...",

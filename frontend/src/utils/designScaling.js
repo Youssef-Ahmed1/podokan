@@ -21,27 +21,27 @@ export const getResponsiveDimensions = (containerWidth) => {
   // Calculate safe area boundaries
   export const calculateSafeArea = (productType) => {
     const safeAreaConfig = {
-      't-shirt': {
-        top: 25,
-        bottom: 75,
-        left: 30,
-        right: 70
-      },
+      // 't-shirt': {
+        // top: 25,
+        // bottom: 75,
+        // left: 30,
+        // right: 70
+      // },
       'hoodie': {
         top: 30,
         bottom: 70,
         left: 35,
         right: 65
       },
-      'long-sleeves': {
-        top: 25,
-        bottom: 75,
-        left: 30,
-        right: 70
-      }
+      // 'long-sleeves': {
+        // top: 25,
+        // bottom: 75,
+        // left: 30,
+        // right: 70
+      // }
     };
   
-    return safeAreaConfig[productType] || safeAreaConfig['t-shirt'];
+    return safeAreaConfig[productType] || safeAreaConfig['hoodie'];
   };
   
   // Check if design is within safe area
