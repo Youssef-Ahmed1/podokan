@@ -1,4 +1,3 @@
-// useDesignPosition.js
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { PRODUCT_TYPES, DEFAULT_PRODUCT_CONFIG } from '../../src/components/Admin/ProductApproval/constants/productConfig';
 
@@ -36,8 +35,8 @@ export const useDesignPosition = ({
     const bounds = getBoundaries();
     
     // Calculate design dimensions based on scale
-    const designWidth = 20 * currentScale; // Arbitrary design width percentage
-    const designHeight = 20 * currentScale; // Arbitrary design height percentage
+    const designWidth = 20 * currentScale;
+    const designHeight = 20 * currentScale;
 
     // Calculate actual boundaries considering design size
     const leftBound = bounds.x[0] + (designWidth / 2);
@@ -45,7 +44,6 @@ export const useDesignPosition = ({
     const topBound = bounds.y[0] + (designHeight / 2);
     const bottomBound = bounds.y[1] - (designHeight / 2);
 
-    // Check if design is completely within boundaries
     return pos.x >= leftBound && 
            pos.x <= rightBound && 
            pos.y >= topBound && 
@@ -57,7 +55,6 @@ export const useDesignPosition = ({
     const designWidth = 20 * currentScale;
     const designHeight = 20 * currentScale;
 
-    // Calculate clamped position keeping design completely within boundaries
     const clampedPosition = {
       x: Math.max(
         bounds.x[0] + (designWidth / 2),
@@ -72,6 +69,24 @@ export const useDesignPosition = ({
     setPosition(clampedPosition);
     positionRef.current = clampedPosition;
   }, [getBoundaries, scale]);
+
+  // Add the missing centerDesign function
+  const centerDesign = useCallback(() => {
+    const bounds = getBoundaries();
+    const centerPosition = {
+      x: (bounds.x[0] + bounds.x[1]) / 2,
+      y: (bounds.y[0] + bounds.y[1]) / 2
+    };
+    updatePosition(centerPosition, scale);
+  }, [getBoundaries, updatePosition, scale]);
+
+  // Add the missing reset function
+  const reset = useCallback(() => {
+    const defaultPosition = { x: 50, y: 30 };
+    const defaultScale = 0.5;
+    updatePosition(defaultPosition, defaultScale);
+    setScale(defaultScale);
+  }, [updatePosition]);
 
   const handleDragStart = useCallback((e) => {
     if (disabled || !e.currentTarget) return;
@@ -104,7 +119,6 @@ export const useDesignPosition = ({
         y: dragStartRef.current.startY + deltaY
       };
 
-      // Only update if the new position keeps design within boundaries
       if (checkBoundaries(newPosition, scale)) {
         updatePosition(newPosition);
       }
@@ -125,11 +139,9 @@ export const useDesignPosition = ({
     const MAX_SCALE = maxScale;
     const clampedScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
     
-    // Check if new scale would push design outside boundaries
     if (checkBoundaries(position, clampedScale)) {
       setScale(clampedScale);
     } else {
-      // If new scale would push design outside boundaries, adjust position
       const bounds = getBoundaries();
       const centerPosition = {
         x: (bounds.x[0] + bounds.x[1]) / 2,
@@ -140,7 +152,6 @@ export const useDesignPosition = ({
     }
   }, [maxScale, position, checkBoundaries, getBoundaries, updatePosition]);
 
-  // Center design when product type or view changes
   useEffect(() => {
     centerDesign();
   }, [productType, productView, centerDesign]);
@@ -153,8 +164,6 @@ export const useDesignPosition = ({
       }
     };
   }, [isDragging]);
-
-
 
   return {
     position,
