@@ -10,7 +10,7 @@ import ValidationSystem from '../../ProductApproval/ValidationSystem';
 import StatusManager from '../../ProductApproval/StatusManager';
 import PriceCalculator from '../../ProductApproval/PriceCalculator';
 
-import { STATUS_CONFIG, PRODUCT_TYPES  } from '../../ProductApproval/constants/productConfig';
+import { STATUS_CONFIG, PRODUCT_TYPES , DEFAULT_PRODUCT_CONFIG } from '../../ProductApproval/constants/productConfig';
 
 const AdminProductApproval = () => {
   const dispatch = useDispatch();
