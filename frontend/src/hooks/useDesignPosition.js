@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import {  PRODUCT_TYPES  , DEFAULT_PRODUCT_CONFIG } from '../../src/components/Admin/ProductApproval/constants/productConfig';
+import { PRODUCT_TYPES, DEFAULT_PRODUCT_CONFIG } from '../../src/components/Admin/ProductApproval/constants/productConfig';
 
 export const useDesignPosition = ({
   initialPosition = { x: 50, y: 30 },
@@ -24,7 +24,7 @@ export const useDesignPosition = ({
   // Handle scale change with new maximum
   const handleScaleChange = useCallback((newScale) => {
     const MIN_SCALE = 0.1;
-    const MAX_SCALE = 1.3; // Increased maximum scale to 130%
+    const MAX_SCALE = 1.3;
     const clampedScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
     setScale(clampedScale);
   }, []);
@@ -36,6 +36,32 @@ export const useDesignPosition = ({
            pos.y >= bounds.y[0] && 
            pos.y <= bounds.y[1];
   }, [getBoundaries]);
+
+  const updatePosition = useCallback((newPosition) => {
+    const bounds = getBoundaries();
+    const clampedPosition = {
+      x: Math.max(bounds.x[0], Math.min(bounds.x[1], newPosition.x)),
+      y: Math.max(bounds.y[0], Math.min(bounds.y[1], newPosition.y))
+    };
+    setPosition(clampedPosition);
+    positionRef.current = clampedPosition;
+  }, [getBoundaries]);
+
+  const centerDesign = useCallback(() => {
+    const bounds = getBoundaries();
+    const centerPosition = {
+      x: (bounds.x[0] + bounds.x[1]) / 2,
+      y: (bounds.y[0] + bounds.y[1]) / 2
+    };
+    setPosition(centerPosition);
+    positionRef.current = centerPosition;
+  }, [getBoundaries]);
+
+  const reset = useCallback(() => {
+    setPosition(initialPosition);
+    setScale(initialScale);
+    positionRef.current = initialPosition;
+  }, [initialPosition, initialScale]);
 
   const handleDragStart = useCallback((e) => {
     if (disabled || !e.currentTarget) return;
@@ -56,14 +82,7 @@ export const useDesignPosition = ({
         y: ((moveEvent.clientY - dragStartRef.current.y) / rect.height) * 100
       };
 
-      const bounds = getBoundaries();
-      const clampedPosition = {
-        x: Math.max(bounds.x[0], Math.min(bounds.x[1], newPosition.x)),
-        y: Math.max(bounds.y[0], Math.min(bounds.y[1], newPosition.y))
-      };
-
-      setPosition(clampedPosition);
-      positionRef.current = clampedPosition;
+      updatePosition(newPosition);
     };
 
     const handleMouseUp = () => {
@@ -74,33 +93,12 @@ export const useDesignPosition = ({
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-  }, [disabled, getBoundaries]);
+  }, [disabled, updatePosition]);
 
-  // Reset position when the view changes
   useEffect(() => {
-    const bounds = getBoundaries();
-    const centerPosition = {
-      x: (bounds.x[0] + bounds.x[1]) / 2,
-      y: (bounds.y[0] + bounds.y[1]) / 2
-    };
-    setPosition(centerPosition);
-    positionRef.current = centerPosition;
-  }, [productType, productView, getBoundaries]);
+    centerDesign();
+  }, [productType, productView, centerDesign]);
 
-  
-  const defaultReturn = {
-    position: { x: 50, y: 30 },
-    scale: 0.5,
-    isDragging: false,
-    isOutOfBounds: false,
-    handleDragStart: () => {},
-    handleScaleChange: () => {},
-    updatePosition: () => {},
-    centerDesign: () => {},
-    reset: () => {},
-    bounds: null
-  };
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (isDragging) {
@@ -110,12 +108,20 @@ export const useDesignPosition = ({
     };
   }, [isDragging]);
 
+  const bounds = getBoundaries();
+  const isOutOfBounds = !checkBoundaries(position);
+
   return {
     position,
     scale,
     isDragging,
+    isOutOfBounds,
     handleDragStart,
     handleScaleChange,
+    updatePosition,
+    centerDesign,
+    reset,
+    bounds,
     setPosition,
     setScale,
     checkBoundaries
