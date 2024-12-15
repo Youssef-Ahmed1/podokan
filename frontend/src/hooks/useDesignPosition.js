@@ -1,3 +1,4 @@
+// useDesignPosition.js
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { PRODUCT_TYPES, DEFAULT_PRODUCT_CONFIG } from '../../src/components/Admin/ProductApproval/constants/productConfig';
 
@@ -6,7 +7,8 @@ export const useDesignPosition = ({
   initialScale = 0.5,
   productType = 'hoodie',
   productView = 'front',
-  disabled = false
+  disabled = false,
+  maxScale = 1.1 // Changed maximum scale to 110%
 }) => {
   const [position, setPosition] = useState(initialPosition);
   const [scale, setScale] = useState(initialScale);
@@ -14,20 +16,28 @@ export const useDesignPosition = ({
   const dragStartRef = useRef({ x: 0, y: 0 });
   const positionRef = useRef(position);
 
-  // Get boundaries based on product type and view
+  // Updated boundaries for better centering
   const getBoundaries = useCallback(() => {
+    const defaultBounds = {
+      x: [20, 80], // Restrict horizontal movement to center area
+      y: [30, 70]  // Restrict vertical movement to center area
+    };
+
     const productConfig = PRODUCT_TYPES[productType]?.mockupConfig?.boundaries || 
                          DEFAULT_PRODUCT_CONFIG.mockupConfig.boundaries;
-    return productConfig[productView] || productConfig.front;
+    
+    return {
+      ...defaultBounds,
+      ...(productConfig[productView] || productConfig.front)
+    };
   }, [productType, productView]);
 
-  // Handle scale change with new maximum
   const handleScaleChange = useCallback((newScale) => {
     const MIN_SCALE = 0.1;
-    const MAX_SCALE = 1.3;
+    const MAX_SCALE = maxScale; // Use the maxScale parameter
     const clampedScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
     setScale(clampedScale);
-  }, []);
+  }, [maxScale]);
 
   const checkBoundaries = useCallback((pos) => {
     const bounds = getBoundaries();
@@ -47,21 +57,24 @@ export const useDesignPosition = ({
     positionRef.current = clampedPosition;
   }, [getBoundaries]);
 
+  // Updated centerDesign to position in the middle of the allowed area
   const centerDesign = useCallback(() => {
     const bounds = getBoundaries();
     const centerPosition = {
-      x: (bounds.x[0] + bounds.x[1]) / 2,
-      y: (bounds.y[0] + bounds.y[1]) / 2
+      x: 50, // Center horizontally
+      y: 50  // Center vertically
     };
     setPosition(centerPosition);
     positionRef.current = centerPosition;
+    setScale(0.5); // Reset scale to default
   }, [getBoundaries]);
 
   const reset = useCallback(() => {
-    setPosition(initialPosition);
-    setScale(initialScale);
-    positionRef.current = initialPosition;
-  }, [initialPosition, initialScale]);
+    const centerPosition = { x: 50, y: 50 };
+    setPosition(centerPosition);
+    setScale(0.5);
+    positionRef.current = centerPosition;
+  }, []);
 
   const handleDragStart = useCallback((e) => {
     if (disabled || !e.currentTarget) return;
@@ -74,7 +87,6 @@ export const useDesignPosition = ({
 
     setIsDragging(true);
     
-    // Calculate offset relative to design position
     const designRect = designElement.getBoundingClientRect();
     const offsetX = e.clientX - designRect.left;
     const offsetY = e.clientY - designRect.top;
@@ -108,6 +120,7 @@ export const useDesignPosition = ({
     window.addEventListener('mouseup', handleMouseUp);
   }, [disabled, updatePosition]);
 
+  // Center design when product type or view changes
   useEffect(() => {
     centerDesign();
   }, [productType, productView, centerDesign]);
