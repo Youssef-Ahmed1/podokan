@@ -12,6 +12,77 @@ import PriceCalculator from '../ProductApproval/PriceCalculator';
 
 import { STATUS_CONFIG, PRODUCT_TYPES  , DEFAULT_PRODUCT_CONFIG } from '../ProductApproval/constants/productConfig';
 
+
+const ProductList = ({ products, onSelect, selectedProduct }) => {
+  return (
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+        <h2 className="text-xl font-semibold text-gray-800">
+          Pending Products
+        </h2>
+        {products.length > 0 && (
+          <div className="text-sm text-gray-500">
+            {products.length} products pending
+          </div>
+        )}
+      </div>
+      
+      <div className="p-4 space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto">
+        {products.map((product) => (
+          <button
+            key={product._id}
+            onClick={() => onSelect(product)}
+            className={`
+              w-full p-4 rounded-lg transition-all duration-200
+              ${selectedProduct?._id === product._id 
+                ? 'bg-blue-50 border-2 border-blue-500' 
+                : 'hover:bg-gray-50 border border-gray-200'}
+            `}
+          >
+            <div className="flex items-start space-x-4">
+              {product.designImage && (
+                <img
+                  src={product.designImage.url || product.designImage}
+                  alt={product.DesignTitle}
+                  className="w-20 h-20 object-cover rounded-lg"
+                />
+              )}
+              <div className="flex-1 text-left">
+                <h3 className="font-medium text-gray-900 line-clamp-1">
+                  {product.DesignTitle || 'Untitled Design'}
+                </h3>
+                <p className="text-sm text-gray-500 line-clamp-2 mt-1">
+                  {product.Description}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {product.Maintag && (
+                    <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800">
+                      {product.Maintag}
+                    </span>
+                  )}
+                  {product.Designtags?.slice(0, 2).map(tag => (
+                    <span key={tag} className="inline-block px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex items-center space-x-2 mt-2">
+                  <span className="text-sm text-gray-500">
+                    {new Date(product.createdAt).toLocaleDateString()}
+                  </span>
+                  <span className="text-gray-300">•</span>
+                  <span className="text-sm text-gray-500">
+                    ID: #{product._id.slice(-6)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
 // Main tag categories constant
 const MAIN_TAG_CATEGORIES = [
   'anime',
@@ -451,8 +522,12 @@ const AdminProductApproval = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Product List */}
           <div className="w-full lg:w-1/3">
-            {/* ... Product List Component (same as before) ... */}
-          </div>
+  <ProductList
+    products={filteredProducts}
+    onSelect={handleProductSelect}
+    selectedProduct={selectedProduct}
+  />
+</div>
 
           {/* Product Review Area */}
           {selectedProduct && editedProduct ? (
