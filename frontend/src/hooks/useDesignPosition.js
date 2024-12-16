@@ -20,7 +20,7 @@ export const useDesignPosition = ({
     const defaultBounds = {
       hoodie: {
         x: [30, 70], // More restrictive horizontal boundaries
-        y: [50, 50]  // More restrictive vertical boundaries
+        y: [20, 50]  // More restrictive vertical boundaries
       },
       // 't-shirt': {
       //   x: [30, 70],
