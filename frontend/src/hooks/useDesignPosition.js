@@ -82,7 +82,7 @@ export const useDesignPosition = ({
 
   // Add the missing reset function
   const reset = useCallback(() => {
-    const defaultPosition = { x: 50, y: 30 };
+    const defaultPosition = { x: 50, y: 50 };
     const defaultScale = 0.5;
     updatePosition(defaultPosition, defaultScale);
     setScale(defaultScale);
