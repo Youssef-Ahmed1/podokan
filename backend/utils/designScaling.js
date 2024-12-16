@@ -22,13 +22,13 @@ export const getResponsiveDimensions = (containerWidth) => {
   // Calculate safe area boundaries
   export const calculateSafeArea = () => {
     const safeAreaConfig = {
-
       'hoodie': {
-        top: 30,
-        bottom: 70,
-        left: 35,
-        right: 65
-      },  
+        top: 35,    // Adjusted top boundary
+        bottom: 65, // Adjusted bottom boundary
+        left: 30,   // Left boundary remains the same
+        right: 70   // Right boundary remains the same
+      }
+    
       
       // 't-shirt': {
         //   top: 25,
@@ -44,8 +44,8 @@ export const getResponsiveDimensions = (containerWidth) => {
     //   }
      };
   
-    return safeAreaConfig[productType] || safeAreaConfig['hoodie'];
-  };
+     return safeAreaConfig[productType] || safeAreaConfig['hoodie'];
+    };
   
   // Check if design is within safe area
   export const isWithinSafeArea = (position, productType) => {

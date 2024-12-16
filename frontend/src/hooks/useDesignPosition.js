@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { PRODUCT_TYPES, DEFAULT_PRODUCT_CONFIG } from '../../src/components/Admin/ProductApproval/constants/productConfig';
 
 export const useDesignPosition = ({
-  initialPosition = { x: 50, y: 80 }, 
+  initialPosition = { x: 50, y: 35 }, // Adjusted y position
   initialScale = 0.5,
   productType = 'hoodie',
   productView = 'front',
@@ -19,9 +19,10 @@ export const useDesignPosition = ({
   const getBoundaries = useCallback(() => {
     const defaultBounds = {
       hoodie: {
-        x: [30, 70], // More restrictive horizontal boundaries
-        y: [20, 40]  // More restrictive vertical boundaries
-      },
+        x: [30, 70], // Horizontal boundaries remain the same
+        y: [35, 65]  // Adjusted vertical boundaries to be lower
+      }
+    
       // 't-shirt': {
       //   x: [30, 70],
       //   y: [20, 40]
@@ -82,12 +83,13 @@ export const useDesignPosition = ({
 
   // Add the missing reset function
   const reset = useCallback(() => {
-    const defaultPosition = { x: 50, y: 45 };
+    const defaultPosition = { x: 50, y: 35 }; // Adjusted y position
     const defaultScale = 0.5;
     updatePosition(defaultPosition, defaultScale);
     setScale(defaultScale);
   }, [updatePosition]);
 
+  
   const handleDragStart = useCallback((e) => {
     if (disabled || !e.currentTarget) return;
     e.preventDefault();
