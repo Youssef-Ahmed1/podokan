@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { PRODUCT_TYPES, DEFAULT_PRODUCT_CONFIG } from '../../src/components/Admin/ProductApproval/constants/productConfig';
 
 export const useDesignPosition = ({
-  initialPosition = { x: 50, y: 50 }, 
+  initialPosition = { x: 50, y: 70 }, 
   initialScale = 0.5,
   productType = 'hoodie',
   productView = 'front',
@@ -20,7 +20,7 @@ export const useDesignPosition = ({
     const defaultBounds = {
       hoodie: {
         x: [30, 70], // More restrictive horizontal boundaries
-        y: [80, 50]  // More restrictive vertical boundaries
+        y: [20, 50]  // More restrictive vertical boundaries
       },
       // 't-shirt': {
       //   x: [30, 70],
@@ -82,7 +82,7 @@ export const useDesignPosition = ({
 
   // Add the missing reset function
   const reset = useCallback(() => {
-    const defaultPosition = { x: 50, y: 50 };
+    const defaultPosition = { x: 50, y: 75 };
     const defaultScale = 0.5;
     updatePosition(defaultPosition, defaultScale);
     setScale(defaultScale);

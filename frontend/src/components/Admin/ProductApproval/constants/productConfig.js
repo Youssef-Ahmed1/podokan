@@ -82,7 +82,7 @@ export const DEFAULT_PRODUCT_CONFIG = {
   basePrice: 850,
   productionCost: 650,
   designCost: 200,
-  position: { x: 50, y: 50 }, // Adjusted initial position
+  position: { x: 50, y: 70 }, // Adjusted initial position
   margins: {
     min: 0.15,
     recommended: 0.30
