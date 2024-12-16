@@ -77,14 +77,12 @@ export const AVAILABLE_TYPES = Object.entries(PRODUCT_TYPES).map(([value, config
   name: config.label,
   value
 }));
-
-
 export const DEFAULT_PRODUCT_CONFIG = {
   label: 'Hoodie',
   basePrice: 850,
   productionCost: 650,
   designCost: 200,
-  position: { x: 50, y: 35 }, // Adjusted initial position
+  position: { x: 50, y: 40 }, // Adjusted initial position
   margins: {
     min: 0.15,
     recommended: 0.30
@@ -94,7 +92,7 @@ export const DEFAULT_PRODUCT_CONFIG = {
     availableColors: ['white', 'black'],
     views: ['front', 'back'],
     boundaries: {
-      front: { x: [35, 65], y: [25, 45] }, // Adjusted to match
+      front: { x: [35, 65], y: [40, 55] }, // Adjusted to match
       back: { x: [30, 70], y: [20, 50] }
     }
   }
