@@ -23,7 +23,7 @@ export const getResponsiveDimensions = (containerWidth) => {
   export const calculateSafeArea = () => {
     const safeAreaConfig = {
       'hoodie': {
-        top: 35,    // Adjusted top boundary
+        top: 40,    // Adjusted top boundary
         bottom: 65, // Adjusted bottom boundary
         left: 30,   // Left boundary remains the same
         right: 70   // Right boundary remains the same
