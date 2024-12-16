@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { PRODUCT_TYPES, DEFAULT_PRODUCT_CONFIG } from '../../src/components/Admin/ProductApproval/constants/productConfig';
 
 export const useDesignPosition = ({
-  initialPosition = { x: 50, y: 50 }, 
+  initialPosition = { x: 50, y: 60 }, 
   initialScale = 0.5,
   productType = 'hoodie',
   productView = 'front',
@@ -82,7 +82,7 @@ export const useDesignPosition = ({
 
   // Add the missing reset function
   const reset = useCallback(() => {
-    const defaultPosition = { x: 50, y: 55 };
+    const defaultPosition = { x: 50, y: 45 };
     const defaultScale = 0.5;
     updatePosition(defaultPosition, defaultScale);
     setScale(defaultScale);
