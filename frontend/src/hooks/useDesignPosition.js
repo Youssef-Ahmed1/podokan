@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { PRODUCT_TYPES, DEFAULT_PRODUCT_CONFIG } from '../../src/components/Admin/ProductApproval/constants/productConfig';
 
 export const useDesignPosition = ({
-  initialPosition = { x: 50, y: 30 }, 
+  initialPosition = { x: 50, y: 50 }, 
   initialScale = 0.5,
   productType = 'hoodie',
   productView = 'front',
