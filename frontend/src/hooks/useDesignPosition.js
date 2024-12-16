@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { PRODUCT_TYPES, DEFAULT_PRODUCT_CONFIG } from '../../src/components/Admin/ProductApproval/constants/productConfig';
 
 export const useDesignPosition = ({
-  initialPosition = { x: 50, y: 60 }, 
+  initialPosition = { x: 50, y: 80 }, 
   initialScale = 0.5,
   productType = 'hoodie',
   productView = 'front',
@@ -20,7 +20,7 @@ export const useDesignPosition = ({
     const defaultBounds = {
       hoodie: {
         x: [30, 70], // More restrictive horizontal boundaries
-        y: [20, 55]  // More restrictive vertical boundaries
+        y: [20, 40]  // More restrictive vertical boundaries
       },
       // 't-shirt': {
       //   x: [30, 70],
