@@ -20,7 +20,7 @@ export const getResponsiveDimensions = (containerWidth) => {
   };
   
   // Calculate safe area boundaries
-  export const calculateSafeArea = (productType) => {
+  export const calculateSafeArea = () => {
     const safeAreaConfig = {
 
       'hoodie': {
