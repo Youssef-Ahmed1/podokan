@@ -20,12 +20,12 @@ export const useDesignPosition = ({
     const defaultBounds = {
       hoodie: {
         x: [30, 70], // More restrictive horizontal boundaries
-        y: [20, 60]  // More restrictive vertical boundaries
+        y: [20, 40]  // More restrictive vertical boundaries
       },
-      't-shirt': {
-        x: [30, 70],
-        y: [20, 60]
-      }
+      // 't-shirt': {
+      //   x: [30, 70],
+      //   y: [20, 40]
+      // }
     };
 
     return defaultBounds[productType] || defaultBounds.hoodie;
