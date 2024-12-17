@@ -12,19 +12,16 @@ import ArtistSign from "../../src/components/Layout/artistsignup";
 const HomePage = () => {
   return (
     <div>
-        <Header activeHeading={1} />
-        <div className = "bg-[#151523] rounded-b-lg">
-          <ArtistSign/>
-        </div>
-        <Hero />
-
-        <BestDeals />
-        {/* <Events /> */}
-        <FeaturedProduct />
-        <Sponsored />
-        <Footer />
+      <Header activeHeading={1} />
+      <div className="bg-[#151523] rounded-b-lg">
+        <ArtistSign/>
+      </div>
+      <CategoryFinder /> {/* Add it here */}
+      <BestDeals />
+      <FeaturedProduct />
+      <Footer />
     </div>
-  )
-}
+  );
+};
 
 export default HomePage
