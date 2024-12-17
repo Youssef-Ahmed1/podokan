@@ -7,7 +7,9 @@ module.exports = {
       Roboto: ["Roboto", "sans-serif"],
       Poppins: ['Poppins', "sans-serif"],
     },
+    
     extend: {
+      
       screens: {
         "1000px": "1050px",
         "1100px": "1110px",
@@ -36,8 +38,14 @@ module.exports = {
       },
       keyframes: {
         border: {
-          '0%, 100%': { backgroundPosition: '0% 50%' },
-          '50%': { backgroundPosition: '100% 50%' },
+          '0%, 100%': {
+            background: 'linear-gradient(45deg, #6366F1, #8B5CF6, #D946EF, #6366F1)',
+            backgroundSize: '200% 200%',
+            backgroundPosition: '0% 50%'
+          },
+          '50%': {
+            backgroundPosition: '100% 50%'
+          },
         },
       },
     },
