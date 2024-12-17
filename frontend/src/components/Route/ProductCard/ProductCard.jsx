@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { addToWishlist, removeFromWishlist } from "../../../redux/actions/wishlist";
 import { addTocart } from "../../../redux/actions/cart";
 import { toast } from "react-toastify";
+import styles from "../../../styles/styles";
+
 const ProductCard = ({ data }) => {
   const [isHovered, setIsHovered] = useState(false);
   const dispatch = useDispatch();
