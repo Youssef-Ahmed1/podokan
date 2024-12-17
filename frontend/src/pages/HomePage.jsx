@@ -7,7 +7,7 @@ import FeaturedProduct from "../components/Route/FeaturedProduct/FeaturedProduct
 import Sponsored from "../components/Route/Sponsored";
 import Footer from "../components/Layout/Footer";
 import ArtistSign from "../../src/components/Layout/artistsignup";
-import CategoryFinder from '../routes/CategoryFinder/CategoryFinder'
+import CategoryFinder from '../components/Route/CategoryFinder/CategoryFinder'
 
 const HomePage = () => {
   return (
