@@ -156,3 +156,18 @@ input[type=number] {
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
+/* Add to your app.css */
+.swiper-button-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.category-swiper-container {
+  padding: 0 40px !important;
+}
+
+@media (max-width: 640px) {
+  .category-swiper-container {
+    padding: 0 20px !important;
+  }
+}
