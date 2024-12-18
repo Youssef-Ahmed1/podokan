@@ -80,3 +80,30 @@ input::-webkit-inner-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }/* Tailwind CSS */
+.category-swiper {
+  width: 100%;
+  padding: 10px 0;
+}
+
+.category-swiper .swiper-slide {
+  width: auto;
+}
+
+.category-swiper .swiper-button-next,
+.category-swiper .swiper-button-prev {
+  color: #6366F1;
+  width: 30px;
+  height: 30px;
+  background: #2A2A3C;
+  border-radius: 50%;
+}
+
+.category-swiper .swiper-button-next:after,
+.category-swiper .swiper-button-prev:after {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.category-swiper .swiper-button-disabled {
+  opacity: 0.5;
+}
