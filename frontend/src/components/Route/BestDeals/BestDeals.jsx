@@ -1,66 +1,123 @@
-import React, { useEffect, useState   } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import styles from "../../../styles/styles";
 import ProductCard from "../ProductCard/ProductCard";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay } from 'swiper';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import { categoriesData } from "../../static/data";
+import { motion } from "framer-motion";
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
 const BestDeals = () => {
   const [data, setData] = useState([]);
-  const { allProducts } = useSelector((state) => state.products);
+  const { allProducts, isLoading } = useSelector((state) => state.products);
   const [activeCategory, setActiveCategory] = useState('all');
 
   useEffect(() => {
-    const allProductsData = allProducts ? [...allProducts] : [];
-    const sortedData = allProductsData?.sort((a,b) => b.sold_out - a.sold_out); 
-    const firstFive = sortedData && sortedData.slice(0, 5);
-    setData(firstFive);
-  }, [allProducts]);
+    const filterProducts = () => {
+      const allProductsData = allProducts ? [...allProducts] : [];
+      const filteredData = activeCategory === 'all' 
+        ? allProductsData 
+        : allProductsData.filter(item => item.category === activeCategory);
+      
+      const sortedData = filteredData?.sort((a,b) => b.sold_out - a.sold_out);
+      const firstEight = sortedData && sortedData.slice(0, 8);
+      setData(firstEight);
+    };
+
+    filterProducts();
+  }, [allProducts, activeCategory]);
 
   return (
-    <div className={`${styles.section}`}>
-      <div className="flex flex-col gap-8">
-        {/* Section Header */}
-        <div className={`${styles.heading}`}>
-          <h1>Best Sellers</h1>
-        </div>
-        
-        {/* Category Navigation */}
-        <div className="scrollbar-hide overflow-x-auto">
-          <div className="flex gap-4 pb-4 min-w-max px-4 md:px-0">
-            {['all', 't-shirts', 'hoodies', 'sweatshirts'].map((category) => (
-              <button
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                className={`relative px-6 py-2 rounded-full text-[16px] font-[500] font-Roboto transition-all
-                  ${activeCategory === category 
-                    ? 'text-[#333] bg-gray-100' 
-                    : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+    <div className="bg-[#1E1E2D] py-10">
+      <div className={`${styles.section}`}>
+        <div className="flex flex-col space-y-8">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-3xl md:text-4xl font-bold text-white mb-4 md:mb-0"
+            >
+              Best Sellers
+            </motion.h1>
+            
+            {/* Category Navigation */}
+            <div className="w-full md:w-auto">
+              <Swiper
+                modules={[Navigation, Pagination, Autoplay]}
+                spaceBetween={10}
+                slidesPerView="auto"
+                navigation
+                className="category-swiper"
               >
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-                {activeCategory === category && (
-                  <span className={styles.active_indicator}></span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {data && data.length > 0 ? (
-            data.map((product, index) => (
-              <ProductCard key={product._id} data={product} />
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12">
-              <p className="text-gray-500 font-Roboto">No products found</p>
+                <SwiperSlide>
+                  <button
+                    onClick={() => setActiveCategory('all')}
+                    className={`px-6 py-2 rounded-full text-sm font-medium transition-all
+                      ${activeCategory === 'all' 
+                        ? 'bg-[#6366F1] text-white' 
+                        : 'bg-[#2A2A3C] text-gray-300 hover:bg-[#3D3D56]'
+                      }`}
+                  >
+                    All
+                  </button>
+                </SwiperSlide>
+                {categoriesData.map((category) => (
+                  <SwiperSlide key={category.id}>
+                    <button
+                      onClick={() => setActiveCategory(category.title)}
+                      className={`px-6 py-2 rounded-full text-sm font-medium transition-all
+                        ${activeCategory === category.title 
+                          ? 'bg-[#6366F1] text-white' 
+                          : 'bg-[#2A2A3C] text-gray-300 hover:bg-[#3D3D56]'
+                        }`}
+                    >
+                      {category.title}
+                    </button>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
             </div>
-          )}
+          </div>
+
+          {/* Products Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {isLoading ? (
+              Array(8).fill(0).map((_, index) => (
+                <div key={index} className="bg-[#2A2A3C] rounded-xl p-4">
+                  <Skeleton height={200} baseColor="#3D3D56" highlightColor="#4A4A6A"/>
+                  <div className="mt-4">
+                    <Skeleton count={2} baseColor="#3D3D56" highlightColor="#4A4A6A"/>
+                  </div>
+                </div>
+              ))
+            ) : data && data.length > 0 ? (
+              data.map((product, index) => (
+                <motion.div
+                  key={product._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <ProductCard data={product} />
+                </motion.div>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <div className="text-5xl mb-4">🔍</div>
+                <p className="text-gray-400">No products found in this category</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 };
-
 
 export default BestDeals;
