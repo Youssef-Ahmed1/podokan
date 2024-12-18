@@ -14,7 +14,7 @@ import { BiChevronLeft, BiChevronRight } from "react-icons/bi";
 import { toast } from "react-toastify";
 import { addToWishlist, removeFromWishlist } from "../../redux/actions/wishlist";
 import { addTocart } from "../../redux/actions/cart";
-
+import Accordion from '@mui/material/Accordion';
 const ProductDetails = ({ data }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
