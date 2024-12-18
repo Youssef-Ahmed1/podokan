@@ -107,3 +107,7 @@ input[type=number] {
 .category-swiper .swiper-button-disabled {
   opacity: 0.5;
 }
+
+.swiper-pagination-bullet {
+  background: #6366F1 !important;
+}
