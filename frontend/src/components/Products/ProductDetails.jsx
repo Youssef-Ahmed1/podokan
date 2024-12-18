@@ -1,5 +1,5 @@
-// In components/Products/ProductDetails.jsx
-import React, { useEffect, useState, useCallback } from "react";
+// components/Products/ProductDetails.jsx
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -7,11 +7,13 @@ import {
   AiOutlineHeart,
   AiOutlineMessage,
   AiOutlineShoppingCart,
+  AiOutlineZoomIn,
+  AiOutlineShareAlt,
 } from "react-icons/ai";
+import { BiChevronLeft, BiChevronRight } from "react-icons/bi";
 import { toast } from "react-toastify";
 import { addToWishlist, removeFromWishlist } from "../../redux/actions/wishlist";
 import { addTocart } from "../../redux/actions/cart";
-import Ratings from "./Ratings";
 
 const ProductDetails = ({ data }) => {
   const dispatch = useDispatch();
@@ -20,76 +22,96 @@ const ProductDetails = ({ data }) => {
   const { cart } = useSelector((state) => state.cart);
   const { user, isAuthenticated } = useSelector((state) => state.user);
 
+  // State management
   const [currentView, setCurrentView] = useState('front');
   const [currentColor, setCurrentColor] = useState(data?.ProductColor || 'white');
   const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [mockupLoaded, setMockupLoaded] = useState(false);
-  const [designLoaded, setDesignLoaded] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
 
-  // Initialize with default color if available
-  useEffect(() => {
-    if (data?.availableColors?.length > 0) {
-      setCurrentColor(data.availableColors[0]);
-    }
-  }, [data]);
+  // Refs
+  const imageContainerRef = useRef(null);
+  const productImagesRef = useRef(null);
 
-  // Get mockup URL based on product type and color
-  const getMockupUrl = useCallback(() => {
-    if (!data) return '';
-    
-    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-    const getFileName = () => {
-      switch(data.ProductType) {
-        case 't-shirt':
-          return `t-shirt-${currentColor}-${currentView}`;
-        case 'hoodie':
-          return `hoodie-${currentColor}-${currentView}`;
-        case 'long-sleeves':
-          return currentColor === "gray" 
-            ? `longsleeves-${currentColor}-${currentView}`
-            : ["white", "black"].includes(currentColor)
-              ? `longseleves-${currentColor}-${currentView}`
-              : `t-shirt-${currentColor}-${currentView}`;
-        default:
-          return `t-shirt-${currentColor}-${currentView}`;
-      }
-    };
+  // Computed values
+  const isInWishlist = wishlist?.find((item) => item._id === data._id);
+  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'].filter(size => 
+    data?.sizes?.includes(size) || true // Remove true if you have actual size data
+  );
 
-    return `${baseUrl}v1/${data.ProductType}s/${getFileName()}.png`;
-  }, [data, currentColor, currentView]);
-
-  // Function to calculate final price
-  const calculatePrice = useCallback(() => {
-    if (!data) return { original: 0, final: 0, discount: 0 };
-
-    const original = parseFloat(data.originalPrice) || 0;
-    const discount = data.discountPrice ? parseFloat(data.discountPrice) : null;
-    const final = discount || original;
-    const discountPercentage = discount 
-      ? Math.round(((original - discount) / original) * 100) 
+  // Price calculations
+  const calculatePrices = useCallback(() => {
+    const originalPrice = parseFloat(data?.originalPrice) || 0;
+    const discountPrice = data?.discountPrice ? parseFloat(data.discountPrice) : null;
+    const finalPrice = discountPrice || originalPrice;
+    const discountPercentage = discountPrice 
+      ? Math.round(((originalPrice - discountPrice) / originalPrice) * 100)
       : 0;
+    const installmentPrice = (finalPrice / 3).toFixed(2);
 
-    return { original, final, discountPercentage };
+    return {
+      originalPrice,
+      finalPrice,
+      discountPercentage,
+      installmentPrice
+    };
   }, [data]);
 
-  // Function to handle view change with loading state
-  const handleViewChange = useCallback((view) => {
-    setMockupLoaded(false);
-    setDesignLoaded(false);
-    setCurrentView(view);
-  }, []);
+  const prices = calculatePrices();
 
-  // Function to handle color change with loading state
-  const handleColorChange = useCallback((color) => {
-    setMockupLoaded(false);
-    setDesignLoaded(false);
-    setCurrentColor(color);
-  }, []);
+  // Image zoom functionality
+  const handleImageZoom = useCallback((e) => {
+    if (!isZoomed || !imageContainerRef.current) return;
 
-  // Add to cart handler
-  const handleAddToCart = useCallback(async () => {
+    const { left, top, width, height } = imageContainerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+
+    setZoomPosition({ x, y });
+  }, [isZoomed]);
+
+  const handleZoomToggle = () => {
+    setIsZoomed(!isZoomed);
+    if (isZoomed) {
+      setZoomPosition({ x: 0, y: 0 });
+    }
+  };
+
+  // Image gallery navigation
+  const handleImageNav = (direction) => {
+    const totalImages = data.images?.length || 1;
+    if (direction === 'next') {
+      setCurrentImageIndex((prev) => (prev + 1) % totalImages);
+    } else {
+      setCurrentImageIndex((prev) => (prev - 1 + totalImages) % totalImages);
+    }
+  };
+
+  // Share functionality
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: data.DesignTitle,
+          text: data.Description,
+          url: window.location.href,
+        });
+      } else {
+        // Fallback copy to clipboard
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
+  // Cart functionality
+  const handleAddToCart = async () => {
     if (!isAuthenticated) {
       toast.error("Please login to add items to cart");
       return;
@@ -102,14 +124,14 @@ const ProductDetails = ({ data }) => {
 
     try {
       setIsLoading(true);
-      const isItemInCart = cart?.find(
+      const cartItem = cart?.find(
         (item) => 
           item._id === data._id && 
           item.selectedColor === currentColor && 
           item.selectedSize === selectedSize
       );
 
-      if (isItemInCart) {
+      if (cartItem) {
         toast.error("Item already in cart with these options");
         return;
       }
@@ -119,90 +141,74 @@ const ProductDetails = ({ data }) => {
         selectedColor: currentColor,
         selectedSize: selectedSize,
         qty: quantity,
-        finalPrice: calculatePrice().final
+        finalPrice: prices.finalPrice
       };
 
       await dispatch(addTocart(cartData));
-      toast.success("Item added to cart successfully!");
+      toast.success("Added to cart successfully!");
     } catch (error) {
-      toast.error("Failed to add item to cart");
+      toast.error("Failed to add to cart");
     } finally {
       setIsLoading(false);
     }
-  }, [
-    isAuthenticated, 
-    selectedSize, 
-    currentColor, 
-    quantity, 
-    data, 
-    dispatch, 
-    cart, 
-    calculatePrice
-  ]);
+  };
 
-  // Wishlist handlers
-  const handleWishlist = useCallback(() => {
+  // Wishlist functionality
+  const handleWishlist = () => {
     if (!isAuthenticated) {
       toast.error("Please login to add items to wishlist");
       return;
     }
 
-    const isInWishlist = wishlist?.find((item) => item._id === data._id);
     if (isInWishlist) {
       dispatch(removeFromWishlist(data._id));
-      toast.success("Item removed from wishlist");
+      toast.success("Removed from wishlist");
     } else {
       dispatch(addToWishlist(data));
-      toast.success("Item added to wishlist");
+      toast.success("Added to wishlist");
     }
-  }, [isAuthenticated, wishlist, data, dispatch]);
+  };
 
-  if (!data) return null;
-
-  const { original, final, discountPercentage } = calculatePrice();
-  const isInWishlist = wishlist?.find((item) => item._id === data._id);
-
+  // Start of JSX
   return (
     <div className="bg-white">
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Product Image Section */}
           <div className="relative">
-            {/* Loading Overlay */}
-            {(!mockupLoaded || !designLoaded) && (
-              <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-              </div>
-            )}
-
-            {/* Mockup Image */}
-            <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+            {/* Main Image Container */}
+            <div 
+              ref={imageContainerRef}
+              className={`relative aspect-square rounded-lg overflow-hidden bg-gray-100
+                ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
+              onClick={handleZoomToggle}
+              onMouseMove={handleImageZoom}
+              onMouseLeave={() => isZoomed && setIsZoomed(false)}
+            >
               <img
-                src={getMockupUrl()}
-                alt={`${data.ProductType} ${currentColor} ${currentView}`}
-                className={`w-full h-full object-contain transition-opacity duration-300 ${
-                  mockupLoaded ? 'opacity-100' : 'opacity-0'
-                }`}
-                onLoad={() => setMockupLoaded(true)}
+                src={data.images?.[currentImageIndex] || data.mainImage}
+                alt={data.DesignTitle}
+                className={`w-full h-full object-contain transition-transform duration-300
+                  ${isZoomed ? 'scale-150' : 'scale-100'}`}
+                style={isZoomed ? {
+                  transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`
+                } : undefined}
               />
 
               {/* Design Overlay */}
-              {mockupLoaded && (
+              {data.designImage && (
                 <div
                   className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
                   style={{
-                    width: '200px',
-                    height: '200px',
+                    width: `${data.DesignWidth || 200}px`,
+                    height: `${data.DesignHeight || 200}px`,
                     transform: `translate(-50%, -50%) scale(${data.DesignScale || 1})`
                   }}
                 >
                   <img
                     src={data.designImage?.url || data.designImage}
                     alt="Design"
-                    className={`w-full h-full object-contain transition-opacity duration-300 ${
-                      designLoaded ? 'opacity-100' : 'opacity-0'
-                    }`}
-                    onLoad={() => setDesignLoaded(true)}
+                    className="w-full h-full object-contain"
                     style={{
                       mixBlendMode: currentColor === 'white' ? 'multiply' : 'screen'
                     }}
@@ -211,95 +217,197 @@ const ProductDetails = ({ data }) => {
               )}
             </div>
 
-            {/* View Controls */}
-            <div className="mt-4 flex justify-center gap-4">
-              <button
-                onClick={() => handleViewChange('front')}
-                className={`px-4 py-2 rounded-lg ${
-                  currentView === 'front' 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-gray-100 hover:bg-gray-200'
-                }`}
-              >
-                Front View
-              </button>
-              <button
-                onClick={() => handleViewChange('back')}
-                className={`px-4 py-2 rounded-lg ${
-                  currentView === 'back' 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-gray-100 hover:bg-gray-200'
-                }`}
-              >
-                Back View
-              </button>
-            </div>
-
-            {/* Color Selection */}
-            <div className="mt-6">
-              <h3 className="text-sm font-medium text-gray-900">Colors</h3>
-              <div className="mt-2 flex gap-2">
-                {data.availableColors?.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => handleColorChange(color)}
-                    className={`w-8 h-8 rounded-full border-2 ${
-                      currentColor === color 
-                        ? 'border-blue-500' 
-                        : 'border-gray-300'
-                    }`}
-                    style={{ backgroundColor: color }}
-                    title={color}
-                  />
-                ))}
+            {/* Image Navigation */}
+            {(data.images?.length > 1 || data.views?.length > 1) && (
+              <div className="absolute top-1/2 -translate-y-1/2 w-full flex justify-between px-4">
+                <button
+                  onClick={() => handleImageNav('prev')}
+                  className="p-2 rounded-full bg-white/80 shadow-lg hover:bg-white
+                    transition-colors duration-200"
+                >
+                  <BiChevronLeft className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={() => handleImageNav('next')}
+                  className="p-2 rounded-full bg-white/80 shadow-lg hover:bg-white
+                    transition-colors duration-200"
+                >
+                  <BiChevronRight className="w-6 h-6" />
+                </button>
               </div>
+            )}
+
+            {/* Thumbnail Gallery */}
+            <div 
+              ref={productImagesRef}
+              className="mt-4 grid grid-cols-4 gap-2"
+            >
+              {data.images?.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`aspect-square rounded-md overflow-hidden
+                    ${currentImageIndex === index ? 'ring-2 ring-blue-500' : 'ring-1 ring-gray-200'}`}
+                >
+                  <img
+                    src={image}
+                    alt={`${data.DesignTitle} view ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Product Details Section */}
+          {/* Product Info Section */}
           <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{data.DesignTitle}</h1>
-              <div className="mt-2">
-                <Ratings rating={data.ratings} />
-                <span className="ml-2 text-gray-500">
-                  ({data.reviews?.length || 0} reviews)
+          <div className="space-y-6 lg:sticky lg:top-4 lg:self-start">
+            {/* Header and Basic Info */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  {data.DesignTitle}
+                </h1>
+                <button
+                  onClick={handleShare}
+                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  aria-label="Share product"
+                >
+                  <AiOutlineShareAlt className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-4">
+                {/* Rating Display */}
+                <div className="flex items-center">
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, index) => (
+                      <svg
+                        key={index}
+                        className={`w-4 h-4 ${
+                          index < (data.ratings || 0)
+                            ? 'text-yellow-400'
+                            : 'text-gray-300'
+                        }`}
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <span className="ml-2 text-sm text-gray-600">
+                    {data.ratings || 0} ({data.reviews?.length || 0} reviews)
+                  </span>
+                </div>
+
+                {/* Product ID/SKU */}
+                <span className="text-sm text-gray-500">
+                  SKU: {data._id.slice(-8).toUpperCase()}
                 </span>
               </div>
             </div>
 
-            {/* Price */}
-            <div className="flex items-end gap-4">
-              <div className="flex-1">
-                <p className="text-3xl font-bold text-gray-900">
-                  EGP {final.toFixed(2)}
-                </p>
-                {discountPercentage > 0 && (
-                  <div className="mt-1 flex items-center gap-2">
-                    <span className="text-lg text-gray-500 line-through">
-                      EGP {original.toFixed(2)}
+            {/* Price Section */}
+            <div className="space-y-2">
+              <div className="flex items-baseline gap-4">
+                <span className="text-3xl font-bold text-gray-900">
+                  egp{prices.finalPrice.toFixed(2)}
+                </span>
+                {prices.discountPercentage > 0 && (
+                  <>
+                    <span className="text-xl text-gray-500 line-through">
+                      egp{prices.originalPrice.toFixed(2)}
                     </span>
                     <span className="text-sm font-medium text-green-600">
-                      {discountPercentage}% OFF
+                      Save {prices.discountPercentage}%
                     </span>
-                  </div>
+                  </>
                 )}
+              </div>
+              
+              {/* Payment Options */}
+              <div className="text-sm text-gray-600">
+              </div>
+            </div>
+
+            {/* Color Selection */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-gray-900">Color: {currentColor}</h3>
+                <span className="text-sm text-gray-500">
+                  {data.availableColors?.length || 0} colors available
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {data.availableColors?.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => setCurrentColor(color)}
+                    className={`
+                      w-12 h-12 rounded-full relative
+                      ${currentColor === color 
+                        ? 'ring-2 ring-offset-2 ring-blue-500' 
+                        : 'ring-1 ring-gray-200'
+                      }
+                      transition-all duration-200 transform
+                      hover:scale-110
+                    `}
+                    style={{ backgroundColor: color }}
+                    aria-label={`Select ${color} color`}
+                  >
+                    {currentColor === color && (
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <svg 
+                          className={`w-6 h-6 ${
+                            ['white', 'yellow', 'beige'].includes(color) 
+                              ? 'text-gray-900' 
+                              : 'text-white'
+                          }`} 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth="2" 
+                            d="M5 13l4 4L19 7" 
+                          />
+                        </svg>
+                      </span>
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
 
             {/* Size Selection */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-900">Size</h3>
-              <div className="mt-2 grid grid-cols-4 gap-2">
-                {['S', 'M', 'L', 'XL'].map((size) => (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-gray-900">Size</h3>
+                <button
+                  onClick={() => setShowSizeGuide(true)}
+                  className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                >
+                  Size Guide
+                </button>
+              </div>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {availableSizes.map((size) => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
-                    className={`py-2 rounded-lg text-sm font-medium ${
-                      selectedSize === size
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                    }`}
+                    className={`
+                      py-3 px-4 rounded-md text-sm font-medium
+                      ${selectedSize === size
+                        ? 'bg-gray-900 text-white'
+                        : 'bg-gray-50 text-gray-900 hover:bg-gray-100'
+                      }
+                      transition-all duration-200
+                      ${size === 'OUT' ? 'opacity-50 cursor-not-allowed' : ''}
+                    `}
+                    disabled={size === 'OUT'}
                   >
                     {size}
                   </button>
@@ -307,22 +415,29 @@ const ProductDetails = ({ data }) => {
               </div>
             </div>
 
-            {/* Quantity */}
-            <div className="flex items-center gap-4">
-              <label className="text-sm font-medium text-gray-900">
-                Quantity
-              </label>
-              <div className="flex items-center border rounded-lg">
+            {/* Quantity Selector */}
+            <div className="flex items-center space-x-4">
+              <h3 className="text-sm font-medium text-gray-900">Quantity</h3>
+              <div className="flex items-center border rounded-md">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-3 py-1 hover:bg-gray-100"
+                  className="px-4 py-2 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
                 >
                   -
                 </button>
-                <span className="px-4 py-1 border-x">{quantity}</span>
+                <input
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    if (val > 0) setQuantity(val);
+                  }}
+                  className="w-12 text-center border-x py-2 text-gray-900"
+                />
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="px-3 py-1 hover:bg-gray-100"
+                  className="px-4 py-2 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
                 >
                   +
                 </button>
@@ -330,60 +445,96 @@ const ProductDetails = ({ data }) => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4">
+            <div className="space-y-3">
               <button
                 onClick={handleAddToCart}
                 disabled={isLoading}
-                className={`flex-1 py-3 px-6 rounded-lg text-white font-medium
+                className={`
+                  w-full py-4 px-6 rounded-lg
+                  flex items-center justify-center gap-2
                   ${isLoading
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-500 hover:bg-blue-600'}
+                    : 'bg-blue-600 hover:bg-blue-700'}
+                  text-white font-medium
+                  transition-colors duration-200
                 `}
               >
                 {isLoading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mx-auto" />
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
                 ) : (
                   <>
-                    <AiOutlineShoppingCart className="inline-block mr-2" />
+                    <AiOutlineShoppingCart className="w-5 h-5" />
                     Add to Cart
                   </>
                 )}
               </button>
 
-              <button
-                onClick={handleWishlist}
-                className="p-3 rounded-lg border hover:bg-gray-50"
-              >
-                {isInWishlist ? (
-                  <AiFillHeart className="text-red-500" size={24} />
-                ) : (
-                  <AiOutlineHeart size={24} />
-                )}
-              </button>
-
-              {data.shop && (
+              <div className="flex gap-2">
                 <button
-                  onClick={() => {
-                    if (!isAuthenticated) {
-                      toast.error("Please login to message seller");
-                      return;
-                    }
-                    navigate(`/inbox?shop=${data.shop._id}`);
-                  }}
-                  className="p-3 rounded-lg border hover:bg-gray-50"
+                  onClick={handleWishlist}
+                  className={`
+                    flex-1 py-3 px-6 rounded-lg
+                    flex items-center justify-center gap-2
+                    ${isInWishlist ? 'bg-red-50 text-red-600' : 'bg-gray-50 text-gray-900'}
+                    hover:bg-gray-100
+                    transition-colors duration-200
+                  `}
                 >
-                  <AiOutlineMessage size={24} />
+                  {isInWishlist ? (
+                    <AiFillHeart className="w-5 h-5" />
+                  ) : (
+                    <AiOutlineHeart className="w-5 h-5" />
+                  )}
+                  Wishlist
                 </button>
-              )}
-            </div>
 
-            {/* Description */}
-            <div className="mt-8">
-              <h3 className="text-lg font-medium text-gray-900">Description</h3>
-              <div className="mt-4 prose prose-sm text-gray-500">
-                {data.Description}
+                {data.shop && (
+                  <button
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        toast.error("Please login to message seller");
+                        return;
+                      }
+                      navigate(`/inbox?shop=${data.shop._id}`);
+                    }}
+                    className="
+                      flex-1 py-3 px-6 rounded-lg
+                      flex items-center justify-center gap-2
+                      bg-gray-50 text-gray-900
+                      hover:bg-gray-100
+                      transition-colors duration-200
+                    "
+                  >
+                    <AiOutlineMessage className="w-5 h-5" />
+                    Message Seller
+                  </button>
+                )}
               </div>
             </div>
+
+            {/* Product Details Accordion */}
+            <div className="border-t pt-6 space-y-6">
+              <Accordion title="Product Description">
+                <p className="text-gray-600">{data.Description}</p>
+              </Accordion>
+
+              <Accordion title="Shipping Information">
+                <div className="space-y-2 text-gray-600">
+                  <p>• Free shipping on orders over 1000egp</p>
+                  <p>• Estimated delivery: 5-7 business days</p>
+                  <p>• International shipping available</p>
+                </div>
+              </Accordion>
+
+              <Accordion title="Return Policy">
+                <div className="space-y-2 text-gray-600">
+                  <p>• 30-day return policy</p>
+                  <p>• Items must be unworn with original tags</p>
+                  <p>• See our full return policy for details</p>
+                </div>
+              </Accordion>
+            </div>
+          </div>
           </div>
         </div>
       </div>

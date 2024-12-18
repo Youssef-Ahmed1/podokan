@@ -1,3 +1,4 @@
+// pages/ProductDetailsPage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import Footer from "../components/Layout/Footer";
@@ -11,44 +12,70 @@ const ProductDetailsPage = () => {
   const { allEvents } = useSelector((state) => state.events);
   const { id } = useParams();
   const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const eventData = searchParams.get("isEvent");
 
   useEffect(() => {
-    try {
-      if (eventData !== null) {
-        const eventItem = allEvents && allEvents.find((i) => i._id === id);
-        setData(eventItem);
-      } else {
-        // Show all products with public status, regardless of visibility
-        const product = allProducts && allProducts.find(
-          (i) => i._id === id && i.status === 'public'
-        );
-        
-        if (product) {
-          setData(product);
+    window.scrollTo(0, 0); // Scroll to top when component mounts
+    
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        if (eventData !== null) {
+          const event = allEvents?.find((i) => i._id === id);
+          setData(event || null);
+        } else {
+          const product = allProducts?.find(
+            (i) => i._id === id && i.status === 'public'
+          );
+          setData(product || null);
         }
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error('Error loading product:', err);
-    }
+    };
+
+    loadData();
   }, [allProducts, allEvents, id, eventData]);
 
+  // Meta tags for SEO
+  useEffect(() => {
+    if (data) {
+      document.title = `${data.name || data.DesignTitle} | Your Store Name`;
+      // Update meta description
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', data.Description || '');
+      }
+    }
+  }, [data]);
+
   return (
-    <div>
+    <div className="bg-gray-50 min-h-screen">
       <Header />
-      {data ? (
+      {isLoading ? (
+        <div className="min-h-[70vh] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+        </div>
+      ) : !data ? (
+        <div className="min-h-[70vh] flex flex-col items-center justify-center p-4">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+            Product Not Found
+          </h2>
+          <p className="text-gray-600 text-center max-w-md">
+            The product you're looking for might have been removed or is temporarily unavailable.
+          </p>
+        </div>
+      ) : (
         <>
           <ProductDetails data={data} />
           {!eventData && <SuggestedProduct data={data} />}
         </>
-      ) : (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-        </div>
       )}
       <Footer />
     </div>
   );
 };
+
 export default ProductDetailsPage;
