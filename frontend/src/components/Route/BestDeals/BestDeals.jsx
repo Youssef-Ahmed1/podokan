@@ -3,10 +3,12 @@ import { useSelector } from "react-redux";
 import styles from "../../../styles/styles";
 import ProductCard from "../ProductCard/ProductCard";
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper';
+// Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+// Import required modules
+import { Navigation as SwiperNavigation, Pagination as SwiperPagination, Autoplay } from 'swiper/modules';
 import { categoriesData } from "../../../static/data";
 import { motion } from "framer-motion";
 import Skeleton from 'react-loading-skeleton';
@@ -49,10 +51,10 @@ const BestDeals = () => {
             {/* Category Navigation */}
             <div className="w-full md:w-auto">
               <Swiper
-                modules={[Navigation, Pagination, Autoplay]}
+                modules={[SwiperNavigation, SwiperPagination, Autoplay]}
                 spaceBetween={10}
                 slidesPerView="auto"
-                navigation
+                navigation={true}
                 className="category-swiper"
               >
                 <SwiperSlide>
