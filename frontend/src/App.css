@@ -80,6 +80,30 @@ input::-webkit-inner-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }/* Tailwind CSS */
+/* Product card animations */
+.product-card-enter {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.product-card-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: all 300ms ease-in-out;
+}
+
+.product-card-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.product-card-exit-active {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 300ms ease-in-out;
+}
+
+/* Category swiper styles */
 .category-swiper {
   width: 100%;
   padding: 10px 0;
@@ -110,4 +134,25 @@ input[type=number] {
 
 .swiper-pagination-bullet {
   background: #6366F1 !important;
+}
+
+/* Skeleton loading animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #2A2A3C 25%,
+    #3D3D56 50%,
+    #2A2A3C 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }
