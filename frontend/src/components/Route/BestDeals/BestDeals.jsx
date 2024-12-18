@@ -7,7 +7,7 @@ import { Navigation, Pagination, Autoplay } from 'swiper';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import { categoriesData } from "../../static/data";
+import { categoriesData } from "../../../static/data";
 import { motion } from "framer-motion";
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
