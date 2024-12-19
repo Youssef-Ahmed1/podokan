@@ -42,7 +42,7 @@ const ProductDetailsPage = () => {
   // Meta tags for SEO
   useEffect(() => {
     if (data) {
-      document.title = `${data.name || data.DesignTitle} | Your Store Name`;
+      document.title = `${data.name || data.DesignTitle} | Podokan`;
       // Update meta description
       const metaDescription = document.querySelector('meta[name="description"]');
       if (metaDescription) {
