@@ -1,27 +1,27 @@
-import React from 'react'
+// src/pages/HomePage.jsx
+import React from 'react';
 import Header from "../components/Layout/Header";
-import Hero from "../components/Route/Hero/Hero";
 import BestDeals from "../components/Route/BestDeals/BestDeals";
 import FeaturedProduct from "../components/Route/FeaturedProduct/FeaturedProduct";
-// import Events from "../components/Events/Events";
-import Sponsored from "../components/Route/Sponsored";
 import Footer from "../components/Layout/Footer";
-import ArtistSign from "../../src/components/Layout/artistsignup";
-import CategoryFinder from '../components/Route/CategoryFinder/CategoryFinder'
+import ArtistSign from "../components/Layout/artistsignup";
+import CategoryFinder from '../components/Route/CategoryFinder/CategoryFinder';
 
 const HomePage = () => {
   return (
-    <div>
+    <div className="min-h-screen bg-[#F6F6F5]">
       <Header activeHeading={1} />
-      <div className="bg-[#151523] rounded-b-lg">
+      <div className="bg-[#151523]">
         <ArtistSign/>
       </div>
-      <CategoryFinder /> {/* Add it here */}
-      <BestDeals />
-      <FeaturedProduct />
+      <CategoryFinder />
+      <div className="max-w-[1200px] mx-auto">
+        <BestDeals />
+        <FeaturedProduct />
+      </div>
       <Footer />
     </div>
   );
 };
 
-export default HomePage
+export default HomePage;

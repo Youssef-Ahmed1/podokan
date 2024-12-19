@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import ProductCard from '../../Route/ProductCard/ProductCard';
+import { motion } from 'framer-motion';
+import ProductCard from '../ProductCard/ProductCard';
 
 const CategoryFinder = () => {
   const categories = [
@@ -60,32 +61,39 @@ const CategoryFinder = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   useEffect(() => {
-    if (selectedCategory) {
+    if (selectedCategory && allProducts) {
       const filtered = allProducts.filter(product => 
         product.category === selectedCategory && product.status === 'public'
       );
-      setFilteredProducts(filtered);
+      setFilteredProducts(filtered.slice(0, 8)); 
     }
   }, [selectedCategory, allProducts]);
 
   return (
     <section className="bg-[#151523] text-white py-12">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-[1200px] mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-8">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
             Find Your Perfect Style Match
           </h1>
           <p className="text-lg text-gray-300">
             Choose your vibe and discover designs made just for you
           </p>
-        </div>
+        </motion.div>
 
-        {/* Categories */}
+        {/* Categories Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 mb-12">
-          {categories.map((category) => (
-            <button
+          {categories.map((category, index) => (
+            <motion.button
               key={category.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
               onClick={() => setSelectedCategory(category.id)}
               className={`relative group p-4 rounded-xl transition-all duration-300
                 ${selectedCategory === category.id 
@@ -100,32 +108,44 @@ const CategoryFinder = () => {
                   {category.name}
                 </span>
               </div>
-              {selectedCategory === category.id && (
-                <div className="absolute inset-0 rounded-xl animate-border" />
-              )}
               
               {/* Tooltip */}
               <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300
                 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 text-sm
-                bg-black text-white rounded pointer-events-none whitespace-nowrap">
+                bg-black text-white rounded pointer-events-none whitespace-nowrap z-10">
                 {category.description}
               </div>
-            </button>
+            </motion.button>
           ))}
         </div>
 
         {/* Products Grid */}
         {selectedCategory && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard key={product._id} data={product} />
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+          >
+            {filteredProducts.map((product, index) => (
+              <motion.div
+                key={product._id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <ProductCard data={product} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
 
         {/* View All Button */}
         {selectedCategory && filteredProducts.length > 0 && (
-          <div className="text-center mt-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mt-8"
+          >
             <Link 
               to={`/products?category=${selectedCategory}`}
               className="inline-block bg-[#6366F1] hover:bg-[#5558E8] text-white px-8 py-3 rounded-lg 
@@ -133,7 +153,7 @@ const CategoryFinder = () => {
             >
               View All Designs
             </Link>
-          </div>
+          </motion.div>
         )}
       </div>
     </section>
