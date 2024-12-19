@@ -1,9 +1,8 @@
-// src/components/Products/ProductDetailsCard.jsx
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
-import { addTocart } from "../../redux/actions/cart";
-import Ratings from "../Ratings/Ratings";
+import { addTocart } from "../../../redux/actions/cart";
+import Ratings from "../../../components/Products/Ratings";
 import { motion } from "framer-motion";
 import styles from "../../styles/styles";
 
