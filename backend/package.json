@@ -11,8 +11,8 @@
     "start": "node server.js",
     "test:email": "node scripts/test-email.js"
   },
-  "author": "youssef-ah",
-  "license": "ISC",
+  "author": "youssef-ahmed",
+  "license": "MIT",
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.7",
     "all": "^0.0.0",
