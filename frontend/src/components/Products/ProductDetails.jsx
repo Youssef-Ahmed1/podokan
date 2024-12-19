@@ -1,13 +1,16 @@
-// components/Products/ProductDetails.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Helmet } from "react-helmet";
 import {
   AiFillHeart,
   AiOutlineHeart,
-  AiOutlineMessage,
   AiOutlineShoppingCart,
   AiOutlineShareAlt,
+  AiOutlineArrowLeft,
+  AiOutlineMinus,
+  AiOutlinePlus,
 } from "react-icons/ai";
 import { toast } from "react-toastify";
 import { addToWishlist, removeFromWishlist } from "../../redux/actions/wishlist";
@@ -15,6 +18,7 @@ import { addTocart } from "../../redux/actions/cart";
 import Ratings from "./Ratings";
 
 const ProductDetails = ({ data }) => {
+  const { slug } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { wishlist } = useSelector((state) => state.wishlist);
@@ -22,68 +26,120 @@ const ProductDetails = ({ data }) => {
   const { isAuthenticated } = useSelector((state) => state.user);
 
   const [currentView, setCurrentView] = useState('front');
-  const [currentColor, setCurrentColor] = useState(data?.ProductColor || 'white');
+  const [currentColor, setCurrentColor] = useState('white');
   const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [mockupLoaded, setMockupLoaded] = useState(false);
-  const [designLoaded, setDesignLoaded] = useState(false);
+  const [error, setError] = useState(null);
+  const [showZoom, setShowZoom] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  useEffect(() => {
-    if (data?.availableColors?.length > 0) {
-      setCurrentColor(data.availableColors[0]);
-    }
-  }, [data]);
+  // Available options
+  const SIZES = ['S', 'M', 'L', 'XL', '2XL'];
+  const COLORS = {
+    white: 'White',
+    black: 'Black',
+    navy: 'Navy Blue',
+    gray: 'Heather Gray'
+  };
 
-  const getMockupUrl = useCallback(() => {
-    if (!data) return '';
-    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-    return `${baseUrl}v1/hoodies/hoodie-${currentColor}-${currentView}.png`;
-  }, [currentColor, currentView]);
+  // Animation variants
+  const pageTransition = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 }
+  };
 
+  const buttonVariants = {
+    initial: { scale: 1 },
+    hover: { scale: 1.05 },
+    tap: { scale: 0.95 }
+  };
+
+  // URL formatting functions
+  const formatForURL = useCallback((string) => {
+    if (!string) return '';
+    return string
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  }, []);
+
+  const getFormattedProductURL = useCallback(() => {
+    if (!data?.DesignTitle) return '';
+    const baseURL = window.location.origin;
+    const formattedTitle = formatForURL(data.DesignTitle);
+    return `${baseURL}/p/${formattedTitle}`;
+  }, [data, formatForURL]);
+
+  // Price calculation
   const calculatePrice = useCallback(() => {
     if (!data) return { original: 0, final: 0, discount: 0 };
-
     const original = parseFloat(data.originalPrice) || 0;
     const discount = data.discountPrice ? parseFloat(data.discountPrice) : null;
     const final = discount || original;
     const discountPercentage = discount 
       ? Math.round(((original - discount) / original) * 100) 
       : 0;
-
     return { original, final, discountPercentage };
   }, [data]);
 
-  const handleViewChange = useCallback((view) => {
-    setMockupLoaded(false);
-    setDesignLoaded(false);
-    setCurrentView(view);
-  }, []);
+  // Initialize and validate data
+  useEffect(() => {
+    if (data) {
+      if (data.availableColors?.length > 0) {
+        setCurrentColor(data.availableColors[0]);
+      }
+      const correctSlug = formatForURL(data.DesignTitle);
+      if (slug !== correctSlug) {
+        navigate(`/p/${correctSlug}`, { replace: true });
+      }
+    }
+  }, [data, slug, navigate, formatForURL]);
 
-  const handleColorChange = useCallback((color) => {
-    setMockupLoaded(false);
-    setDesignLoaded(false);
-    setCurrentColor(color);
-  }, []);
+  // Image URL generation
+  const getMockupUrl = useCallback(() => {
+    if (!data) return '';
+    return `${process.env.REACT_APP_MOCKUP_BASE_URL}/hoodies/hoodie-${currentColor}-${currentView}.png`;
+  }, [currentColor, currentView, data]);
+
+  const getDesignUrl = useCallback(() => {
+    if (!data?.designImage?.url) return '';
+    return data.designImage.url;
+  }, [data]);
+
+  // Handlers
+  const handleQuantityChange = (change) => {
+    const newQty = quantity + change;
+    if (newQty >= 1 && newQty <= 10) {
+      setQuantity(newQty);
+    }
+  };
 
   const handleShare = async () => {
     try {
+      const shareUrl = getFormattedProductURL();
+      const shareData = {
+        title: data.DesignTitle,
+        text: `Check out this ${data.DesignTitle} on PODokan!`,
+        url: shareUrl
+      };
+
       if (navigator.share) {
-        await navigator.share({
-          title: data.DesignTitle,
-          text: data.Description,
-          url: window.location.href,
-        });
+        await navigator.share(shareData);
       } else {
-        await navigator.clipboard.writeText(window.location.href);
+        await navigator.clipboard.writeText(shareUrl);
         toast.success('Link copied to clipboard!');
       }
     } catch (error) {
       console.error('Error sharing:', error);
+      toast.error('Failed to share product');
     }
   };
 
-  const handleAddToCart = useCallback(async () => {
+  const handleAddToCart = async () => {
     if (!isAuthenticated) {
       toast.error("Please login to add items to cart");
       return;
@@ -123,18 +179,9 @@ const ProductDetails = ({ data }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [
-    isAuthenticated, 
-    selectedSize, 
-    currentColor, 
-    quantity, 
-    data, 
-    dispatch, 
-    cart, 
-    calculatePrice
-  ]);
+  };
 
-  const handleWishlist = useCallback(() => {
+  const handleWishlist = () => {
     if (!isAuthenticated) {
       toast.error("Please login to add items to wishlist");
       return;
@@ -148,177 +195,181 @@ const ProductDetails = ({ data }) => {
       dispatch(addToWishlist(data));
       toast.success("Item added to wishlist");
     }
-  }, [isAuthenticated, wishlist, data, dispatch]);
+  };
 
-  if (!data) return null;
+  // Handle image zoom
+  const handleMouseMove = (e) => {
+    if (!showZoom) return;
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.pageX - left) / width) * 100;
+    const y = ((e.pageY - top) / height) * 100;
+    setMousePosition({ x, y });
+  };
+
+  // Error and loading states
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{error}</h2>
+          <button
+            onClick={() => navigate('/')}
+            className="text-blue-500 hover:text-blue-600"
+          >
+            Return to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data || !data.DesignTitle) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   const { original, final, discountPercentage } = calculatePrice();
   const isInWishlist = wishlist?.find((item) => item._id === data._id);
 
   return (
-    <div className="bg-white">
+    <motion.div
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={pageTransition}
+      className="bg-white"
+    >
+      <Helmet>
+        <title>{`${data.DesignTitle} | PODokan`}</title>
+        <meta name="description" content={data.Description} />
+        <meta property="og:title" content={data.DesignTitle} />
+        <meta property="og:description" content={data.Description} />
+        <meta property="og:image" content={getDesignUrl()} />
+        <meta property="og:url" content={getFormattedProductURL()} />
+        <link rel="canonical" href={getFormattedProductURL()} />
+      </Helmet>
+
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Back button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-6 flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <AiOutlineArrowLeft className="mr-2" />
+          Back
+        </button>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Product Image Section */}
           <div className="relative">
-            {/* Loading Overlay */}
-            {(!mockupLoaded || !designLoaded) && (
-              <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-              </div>
-            )}
-
-            {/* Main Product Image */}
-            <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+            <div 
+              className="relative aspect-square overflow-hidden rounded-lg bg-gray-100"
+              onMouseEnter={() => setShowZoom(true)}
+              onMouseLeave={() => setShowZoom(false)}
+              onMouseMove={handleMouseMove}
+            >
               <img
                 src={getMockupUrl()}
-                alt={`Hoodie ${currentColor} ${currentView}`}
-                className={`w-full h-full object-contain transition-opacity duration-300 ${
-                  mockupLoaded ? 'opacity-100' : 'opacity-0'
-                }`}
-                onLoad={() => setMockupLoaded(true)}
+                alt={`${data.DesignTitle} ${currentView} view`}
+                className="w-full h-full object-cover"
+                style={showZoom ? {
+                  transform: 'scale(2)',
+                  transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`
+                } : {}}
               />
-
-              {mockupLoaded && data.designImage && (
-                <div
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                  style={{
-                    width: '200px',
-                    height: '200px',
-                    transform: `translate(-50%, -50%) scale(${data.DesignScale || 1})`
-                  }}
-                >
-                  <img
-                    src={data.designImage?.url || data.designImage}
-                    alt="Design"
-                    className={`w-full h-full object-contain transition-opacity duration-300 ${
-                      designLoaded ? 'opacity-100' : 'opacity-0'
-                    }`}
-                    onLoad={() => setDesignLoaded(true)}
-                    style={{
-                      mixBlendMode: currentColor === 'white' ? 'multiply' : 'screen'
-                    }}
-                  />
-                </div>
-              )}
+              <img
+                src={getDesignUrl()}
+                alt={`${data.DesignTitle} design`}
+                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/3"
+              />
             </div>
 
-            {/* View Controls */}
+            {/* View toggles */}
             <div className="mt-4 flex justify-center gap-4">
-              <button
-                onClick={() => handleViewChange('front')}
-                className={`px-6 py-2 rounded-lg transition-all duration-200 ${
-                  currentView === 'front' 
-                    ? 'bg-blue-500 text-white shadow-md' 
-                    : 'bg-gray-100 hover:bg-gray-200'
-                }`}
-              >
-                Front View
-              </button>
-              <button
-                onClick={() => handleViewChange('back')}
-                className={`px-6 py-2 rounded-lg transition-all duration-200 ${
-                  currentView === 'back' 
-                    ? 'bg-blue-500 text-white shadow-md' 
-                    : 'bg-gray-100 hover:bg-gray-200'
-                }`}
-              >
-                Back View
-              </button>
-            </div>
-
-            {/* Color Selection */}
-            <div className="mt-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-gray-900">Colors</h3>
-                <span className="text-sm text-gray-500">
-                  {data.availableColors?.length} colors available
-                </span>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {data.availableColors?.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => handleColorChange(color)}
-                    className={`
-                      w-10 h-10 rounded-full relative
-                      transition-all duration-200
-                      ${currentColor === color 
-                        ? 'ring-2 ring-offset-2 ring-blue-500' 
-                        : 'ring-1 ring-gray-200 hover:ring-gray-300'
-                      }
-                    `}
-                    style={{ backgroundColor: color }}
-                    title={color}
-                  />
-                ))}
-              </div>
+              {['front', 'back'].map((view) => (
+                <button
+                  key={view}
+                  onClick={() => setCurrentView(view)}
+                  className={`px-4 py-2 rounded-md capitalize ${
+                    currentView === view
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                  }`}
+                >
+                  {view} View
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Product Details Section */}
-          <div className="space-y-6">
-            <div>
-              <div className="flex items-start justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">{data.DesignTitle}</h1>
-                  <div className="mt-2 flex items-center gap-4">
-                    <Ratings rating={data.ratings} />
-                    <span className="text-sm text-gray-500">
-                      ({data.reviews?.length || 0} reviews)
-                    </span>
-                  </div>
-                </div>
-                <button
-                  onClick={handleShare}
-                  className="p-2 rounded-full hover:bg-gray-100"
-                  aria-label="Share product"
-                >
-                  <AiOutlineShareAlt className="w-6 h-6" />
-                </button>
-              </div>
+          <div className="flex flex-col">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              {data.DesignTitle}
+            </h1>
+
+            <div className="flex items-center mb-4">
+              <Ratings rating={data.rating || 4.5} />
+              <span className="ml-2 text-gray-600">
+                ({data.numReviews || 0} reviews)
+              </span>
             </div>
 
             {/* Price */}
-            <div className="flex items-end gap-4">
-              <div className="flex-1">
-                <p className="text-3xl font-bold text-gray-900">
-                  EGP {final.toFixed(2)}
-                </p>
+            <div className="mb-6">
+              <div className="flex items-center">
+                <span className="text-3xl font-bold text-gray-900">
+                  ${final.toFixed(2)}
+                </span>
                 {discountPercentage > 0 && (
-                  <div className="mt-1 flex items-center gap-2">
-                    <span className="text-lg text-gray-500 line-through">
-                      EGP {original.toFixed(2)}
+                  <>
+                    <span className="ml-2 text-lg text-gray-500 line-through">
+                      ${original.toFixed(2)}
                     </span>
-                    <span className="px-2 py-1 text-sm font-medium text-green-600 bg-green-50 rounded-full">
-                      Save {discountPercentage}%
+                    <span className="ml-2 text-green-600">
+                      {discountPercentage}% OFF
                     </span>
-                  </div>
+                  </>
                 )}
               </div>
             </div>
 
-            {/* Size Selection */}
-            <div>
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-gray-900">Size</h3>
-                <button className="text-sm text-blue-500 hover:text-blue-600">
-                  Size Guide
-                </button>
+            {/* Color Selection */}
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-gray-900 mb-2">Color</h3>
+              <div className="flex gap-2">
+                {Object.entries(COLORS).map(([color, label]) => (
+                  <button
+                    key={color}
+                    onClick={() => setCurrentColor(color)}
+                    className={`w-8 h-8 rounded-full border-2 ${
+                      currentColor === color
+                        ? 'border-blue-500'
+                        : 'border-gray-300'
+                    }`}
+                    style={{ backgroundColor: color }}
+                    title={label}
+                  />
+                ))}
               </div>
-              <div className="mt-2 grid grid-cols-4 gap-2">
-                {['S', 'M', 'L', 'XL'].map((size) => (
+            </div>
+
+            {/* Size Selection */}
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-gray-900 mb-2">Size</h3>
+              <div className="grid grid-cols-5 gap-2">
+                {SIZES.map((size) => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
-                    className={`
-                      py-3 rounded-lg text-sm font-medium
-                      transition-all duration-200
-                      ${selectedSize === size
-                        ? 'bg-blue-500 text-white shadow-md'
+                    className={`py-2 text-center rounded-md ${
+                      selectedSize === size
+                        ? 'bg-gray-900 text-white'
                         : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                      }
-                    `}
+                    }`}
                   >
                     {size}
                   </button>
@@ -327,110 +378,75 @@ const ProductDetails = ({ data }) => {
             </div>
 
             {/* Quantity */}
-            <div className="flex items-center gap-4">
-              <label className="text-sm font-medium text-gray-900">
-                Quantity
-              </label>
-              <div className="flex items-center border rounded-lg overflow-hidden">
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-gray-900 mb-2">Quantity</h3>
+              <div className="flex items-center border rounded-md w-32">
                 <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-4 py-2 hover:bg-gray-100 transition-colors"
+                  onClick={() => handleQuantityChange(-1)}
+                  className="px-3 py-2 hover:bg-gray-100"
                 >
-                  -
+                  <AiOutlineMinus />
                 </button>
-                <input
-                  type="number"
-                  min="1"
-                  value={quantity}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value);
-                    if (val > 0) setQuantity(val);
-                  }}
-                  className="w-16 text-center border-x py-2"
-                />
+                <span className="flex-1 text-center">{quantity}</span>
                 <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="px-4 py-2 hover:bg-gray-100 transition-colors"
+                  onClick={() => handleQuantityChange(1)}
+                  className="px-3 py-2 hover:bg-gray-100"
                 >
-                  +
+                  <AiOutlinePlus />
                 </button>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4">
-              <button
+            <div className="flex gap-4 mb-6">
+              <motion.button
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
                 onClick={handleAddToCart}
                 disabled={isLoading}
-                className={`
-                  flex-1 py-3 px-6 rounded-lg
-                  text-white font-medium
-                  transition-all duration-200
-                  ${isLoading
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-500 hover:bg-blue-600 hover:shadow-lg'
-                  }
-                `}
+                className="flex-1 bg-blue-600 text-white py-3 rounded-md flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50"
               >
-                {isLoading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mx-auto" />
-                ) : (
-                  <>
-                    <AiOutlineShoppingCart className="inline-block mr-2" />
-                    Add to Cart
-                  </>
-                )}
-              </button>
+                <AiOutlineShoppingCart size={20} />
+                {isLoading ? 'Adding...' : 'Add to Cart'}
+              </motion.button>
 
-              <button
+              <motion.button
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
                 onClick={handleWishlist}
-                className={`
-                  p-3 rounded-lg border
-                  transition-all duration-200
-                  ${isInWishlist 
-                    ? 'bg-red-50 border-red-200 text-red-500' 
-                    : 'hover:bg-gray-50'
-                  }
-                `}
+                className="p-3 rounded-md border border-gray-300 hover:bg-gray-50"
               >
                 {isInWishlist ? (
-                  <AiFillHeart size={24} />
+                  <AiFillHeart size={20} className="text-red-500" />
                 ) : (
-                  <AiOutlineHeart size={24} />
+                  <AiOutlineHeart size={20} />
                 )}
-              </button>
+              </motion.button>
 
-              {data.shop && (
-                <button
-                  onClick={() => {
-                    if (!isAuthenticated) {
-                      toast.error("Please login to message seller");
-                      return;
-                    }
-                    navigate(`/inbox?shop=${data.shop._id}`);
-                  }}
-                  className="
-                    p-3 rounded-lg border
-                    hover:bg-gray-50
-                    transition-all duration-200
-                  "
-                >
-                  <AiOutlineMessage size={24} />
-                </button>
-              )}
+              <motion.button
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+                onClick={handleShare}
+                className="p-3 rounded-md border border-gray-300 hover:bg-gray-50"
+              >
+                <AiOutlineShareAlt size={20} />
+              </motion.button>
             </div>
 
             {/* Description */}
-            <div className="mt-8 border-t pt-6">
-              <h3 className="text-lg font-medium text-gray-900">Description</h3>
-              <div className="mt-4 prose prose-sm text-gray-600">
-                {data.Description}
-              </div>
+            <div className="prose prose-sm max-w-none">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Description
+              </h3>
+              <p className="text-gray-600">{data.Description}</p>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
