@@ -1,77 +1,100 @@
-// pages/ProductDetailsPage.jsx
+// src/pages/ProductDetailsPage.jsx
 import React, { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Footer from "../components/Layout/Footer";
 import Header from "../components/Layout/Header";
 import ProductDetails from "../components/Products/ProductDetails";
 import SuggestedProduct from "../components/Products/SuggestedProduct";
 import { useSelector } from "react-redux";
+import Loader from "../components/Layout/Loader";
+import axios from "axios";
+import { server } from "../server";
 
 const ProductDetailsPage = () => {
   const { allProducts } = useSelector((state) => state.products);
-  const { allEvents } = useSelector((state) => state.events);
   const { id } = useParams();
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchParams] = useSearchParams();
-  const eventData = searchParams.get("isEvent");
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    window.scrollTo(0, 0); // Scroll to top when component mounts
-    
-    const loadData = async () => {
+    const fetchData = async () => {
       setIsLoading(true);
       try {
-        if (eventData !== null) {
-          const event = allEvents?.find((i) => i._id === id);
-          setData(event || null);
-        } else {
-          const product = allProducts?.find(
-            (i) => i._id === id && i.status === 'public'
-          );
-          setData(product || null);
-        }
+        const response = await axios.get(`${server}/product/get-product/${id}`);
+        setData(response.data.product);
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to fetch product details");
+        toast.error(err.response?.data?.message || "Failed to fetch product details");
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadData();
-  }, [allProducts, allEvents, id, eventData]);
+    fetchData();
+  }, [id]);
 
-  // Meta tags for SEO
-  useEffect(() => {
-    if (data) {
-      document.title = `${data.name || data.DesignTitle} | Podokan`;
-      // Update meta description
-      const metaDescription = document.querySelector('meta[name="description"]');
-      if (metaDescription) {
-        metaDescription.setAttribute('content', data.Description || '');
-      }
-    }
-  }, [data]);
+  // Find related products based on main tag
+  const suggestedProducts = allProducts?.filter(
+    (product) => 
+      product._id !== id && 
+      product.Maintag === data?.Maintag &&
+      product.status === 'public' &&
+      product.visibility === 'public'
+  ).slice(0, 4);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <p className="text-red-500 mb-4">{error}</p>
+        <button 
+          onClick={() => navigate(-1)}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Go Back
+        </button>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <p className="text-gray-500 mb-4">Product not found</p>
+        <button 
+          onClick={() => navigate(-1)}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Go Back
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div>
       <Header />
-      {isLoading ? (
-        <div className="min-h-[70vh] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-        </div>
-      ) : !data ? (
-        <div className="min-h-[70vh] flex flex-col items-center justify-center p-4">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            Product Not Found
+      <ProductDetails data={data} />
+      {suggestedProducts?.length > 0 && (
+        <div className="p-4">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">
+            Related Products
           </h2>
-          <p className="text-gray-600 text-center max-w-md">
-            The product you're looking for might have been removed or is temporarily unavailable.
-          </p>
+          <div className="grid grid-cols-1 gap-[20px] md:grid-cols-2 md:gap-[25px] lg:grid-cols-4 lg:gap-[25px] xl:grid-cols-4 xl:gap-[30px] mb-12">
+            {suggestedProducts.map((product) => (
+              <SuggestedProduct key={product._id} data={product} />
+            ))}
+          </div>
         </div>
-      ) : (
-        <>
-          <ProductDetails data={data} />
-          {!eventData && <SuggestedProduct data={data} />}
-        </>
       )}
       <Footer />
     </div>

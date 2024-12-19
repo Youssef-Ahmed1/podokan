@@ -1,340 +1,443 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { motion, AnimatePresence } from "framer-motion";
-import { useInView } from "react-intersection-observer";
-import { toast } from "react-toastify";
-import {
-  AiOutlineHeart,
-  AiFillHeart,
-  AiOutlineShoppingCart,
-  AiOutlineMinus,
-  AiOutlinePlus,
-  AiOutlineShareAlt,
-} from "react-icons/ai";
-import { addToWishlist, removeFromWishlist } from "../../redux/actions/wishlist";
 import { addTocart } from "../../redux/actions/cart";
+import { addToWishlist, removeFromWishlist } from "../../redux/actions/wishlist";
+import { toast } from "react-toastify";
+import Ratings from "../Ratings/Ratings";
+import styles from "../../styles/styles";
+import { 
+  AiFillHeart, 
+  AiOutlineHeart, 
+  AiOutlineShoppingCart, 
+  AiOutlineShare 
+} from "react-icons/ai";
+import { 
+  FaFacebook, 
+  FaTwitter, 
+  FaPinterest, 
+  FaLinkedin, 
+  FaInstagram, 
+  FaTelegram, 
+  FaSnapchat 
+} from "react-icons/fa";
+import { IoCopy } from "react-icons/io5";
 
 const ProductDetails = ({ data }) => {
   const dispatch = useDispatch();
   const { wishlist } = useSelector((state) => state.wishlist);
   const { cart } = useSelector((state) => state.cart);
-  const { isAuthenticated } = useSelector((state) => state.user);
   
-  // Core state management
-  const [currentView, setCurrentView] = useState("front");
-  const [selectedColor, setSelectedColor] = useState("white");
+  // States
+  const [count, setCount] = useState(1);
+  const [click, setClick] = useState(false);
   const [selectedSize, setSelectedSize] = useState("");
-  const [quantity, setQuantity] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showZoom, setShowZoom] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-  // Check if product is in wishlist/cart
-  const isInWishlist = wishlist?.find((item) => item._id === data?._id);
-  const isInCart = cart?.find((item) => item._id === data?._id);
-
-  // Refs and observers
-  const [imageRef, inView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  });
-  const mainImageRef = useRef(null);
-  const previewRef = useRef(null);
+  const [selectedColor, setSelectedColor] = useState(data?.ProductColor || "white");
+  const [showBack, setShowBack] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [showReviews, setShowReviews] = useState(false);
 
   // Constants
   const SIZES = ["S", "M", "L", "XL", "2XL"];
-  const COLORS = ["white", "black"];
+  const VALID_COLORS = ["white", "black"];
 
-  // Get mockup URL
-  const getMockupUrl = useCallback((color, view) => {
-    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-    return `${baseUrl}v1/hoodies/hoodie-${color}-${view}.png`;
-  }, []);
+  useEffect(() => {
+    if (wishlist && wishlist.find((i) => i._id === data?._id)) {
+      setClick(true);
+    } else {
+      setClick(false);
+    }
+  }, [wishlist, data]);
 
-  // Price calculations
-  const calculatePrices = useCallback(() => {
-    if (!data) return { original: 0, final: 0, discount: 0, percentage: 0 };
-    
-    const original = parseFloat(data.originalPrice) || 0;
-    const final = data.discountPrice ? parseFloat(data.discountPrice) : original;
-    const discount = original - final;
-    const percentage = Math.round((discount / original) * 100);
-    
-    return { original, final, discount, percentage };
-  }, [data]);
+  // Status badge component
+  const StatusBadge = ({ status, visibility }) => {
+    const getStatusStyle = (status) => {
+      switch (status) {
+        case 'public':
+          return 'bg-green-100 text-green-800';
+        case 'pending':
+          return 'bg-yellow-100 text-yellow-800';
+        case 'rejected':
+          return 'bg-red-100 text-red-800';
+        default:
+          return 'bg-gray-100 text-gray-800';
+      }
+    };
+
+    return (
+      <div className="flex gap-2">
+        <span className={`px-3 py-1 rounded-full text-sm ${getStatusStyle(status)}`}>
+          {status.charAt(0).toUpperCase() + status.slice(1)}
+        </span>
+        {visibility === 'restricted' && (
+          <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
+            Restricted
+          </span>
+        )}
+      </div>
+    );
+  };
 
   // Handlers
-  const handleQuantityChange = useCallback((change) => {
-    setQuantity(prev => Math.max(1, Math.min(10, prev + change)));
-  }, []);
-
-  const handleAddToCart = async () => {
-    if (!isAuthenticated) {
-      toast.error("Please login to add items to cart");
-      return;
-    }
-
-    if (!selectedSize) {
-      toast.error("Please select a size");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      const cartData = {
-        ...data,
-        selectedColor,
-        selectedSize,
-        quantity,
-      };
-
-      await dispatch(addTocart(cartData));
-      toast.success("Added to cart successfully!");
-    } catch (error) {
-      toast.error("Failed to add to cart");
-    } finally {
-      setIsLoading(false);
+  const handleWishlist = (e) => {
+    e.preventDefault();
+    if (click) {
+      setClick(!click);
+      dispatch(removeFromWishlist(data));
+      toast.success("Removed from wishlist!");
+    } else {
+      setClick(!click);
+      dispatch(addToWishlist(data));
+      toast.success("Added to wishlist!");
     }
   };
 
-  const handleWishlist = async () => {
-    if (!isAuthenticated) {
-      toast.error("Please login to add items to wishlist");
-      return;
-    }
-
-    try {
-      if (isInWishlist) {
-        await dispatch(removeFromWishlist(data._id));
-        toast.success("Removed from wishlist!");
-      } else {
-        await dispatch(addToWishlist(data));
-        toast.success("Added to wishlist!");
-      }
-    } catch (error) {
-      toast.error("Failed to update wishlist");
-    }
-  };
-
-  const handleShare = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: data.name,
-          text: `Check out this ${data.name} on PODokan!`,
-          url: window.location.href,
-        });
-      } else {
-        await navigator.clipboard.writeText(window.location.href);
+  const shareUrl = window.location.href;
+  const handleShare = (platform) => {
+    let shareLink = '';
+    const text = `Check out ${data.DesignTitle} on our store!`;
+    
+    switch (platform) {
+      case 'facebook':
+        shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+        break;
+      case 'twitter':
+        shareLink = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
+        break;
+      case 'pinterest':
+        shareLink = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareUrl)}&description=${encodeURIComponent(text)}`;
+        break;
+      case 'linkedin':
+        shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+        break;
+      case 'telegram':
+        shareLink = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
+        break;
+      case 'instagram':
+        navigator.clipboard.writeText(shareUrl);
+        toast.success("Link copied! Share it on Instagram");
+        return;
+      case 'snapchat':
+        shareLink = `https://www.snapchat.com/share?url=${encodeURIComponent(shareUrl)}`;
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(shareUrl);
         toast.success("Link copied to clipboard!");
-      }
-    } catch (error) {
-      console.error("Error sharing:", error);
-      toast.error("Failed to share product");
+        return;
+    }
+    
+    if (shareLink) {
+      window.open(shareLink, '_blank', 'width=600,height=400');
     }
   };
 
-  const handleMouseMove = useCallback((e) => {
-    if (!showZoom) return;
-    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-    const x = ((e.pageX - left) / width) * 100;
-    const y = ((e.pageY - top) / height) * 100;
-    setMousePosition({ x, y });
-  }, [showZoom]);
+  const decrementCount = () => {
+    if (count > 1) {
+      setCount(count - 1);
+    }
+  };
+
+  const incrementCount = () => {
+    setCount(count + 1);
+  };
+
+  const addToCartHandler = () => {
+    if (!selectedSize) {
+      toast.error("Please select a size!");
+      return;
+    }
+    
+    if (cart && cart.find((i) => i._id === data?._id)) {
+      toast.error("Item already in cart!");
+      return;
+    }
+
+    const cartData = {
+      ...data,
+      qty: count,
+      selectedSize,
+      selectedColor,
+    };
+
+    dispatch(addTocart(cartData));
+    toast.success("Added to cart successfully!");
+  };
+
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   return (
-    <div className="bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Image Section */}
-          <div className="relative">
-            <motion.div
-              ref={imageRef}
-              className="relative aspect-square rounded-lg bg-white overflow-hidden"
-              onMouseEnter={() => setShowZoom(true)}
-              onMouseLeave={() => setShowZoom(false)}
-              onMouseMove={handleMouseMove}
-            >
-              {/* Main Product Image */}
-              <img
-                ref={mainImageRef}
-                src={getMockupUrl(selectedColor, currentView)}
-                alt={`${data?.name} ${currentView} view`}
-                className="w-full h-full object-cover transition-transform duration-300"
-                style={
-                  showZoom
-                    ? {
-                        transform: "scale(2)",
-                        transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`,
-                      }
-                    : {}
-                }
-              />
-
-              {/* Design Overlay */}
-              {data?.designImage?.url && (
-                <motion.img
-                  src={data.designImage.url}
-                  alt="Design"
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/3"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: inView ? 1 : 0 }}
-                  transition={{ duration: 0.3 }}
-                />
-              )}
-            </motion.div>
-
-            {/* View Toggle Preview */}
-            <motion.div
-              ref={previewRef}
-              className="absolute -right-4 top-4 w-24 h-24 rounded-lg overflow-hidden shadow-lg cursor-pointer"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setCurrentView(currentView === "front" ? "back" : "front")}
-            >
-              <img
-                src={getMockupUrl(selectedColor, currentView === "front" ? "back" : "front")}
-                alt={`${data?.name} alternate view`}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
-                <span className="text-white text-sm font-medium">
-                  View {currentView === "front" ? "Back" : "Front"}
-                </span>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Product Details Section */}
-          <div className="flex flex-col">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              {data?.name}
-            </h1>
-
-            {/* Price Display */}
-            <div className="flex items-center mb-6">
-              <span className="text-3xl font-bold text-gray-900">
-                ${calculatePrices().final.toFixed(2)}
-              </span>
-              {calculatePrices().percentage > 0 && (
-                <>
-                  <span className="ml-2 text-lg text-gray-500 line-through">
-                    ${calculatePrices().original.toFixed(2)}
-                  </span>
-                  <span className="ml-2 text-green-600">
-                    {calculatePrices().percentage}% OFF
-                  </span>
-                </>
-              )}
-            </div>
-
-            {/* Color Selection */}
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Color</h3>
-              <div className="flex gap-2">
-                {COLORS.map((color) => (
-                  <motion.button
-                    key={color}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => setSelectedColor(color)}
-                    className={`w-10 h-10 rounded-full border-2 transition-all duration-200 ${
-                      selectedColor === color
-                        ? "border-blue-500 ring-2 ring-blue-200"
-                        : "border-gray-300"
-                    }`}
-                    style={{ backgroundColor: color }}
+    <div className="bg-white">
+      {data ? (
+        <div className={`${styles.section} w-[90%] 800px:w-[80%]`}>
+          <div className="w-full py-5">
+            <div className="block w-full 800px:flex">
+              {/* Left side - Product Images */}
+              <div className="w-full 800px:w-[50%] relative">
+                <div className="w-[80%] mx-auto">
+                  <img
+                    src={`${data.ProductType.toLowerCase()}/${selectedColor.toLowerCase()}/${
+                      showBack ? 'back' : 'front'
+                    }.png`}
+                    alt={data.DesignTitle}
+                    className="w-full h-auto object-contain"
                   />
-                ))}
-              </div>
-            </div>
+                  {!showBack && data.designImage && (
+                    <div 
+                      className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                      style={{
+                        width: `${(data.DesignScale || 1) * 40}%`,
+                        height: 'auto'
+                      }}
+                    >
+                      <img
+                        src={data.designImage.url}
+                        alt="Design"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
+                </div>
 
-            {/* Size Selection */}
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Size</h3>
-              <div className="grid grid-cols-5 gap-2">
-                {SIZES.map((size) => (
-                  <motion.button
-                    key={size}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setSelectedSize(size)}
-                    className={`py-2 text-center rounded-md transition-all duration-200 ${
-                      selectedSize === size
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-900 hover:bg-gray-200"
-                    }`}
+                {/* View Toggle */}
+                <div className="w-[80%] mx-auto flex mt-4">
+                  <div
+                    className={`${
+                      !showBack ? "border-[3px] border-[#f63b60]" : "border"
+                    } cursor-pointer p-3 flex-1 text-center`}
+                    onClick={() => setShowBack(false)}
                   >
-                    {size}
-                  </motion.button>
-                ))}
+                    Front View
+                  </div>
+                  <div
+                    className={`${
+                      showBack ? "border-[3px] border-[#f63b60]" : "border"
+                    } cursor-pointer p-3 flex-1 text-center`}
+                    onClick={() => setShowBack(true)}
+                  >
+                    Back View
+                  </div>
+                </div>
               </div>
-            </div>
 
-            {/* Quantity Selection */}
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Quantity</h3>
-              <div className="flex items-center border rounded-md w-32">
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => handleQuantityChange(-1)}
-                  className="px-3 py-2 hover:bg-gray-100"
-                  disabled={quantity <= 1}
+              {/* Right side - Product Details */}
+              <div className="w-full 800px:w-[50%] pt-5 px-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <StatusBadge status={data.status} visibility={data.visibility} />
+                    <h1 className="text-2xl font-bold mt-3">{data.DesignTitle}</h1>
+                    <p className="text-gray-600 mt-1">Design #{data.DesignNumber}</p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleWishlist}
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
+                    >
+                      {click ? (
+                        <AiFillHeart className="text-red-500 text-xl" />
+                      ) : (
+                        <AiOutlineHeart className="text-xl" />
+                      )}
+                    </button>
+
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowShare(!showShare)}
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
+                      >
+                        <AiOutlineShare className="text-xl" />
+                      </button>
+
+                      {showShare && (
+                        <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg shadow-xl z-10">
+                          {[
+                            { platform: 'facebook', icon: FaFacebook, color: 'text-blue-600' },
+                            { platform: 'twitter', icon: FaTwitter, color: 'text-blue-400' },
+                            { platform: 'instagram', icon: FaInstagram, color: 'text-pink-600' },
+                            { platform: 'telegram', icon: FaTelegram, color: 'text-blue-500' },
+                            { platform: 'snapchat', icon: FaSnapchat, color: 'text-yellow-400' },
+                            { platform: 'pinterest', icon: FaPinterest, color: 'text-red-600' },
+                            { platform: 'linkedin', icon: FaLinkedin, color: 'text-blue-800' },
+                            { platform: 'copy', icon: IoCopy, color: 'text-gray-600' }
+                          ].map(({ platform, icon: Icon, color }) => (
+                            <button
+                              key={platform}
+                              onClick={() => handleShare(platform)}
+                              className="flex items-center px-4 py-2 hover:bg-gray-100 w-full"
+                            >
+                              <Icon className={`mr-3 ${color}`} />
+                              {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tags */}
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {data.Maintag && (
+                    <span className="px-3 py-1 bg-[#f63b60] text-white rounded-full text-sm">
+                      {data.Maintag}
+                    </span>
+                  )}
+                  {data.Designtags?.map((tag, index) => (
+                    <span 
+                      key={index}
+                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Description */}
+                <div className="mt-4">
+                  <p className="text-gray-600">{data.Description}</p>
+                </div>
+
+                {/* Price */}
+                <div className="mt-6 flex items-center">
+                  <span className="text-3xl font-bold">
+                    ${data.discountPrice || data.originalPrice}
+                  </span>
+                  {data.discountPrice && (
+                    <>
+                      <span className="ml-2 text-xl text-gray-500 line-through">
+                        ${data.originalPrice}
+                      </span>
+                      <span className="ml-2 text-green-500">
+                        {Math.round(((data.originalPrice - data.discountPrice) / data.originalPrice) * 100)}% OFF
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                {/* Color Selection */}
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-2">Color</h3>
+                  <div className="flex gap-3">
+                    {VALID_COLORS.map((color) => (
+                      <button
+                        key={color}
+                        onClick={() => setSelectedColor(color)}
+                        className={`
+                          w-8 h-8 rounded-full border-2
+                          ${color === 'white' ? 'bg-white' : 'bg-black'}
+                          ${selectedColor === color ? 'border-[#f63b60]' : 'border-gray-300'}
+                        `}
+                        aria-label={color}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Size Selection */}
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-2">Size</h3>
+                  <div className="flex gap-3">
+                    {SIZES.map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => setSelectedSize(size)}
+                        className={`
+                          w-14 h-10 border rounded
+                          ${selectedSize === size 
+                            ? 'border-[#f63b60] text-[#f63b60]' 
+                            : 'border-gray-300'
+                          }
+                          hover:border-[#f63b60] hover:text-[#f63b60]
+                        `}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quantity */}
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-2">Quantity</h3>
+                  <div className="flex items-center">
+                    <button 
+                      onClick={decrementCount}
+                      className="w-8 h-8 border rounded-l flex items-center justify-center hover:bg-gray-100"
+                    >
+                      -
+                    </button>
+                    <span className="w-12 h-8 border-t border-b flex items-center justify-center">
+                      {count}
+                    </span>
+                    <button 
+                      onClick={incrementCount}
+                      className="w-8 h-8 border rounded-r flex items-center justify-center hover:bg-gray-100"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {/* Add to Cart */}
+                <button
+                  onClick={addToCartHandler}
+                  className={`
+                    w-full py-3 px-6 mt-6 rounded
+                    ${data.status === 'public' && data.visibility === 'public'
+                      ? 'bg-[#f63b60] text-white hover:bg-[#e63956]'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }
+                  `}
+                  disabled={data.status !== 'public' || data.visibility !== 'public'}
                 >
-                  <AiOutlineMinus />
-                </motion.button>
-                <span className="flex-1 text-center">{quantity}</span>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => handleQuantityChange(1)}
-                  className="px-3 py-2 hover:bg-gray-100"
-                  disabled={quantity >= 10}
-                >
-                  <AiOutlinePlus />
-                </motion.button>
-              </div>
-            </div>
+                  Add to Cart
+                </button>
 
-            {/* Action Buttons */}
-            <div className="flex gap-4">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleAddToCart}
-                disabled={isLoading}
-                className="flex-1 bg-blue-600 text-white py-3 rounded-md flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <AiOutlineShoppingCart size={20} />
-                {isLoading ? "Adding..." : isInCart ? "Update Cart" : "Add to Cart"}
-              </motion.button>
+                {/* Reviews */}
+                {data.reviews && data.reviews.length > 0 && (
+                  <div className="mt-8">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold">
+                        Reviews ({data.reviews.length})
+                      </h3>
+                      <button
+                        onClick={() => setShowReviews(!showReviews)}
+                        className="text-[#f63b60]"
+                      >
+                        {showReviews ? 'Hide Reviews' : 'Show Reviews'}
+                      </button>
+                    </div>
 
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={handleWishlist}
-                className="p-3 rounded-md border border-gray-300 hover:bg-gray-50"
-              >
-                {isInWishlist ? (
-                  <AiFillHeart size={20} className="text-red-500" />
-                ) : (
-                  <AiOutlineHeart size={20} />
+                    {showReviews && (
+                      <div className="space-y-4">
+                        {data.reviews.map((review, index) => (
+                          <div key={index} className="border-b pb-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-semibold">{review.name}</p>
+                                <Ratings rating={review.rating} />
+                              </div>
+                              <span className="text-gray-500 text-sm">
+                                {formatDate(review.createdAt)}
+                              </span>
+                            </div>
+                            <p className="mt-2 text-gray-600">{review.comment}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )}
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={handleShare}
-                className="p-3 rounded-md border border-gray-300 hover:bg-gray-50"
-              >
-                <AiOutlineShareAlt size={20} />
-              </motion.button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 };
