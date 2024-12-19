@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { addTocart } from "../../redux/actions/cart";
 import { addToWishlist, removeFromWishlist } from "../../redux/actions/wishlist";
 import { toast } from "react-toastify";
-import Ratings from "../Ratings/Ratings";
+import Ratings from "../../components/Products/Ratings";
 import styles from "../../styles/styles";
 import { 
   AiFillHeart, 
