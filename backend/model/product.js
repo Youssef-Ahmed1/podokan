@@ -1,237 +1,94 @@
 const mongoose = require("mongoose");
 
-const VALID_COLORS = ['white', 'black',];
-const VALID_PRODUCT_TYPES = ['hoodie'];
-const VALID_VIEWS = ['front', 'back'];
-const VALID_STATUSES = ['pending', 'public', 'rejected'];
-const VALID_VISIBILITY = ['public', 'restricted'];
-
 const productSchema = new mongoose.Schema({
-  shopId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Shop',
-    required: [true, "Shop ID is required"],
-    index: true,
-    validate: {
-      validator: function(v) {
-        return mongoose.Types.ObjectId.isValid(v);
-      },
-      message: "Invalid Shop ID format"
-    }
-  },
-  shop: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Shop',
-    required: [true, "Shop reference is required"],
-    validate: {
-      validator: function(v) {
-        return mongoose.Types.ObjectId.isValid(v);
-      },
-      message: "Invalid Shop reference format"
-    }
-  },
   DesignTitle: {
     type: String,
-    required: [true, "Please enter your product name!"],
+    required: [true, "Please enter design title"],
     trim: true,
-    minLength: [3, "Design title must be at least 3 characters"],
-    maxLength: [100, "Design title cannot exceed 100 characters"],
-    index: true
   },
   Description: {
     type: String,
-    required: [true, "Please enter your product Description!"],
-    trim: true,
-    minLength: [10, "Description must be at least 10 characters"],
-    maxLength: [1000, "Description cannot exceed 1000 characters"]
+    required: [true, "Please enter design description"],
   },
   Maintag: {
     type: String,
-    required: [true, "Please enter a main tag!"],
-    trim: true,
-    index: true,
-    validate: {
-      validator: function(v) {
-        return v.length >= 2 && v.length <= 50;
-      },
-      message: "Main tag must be between 2 and 50 characters"
-    }
+    required: [true, "Please enter main tag"],
   },
-  Designtags: {
-    type: [String],
-    validate: {
-      validator: function(tags) {
-        return tags.every(tag => tag.length > 0 && tag.length <= 50);
-      },
-      message: "Each design tag must be between 1 and 50 characters"
-    },
-    default: [],
-    set: function(tags) {
-      // Remove duplicates and trim each tag
-      return Array.from(new Set(tags.map(tag => tag.trim())));
-    }
-  },
+  Designtags: [{
+    type: String,
+  }],
   ProductType: {
     type: String,
-    required: [true, "Please enter your product type!"],
-    enum: {
-      values: VALID_PRODUCT_TYPES,
-      message: `Product type must be one of: ${VALID_PRODUCT_TYPES.join(', ')}`
-    },
-    index: true
+    required: [true, "Please select product type"],
+    enum: ["hoodie", "t-shirt", "sweatshirt"], // Add other types as needed
   },
   ProductColor: {
     type: String,
-    required: [true, "Please select a product color!"],
-    enum: {
-      values: VALID_COLORS,
-      message: `Product color must be one of: ${VALID_COLORS.join(', ')}`
-    }
+    required: [true, "Please select base color"],
   },
-  availableColors: {
-    type: [{
-      type: String,
-      enum: {
-        values: VALID_COLORS,
-        message: `Available colors must be one of: ${VALID_COLORS.join(', ')}`
-      }
-    }],
-    validate: {
-      validator: function(colors) {
-        return colors.length > 0 && new Set(colors).size === colors.length;
-      },
-      message: "At least one unique color must be selected"
-    },
-    default: function() {
-      return [this.ProductColor];
-    }
-  },
+  availableColors: [{
+    type: String,
+    default: ["white", "black"]
+  }],
   ProductView: {
     type: String,
-    enum: {
-      values: VALID_VIEWS,
-      message: `Product view must be one of: ${VALID_VIEWS.join(', ')}`
-    },
-    default: 'front'
+    enum: ["front", "back"],
+    default: "front"
   },
   DesignScale: {
     type: Number,
-    default: 1,
-    min: [0.1, "Design scale cannot be less than 0.1"],
-    max: [2.0, "Design scale cannot exceed 2.0"],
-    set: function(value) {
-      return parseFloat(parseFloat(value).toFixed(2));
-    }
-  },
-  originalPrice: {
-    type: Number,
-    validate: {
-      validator: function(price) {
-        return this.status === 'public' ? price > 0 : true;
-      },
-      message: "Original price is required for public products and must be greater than 0"
-    },
-    set: function(value) {
-      return parseFloat(parseFloat(value).toFixed(2));
-    }
-  },
-  discountPrice: {
-    type: Number,
-    validate: {
-      validator: function(price) {
-        return !price || price <= this.originalPrice;
-      },
-      message: "Discount price must be less than or equal to original price"
-    },
-    set: function(value) {
-      return value ? parseFloat(parseFloat(value).toFixed(2)) : undefined;
-    }
+    default: 1
   },
   designImage: {
     public_id: {
       type: String,
-      required: [true, "Design image public ID is required"]
+      required: true,
     },
     url: {
       type: String,
-      required: [true, "Design image URL is required"],
-      validate: {
-        validator: function(v) {
-          return /^https?:\/\/.+/.test(v);
-        },
-        message: "Invalid image URL format"
-      }
-    }
-  },
-  status: {
-    type: String,
-    enum: {
-      values: VALID_STATUSES,
-      message: `Status must be one of: ${VALID_STATUSES.join(', ')}`
-    },
-    default: 'pending',
-    index: true
-  },
-  visibility: {
-    type: String,
-    enum: {
-      values: VALID_VISIBILITY,
-      message: `Visibility must be one of: ${VALID_VISIBILITY.join(', ')}`
-    },
-    default: 'restricted'
-  },
-  rejectionReason: {
-    type: String,
-    default: '',
-    validate: {
-      validator: function(reason) {
-        return this.status !== 'rejected' || (reason && reason.length >= 10);
-      },
-      message: "A detailed rejection reason (min 10 characters) is required when status is 'rejected'"
-    }
-  },
-  reviews: [{
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
       required: true,
-      validate: {
-        validator: function(v) {
-          return mongoose.Types.ObjectId.isValid(v);
-        },
-        message: "Invalid User ID format"
-      }
     },
-    name: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    rating: {
-      type: Number,
-      required: true,
-      min: [1, "Rating must be at least 1"],
-      max: [5, "Rating cannot exceed 5"]
-    },
-    comment: {
-      type: String,
-      required: true,
-      trim: true,
-      minLength: [5, "Review comment must be at least 5 characters"],
-      maxLength: [500, "Review comment cannot exceed 500 characters"]
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
-  ratings: {
+  },
+  shop: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Shop",
+    required: true,
+  },
+  shopId: {
+    type: Object,
+    required: true,
+  },
+  originalPrice: {
+    type: Number,
+    required: [true, "Please enter product price"],
+  },
+  discountPrice: {
+    type: Number,
+  },
+  discountPercentage: {
     type: Number,
     default: 0,
-    min: [0, "Overall rating cannot be negative"],
-    max: [5, "Overall rating cannot exceed 5"],
-    set: function(value) {
-      return parseFloat(parseFloat(value).toFixed(2));
+  },
+  stock: {
+    type: Number,
+    required: [true, "Please enter product stock"],
+    default: 100,
+    validate: {
+      validator: Number.isInteger,
+      message: "Stock must be an integer"
+    },
+    min: [0, "Stock cannot be negative"]
+  },
+  availableSizes: {
+    type: [String],
+    default: ["S", "M", "L", "XL", "2XL"],
+    validate: {
+      validator: function(sizes) {
+        return sizes.every(size => 
+          ["S", "M", "L", "XL", "2XL"].includes(size)
+        );
+      },
+      message: "Invalid size provided"
     }
   },
   sold_out: {
@@ -239,95 +96,115 @@ const productSchema = new mongoose.Schema({
     default: 0,
     min: [0, "Sold out count cannot be negative"]
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  viewCount: {
+    type: Number,
+    default: 0,
+    min: [0, "View count cannot be negative"]
+  },
+  ratings: {
+    type: Number,
+    default: 0,
+  },
+  reviews: [{
+    user: {
+      type: Object,
+    },
+    rating: {
+      type: Number,
+    },
+    comment: {
+      type: String,
+    },
+    productId: {
+      type: String,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    }
+  }],
+  status: {
+    type: String,
+    enum: ["draft", "pending", "public", "rejected", "restricted"],
+    default: "pending"
+  },
+  visibility: {
+    type: String,
+    enum: ["public", "private", "restricted"],
+    default: "public"
+  },
+  rejectionReason: {
+    type: String,
+    default: ""
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Shop",
+    required: true,
+  },
+  lastModifiedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
   },
   lastModified: {
     type: Date,
     default: Date.now
   },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Shop',
-    required: true,
-    validate: {
-      validator: function(v) {
-        return mongoose.Types.ObjectId.isValid(v);
-      },
-      message: "Invalid creator ID format"
-    }
-  },
-  lastModifiedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    validate: {
-      validator: function(v) {
-        return mongoose.Types.ObjectId.isValid(v);
-      },
-      message: "Invalid modifier ID format"
+  isInStock: {
+    type: Boolean,
+    default: true,
+    get: function() {
+      return this.stock > 0;
     }
   }
 }, {
-  
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-  });
-// Indexes for better query performance
-productSchema.index({ DesignTitle: 'text', Description: 'text', Maintag: 'text', Designtags: 'text' });
-productSchema.index({ status: 1, visibility: 1 });
-productSchema.index({ shopId: 1, status: 1 });
-productSchema.index({ createdAt: -1 });
-productSchema.index({ 'reviews.rating': 1 });
-productSchema.index({ originalPrice: 1 });
+  timestamps: true,
+  toJSON: { getters: true },
+  toObject: { getters: true }
+});
 
-// Pre-save middleware
+// Pre-save middleware to update isInStock
 productSchema.pre('save', function(next) {
-  this.lastModified = new Date();
+  this.isInStock = this.stock > 0;
   
-  // Ensure availableColors includes ProductColor
-  if (!this.availableColors.includes(this.ProductColor)) {
-    this.availableColors.push(this.ProductColor);
-  }
-
-  // Update ratings when reviews change
-  if (this.reviews?.length > 0) {
-    this.ratings = parseFloat((this.reviews.reduce((acc, item) => item.rating + acc, 0) / 
-      this.reviews.length).toFixed(2));
+  // Update discountPercentage if originalPrice and discountPrice exist
+  if (this.originalPrice && this.discountPrice) {
+    this.discountPercentage = Math.round(
+      ((this.originalPrice - this.discountPrice) / this.originalPrice) * 100
+    );
   }
   
   next();
 });
 
-// Virtual for discounted percentage
-productSchema.virtual('discountPercentage').get(function() {
-  if (this.originalPrice && this.discountPrice) {
-    return Math.round(((this.originalPrice - this.discountPrice) / this.originalPrice) * 100);
+// Method to update stock
+productSchema.methods.updateStock = async function(quantity, action = 'decrease') {
+  if (action === 'decrease') {
+    if (this.stock < quantity) {
+      throw new Error('Insufficient stock');
+    }
+    this.stock -= quantity;
+    this.sold_out += quantity;
+  } else {
+    this.stock += quantity;
+    this.sold_out = Math.max(0, this.sold_out - quantity);
   }
-  return 0;
-});
-
-// Virtual for stock status
-productSchema.virtual('isInStock').get(function() {
-  return this.sold_out < 999999; // Assuming unlimited stock for digital products
-});
-
-// Method to check if product can be purchased
-productSchema.methods.canBePurchased = function() {
-  return this.status === 'public' && 
-         this.visibility === 'public' && 
-         this.isInStock;
+  
+  this.isInStock = this.stock > 0;
+  return this.save();
 };
 
-// Export constants for use in other files
+// Method to increment view count
+productSchema.methods.incrementViewCount = async function() {
+  this.viewCount += 1;
+  return this.save();
+};
+
+// Index for better query performance
+productSchema.index({ shop: 1, status: 1 });
+productSchema.index({ ProductType: 1, status: 1 });
+productSchema.index({ Maintag: 1 });
+productSchema.index({ viewCount: -1 });
+
 const Product = mongoose.model("Product", productSchema);
-
-module.exports = {
-  Product,
-  VALID_COLORS,
-  VALID_PRODUCT_TYPES,
-  VALID_VIEWS,
-  VALID_STATUSES,
-  VALID_VISIBILITY
-};
+module.exports = Product;
