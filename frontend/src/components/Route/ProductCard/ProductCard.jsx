@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AiOutlineHeart, AiFillHeart, AiOutlineShoppingCart } from 'react-icons/ai';
 import { IoMdShare } from 'react-icons/io';
 import { useDispatch, useSelector } from 'react-redux';
-import { addToWishlist, removeFromWishlist } from '../../redux/actions/wishlist';
-import { addTocart } from '../../redux/actions/cart';
+import { addToWishlist, removeFromWishlist } from '../../../redux/actions/wishlist';
+import { addTocart } from '../../../redux/actions/cart';
 import { toast } from 'react-toastify';
 
 const ProductCard = ({ data }) => {
