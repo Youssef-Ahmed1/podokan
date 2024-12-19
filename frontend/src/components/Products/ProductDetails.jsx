@@ -22,12 +22,14 @@ const ProductDetails = ({ data }) => {
 
   // Core state management
   const [currentView, setCurrentView] = useState("front");
-  const [selectedColor, setSelectedColor] = useState("white");
+  const [selectedColor, setSelectedColor] = useState(data?.availableColors?.[0] || "white");
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showZoom, setShowZoom] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [stock, setStock] = useState(data?.stock || 0);
+  const [isOutOfStock, setIsOutOfStock] = useState(false);
 
   // Intersection observer for lazy loading
   const [imageRef, inView] = useInView({
@@ -41,7 +43,26 @@ const ProductDetails = ({ data }) => {
 
   // Available options
   const SIZES = ["S", "M", "L", "XL", "2XL"];
-  const COLORS = ["white", "black"];
+  const COLORS = data?.availableColors || ["white", "black"];
+
+  // Check stock status
+  useEffect(() => {
+    setIsOutOfStock(stock <= 0);
+  }, [stock]);
+
+  // Check existing cart item
+  useEffect(() => {
+    const existingItem = cart.find(
+      (item) =>
+        item._id === data?._id &&
+        item.selectedSize === selectedSize &&
+        item.selectedColor === selectedColor
+    );
+    if (existingItem) {
+      const remainingStock = stock - existingItem.quantity;
+      setStock(remainingStock);
+    }
+  }, [cart, data?._id, selectedSize, selectedColor, stock]);
 
   // Animation variants
   const containerVariants = {
@@ -80,6 +101,16 @@ const ProductDetails = ({ data }) => {
     return { original, final, discountPercentage };
   }, [data]);
 
+  // Image handling
+  const getProductImage = useCallback((view) => {
+    // First try to get from product images
+    if (data?.productImages?.[view]?.[selectedColor]) {
+      return data.productImages[view][selectedColor];
+    }
+    // Fallback to generated paths
+    return `/product/${data?._id}/hoodies/hoodie-${selectedColor}-${view}.png`;
+  }, [data, selectedColor]);
+
   // Touch gesture handling
   useEffect(() => {
     if (!mainImageRef.current) return;
@@ -109,8 +140,11 @@ const ProductDetails = ({ data }) => {
 
   // Handlers
   const handleQuantityChange = useCallback((change) => {
-    setQuantity((prev) => Math.max(1, Math.min(10, prev + change)));
-  }, []);
+    setQuantity((prev) => {
+      const newQuantity = prev + change;
+      return Math.max(1, Math.min(stock, newQuantity));
+    });
+  }, [stock]);
 
   const handleColorChange = useCallback((color) => {
     setSelectedColor(color);
@@ -124,8 +158,8 @@ const ProductDetails = ({ data }) => {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: data.name,
-          text: `Check out this ${data.name} on PODokan!`,
+          title: data?.name,
+          text: `Check out this ${data?.name} on PODokan!`,
           url: window.location.href,
         });
       } else {
@@ -149,6 +183,16 @@ const ProductDetails = ({ data }) => {
       return;
     }
 
+    if (isOutOfStock) {
+      toast.error("This item is out of stock");
+      return;
+    }
+
+    if (quantity > stock) {
+      toast.error("Requested quantity exceeds available stock");
+      return;
+    }
+
     try {
       setIsLoading(true);
       const cartData = {
@@ -157,10 +201,16 @@ const ProductDetails = ({ data }) => {
         selectedSize,
         quantity,
         finalPrice: calculatePrice().final,
+        stock: stock,
       };
 
-      await dispatch(addTocart(cartData));
-      toast.success("Added to cart!");
+      const response = await dispatch(addTocart(cartData));
+      if (response?.success) {
+        toast.success("Added to cart!");
+        setStock((prev) => prev - quantity);
+      } else {
+        toast.error(response?.message || "Failed to add to cart");
+      }
     } catch (error) {
       toast.error("Failed to add to cart");
     } finally {
@@ -168,19 +218,23 @@ const ProductDetails = ({ data }) => {
     }
   };
 
-  const handleWishlist = () => {
+  const handleWishlist = async () => {
     if (!isAuthenticated) {
       toast.error("Please login to add items to wishlist");
       return;
     }
 
-    const isInWishlist = wishlist?.find((item) => item._id === data._id);
-    if (isInWishlist) {
-      dispatch(removeFromWishlist(data._id));
-      toast.success("Removed from wishlist");
-    } else {
-      dispatch(addToWishlist(data));
-      toast.success("Added to wishlist");
+    try {
+      const isInWishlist = wishlist?.find((item) => item._id === data?._id);
+      if (isInWishlist) {
+        await dispatch(removeFromWishlist(data?._id));
+        toast.success("Removed from wishlist");
+      } else {
+        await dispatch(addToWishlist(data));
+        toast.success("Added to wishlist");
+      }
+    } catch (error) {
+      toast.error("Failed to update wishlist");
     }
   };
 
@@ -209,7 +263,7 @@ const ProductDetails = ({ data }) => {
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="bg-white"
+      className="bg-white rounded-lg shadow-md"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -225,7 +279,7 @@ const ProductDetails = ({ data }) => {
             >
               <img
                 ref={mainImageRef}
-                src={`/product/${data._id}/hoodies/hoodie-${selectedColor}-${currentView}.png`}
+                src={getProductImage(currentView)}
                 alt={`${data.name} ${currentView} view`}
                 className="w-full h-full object-cover transition-transform duration-300"
                 style={
@@ -236,6 +290,9 @@ const ProductDetails = ({ data }) => {
                       }
                     : {}
                 }
+                onError={(e) => {
+                  e.target.src = data?.designImage?.url || "/placeholder.png";
+                }}
               />
               {data.designImage && (
                 <motion.img
@@ -257,9 +314,12 @@ const ProductDetails = ({ data }) => {
               onClick={() => setCurrentView(getOppositeView())}
             >
               <img
-                src={`/product/${data._id}/hoodies/hoodie-${selectedColor}-${getOppositeView()}.png`}
+                src={getProductImage(getOppositeView())}
                 alt={`${data.name} ${getOppositeView()} view`}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = data?.designImage?.url || "/placeholder.png";
+                }}
               />
               <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
                 <span className="text-white text-sm font-medium">
@@ -272,7 +332,7 @@ const ProductDetails = ({ data }) => {
           {/* Product Details Section */}
           <div className="flex flex-col">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              {data.name}
+              {data.name || data.DesignTitle}
             </h1>
 
             {/* Price */}
@@ -290,6 +350,17 @@ const ProductDetails = ({ data }) => {
                   </span>
                 </>
               )}
+            </div>
+
+            {/* Stock Status */}
+            <div className="mb-4">
+              <span
+                className={`text-sm ${
+                  isOutOfStock ? "text-red-600" : "text-green-600"
+                }`}
+              >
+                {isOutOfStock ? "Out of Stock" : `${stock} items available`}
+              </span>
             </div>
 
             {/* Color Selection */}
@@ -343,7 +414,8 @@ const ProductDetails = ({ data }) => {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => handleQuantityChange(-1)}
-                  className="px-3 py-2 hover:bg-gray-100"
+                  disabled={quantity <= 1 || isOutOfStock}
+                  className="px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
                 >
                   <AiOutlineMinus />
                 </motion.button>
@@ -352,7 +424,8 @@ const ProductDetails = ({ data }) => {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => handleQuantityChange(1)}
-                  className="px-3 py-2 hover:bg-gray-100"
+                  disabled={quantity >= stock || isOutOfStock}
+                  className="px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
                 >
                   <AiOutlinePlus />
                 </motion.button>
@@ -365,11 +438,19 @@ const ProductDetails = ({ data }) => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleAddToCart}
-                disabled={isLoading}
-                className="flex-1 bg-blue-600 text-white py-3 rounded-md flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isLoading || isOutOfStock}
+                className={`flex-1 py-3 rounded-md flex items-center justify-center gap-2 ${
+                  isOutOfStock
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 <AiOutlineShoppingCart size={20} />
-                {isLoading ? "Adding..." : "Add to Cart"}
+                {isLoading
+                  ? "Adding..."
+                  : isOutOfStock
+                  ? "Out of Stock"
+                  : "Add to Cart"}
               </motion.button>
 
               <motion.button
@@ -393,6 +474,14 @@ const ProductDetails = ({ data }) => {
               >
                 <AiOutlineShareAlt size={20} />
               </motion.button>
+            </div>
+
+            {/* Product Description */}
+            <div className="mt-8">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Description
+              </h3>
+              <p className="text-gray-600">{data.Description}</p>
             </div>
           </div>
         </div>
