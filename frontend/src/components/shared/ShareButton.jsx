@@ -4,11 +4,14 @@ import { FiShare2, FiCopy, FiX } from 'react-icons/fi';
 import { FaFacebookF, FaTwitter, FaWhatsapp, FaTelegramPlane } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
+
 const ShareButton = ({ url, title }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const formattedUrl = `${window.location.origin}/product/${url}`;
-  const message = encodeURIComponent(`Check this podokan design! ${title}\n${formattedUrl}`);
-
+  
+  // Get the current product ID from the URL if not provided
+  const productId = url || window.location.pathname.split('/').pop();
+  const formattedUrl = `${window.location.origin}/product/${productId}`;
+  const message = encodeURIComponent(`Check out this design on PODokan: ${title}\n${formattedUrl}`);
   const shareLinks = [
     {
       name: 'Facebook',

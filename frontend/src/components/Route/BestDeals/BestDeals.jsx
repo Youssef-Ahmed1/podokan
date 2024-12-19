@@ -1,164 +1,124 @@
-import React, { useEffect, useState } from "react";
+// components/Route/BestDeals/BestDeals.jsx
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import styles from "../../../styles/styles";
-import ProductCard from "../ProductCard/ProductCard";
-import { Swiper, SwiperSlide } from 'swiper/react';
-import SwiperCore, { Navigation, Pagination, Autoplay } from 'swiper';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
 import { motion, AnimatePresence } from "framer-motion";
-import Skeleton from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css';
-
-// Initialize Swiper modules
-SwiperCore.use([Navigation, Pagination, Autoplay]);
+import ProductCard from "../ProductCard/ProductCard";
 
 const BestDeals = () => {
-  const [data, setData] = useState([]);
   const { allProducts, isLoading } = useSelector((state) => state.products);
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [isVisible, setIsVisible] = useState(false);
+  const [data, setData] = useState([]);
+  const [activeFilter, setActiveFilter] = useState('all');
 
-  const categories = [
-    { id: 'all', name: 'All', icon: '🌟', color: '#6366F1' },
-    { id: 'trending', name: 'Trending', icon: '🔥', color: '#EF4444' },
-    { id: 'popular', name: 'Popular', icon: '👑', color: '#F59E0B' },
-    { id: 'new', name: 'New Arrivals', icon: '✨', color: '#10B981' },
+  const filters = [
+    { id: 'all', name: 'All', icon: '☀️' },
+    { id: 'trending', name: 'Trending', icon: '🔥' },
+    { id: 'popular', name: 'Popular', icon: '👑' },
+    { id: 'new', name: 'New Arrivals', icon: '✨' },
   ];
 
   useEffect(() => {
-    setIsVisible(true);
-    const filterProducts = () => {
-      const allProductsData = allProducts ? [...allProducts] : [];
-      let filteredData;
-      
-      if (activeCategory === 'all') {
-        filteredData = allProductsData;
-      } else {
-        filteredData = allProductsData.filter(item => 
-          item.category === activeCategory && item.status === 'public'
-        );
-      }
-      
-      const sortedData = filteredData?.sort((a,b) => b.sold_out - a.sold_out);
-      const firstEight = sortedData && sortedData.slice(0, 8);
-      setData(firstEight);
-    };
+    if (allProducts) {
+      let filteredProducts = [...allProducts].filter(item => item.status === 'public');
 
-    filterProducts();
-  }, [allProducts, activeCategory]);
+      switch (activeFilter) {
+        case 'trending':
+          filteredProducts = filteredProducts.sort((a, b) => b.sold_out - a.sold_out);
+          break;
+        case 'popular':
+          filteredProducts = filteredProducts.sort((a, b) => b.rating - a.rating);
+          break;
+        case 'new':
+          filteredProducts = filteredProducts.sort((a, b) => 
+            new Date(b.createdAt) - new Date(a.createdAt)
+          );
+          break;
+        default:
+          filteredProducts = filteredProducts.sort((a, b) => b.sold_out - a.sold_out);
+      }
+
+      setData(filteredProducts.slice(0, 8));
+    }
+  }, [allProducts, activeFilter]);
 
   return (
-    <div className="bg-[#1E1E2D] py-10">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className={`${styles.section}`}
-      >
+    <div className="bg-gray-50 py-16">
+      <div className="max-w-[1200px] mx-auto px-4">
         <div className="flex flex-col space-y-8">
-          {/* Header */}
-          <motion.div
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="flex flex-col md:flex-row justify-between items-center"
-          >
-            <motion.h1
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-3xl md:text-4xl font-bold text-white mb-4 md:mb-0"
+          {/* Header Section with Filter Buttons */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex flex-col"
             >
-              Best Sellers
-            </motion.h1>
-            
-            {/* Category Navigation */}
-            <div className="w-full md:w-auto">
-              <Swiper
-                spaceBetween={10}
-                slidesPerView="auto"
-                navigation
-                pagination={{ clickable: true }}
-                className="category-swiper"
-              >
-                {categories.map((category, index) => (
-                  <SwiperSlide key={category.id}>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setActiveCategory(category.id)}
-                      className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-medium 
-                        transition-all duration-300 ${
-                          activeCategory === category.id
-                            ? `bg-${category.color} text-white shadow-lg`
-                            : 'bg-[#2A2A3C] text-gray-300 hover:bg-[#3D3D56]'
-                        }`}
-                      style={{
-                        background: activeCategory === category.id ? category.color : undefined
-                      }}
-                    >
-                      <span className="text-lg">{category.icon}</span>
-                      <span>{category.name}</span>
-                    </motion.button>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
+              <h2 className="text-3xl font-bold text-gray-900">Best Sellers</h2>
+              <p className="mt-2 text-gray-600">Discover our most popular designs</p>
+            </motion.div>
+
+            {/* Filter Buttons */}
+            <div className="flex flex-wrap gap-3">
+              {filters.map((filter) => (
+                <motion.button
+                  key={filter.id}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setActiveFilter(filter.id)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium 
+                    transition-all duration-300 ${
+                      activeFilter === filter.id
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                    }`}
+                >
+                  <span>{filter.icon}</span>
+                  <span>{filter.name}</span>
+                </motion.button>
+              ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* Products Grid */}
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeCategory}
+              key={activeFilter}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 place-items-center"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
             >
               {isLoading ? (
-                Array(8).fill(0).map((_, index) => (
-                  <div key={index} className="w-full max-w-[280px]">
-                    <Skeleton 
-                      height={350} 
-                      baseColor="#2A2A3C" 
-                      highlightColor="#3D3D56"
-                      className="rounded-xl"
-                    />
-                  </div>
+                // Skeleton Loading
+                Array(8).fill(null).map((_, index) => (
+                  <div 
+                    key={index}
+                    className="bg-white rounded-xl aspect-[3/4] animate-pulse"
+                  />
                 ))
-              ) : data && data.length > 0 ? (
+              ) : data.length > 0 ? (
                 data.map((product, index) => (
                   <motion.div
                     key={product._id}
                     initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
+                    animate={{ 
+                      opacity: 1, 
+                      y: 0,
+                      transition: { delay: index * 0.1 }
+                    }}
                   >
                     <ProductCard data={product} />
                   </motion.div>
                 ))
               ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="col-span-full text-center py-12"
-                >
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 200 }}
-                    className="text-6xl mb-4"
-                  >
-                    🔍
-                  </motion.div>
-                  <p className="text-gray-400 text-lg">No products found in this category</p>
-                </motion.div>
+                <div className="col-span-full flex flex-col items-center justify-center py-12">
+                  <span className="text-6xl mb-4">🔍</span>
+                  <p className="text-gray-600 text-lg">No products found</p>
+                </div>
               )}
             </motion.div>
           </AnimatePresence>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
