@@ -32,17 +32,6 @@ const { body, validationResult } = require('express-validator');
 })().catch(console.error);
 
 
-exports.updateProductViews = async (req, res) => {
-  try {
-    const { productId } = req.params;
-    await Product.findByIdAndUpdate(productId, {
-      $inc: { viewCount: 1 }
-    });
-    res.status(200).json({ success: true });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
 
 // Validation middleware
 const validateProductData = [
@@ -127,7 +116,6 @@ const upload = multer({
     await fs.mkdir('uploads', { recursive: true });
   }
 })();
-router.post("/product/increment-view/:id", productController.updateProductViews);
 
 // Product routes
 router.post("/create-product", 
@@ -661,7 +649,7 @@ router.delete(
     }
   })
 );
-router.get("/product/get-product-views/:id", productController.getProductViews);
+
 // Get product by ID with availability check
 router.get(
   "/get-product/:id",
