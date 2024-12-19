@@ -1,56 +1,53 @@
-// redux/actions/cart.js
+// add to cart
 export const addTocart = (data) => async (dispatch, getState) => {
   try {
     const { cart } = getState().cart;
     
-    const cartItem = {
-      _id: data._id,
-      name: data.name,
-      price: data.discountPrice || data.originalPrice,
-      quantity: data.quantity || 1,
-      selectedSize: data.selectedSize,
-      selectedColor: data.selectedColor,
-      stock: data.stock,
-      shopId: data.shopId,
-      shop: data.shop,
-      designImage: data.designImage,
-      mockupUrl: data.mockupUrl // Add the mockup URL
-    };
-
-    // Check if item already exists
-    const existingItemIndex = cart.findIndex(
-      item => 
-        item._id === cartItem._id && 
-        item.selectedSize === cartItem.selectedSize && 
-        item.selectedColor === cartItem.selectedColor
+    // Check if item already exists in cart
+    const existingItem = cart.find(
+      item => item._id === data._id && 
+      item.selectedSize === data.selectedSize && 
+      item.selectedColor === data.selectedColor
     );
 
-    if (existingItemIndex !== -1) {
-      // Update existing item
-      const updatedCart = [...cart];
-      const newQuantity = updatedCart[existingItemIndex].quantity + cartItem.quantity;
-      
-      if (newQuantity > cartItem.stock) {
-        throw new Error("Not enough stock available");
+    if (existingItem) {
+      // Update quantity if stock allows
+      const newQuantity = existingItem.quantity + data.quantity;
+      if (newQuantity > data.stock) {
+        return { success: false, message: "Not enough stock available" };
       }
       
-      updatedCart[existingItemIndex].quantity = newQuantity;
+      const updatedCart = cart.map(item => 
+        item._id === existingItem._id ? 
+        { ...item, quantity: newQuantity } : 
+        item
+      );
       
       dispatch({
         type: 'UPDATE_CART',
         payload: updatedCart,
       });
     } else {
-      // Add new item
       dispatch({
         type: 'ADD_TO_CART',
-        payload: [...cart, cartItem],
+        payload: [...cart, data],
       });
     }
 
+    // Save to localStorage
     localStorage.setItem('cartItems', JSON.stringify(getState().cart.cart));
     return { success: true };
   } catch (error) {
     return { success: false, message: error.message };
   }
+};
+
+// remove from cart
+export const removeFromCart = (data) => async (dispatch, getState) => {
+  dispatch({
+    type: "removeFromCart",
+    payload: data._id,
+  });
+  localStorage.setItem("cartItems", JSON.stringify(getState().cart.cart));
+  return data;
 };
