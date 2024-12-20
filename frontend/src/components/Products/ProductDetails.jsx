@@ -47,11 +47,10 @@ const ProductDetails = ({ data }) => {
 
   const getProductImage = () => {
     try {
-      // Construct the image URL based on the product type and selected options
-      return `/v1/hoodies/${data?.ProductType?.toLowerCase()}-${selectedColor.toLowerCase()}-${showBack ? 'back' : 'front'}.png`;
+      return `/hoodies/${data.ProductType.toLowerCase()}-${selectedColor.toLowerCase()}-${showBack ? 'back' : 'front'}.png`;
     } catch (error) {
       console.error("Error getting product image:", error);
-      return ""; // Return empty string or default image path
+      return "";
     }
   };
 
@@ -131,13 +130,12 @@ const ProductDetails = ({ data }) => {
       qty: count,
       selectedSize,
       selectedColor,
+      designImage: data.designImage?.url || data.designImage,
+      productImage: getProductImage(),
       price: data.discountPrice || data.originalPrice,
-      // Include the design image
-      designImage: data.designImage,
-      // Include product type for image construction
-      productType: data.ProductType,
     };
 
+    console.log("Adding to cart:", cartItem); // For debugging
     dispatch(addTocart(cartItem));
     toast.success("Added to cart successfully!");
   };
@@ -156,6 +154,10 @@ const ProductDetails = ({ data }) => {
                     src={getProductImage()}
                     alt={data.DesignTitle}
                     className="w-full h-auto object-contain"
+                    onError={(e) => {
+                      console.error("Error loading product image");
+                      e.target.src = ""; // Set a default image path if needed
+                    }}
                   />
                   {/* Design Overlay */}
                   {!showBack && data.designImage && (
@@ -167,7 +169,7 @@ const ProductDetails = ({ data }) => {
                       }}
                     >
                       <img
-                        src={data.designImage.url}
+                        src={data.designImage.url || data.designImage}
                         alt="Design"
                         className="w-full h-full object-contain"
                       />
