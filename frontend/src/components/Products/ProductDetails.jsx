@@ -47,13 +47,12 @@ const ProductDetails = ({ data }) => {
 
   const getProductImage = () => {
     try {
-      return `/hoodies/${data.ProductType.toLowerCase()}-${selectedColor.toLowerCase()}-${showBack ? 'back' : 'front'}.png`;
+      return `https://res.cloudinary.com/dkot9tyjm/image/upload/v1728392918/hoodies/hoodie-${selectedColor.toLowerCase()}-${showBack ? 'back' : 'front'}.png`;
     } catch (error) {
       console.error("Error getting product image:", error);
       return "";
     }
   };
-
   const handleWishlist = (e) => {
     e.preventDefault();
     if (click) {
@@ -213,10 +212,9 @@ const ProductDetails = ({ data }) => {
                 </h1>
                 
                 <div className="flex items-center mt-2">
-                  <span className="text-[16px] text-gray-500 mr-2">Design #</span>
-                  <span className="text-[16px] text-[#4e64df]">{data._id}</span>
-                </div>
-
+  <span className="text-[16px] text-gray-500 mr-2">Tag:</span>
+  <span className="text-[16px] text-[#4e64df]">{data.Maintag}</span>
+</div>
                 {/* Price */}
                 <div className="flex items-center mt-6">
                   <h3 className="text-[28px] font-bold text-gray-800">
