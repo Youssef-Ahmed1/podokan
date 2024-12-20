@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { addTocart } from "../../redux/actions/cart";
 import { addToWishlist, removeFromWishlist } from "../../redux/actions/wishlist";
 import { toast } from "react-toastify";
-import Ratings from "../../components/Products/Ratings";
 import styles from "../../styles/styles";
 import { 
   AiFillHeart, 
@@ -28,7 +27,6 @@ const ProductDetails = ({ data }) => {
   const { wishlist } = useSelector((state) => state.wishlist);
   const { cart } = useSelector((state) => state.cart);
   
-  // States
   const [count, setCount] = useState(1);
   const [click, setClick] = useState(false);
   const [selectedSize, setSelectedSize] = useState("");
@@ -36,7 +34,6 @@ const ProductDetails = ({ data }) => {
   const [showBack, setShowBack] = useState(false);
   const [showShare, setShowShare] = useState(false);
 
-  // Available sizes
   const SIZES = ["S", "M", "L", "XL", "2XL"];
   const COLORS = ["white", "black"];
 
@@ -49,10 +46,13 @@ const ProductDetails = ({ data }) => {
   }, [wishlist, data]);
 
   const getProductImage = () => {
-    const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
-    return `${baseUrl}/${data.ProductType.toLowerCase()}/${selectedColor.toLowerCase()}/${
-      showBack ? 'back' : 'front'
-    }.png`;
+    try {
+      // Assuming the mock-up images are stored in your Cloudinary
+      return `${data?.productType?.toLowerCase()}/${selectedColor.toLowerCase()}/${showBack ? 'back' : 'front'}.png`;
+    } catch (error) {
+      console.error("Error getting product image:", error);
+      return ""; // Return a default image path if needed
+    }
   };
 
   const handleWishlist = (e) => {
@@ -69,45 +69,30 @@ const ProductDetails = ({ data }) => {
   };
 
   const handleShare = (platform) => {
-    const text = encodeURIComponent(`Check out ${data.DesignTitle}!`);
+    const text = encodeURIComponent(`Check out this awesome design: ${data.DesignTitle}`);
     const url = encodeURIComponent(window.location.href);
     
-    let shareUrl = '';
-    
-    switch (platform) {
-      case 'facebook':
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-        break;
-      case 'twitter':
-        shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
-        break;
-      case 'whatsapp':
-        shareUrl = `https://wa.me/?text=${text}%20${url}`;
-        break;
-      case 'telegram':
-        shareUrl = `https://t.me/share/url?url=${url}&text=${text}`;
-        break;
-      case 'pinterest':
-        shareUrl = `https://pinterest.com/pin/create/button/?url=${url}&description=${text}`;
-        break;
-      case 'linkedin':
-        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
-        break;
-      case 'instagram':
-        shareUrl = `https://instagram.com/share?url=${url}`;
-        break;
-      case 'snapchat':
-        shareUrl = `https://www.snapchat.com/share?url=${url}`;
-        break;
-      case 'copy':
-        navigator.clipboard.writeText(window.location.href);
-        toast.success("Link copied to clipboard!");
-        return;
-      default:
-        return;
+    const shareUrls = {
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+      twitter: `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+      whatsapp: `https://wa.me/?text=${text}%20${url}`,
+      telegram: `https://t.me/share/url?url=${url}&text=${text}`,
+      pinterest: `https://pinterest.com/pin/create/button/?url=${url}&description=${text}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
+      instagram: `https://instagram.com/share?url=${url}`,
+      snapchat: `https://www.snapchat.com/share?url=${url}`
+    };
+
+    if (platform === 'copy') {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard!");
+      return;
     }
 
-    window.open(shareUrl, '_blank', 'width=600,height=400');
+    const shareUrl = shareUrls[platform];
+    if (shareUrl) {
+      window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
   };
 
   const decrementCount = () => {
@@ -125,20 +110,17 @@ const ProductDetails = ({ data }) => {
       toast.error("Please select a size!");
       return;
     }
-    
-    if (cart && cart.find((i) => i._id === data?._id)) {
-      toast.error("Item already in cart!");
-      return;
-    }
 
-    const cartData = {
+    const cartItem = {
       ...data,
       qty: count,
       selectedSize,
       selectedColor,
+      designImage: data.designImage,
+      price: data.discountPrice || data.originalPrice,
     };
 
-    dispatch(addTocart(cartData));
+    dispatch(addTocart(cartItem));
     toast.success("Added to cart successfully!");
   };
 
@@ -151,11 +133,13 @@ const ProductDetails = ({ data }) => {
               {/* Left side - Product Images */}
               <div className="w-full 800px:w-[50%]">
                 <div className="w-[80%] mx-auto relative">
+                  {/* Product Mockup */}
                   <img
                     src={getProductImage()}
                     alt={data.DesignTitle}
                     className="w-full h-auto object-contain"
                   />
+                  {/* Design Overlay */}
                   {!showBack && data.designImage && (
                     <div 
                       className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
@@ -179,9 +163,10 @@ const ProductDetails = ({ data }) => {
                     className={`
                       flex-1 py-3 border-2 transition-colors
                       ${!showBack 
-                        ? "border-[#f63b60] text-[#f63b60]" 
+                        ? "border-[#4e64df] text-[#4e64df]" 
                         : "border-gray-300 text-gray-600"
                       }
+                      hover:border-[#4e64df] hover:text-[#4e64df]
                     `}
                     onClick={() => setShowBack(false)}
                   >
@@ -191,9 +176,10 @@ const ProductDetails = ({ data }) => {
                     className={`
                       flex-1 py-3 border-2 transition-colors
                       ${showBack 
-                        ? "border-[#f63b60] text-[#f63b60]" 
+                        ? "border-[#4e64df] text-[#4e64df]" 
                         : "border-gray-300 text-gray-600"
                       }
+                      hover:border-[#4e64df] hover:text-[#4e64df]
                     `}
                     onClick={() => setShowBack(true)}
                   >
@@ -204,12 +190,14 @@ const ProductDetails = ({ data }) => {
 
               {/* Right side - Product Details */}
               <div className="w-full 800px:w-[50%] pt-5 pl-[30px]">
-                <h1 className="text-[25px] font-[600] font-Roboto text-[#333]">
+                <h1 className="text-[25px] font-[600] font-Roboto text-gray-800">
                   {data.DesignTitle}
                 </h1>
-                <p className="text-[16px] text-[#000000a4] font-[400] mt-2">
-                  Design #{data.DesignNumber}
-                </p>
+                
+                <div className="flex items-center mt-2">
+                  <span className="text-[16px] text-gray-500 mr-2">Design #</span>
+                  <span className="text-[16px] text-[#4e64df]">{data.DesignNumber}</span>
+                </div>
 
                 {/* Tags */}
                 {data.Designtags && data.Designtags.length > 0 && (
@@ -217,7 +205,8 @@ const ProductDetails = ({ data }) => {
                     {data.Designtags.map((tag, index) => (
                       <span
                         key={index}
-                        className="px-4 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors"
+                        className="px-4 py-1.5 bg-gray-100 text-gray-600 rounded-full text-sm font-medium
+                          hover:bg-gray-200 transition-colors cursor-pointer"
                       >
                         {tag}
                       </span>
@@ -227,15 +216,15 @@ const ProductDetails = ({ data }) => {
 
                 {/* Price */}
                 <div className="flex items-center mt-6">
-                  <h3 className="text-[28px] font-bold text-[#333]">
+                  <h3 className="text-[28px] font-bold text-gray-800">
                     ${data.discountPrice || data.originalPrice}
                   </h3>
                   {data.discountPrice && (
                     <>
-                      <h4 className="text-[20px] text-[#666] line-through ml-3">
+                      <h4 className="text-[20px] text-gray-400 line-through ml-3">
                         ${data.originalPrice}
                       </h4>
-                      <span className="ml-2 text-green-500 text-[18px]">
+                      <span className="ml-2 text-green-500 text-[18px] font-medium">
                         {Math.round(((data.originalPrice - data.discountPrice) / data.originalPrice) * 100)}% OFF
                       </span>
                     </>
@@ -244,7 +233,7 @@ const ProductDetails = ({ data }) => {
 
                 {/* Color Selection */}
                 <div className="mt-6">
-                  <h4 className="text-[16px] font-[600] mb-3">Select Color:</h4>
+                  <h4 className="text-[16px] font-[600] text-gray-800 mb-3">Select Color:</h4>
                   <div className="flex gap-3">
                     {COLORS.map((color) => (
                       <button
@@ -254,9 +243,10 @@ const ProductDetails = ({ data }) => {
                           w-8 h-8 rounded-full border-2 transition-all
                           ${color === 'white' ? 'bg-white' : 'bg-black'}
                           ${selectedColor === color 
-                            ? 'border-[#f63b60] scale-110' 
+                            ? 'border-[#4e64df] scale-110' 
                             : 'border-gray-300'
                           }
+                          hover:border-[#4e64df]
                         `}
                         aria-label={color}
                       />
@@ -266,7 +256,7 @@ const ProductDetails = ({ data }) => {
 
                 {/* Size Selection */}
                 <div className="mt-6">
-                  <h4 className="text-[16px] font-[600] mb-3">Select Size:</h4>
+                  <h4 className="text-[16px] font-[600] text-gray-800 mb-3">Select Size:</h4>
                   <div className="flex gap-3">
                     {SIZES.map((size) => (
                       <button
@@ -275,10 +265,10 @@ const ProductDetails = ({ data }) => {
                         className={`
                           w-14 h-10 border-2 rounded transition-colors
                           ${selectedSize === size 
-                            ? 'border-[#f63b60] text-[#f63b60]' 
+                            ? 'border-[#4e64df] text-[#4e64df]' 
                             : 'border-gray-300 text-gray-600'
                           }
-                          hover:border-[#f63b60] hover:text-[#f63b60]
+                          hover:border-[#4e64df] hover:text-[#4e64df]
                         `}
                       >
                         {size}
@@ -289,20 +279,22 @@ const ProductDetails = ({ data }) => {
 
                 {/* Quantity */}
                 <div className="mt-6">
-                  <h4 className="text-[16px] font-[600] mb-3">Quantity:</h4>
+                  <h4 className="text-[16px] font-[600] text-gray-800 mb-3">Quantity:</h4>
                   <div className="flex items-center">
                     <button 
                       onClick={decrementCount}
-                      className="w-8 h-8 border rounded-l flex items-center justify-center hover:bg-gray-100"
+                      className="w-8 h-8 border rounded-l flex items-center justify-center 
+                        text-gray-600 hover:bg-gray-100 transition-colors"
                     >
                       -
                     </button>
-                    <span className="w-12 h-8 border-t border-b flex items-center justify-center">
+                    <span className="w-12 h-8 border-t border-b flex items-center justify-center text-gray-800">
                       {count}
                     </span>
                     <button 
                       onClick={incrementCount}
-                      className="w-8 h-8 border rounded-r flex items-center justify-center hover:bg-gray-100"
+                      className="w-8 h-8 border rounded-r flex items-center justify-center 
+                        text-gray-600 hover:bg-gray-100 transition-colors"
                     >
                       +
                     </button>
@@ -312,7 +304,8 @@ const ProductDetails = ({ data }) => {
                 {/* Actions */}
                 <div className="flex items-center mt-8 gap-4">
                   <button
-                    className="flex-1 py-4 bg-[#f63b60] text-white rounded-full hover:bg-[#e63956] transition-colors"
+                    className="flex-1 py-4 bg-[#4e64df] text-white rounded-full 
+                      hover:bg-[#5d71e7] transition-colors font-medium"
                     onClick={addToCartHandler}
                   >
                     Add to Cart
@@ -320,25 +313,28 @@ const ProductDetails = ({ data }) => {
                   
                   <button
                     onClick={handleWishlist}
-                    className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                    className="w-12 h-12 flex items-center justify-center rounded-full 
+                      bg-gray-100 hover:bg-gray-200 transition-colors"
                   >
                     {click ? (
-                      <AiFillHeart className="text-[#f63b60] text-2xl" />
+                      <AiFillHeart className="text-[#4e64df] text-2xl" />
                     ) : (
-                      <AiOutlineHeart className="text-2xl" />
+                      <AiOutlineHeart className="text-gray-600 text-2xl" />
                     )}
                   </button>
 
                   <div className="relative">
                     <button
                       onClick={() => setShowShare(!showShare)}
-                      className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                      className="w-12 h-12 flex items-center justify-center rounded-full 
+                        bg-gray-100 hover:bg-gray-200 transition-colors"
                     >
-                      <IoCopy className="text-xl" />
+                      <AiOutlineShareAlt className="text-gray-600 text-2xl" />
                     </button>
 
                     {showShare && (
-                      <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg shadow-xl z-10">
+                      <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg 
+                        shadow-xl z-10 border border-gray-200">
                         {[
                           { platform: 'whatsapp', icon: FaWhatsapp, color: 'text-green-500' },
                           { platform: 'facebook', icon: FaFacebook, color: 'text-blue-600' },
@@ -353,10 +349,10 @@ const ProductDetails = ({ data }) => {
                           <button
                             key={platform}
                             onClick={() => handleShare(platform)}
-                            className="flex items-center px-4 py-2 hover:bg-gray-100 w-full"
+                            className="flex items-center px-4 py-2 hover:bg-gray-50 w-full transition-colors"
                           >
                             <Icon className={`mr-3 ${color}`} />
-                            <span className="capitalize">{platform}</span>
+                            <span className="capitalize text-gray-700">{platform}</span>
                           </button>
                         ))}
                       </div>
@@ -367,8 +363,8 @@ const ProductDetails = ({ data }) => {
                 {/* Description */}
                 {data.Description && (
                   <div className="mt-8">
-                    <h4 className="text-[16px] font-[600] mb-2">Description:</h4>
-                    <p className="text-[#000000a4]">{data.Description}</p>
+                    <h4 className="text-[16px] font-[600] text-gray-800 mb-2">Description:</h4>
+                    <p className="text-gray-600 leading-relaxed">{data.Description}</p>
                   </div>
                 )}
               </div>
