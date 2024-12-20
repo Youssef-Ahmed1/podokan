@@ -47,11 +47,11 @@ const ProductDetails = ({ data }) => {
 
   const getProductImage = () => {
     try {
-      // Assuming the mock-up images are stored in your Cloudinary
-      return `${data?.productType?.toLowerCase()}/${selectedColor.toLowerCase()}/${showBack ? 'back' : 'front'}.png`;
+      // Construct the image URL based on the product type and selected options
+      return `/${data?.ProductType?.toLowerCase()}/${selectedColor.toLowerCase()}/${showBack ? 'back' : 'front'}.png`;
     } catch (error) {
       console.error("Error getting product image:", error);
-      return ""; // Return a default image path if needed
+      return ""; // Return empty string or default image path
     }
   };
 
@@ -69,30 +69,45 @@ const ProductDetails = ({ data }) => {
   };
 
   const handleShare = (platform) => {
-    const text = encodeURIComponent(`Check out this awesome design: ${data.DesignTitle}`);
+    const text = encodeURIComponent(`Check out ${data.DesignTitle}!`);
     const url = encodeURIComponent(window.location.href);
     
-    const shareUrls = {
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
-      twitter: `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
-      whatsapp: `https://wa.me/?text=${text}%20${url}`,
-      telegram: `https://t.me/share/url?url=${url}&text=${text}`,
-      pinterest: `https://pinterest.com/pin/create/button/?url=${url}&description=${text}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
-      instagram: `https://instagram.com/share?url=${url}`,
-      snapchat: `https://www.snapchat.com/share?url=${url}`
-    };
-
-    if (platform === 'copy') {
-      navigator.clipboard.writeText(window.location.href);
-      toast.success("Link copied to clipboard!");
-      return;
+    let shareUrl = '';
+    
+    switch (platform) {
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+        break;
+      case 'whatsapp':
+        shareUrl = `https://wa.me/?text=${text}%20${url}`;
+        break;
+      case 'telegram':
+        shareUrl = `https://t.me/share/url?url=${url}&text=${text}`;
+        break;
+      case 'pinterest':
+        shareUrl = `https://pinterest.com/pin/create/button/?url=${url}&description=${text}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+        break;
+      case 'instagram':
+        shareUrl = `https://instagram.com/share?url=${url}`;
+        break;
+      case 'snapchat':
+        shareUrl = `https://www.snapchat.com/share?url=${url}`;
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(window.location.href);
+        toast.success("Link copied to clipboard!");
+        return;
+      default:
+        return;
     }
 
-    const shareUrl = shareUrls[platform];
-    if (shareUrl) {
-      window.open(shareUrl, '_blank', 'width=600,height=400');
-    }
+    window.open(shareUrl, '_blank', 'width=600,height=400');
   };
 
   const decrementCount = () => {
@@ -110,14 +125,17 @@ const ProductDetails = ({ data }) => {
       toast.error("Please select a size!");
       return;
     }
-
+    
     const cartItem = {
       ...data,
       qty: count,
       selectedSize,
       selectedColor,
-      designImage: data.designImage,
       price: data.discountPrice || data.originalPrice,
+      // Include the design image
+      designImage: data.designImage,
+      // Include product type for image construction
+      productType: data.ProductType,
     };
 
     dispatch(addTocart(cartItem));
@@ -166,7 +184,6 @@ const ProductDetails = ({ data }) => {
                         ? "border-[#4e64df] text-[#4e64df]" 
                         : "border-gray-300 text-gray-600"
                       }
-                      hover:border-[#4e64df] hover:text-[#4e64df]
                     `}
                     onClick={() => setShowBack(false)}
                   >
@@ -179,7 +196,6 @@ const ProductDetails = ({ data }) => {
                         ? "border-[#4e64df] text-[#4e64df]" 
                         : "border-gray-300 text-gray-600"
                       }
-                      hover:border-[#4e64df] hover:text-[#4e64df]
                     `}
                     onClick={() => setShowBack(true)}
                   >
@@ -196,23 +212,8 @@ const ProductDetails = ({ data }) => {
                 
                 <div className="flex items-center mt-2">
                   <span className="text-[16px] text-gray-500 mr-2">Design #</span>
-                  <span className="text-[16px] text-[#4e64df]">{data.DesignNumber}</span>
+                  <span className="text-[16px] text-[#4e64df]">{data._id}</span>
                 </div>
-
-                {/* Tags */}
-                {data.Designtags && data.Designtags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {data.Designtags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="px-4 py-1.5 bg-gray-100 text-gray-600 rounded-full text-sm font-medium
-                          hover:bg-gray-200 transition-colors cursor-pointer"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
 
                 {/* Price */}
                 <div className="flex items-center mt-6">
@@ -224,8 +225,8 @@ const ProductDetails = ({ data }) => {
                       <h4 className="text-[20px] text-gray-400 line-through ml-3">
                         ${data.originalPrice}
                       </h4>
-                      <span className="ml-2 text-green-500 text-[18px] font-medium">
-                        {Math.round(((data.originalPrice - data.discountPrice) / data.originalPrice) * 100)}% OFF
+                      <span className="ml-2 text-[#4e64df] text-[18px]">
+                        {data.discountPercentage}% OFF
                       </span>
                     </>
                   )}
@@ -246,7 +247,6 @@ const ProductDetails = ({ data }) => {
                             ? 'border-[#4e64df] scale-110' 
                             : 'border-gray-300'
                           }
-                          hover:border-[#4e64df]
                         `}
                         aria-label={color}
                       />
@@ -268,7 +268,6 @@ const ProductDetails = ({ data }) => {
                             ? 'border-[#4e64df] text-[#4e64df]' 
                             : 'border-gray-300 text-gray-600'
                           }
-                          hover:border-[#4e64df] hover:text-[#4e64df]
                         `}
                       >
                         {size}
@@ -283,18 +282,16 @@ const ProductDetails = ({ data }) => {
                   <div className="flex items-center">
                     <button 
                       onClick={decrementCount}
-                      className="w-8 h-8 border rounded-l flex items-center justify-center 
-                        text-gray-600 hover:bg-gray-100 transition-colors"
+                      className="w-8 h-8 border rounded-l flex items-center justify-center text-gray-600"
                     >
                       -
                     </button>
-                    <span className="w-12 h-8 border-t border-b flex items-center justify-center text-gray-800">
+                    <span className="w-12 h-8 border-t border-b flex items-center justify-center">
                       {count}
                     </span>
                     <button 
                       onClick={incrementCount}
-                      className="w-8 h-8 border rounded-r flex items-center justify-center 
-                        text-gray-600 hover:bg-gray-100 transition-colors"
+                      className="w-8 h-8 border rounded-r flex items-center justify-center text-gray-600"
                     >
                       +
                     </button>
@@ -349,7 +346,7 @@ const ProductDetails = ({ data }) => {
                           <button
                             key={platform}
                             onClick={() => handleShare(platform)}
-                            className="flex items-center px-4 py-2 hover:bg-gray-50 w-full transition-colors"
+                            className="flex items-center px-4 py-2 hover:bg-gray-50 w-full"
                           >
                             <Icon className={`mr-3 ${color}`} />
                             <span className="capitalize text-gray-700">{platform}</span>
