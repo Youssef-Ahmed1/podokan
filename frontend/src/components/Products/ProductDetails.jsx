@@ -9,7 +9,7 @@ import {
   AiFillHeart, 
   AiOutlineHeart, 
   AiOutlineShoppingCart, 
-  AiOutlineShare 
+  AiOutlineShareAlt 
 } from "react-icons/ai";
 import { 
   FaFacebook, 
@@ -246,12 +246,12 @@ const ProductDetails = ({ data }) => {
                     </button>
 
                     <div className="relative">
-                      <button
-                        onClick={() => setShowShare(!showShare)}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
-                      >
-                        <AiOutlineShare className="text-xl" />
-                      </button>
+                    <button
+  onClick={() => setShowShare(!showShare)}
+  className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
+>
+  <AiOutlineShareAlt className="text-xl" /> 
+</button>
 
                       {showShare && (
                         <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg shadow-xl z-10">
