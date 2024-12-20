@@ -15,10 +15,11 @@ const Cart = ({ setOpenCart }) => {
 
   const removeFromCartHandler = (data) => {
     dispatch(removeFromCart(data));
+    toast.success("Item removed from cart!");
   };
 
   const totalPrice = cart.reduce(
-    (acc, item) => acc + item.qty * item.discountPrice,
+    (acc, item) => acc + item.qty * (item.discountPrice || item.originalPrice),
     0
   );
 
@@ -76,13 +77,13 @@ const EmptyCart = ({ setOpenCart }) => (
     >
       <IoBagHandleOutline className="w-full h-full text-gray-300" />
     </motion.div>
-    <h2 className="text-xl font-medium mb-2">Your cart is empty</h2>
+    <h2 className="text-xl font-medium text-gray-800 mb-2">Your cart is empty</h2>
     <p className="text-gray-500 text-center mb-6">
       Looks like you haven't added any items to your cart yet
     </p>
     <button
       onClick={() => setOpenCart(false)}
-      className="px-6 py-2 bg-[#e44343] text-white rounded-full hover:bg-[#d03e3e] transition-colors"
+      className="px-6 py-2 bg-[#4e64df] text-white rounded-full hover:bg-[#5d71e7] transition-colors"
     >
       Continue Shopping
     </button>
@@ -99,14 +100,14 @@ const FilledCart = ({
   <div className="h-full flex flex-col">
     <div className="flex items-center justify-between p-4 border-b">
       <div className="flex items-center">
-        <IoBagHandleOutline className="w-6 h-6 mr-2" />
-        <h2 className="text-lg font-medium">{cart.length} items</h2>
+        <IoBagHandleOutline className="w-6 h-6 mr-2 text-gray-600" />
+        <h2 className="text-lg font-medium text-gray-800">{cart.length} items</h2>
       </div>
       <button
         onClick={() => setOpenCart(false)}
         className="p-2 hover:bg-gray-100 rounded-full transition-colors"
       >
-        <RxCross1 className="w-5 h-5" />
+        <RxCross1 className="w-5 h-5 text-gray-600" />
       </button>
     </div>
 
@@ -123,17 +124,17 @@ const FilledCart = ({
       </AnimatePresence>
     </div>
 
-    <div className="p-4 border-t">
+    <div className="p-4 border-t bg-gray-50">
       <div className="flex justify-between mb-4">
-        <span className="text-gray-600">Total</span>
-        <span className="font-medium">EGP {totalPrice.toFixed(2)}</span>
+        <span className="text-gray-600">Subtotal:</span>
+        <span className="font-medium text-gray-800">${totalPrice.toFixed(2)}</span>
       </div>
-      <Link to="/checkout">
+      <Link to="/checkout" onClick={() => setOpenCart(false)}>
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="w-full py-3 bg-[#e44343] text-white rounded-lg font-medium
-            hover:bg-[#d03e3e] transition-colors"
+          className="w-full py-3 bg-[#4e64df] text-white rounded-full font-medium
+            hover:bg-[#5d71e7] transition-colors"
         >
           Checkout Now
         </motion.button>
@@ -144,20 +145,25 @@ const FilledCart = ({
 
 const CartItem = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
   const [value, setValue] = useState(data.qty);
+  const maxStock = data.stock || 999; // Default to 999 if stock not specified
 
   const handleIncrement = () => {
-    if (data.stock > value) {
-      setValue(value + 1);
-      quantityChangeHandler({ ...data, qty: value + 1 });
+    if (value < maxStock) {
+      const newValue = value + 1;
+      setValue(newValue);
+      const updatedData = { ...data, qty: newValue };
+      quantityChangeHandler(updatedData);
     } else {
-      toast.error("Product stock limited!");
+      toast.error("Maximum stock limit reached!");
     }
   };
 
   const handleDecrement = () => {
     if (value > 1) {
-      setValue(value - 1);
-      quantityChangeHandler({ ...data, qty: value - 1 });
+      const newValue = value - 1;
+      setValue(newValue);
+      const updatedData = { ...data, qty: newValue };
+      quantityChangeHandler(updatedData);
     }
   };
 
@@ -168,12 +174,12 @@ const CartItem = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
       exit={{ opacity: 0, y: -20 }}
       className="p-4 border-b"
     >
-      <div className="flex items-start">
+      <div className="flex items-start space-x-4">
         <div className="relative flex-shrink-0">
           <img
             src={data.designImage?.url || data.designImage}
             alt={data.DesignTitle}
-            className="w-20 h-20 object-cover rounded-lg"
+            className="w-20 h-20 object-cover rounded-lg bg-gray-100"
           />
           <motion.button
             whileTap={{ scale: 0.9 }}
@@ -185,29 +191,37 @@ const CartItem = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
           </motion.button>
         </div>
 
-        <div className="flex-1 ml-4">
-          <h3 className="font-medium mb-1">{data.DesignTitle}</h3>
-          <div className="flex items-center mb-2">
-            <div className="flex items-center border rounded-lg">
+        <div className="flex-1">
+          <h3 className="font-medium text-gray-800 mb-1">{data.DesignTitle}</h3>
+          
+          <div className="flex items-center text-sm text-gray-500 mb-2 space-x-2">
+            <span>Size: {data.selectedSize}</span>
+            <span>•</span>
+            <span>Color: {data.selectedColor}</span>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center border rounded-lg bg-white">
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={handleDecrement}
-                className="p-1 hover:bg-gray-100"
+                className="p-1 hover:bg-gray-100 text-gray-600"
               >
                 <HiOutlineMinus className="w-4 h-4" />
               </motion.button>
-              <span className="px-3 py-1 border-x">{value}</span>
+              <span className="px-3 py-1 border-x text-gray-800">{value}</span>
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={handleIncrement}
-                className="p-1 hover:bg-gray-100"
+                className="p-1 hover:bg-gray-100 text-gray-600"
               >
                 <HiPlus className="w-4 h-4" />
               </motion.button>
             </div>
-          </div>
-          <div className="text-[#d02222] font-medium">
-            EGP {(data.discountPrice * value).toFixed(2)}
+
+            <div className="text-[#4e64df] font-medium">
+              ${((data.discountPrice || data.originalPrice) * value).toFixed(2)}
+            </div>
           </div>
         </div>
       </div>
