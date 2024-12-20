@@ -48,7 +48,7 @@ const ProductDetails = ({ data }) => {
   const getProductImage = () => {
     try {
       // Construct the image URL based on the product type and selected options
-      return `/${data?.ProductType?.toLowerCase()}/${selectedColor.toLowerCase()}/${showBack ? 'back' : 'front'}.png`;
+      return `/v1/hoodies/${data?.ProductType?.toLowerCase()}-${selectedColor.toLowerCase()}-${showBack ? 'back' : 'front'}.png`;
     } catch (error) {
       console.error("Error getting product image:", error);
       return ""; // Return empty string or default image path
