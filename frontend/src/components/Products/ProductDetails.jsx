@@ -3,12 +3,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { addTocart } from "../../redux/actions/cart";
 import { addToWishlist, removeFromWishlist } from "../../redux/actions/wishlist";
 import { toast } from "react-toastify";
-import Ratings from "../Ratings/Ratings";
+import Ratings from "../../components/Products/Ratings";
 import styles from "../../styles/styles";
 import { 
   AiFillHeart, 
   AiOutlineHeart, 
-  AiOutlineShoppingCart
+  AiOutlineShoppingCart, 
+  AiOutlineShareAlt 
 } from "react-icons/ai";
 import { 
   FaFacebook, 
@@ -17,8 +18,7 @@ import {
   FaLinkedin, 
   FaInstagram, 
   FaTelegram, 
-  FaSnapchat,
-  FaWhatsapp
+  FaSnapchat 
 } from "react-icons/fa";
 import { IoCopy } from "react-icons/io5";
 
