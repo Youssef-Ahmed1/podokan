@@ -18,7 +18,8 @@ import {
   FaLinkedin, 
   FaInstagram, 
   FaTelegram, 
-  FaSnapchat 
+  FaSnapchat,
+  FaWhatsapp
 } from "react-icons/fa";
 import { IoCopy } from "react-icons/io5";
 
