@@ -225,7 +225,7 @@ const ProductCard = ({ data }) => {
             {data.name}
           </h3>
           <p className="text-gray-500 text-sm mt-1">
-             {product.DesignTitle}
+            by {data.shop?.name}
           </p>
         </div>
       </Link>
