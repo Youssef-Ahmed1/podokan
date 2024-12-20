@@ -374,5 +374,5 @@ const ProductDetails = ({ data }) => {
     </div>
   );
 };
-
+//.
 export default ProductDetails;
