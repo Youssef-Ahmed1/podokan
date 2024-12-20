@@ -9,7 +9,7 @@ import { useSelector } from "react-redux";
 import Loader from "../components/Layout/Loader";
 import axios from "axios";
 import { server } from "../server";
-
+import { toast } from "react-toastify";
 const ProductDetailsPage = () => {
   const { allProducts } = useSelector((state) => state.products);
   const { id } = useParams();
