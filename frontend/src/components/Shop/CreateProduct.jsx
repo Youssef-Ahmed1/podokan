@@ -45,12 +45,13 @@ const CreateProduct = () => {
     handleScaleChange,
     updatePosition,
     centerDesign,
-    bounds
   } = useDesignPosition({
-    initialPosition: { x: 50, y: 40 },
-    initialScale: 0.8,
+    initialPosition: designPosition,
     productType: formState.ProductType,
-    disabled: isSubmitting
+    disabled: isSubmitting,
+    onChange: (newPosition) => {
+      setDesignPosition(newPosition);
+    }
   });
 
   const calculateDPI = (width, height, physicalWidth = 10) => {
@@ -170,11 +171,11 @@ const CreateProduct = () => {
     return Object.keys(errors).length === 0;
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
-      toast.error("Please fix the validation errors");
       return;
     }
 
@@ -190,15 +191,19 @@ const CreateProduct = () => {
       formData.append('ProductType', formState.ProductType);
       formData.append('ProductColor', formState.ProductColor);
       formData.append('ProductView', formState.ProductView);
-      formData.append('designPosition', JSON.stringify(position));
-      formData.append('designScale', scale);
+      formData.append('designPosition', JSON.stringify({
+        x: position.x,
+        y: position.y,
+        scale: scale,
+        rotation: position.rotation || 0
+      }));
+
       formData.append('quality', designFile.score);
 
       await dispatch(createProduct(formData));
-      toast.success("Product created successfully");
       navigate('/dashboard');
     } catch (error) {
-      toast.error(error.message || "Failed to create product");
+      toast.error(error.message);
     } finally {
       setIsSubmitting(false);
     }
