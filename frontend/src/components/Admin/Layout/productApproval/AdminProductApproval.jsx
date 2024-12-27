@@ -350,6 +350,7 @@ const AdminProductApproval = () => {
     });
   }, [updatePosition, handleScaleChange, handleProductUpdate]);
 
+  
   // Enhanced status change handling
   const handleStatusChange = useCallback(async (newStatus) => {
     if (!editedProduct) {
