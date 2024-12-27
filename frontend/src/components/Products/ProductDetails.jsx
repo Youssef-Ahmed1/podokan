@@ -125,20 +125,29 @@ const ProductDetails = ({ data }) => {
     }
     
     const cartItem = {
-      ...data,
-      qty: count,
-      selectedSize,
-      selectedColor,
+      _id: data._id,
+      DesignTitle: data.DesignTitle,
       designImage: data.designImage?.url || data.designImage,
-      productImage: getProductImage(),
+      ProductType: data.ProductType,
+      selectedColor: selectedColor,
+      selectedSize: selectedSize,
+      quantity: count,
+      stock: data.stock || 100, // Add default stock if not provided
+      shopId: data.shopId,
+      shop: data.shop,
       price: data.discountPrice || data.originalPrice,
+      DesignScale: data.DesignScale || 0.5,
+      DesignPosition: data.DesignPosition || { x: 50, y: 50 }
     };
-
-    console.log("Adding to cart:", cartItem); // For debugging
-    dispatch(addTocart(cartItem));
-    toast.success("Added to cart successfully!");
+  
+    try {
+      dispatch(addTocart(cartItem));
+      toast.success("Added to cart successfully!");
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Failed to add to cart");
+    }
   };
-
   return (
     <div className="bg-white">
       {data ? (
@@ -160,20 +169,23 @@ const ProductDetails = ({ data }) => {
                   />
                   {/* Design Overlay */}
                   {!showBack && data.designImage && (
-                    <div 
-                      className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                      style={{
-                        width: `${(data.DesignScale || 1) * 40}%`,
-                        maxWidth: '60%'
-                      }}
-                    >
-                      <img
-                        src={data.designImage.url || data.designImage}
-                        alt="Design"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  )}
+  <div 
+    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+    style={{
+      width: `${(data.DesignScale || 0.5) * 100}%`,
+      maxWidth: '60%',
+      transform: `translate(-50%, -50%) scale(${data.DesignScale || 0.5})`,
+      top: `${data.DesignPosition?.y || 50}%`,
+      left: `${data.DesignPosition?.x || 50}%`
+    }}
+  >
+    <img
+      src={data.designImage.url || data.designImage}
+      alt="Design"
+      className="w-full h-full object-contain"
+    />
+  </div>
+)}
                 </div>
 
                 {/* View Toggle */}

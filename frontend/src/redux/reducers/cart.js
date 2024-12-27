@@ -6,12 +6,26 @@ const cartInitialState = {
     : [],
 };
 
+
 export const cartReducer = createReducer(cartInitialState, (builder) => {
-  builder.addCase("addToCart", (state, action) => {
+  builder
+    .addCase("addToCart", (state, action) => {
       const item = action.payload;
-      const isItemExist = state.cart.find((i) => i._id === item._id);
-      if (isItemExist) {
-        state.cart = state.cart.map((i) => (i._id === isItemExist._id ? item : i));
+      const existingItem = state.cart.find(
+        i => 
+          i._id === item._id && 
+          i.selectedSize === item.selectedSize && 
+          i.selectedColor === item.selectedColor
+      );
+
+      if (existingItem) {
+        state.cart = state.cart.map((i) => 
+          i._id === existingItem._id && 
+          i.selectedSize === item.selectedSize && 
+          i.selectedColor === item.selectedColor
+            ? { ...i, quantity: i.quantity + item.quantity }
+            : i
+        );
       } else {
         state.cart.push(item);
       }

@@ -1,58 +1,13 @@
 // add to cart
-// redux/actions/cart.js
 export const addTocart = (data) => async (dispatch, getState) => {
   try {
-    const { cart } = getState().cart;
-    
-    // Create standardized cart item
-    const cartItem = {
-      _id: data._id,
-      DesignTitle: data.DesignTitle,
-      designImage: data.designImage,
-      ProductType: data.ProductType,
-      selectedColor: data.selectedColor,
-      selectedSize: data.selectedSize,
-      quantity: data.quantity,
-      stock: data.stock,
-      shopId: data.shopId,
-      shop: data.shop,
-      discountPrice: data.discountPrice
-    };
-
-    // Check for existing item
-    const existingItemIndex = cart.findIndex(
-      item => 
-        item._id === cartItem._id && 
-        item.selectedSize === cartItem.selectedSize && 
-        item.selectedColor === cartItem.selectedColor
-    );
-
-    if (existingItemIndex !== -1) {
-      // Update existing item
-      const updatedCart = [...cart];
-      const newQuantity = updatedCart[existingItemIndex].quantity + cartItem.quantity;
-      
-      if (newQuantity > cartItem.stock) {
-        return { success: false, message: "Not enough stock available" };
-      }
-      
-      updatedCart[existingItemIndex].quantity = newQuantity;
-      
-      dispatch({
-        type: 'UPDATE_CART',
-        payload: updatedCart
-      });
-    } else {
-      // Add new item
-      dispatch({
-        type: 'ADD_TO_CART',
-        payload: [...cart, cartItem]
-      });
-    }
-
-    localStorage.setItem('cartItems', JSON.stringify(getState().cart.cart));
+    dispatch({
+      type: "addToCart",
+      payload: data
+    });
     return { success: true };
   } catch (error) {
+    console.error("Add to cart error:", error);
     return { success: false, message: error.message };
   }
 };

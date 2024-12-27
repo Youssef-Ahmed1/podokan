@@ -17,9 +17,35 @@ const Wishlist = ({ setOpenWishlist }) => {
     dispatch(removeFromWishlist(data));
   };
 
-  const addToCartHandler = (data) => {
-    dispatch(addTocart({ ...data, qty: 1 }));
-    setOpenWishlist(false);
+  const addToCartHandler = () => {
+    if (!selectedSize) {
+      toast.error("Please select a size!");
+      return;
+    }
+    
+    const cartItem = {
+      _id: data._id,
+      DesignTitle: data.DesignTitle,
+      designImage: data.designImage?.url || data.designImage,
+      ProductType: data.ProductType,
+      selectedColor: selectedColor,
+      selectedSize: selectedSize,
+      quantity: count,
+      stock: data.stock || 100, // Add default stock if not provided
+      shopId: data.shopId,
+      shop: data.shop,
+      price: data.discountPrice || data.originalPrice,
+      DesignScale: data.DesignScale || 0.5,
+      DesignPosition: data.DesignPosition || { x: 50, y: 50 }
+    };
+  
+    try {
+      dispatch(addTocart(cartItem));
+      toast.success("Added to cart successfully!");
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Failed to add to cart");
+    }
   };
 
   const slideVariants = {
