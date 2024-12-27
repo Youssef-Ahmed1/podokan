@@ -1,13 +1,70 @@
 // add to cart
 export const addTocart = (data) => async (dispatch, getState) => {
   try {
-    dispatch({
-      type: "addToCart",
-      payload: data
-    });
+    const { cart } = getState().cart;
+    
+    // Create standardized cart item
+    const cartItem = {
+      _id: data._id,
+      DesignTitle: data.DesignTitle,
+      designImage: data.designImage?.url || data.designImage,
+      ProductType: data.ProductType,
+      selectedColor: selectedColor,
+      selectedSize: selectedSize,
+      quantity: count,
+      stock: data.stock || 100,
+      shopId: data.shopId,
+      shop: data.shop,
+      price: price, // Use the parsed price
+      discountPrice: parseFloat(data.discountPrice) || price,
+      originalPrice: parseFloat(data.originalPrice) || price,
+      DesignScale: data.DesignScale || 0.5,
+      DesignPosition: data.DesignPosition || { x: 50, y: 50 }
+    };
+  
+    try {
+      dispatch(addTocart(cartItem));
+      toast.success("Added to cart successfully!");
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Failed to add to cart");
+    }
+  
+  
+    // Check for existing item
+    const existingItemIndex = cart.findIndex(
+      item => 
+        item._id === cartItem._id && 
+        item.selectedSize === cartItem.selectedSize && 
+        item.selectedColor === cartItem.selectedColor
+    );
+
+    if (existingItemIndex !== -1) {
+      // Update existing item
+      const updatedCart = [...cart];
+      const newQuantity = updatedCart[existingItemIndex].quantity + cartItem.quantity;
+      
+      if (newQuantity > cartItem.stock) {
+        return { success: false, message: "Not enough stock available" };
+      }
+      
+      updatedCart[existingItemIndex].quantity = newQuantity;
+      
+      dispatch({
+        type: 'UPDATE_CART',
+        payload: updatedCart
+      });
+    } else {
+      // Add new item
+      dispatch({
+        type: 'ADD_TO_CART',
+        payload: [...cart, cartItem]
+      });
+    }
+
+    localStorage.setItem('cartItems', JSON.stringify(getState().cart.cart));
     return { success: true };
   } catch (error) {
-    console.error("Add to cart error:", error);
     return { success: false, message: error.message };
   }
 };
