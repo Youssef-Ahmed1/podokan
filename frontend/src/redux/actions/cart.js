@@ -22,14 +22,6 @@ export const addTocart = (data) => async (dispatch, getState) => {
       DesignPosition: data.DesignPosition || { x: 50, y: 50 }
     };
   
-    try {
-      dispatch(addTocart(cartItem));
-      toast.success("Added to cart successfully!");
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      toast.error("Failed to add to cart");
-    }
-  
   
     // Check for existing item
     const existingItemIndex = cart.findIndex(
