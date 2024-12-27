@@ -30,7 +30,7 @@ const CreateProduct = () => {
     dimensions: { width: 0, height: 0 },
     score: 0
   });
-
+  const [designPosition, setDesignPosition] = useState({ x: 50, y: 40 });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [showGuides, setShowGuides] = useState(true);
@@ -46,7 +46,7 @@ const CreateProduct = () => {
     updatePosition,
     centerDesign,
   } = useDesignPosition({
-    initialPosition: designPosition,
+    initialPosition: { x: 50, y: 40 }, // Set default values directly
     productType: formState.ProductType,
     disabled: isSubmitting,
     onChange: (newPosition) => {
@@ -191,16 +191,14 @@ const CreateProduct = () => {
       formData.append('ProductType', formState.ProductType);
       formData.append('ProductColor', formState.ProductColor);
       formData.append('ProductView', formState.ProductView);
-      formData.append('designPosition', JSON.stringify({
-        x: position.x,
-        y: position.y,
-        scale: scale,
-        rotation: position.rotation || 0
-      }));
-
+   formData.append('designPosition', JSON.stringify({
+  x: position.x,
+  y: position.y,
+  scale: scale
+}));
       formData.append('quality', designFile.score);
 
-      await dispatch(createProduct(formData));
+   await dispatch(createProduct(formData));
       navigate('/dashboard');
     } catch (error) {
       toast.error(error.message);
