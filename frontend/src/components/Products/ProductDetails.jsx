@@ -169,30 +169,28 @@ const ProductDetails = ({ data }) => {
                     }}
                   />
                   {/* Design Overlay */}
-                  {!showBack && data.designImage && (
+                  {!showBack && data?.designImage && (
   <div 
-    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+    className="absolute design-overlay"
     style={{
-      width: '40%', // Set a base width
-      maxWidth: '40%',
-      transform: `translate(-50%, -50%) scale(${data.DesignScale || 0.5})`,
-      top: `${data.DesignPosition?.y || 50}%`,
-      left: `${data.DesignPosition?.x || 50}%`,
-      transformOrigin: 'center center'
+      position: 'absolute',
+      left: `${data?.DesignPosition?.x || 50}%`,
+      top: `${data?.DesignPosition?.y || 40}%`,
+      transform: `translate(-50%, -50%) scale(${data?.DesignScale || 0.8})`,
+      width: '30%',
+      transformOrigin: 'center center',
+      pointerEvents: 'none'
     }}
   >
     <img
-      src={data.designImage.url || data.designImage}
+      src={typeof data.designImage === 'string' ? data.designImage : data.designImage?.url}
       alt="Design"
       className="w-full h-full object-contain"
-      style={{
-        transform: `scale(${data.DesignScale || 0.5})`,
-        transformOrigin: 'center center'
-      }}
+      draggable="false"
     />
   </div>
 )}
-                </div>
+          </div>
 
                 {/* View Toggle */}
                 <div className="w-[80%] mx-auto flex mt-4">

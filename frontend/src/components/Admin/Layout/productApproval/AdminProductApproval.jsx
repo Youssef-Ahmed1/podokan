@@ -238,11 +238,14 @@ const AdminProductApproval = () => {
     reset: resetDesignPosition,
     bounds
   } = useDesignPosition({
-    initialPosition: editedProduct?.DesignPosition || { x: 50, y: 30 },
-    initialScale: editedProduct?.DesignScale || 0.5,
+    initialPosition: editedProduct?.DesignPosition || { x: 50, y: 40 },
+    initialScale: editedProduct?.DesignScale || 0.8,
+    minScale: 0.5,
+    maxScale: 1.2,
     productType: editedProduct?.ProductType || 'hoodie',
     disabled: isSubmitting
   });
+  
 
   // Tag Management Handlers
   const handleMainTagsUpdate = useCallback((tags) => {
@@ -319,27 +322,23 @@ const AdminProductApproval = () => {
   const handleProductUpdate = useCallback((updates) => {
     setEditedProduct(prev => {
       if (!prev) return prev;
-
+  
       const updated = {
         ...prev,
         ...updates,
         updatedAt: new Date().toISOString()
       };
-
+  
+      // Ensure design position and scale are within bounds
       if (updates.ProductType && updates.ProductType !== prev.ProductType) {
         resetDesignPosition();
-        const basePrice = PRODUCT_TYPES[updates.ProductType]?.basePrice || 
-                         DEFAULT_PRODUCT_CONFIG.basePrice;
-        
-        updated.originalPrice = basePrice;
-        updated.DesignPosition = { x: 50, y: 30 };
-        updated.DesignScale = 0.5;
+        updated.DesignPosition = { x: 50, y: 40 };
+        updated.DesignScale = 0.8;
       }
-
+  
       return updated;
     });
   }, [resetDesignPosition]);
-
   // Enhanced design position update handling
   const handleDesignPositionUpdate = useCallback((newPosition, newScale) => {
     updatePosition(newPosition);
