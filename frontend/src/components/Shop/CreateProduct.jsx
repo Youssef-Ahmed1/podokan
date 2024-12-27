@@ -20,9 +20,15 @@ const CreateProduct = () => {
     Designtags: [],
     ProductType: 'hoodie',
     ProductColor: 'white',
-    ProductView: 'front'
+    ProductView: 'front',
+    
+    
   });
-
+  const [designPosition, setDesignPosition] = useState({ 
+    x: 50, 
+    y: 40
+  });
+  
   const [designFile, setDesignFile] = useState({
     file: null,
     preview: null,
@@ -30,7 +36,6 @@ const CreateProduct = () => {
     dimensions: { width: 0, height: 0 },
     score: 0
   });
-  const [designPosition, setDesignPosition] = useState({ x: 50, y: 40 });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [showGuides, setShowGuides] = useState(true);
