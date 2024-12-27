@@ -64,15 +64,16 @@ const DesignPreview = forwardRef(({
           <div className="flex items-center space-x-2 w-full sm:w-auto">
             <label className="text-sm text-gray-600">Scale:</label>
             <input
-              type="range"
-              min="0.1"
-              max="1.3"
-              step="0.01"
-              value={scale}
-              onChange={(e) => onScaleChange(parseFloat(e.target.value))}
-              disabled={disabled}
-              className="w-full sm:w-32 h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            />
+  type="range"
+  min={0.5}
+  max={1.2}
+  step={0.01}
+  value={scale}
+  onChange={(e) => onScaleChange(parseFloat(e.target.value))}
+  disabled={disabled}
+  className="w-full sm:w-32 h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer 
+    disabled:opacity-50 disabled:cursor-not-allowed"
+/>
             <span className="text-sm text-gray-600 min-w-[3ch]">
               {Math.round(scale * 100)}%
             </span>
@@ -103,19 +104,20 @@ const DesignPreview = forwardRef(({
 
         {/* Design Image */}
         {product.designImage && mockupLoaded && (
-          <div
-            className={`absolute design-container select-none ${
-              isDragging ? '' : 'transition-transform duration-200'
-            }`}
-            style={{
-              left: `${position.x}%`,
-              top: `${position.y}%`,
-              transform: `translate(-50%, -50%) scale(${scale})`,
-              width: '30%',
-              opacity: isOutOfBounds ? 0.5 : 1,
-              zIndex: isDragging ? 10 : 1,
-            }}
-          >
+         <div
+         className={`absolute design-container select-none ${
+           isDragging ? '' : 'transition-transform duration-200'
+         }`}
+         style={{
+           left: `${position.x}%`,
+           top: `${position.y}%`,
+           transform: `translate(-50%, -50%) scale(${scale})`,
+           width: '30%',
+           opacity: isOutOfBounds ? 0.5 : 1,
+           zIndex: isDragging ? 10 : 1,
+           pointerEvents: disabled ? 'none' : 'auto'
+         }}
+       >
             <img
               src={typeof product.designImage === 'string' ? product.designImage : product.designImage.url}
               alt="Design"
