@@ -7,22 +7,17 @@ export const addTocart = (data) => async (dispatch, getState) => {
     const cartItem = {
       _id: data._id,
       DesignTitle: data.DesignTitle,
-      designImage: data.designImage?.url || data.designImage,
+      designImage: data.designImage,
       ProductType: data.ProductType,
-      selectedColor: selectedColor,
-      selectedSize: selectedSize,
-      quantity: count,
-      stock: data.stock || 100,
+      selectedColor: data.selectedColor,
+      selectedSize: data.selectedSize,
+      quantity: data.quantity,
+      stock: data.stock,
       shopId: data.shopId,
       shop: data.shop,
-      price: price, // Use the parsed price
-      discountPrice: parseFloat(data.discountPrice) || price,
-      originalPrice: parseFloat(data.originalPrice) || price,
-      DesignScale: data.DesignScale || 0.5,
-      DesignPosition: data.DesignPosition || { x: 50, y: 50 }
+      discountPrice: data.discountPrice
     };
-  
-  
+
     // Check for existing item
     const existingItemIndex = cart.findIndex(
       item => 
