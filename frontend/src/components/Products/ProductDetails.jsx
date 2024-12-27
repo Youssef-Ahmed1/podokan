@@ -124,6 +124,7 @@ const ProductDetails = ({ data }) => {
       return;
     }
     
+    
     const cartItem = {
       _id: data._id,
       DesignTitle: data.DesignTitle,
@@ -172,17 +173,22 @@ const ProductDetails = ({ data }) => {
   <div 
     className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
     style={{
-      width: `${(data.DesignScale || 0.5) * 100}%`,
-      maxWidth: '60%',
+      width: '40%', // Set a base width
+      maxWidth: '40%',
       transform: `translate(-50%, -50%) scale(${data.DesignScale || 0.5})`,
       top: `${data.DesignPosition?.y || 50}%`,
-      left: `${data.DesignPosition?.x || 50}%`
+      left: `${data.DesignPosition?.x || 50}%`,
+      transformOrigin: 'center center'
     }}
   >
     <img
       src={data.designImage.url || data.designImage}
       alt="Design"
       className="w-full h-full object-contain"
+      style={{
+        transform: `scale(${data.DesignScale || 0.5})`,
+        transformOrigin: 'center center'
+      }}
     />
   </div>
 )}
