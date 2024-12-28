@@ -159,26 +159,24 @@ export const getAllProducts = (page = 1, limit = 20) => async (dispatch) => {
     const config = {
       headers: getAuthHeaders(),
       withCredentials: true,
-      params: {
-        page,
-        limit
-      }
+      params: { page, limit }
     };
+
 
     const { data } = await axios.get(`${server}/product/get-all-products`, config);
 
     // Handle the response with proper pagination
+    const products = Array.isArray(data.products) ? data.products : [];
+
     dispatch({ 
       type: "getAllProductsSuccess", 
       payload: {
-        products: data.products || [],
-        currentPage: data.currentPage,
-        totalPages: data.totalPages,
-        totalProducts: data.totalProducts,
+        products,
+        currentPage: data.currentPage || 1,
+        totalPages: data.totalPages || 1,
+        totalProducts: data.totalProducts || 0,
       }
     });
-
-    // Update pagination separately
     dispatch({
       type: "updatePagination",
       payload: {
@@ -187,7 +185,6 @@ export const getAllProducts = (page = 1, limit = 20) => async (dispatch) => {
         itemsPerPage: limit
       }
     });
-
   } catch (error) {
     console.error("Error fetching products:", error);
     dispatch({
