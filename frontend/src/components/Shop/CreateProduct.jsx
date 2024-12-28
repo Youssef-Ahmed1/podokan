@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux"; 
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AiOutlineCloudUpload } from "react-icons/ai";
@@ -12,23 +12,23 @@ import imageCompression from 'browser-image-compression';
 const CreateProduct = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { isLoading } = useSelector((state) => state.product);
 
+  // Initialize all state with proper default values
   const [formState, setFormState] = useState({
     DesignTitle: '',
     Description: '',
-    mainTags: [],
+    Maintag: '',
+    mainTags: [], // Add this
     Designtags: [],
     ProductType: 'hoodie',
     ProductColor: 'white',
     ProductView: 'front',
-    
-    
+    availableColors: ['white'],
+    DesignScale: 1,
   });
-  const [designPosition, setDesignPosition] = useState({ 
-    x: 50, 
-    y: 40
-  });
-  
+
+  // Fix designFile state initialization
   const [designFile, setDesignFile] = useState({
     file: null,
     preview: null,
@@ -36,6 +36,10 @@ const CreateProduct = () => {
     dimensions: { width: 0, height: 0 },
     score: 0
   });
+  const [designPosition, setDesignPosition] = useState({ x: 50, y: 40 });
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [errors, setErrors] = useState({});
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [showGuides, setShowGuides] = useState(true);
@@ -83,9 +87,11 @@ const CreateProduct = () => {
     
     return score;
   };
-
   const processDesignFile = async (file) => {
     try {
+      // Show loading toast
+      const loadingToast = toast.loading("Processing design...");
+  
       // Compress image if needed
       let processedFile = file;
       if (file.size > 2 * 1024 * 1024) {
@@ -95,20 +101,21 @@ const CreateProduct = () => {
           useWebWorker: true
         });
       }
-
+  
       // Create preview URL
       const previewUrl = URL.createObjectURL(processedFile);
-
+  
       // Get image dimensions and calculate DPI
       const img = new Image();
-      img.src = previewUrl;
-      await new Promise((resolve) => {
+      await new Promise((resolve, reject) => {
         img.onload = resolve;
+        img.onerror = reject;
+        img.src = previewUrl;
       });
-
+  
       const dpi = calculateDPI(img.width, img.height);
       const score = scoreDesignQuality(dpi, processedFile.size);
-
+  
       setDesignFile({
         file: processedFile,
         preview: previewUrl,
@@ -116,7 +123,15 @@ const CreateProduct = () => {
         dimensions: { width: img.width, height: img.height },
         score
       });
-
+  
+      // Update toast
+      toast.update(loadingToast, {
+        render: "Design processed successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000
+      });
+  
       // Show quality feedback
       if (score < 70) {
         toast.warning("Design quality could be improved. Consider using a higher resolution image.");
@@ -124,23 +139,31 @@ const CreateProduct = () => {
     } catch (error) {
       console.error("Error processing design:", error);
       toast.error("Failed to process design file");
+      
+      // Reset design file state
+      setDesignFile({
+        file: null,
+        preview: null,
+        dpi: 0,
+        dimensions: { width: 0, height: 0 },
+        score: 0
+      });
     }
   };
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
     setDragActive(false);
-
-    const file = e.dataTransfer.files[0];
+  
+    const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith('image/')) {
       processDesignFile(file);
     } else {
       toast.error("Please upload an image file");
     }
   }, []);
-
   const handleFileChange = useCallback((e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
       processDesignFile(file);
     }
@@ -160,7 +183,7 @@ const CreateProduct = () => {
       errors.design = "Design file is required";
     }
     
-    if (designFile.dpi < 150) {
+    if (designFile.dpi && designFile.dpi < 150) {
       errors.dpi = "Design DPI is too low for quality printing";
     }
     
@@ -168,7 +191,7 @@ const CreateProduct = () => {
       errors.position = "Design is outside the safe print area";
     }
     
-    if (formState.mainTags.length === 0) {
+    if (!formState.mainTags || formState.mainTags.length === 0) {
       errors.mainTags = "At least one main tag is required";
     }
     
@@ -176,41 +199,61 @@ const CreateProduct = () => {
     return Object.keys(errors).length === 0;
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
       return;
     }
-
+  
     setIsSubmitting(true);
-
+  
     try {
       const formData = new FormData();
-      formData.append('design', designFile.file);
-      formData.append('DesignTitle', formState.DesignTitle);
-      formData.append('Description', formState.Description);
-      formData.append('mainTags', JSON.stringify(formState.mainTags));
-      formData.append('Designtags', JSON.stringify(formState.Designtags));
-      formData.append('ProductType', formState.ProductType);
-      formData.append('ProductColor', formState.ProductColor);
-      formData.append('ProductView', formState.ProductView);
-   formData.append('designPosition', JSON.stringify({
-  x: position.x,
-  y: position.y,
-  scale: scale
-}));
-      formData.append('quality', designFile.score);
-
-   await dispatch(createProduct(formData));
+      
+      // Only append file if it exists
+      if (designFile.file) {
+        formData.append('design', designFile.file);
+      }
+      
+      // Append all form fields
+      Object.keys(formState).forEach(key => {
+        if (Array.isArray(formState[key])) {
+          formData.append(key, JSON.stringify(formState[key]));
+        } else {
+          formData.append(key, formState[key]);
+        }
+      });
+  
+      // Append position data
+      formData.append('designPosition', JSON.stringify({
+        x: position.x,
+        y: position.y,
+        scale: scale
+      }));
+  
+      // Append quality score if available
+      if (designFile.score) {
+        formData.append('quality', designFile.score.toString());
+      }
+  
+      await dispatch(createProduct(formData));
+      toast.success('Product created successfully');
       navigate('/dashboard');
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message || 'Failed to create product');
     } finally {
       setIsSubmitting(false);
     }
   };
+  useEffect(() => {
+    return () => {
+      // Cleanup preview URLs on unmount
+      if (designFile.preview) {
+        URL.revokeObjectURL(designFile.preview);
+      }
+    };
+  }, [designFile.preview]);
 
   return (
     <div className="max-w-6xl mx-auto p-4">
