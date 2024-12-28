@@ -11,7 +11,11 @@ const ProtectedAdminRoute = ({ children }) => {
   }, []);
 
   if (!mounted || loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
 
   if (!isAuthenticated || !user || !(user.role === 'Admin' || user.role === 'admin')) {
@@ -20,6 +24,5 @@ const ProtectedAdminRoute = ({ children }) => {
 
   return children;
 };
-
 
 export default ProtectedAdminRoute;
