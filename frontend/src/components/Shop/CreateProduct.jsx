@@ -36,7 +36,13 @@ const CreateProduct = () => {
     dimensions: { width: 0, height: 0 },
     score: 0
   });
-  
+  const [product, setProduct] = useState({
+    ProductType: 'hoodie',
+    ProductColor: 'white',
+    ProductView: 'front',
+    designImage: null
+  });
+
   const [designPosition, setDesignPosition] = useState({ x: 50, y: 40 });
   const [previewUrl, setPreviewUrl] = useState('');
   const [errors, setErrors] = useState({});
@@ -131,7 +137,7 @@ const CreateProduct = () => {
         dimensions: { width: img.width, height: img.height },
         score
       });
-  
+
       // Update toast
       toast.update(loadingToast, {
         render: "Design processed successfully",
@@ -158,6 +164,11 @@ const CreateProduct = () => {
       });
     }
   };
+  setProduct(prev => ({
+    ...prev,
+    designImage: previewUrl
+  }));
+
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
@@ -372,14 +383,14 @@ const renderTags = (tags, type) => {
               <div>
                 <label className="block text-sm font-medium">Product Type</label>
                 <select
-                  value={formState.ProductType}
-                  onChange={(e) => setFormState(prev => ({ ...prev, ProductType: e.target.value }))}
-                  className="w-full border rounded p-2"
-                >
-                  {PRODUCT_TYPES.map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
+  value={formState.ProductType}
+  onChange={(e) => setFormState(prev => ({ ...prev, ProductType: e.target.value }))}
+  className="w-full border rounded p-2"
+>
+  {Object.entries(PRODUCT_CONFIG).map(([type, config]) => (
+    <option key={type} value={type}>{config.label}</option>
+  ))}
+</select>
               </div>
 
               <div>
@@ -403,18 +414,20 @@ const renderTags = (tags, type) => {
 
             
           <DesignPreview
-  designImage={designFile?.preview}
-  position={position}
-  scale={scale}
-  productType={formState.ProductType}
-  productColor={formState.ProductColor}
-  productView={formState.ProductView}
-  showGuides={showGuides}
-  onDragStart={handleDragStart}
-  onDragEnd={updatePosition}
-  isDragging={isDragging}
-  isOutOfBounds={isOutOfBounds}
-/>
+      product={product}
+      position={position}
+      scale={scale}
+      isDragging={isDragging}
+      isOutOfBounds={isOutOfBounds}
+      onDragStart={handleDragStart}
+      onScaleChange={handleScaleChange}
+      onPositionChange={updatePosition}
+      onCenter={centerDesign}
+      showGridLines={showGuides}
+      onToggleGridLines={() => setShowGuides(!showGuides)}
+      disabled={isSubmitting}
+      bounds={bounds}
+    />
             
             <div className="space-y-2">
               <label className="block text-sm font-medium">Design Scale</label>
