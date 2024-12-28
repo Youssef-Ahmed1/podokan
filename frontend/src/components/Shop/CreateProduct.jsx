@@ -14,16 +14,17 @@ const CreateProduct = () => {
   const navigate = useNavigate();
   const { isLoading } = useSelector((state) => state.product);
 
-  // Initialize all state with proper default values
+  // Initialize state with proper array types
   const [formState, setFormState] = useState({
     DesignTitle: '',
     Description: '',
     Maintag: '',
-    Designtags: [], // Ensure this is always an array
+    mainTags: [], // Ensure this is initialized as an array
+    Designtags: [], // Ensure this is initialized as an array
     ProductType: 'hoodie',
     ProductColor: 'white',
     ProductView: 'front',
-    availableColors: ['white','black'],
+    availableColors: ['white'],
     DesignScale: 1,
   });
 
@@ -62,6 +63,13 @@ const CreateProduct = () => {
       setDesignPosition(newPosition);
     }
   });
+  const handleTagsChange = (type, tags) => {
+    setFormState(prev => ({
+      ...prev,
+      [type]: Array.isArray(tags) ? tags : []
+    }));
+  };
+
 
   const calculateDPI = (width, height, physicalWidth = 10) => {
     const targetDPI = 300;
@@ -188,78 +196,109 @@ const CreateProduct = () => {
 const validateForm = () => {
   const errors = {};
   
-  if (!formState.DesignTitle.trim()) {
+  if (!formState.DesignTitle?.trim()) {
     errors.DesignTitle = "Design title is required";
   }
   
-  if (!formState.Description.trim()) {
+  if (!formState.Description?.trim()) {
     errors.Description = "Description is required";
   }
   
   if (!designFile?.file) {
     errors.design = "Design file is required";
   }
-  
-  if (designFile?.dpi && designFile.dpi < 150) {
-    errors.dpi = "Design DPI is too low for quality printing";
+
+  // Ensure arrays are properly checked
+  if (!Array.isArray(formState.mainTags) || formState.mainTags.length === 0) {
+    errors.mainTags = "At least one main tag is required";
   }
-  
-  if (isOutOfBounds) {
-    errors.position = "Design is outside the safe print area";
+
+  if (!Array.isArray(formState.Designtags)) {
+    setFormState(prev => ({...prev, Designtags: []}));
   }
-  
+
   setValidationErrors(errors);
   return Object.keys(errors).length === 0;
 };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+// Update form submission to handle arrays properly
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (!validateForm()) {
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    const formData = new FormData();
     
-    if (!validateForm()) return;
-  
-    setIsSubmitting(true);
-  
-    try {
-      const formData = new FormData();
-      
-      // Ensure arrays are properly handled
-      Object.keys(formState).forEach(key => {
-        const value = formState[key];
-        if (Array.isArray(value)) {
-          formData.append(key, JSON.stringify(value));
-        } else {
-          formData.append(key, value);
-        }
-      });
-  
-      if (designFile) {
-        formData.append('design', designFile);
+    // Handle arrays properly
+    Object.keys(formState).forEach(key => {
+      if (Array.isArray(formState[key])) {
+        formData.append(key, JSON.stringify(formState[key]));
+      } else {
+        formData.append(key, formState[key] || '');
       }
-  
-      formData.append('designPosition', JSON.stringify({
-        x: position.x,
-        y: position.y,
-        scale: scale
-      }));
-  
-      await dispatch(createProduct(formData));
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Error creating product:', error);
-    } finally {
-      setIsSubmitting(false);
+    });
+
+    // Handle file
+    if (designFile?.file) {
+      formData.append('design', designFile.file);
+    }
+
+    // Handle position data
+    formData.append('designPosition', JSON.stringify({
+      x: position?.x || 50,
+      y: position?.y || 40,
+      scale: scale || 1
+    }));
+
+    await dispatch(createProduct(formData));
+    toast.success('Product created successfully');
+    navigate('/dashboard');
+  } catch (error) {
+    console.error('Error creating product:', error);
+    toast.error(error.response?.data?.message || 'Failed to create product');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+// Add cleanup for preview URLs
+useEffect(() => {
+  return () => {
+    if (designFile?.preview) {
+      URL.revokeObjectURL(designFile.preview);
     }
   };
-  
-  useEffect(() => {
-    return () => {
-      // Cleanup preview URLs on unmount
-      if (designFile.preview) {
-        URL.revokeObjectURL(designFile.preview);
-      }
-    };
-  }, [designFile.preview]);
+}, [designFile]);
 
+// Update the tags display with proper null checks
+const renderTags = (tags, type) => {
+  if (!Array.isArray(tags)) return null;
+  
+  return tags.map((tag, index) => (
+    <span
+      key={index}
+      className="bg-gray-200 px-2 py-1 rounded text-sm flex items-center"
+    >
+      {tag}
+      <button
+        type="button"
+        onClick={() => {
+          const newTags = [...tags];
+          newTags.splice(index, 1);
+          handleTagsChange(type, newTags);
+        }}
+        className="ml-2 text-gray-500 hover:text-gray-700"
+      >
+        ×
+      </button>
+    </span>
+  ));
+};
   return (
     <div className="max-w-6xl mx-auto p-4">
       <form onSubmit={handleSubmit} className="space-y-6">
