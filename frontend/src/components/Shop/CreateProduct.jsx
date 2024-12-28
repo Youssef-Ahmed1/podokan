@@ -28,7 +28,14 @@ const CreateProduct = () => {
   });
 
   // Fix designFile state initialization
-  const [designFile, setDesignFile] = useState(null);
+  const [designFile, setDesignFile] = useState({
+    file: null,
+    preview: null,
+    dpi: 0,
+    dimensions: { width: 0, height: 0 },
+    score: 0
+  });
+  
   const [designPosition, setDesignPosition] = useState({ x: 50, y: 40 });
   const [previewUrl, setPreviewUrl] = useState('');
   const [errors, setErrors] = useState({});
@@ -150,47 +157,60 @@ const CreateProduct = () => {
   
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith('image/')) {
+      // Cleanup previous preview if exists
+      if (designFile?.preview) {
+        URL.revokeObjectURL(designFile.preview);
+      }
       processDesignFile(file);
     } else {
       toast.error("Please upload an image file");
     }
-  }, []);
+  }, [designFile]);
   const handleFileChange = useCallback((e) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Cleanup previous preview if exists
+      if (designFile?.preview) {
+        URL.revokeObjectURL(designFile.preview);
+      }
       processDesignFile(file);
     }
-  }, []);
-  const validateForm = () => {
-    const errors = {};
-    
-    if (!formState.DesignTitle.trim()) {
-      errors.DesignTitle = "Design title is required";
+  }, [designFile]);
+  useEffect(() => {
+  return () => {
+    // Cleanup preview URL on unmount
+    if (designFile?.preview) {
+      URL.revokeObjectURL(designFile.preview);
     }
-    
-    if (!formState.Description.trim()) {
-      errors.Description = "Description is required";
-    }
-    
-    if (!designFile.file) {
-      errors.design = "Design file is required";
-    }
-    
-    if (designFile.dpi && designFile.dpi < 150) {
-      errors.dpi = "Design DPI is too low for quality printing";
-    }
-    
-    if (isOutOfBounds) {
-      errors.position = "Design is outside the safe print area";
-    }
-    
-    if (!formState.mainTags || formState.mainTags.length === 0) {
-      errors.mainTags = "At least one main tag is required";
-    }
-    
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
   };
+}, [designFile]);
+
+const validateForm = () => {
+  const errors = {};
+  
+  if (!formState.DesignTitle.trim()) {
+    errors.DesignTitle = "Design title is required";
+  }
+  
+  if (!formState.Description.trim()) {
+    errors.Description = "Description is required";
+  }
+  
+  if (!designFile?.file) {
+    errors.design = "Design file is required";
+  }
+  
+  if (designFile?.dpi && designFile.dpi < 150) {
+    errors.dpi = "Design DPI is too low for quality printing";
+  }
+  
+  if (isOutOfBounds) {
+    errors.position = "Design is outside the safe print area";
+  }
+  
+  setValidationErrors(errors);
+  return Object.keys(errors).length === 0;
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -246,55 +266,67 @@ const CreateProduct = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Design Upload Section */}
           <div className="space-y-4">
-            <div 
-              className={`border-2 border-dashed rounded-lg p-6 text-center ${
-                dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-              }`}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragActive(true);
-              }}
-              onDragLeave={() => setDragActive(false)}
-              onDrop={handleDrop}
-            >
-              {!designFile.preview ? (
-                <>
-                  <AiOutlineCloudUpload className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="mt-2">Drag and drop your design or</p>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    id="designUpload"
-                  />
-                  <label
-                    htmlFor="designUpload"
-                    className="inline-block mt-2 px-4 py-2 bg-blue-500 text-white rounded cursor-pointer"
-                  >
-                    Browse Files
-                  </label>
-                </>
-              ) : (
-                <div className="space-y-2">
-                  <img src={designFile.preview} alt="Design preview" className="max-h-48 mx-auto" />
-                  <div className="text-sm">
-                    <p>DPI: {designFile.dpi}</p>
-                    <p>Quality Score: {designFile.score}/100</p>
-                    <button
-                      type="button"
-                      onClick={() => setDesignFile({ file: null, preview: null, dpi: 0, dimensions: { width: 0, height: 0 }, score: 0 })}
-                      className="text-red-500 mt-2"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              )}
-              {validationErrors.design && (
-                <p className="text-red-500 text-sm mt-1">{validationErrors.design}</p>
-              )}
-            </div>
+          <div 
+  className={`border-2 border-dashed rounded-lg p-6 text-center ${
+    dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+  }`}
+  onDragOver={(e) => {
+    e.preventDefault();
+    setDragActive(true);
+  }}
+  onDragLeave={() => setDragActive(false)}
+  onDrop={handleDrop}
+>
+  {!designFile?.preview ? (
+    <>
+      <AiOutlineCloudUpload className="mx-auto h-12 w-12 text-gray-400" />
+      <p className="mt-2">Drag and drop your design or</p>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+        id="designUpload"
+      />
+      <label
+        htmlFor="designUpload"
+        className="inline-block mt-2 px-4 py-2 bg-blue-500 text-white rounded cursor-pointer"
+      >
+        Browse Files
+      </label>
+    </>
+  ) : (
+    <div className="space-y-2">
+      <img 
+        src={designFile.preview} 
+        alt="Design preview" 
+        className="max-h-48 mx-auto" 
+      />
+      <div className="text-sm">
+        <p>DPI: {designFile.dpi || 0}</p>
+        <p>Quality Score: {designFile.score || 0}/100</p>
+        <button
+          type="button"
+          onClick={() => {
+            if (designFile.preview) {
+              URL.revokeObjectURL(designFile.preview);
+            }
+            setDesignFile({
+              file: null,
+              preview: null,
+              dpi: 0,
+              dimensions: { width: 0, height: 0 },
+              score: 0
+            });
+          }}
+          className="text-red-500 mt-2"
+        >
+          Remove
+        </button>
+      </div>
+    </div>
+  )}
+</div>
 
             {/* Product Configuration */}
             <div className="space-y-4">
@@ -328,19 +360,22 @@ const CreateProduct = () => {
 
           {/* Design Preview Section */}
           <div className="space-y-4">
-            <DesignPreview
-              designImage={designFile.preview}
-              position={position}
-              scale={scale}
-              productType={formState.ProductType}
-              productColor={formState.ProductColor}
-              productView={formState.ProductView}
-              showGuides={showGuides}
-              onDragStart={handleDragStart}
-              onDragEnd={updatePosition}
-              isDragging={isDragging}
-              isOutOfBounds={isOutOfBounds}
-            />
+
+
+            
+          <DesignPreview
+  designImage={designFile?.preview}
+  position={position}
+  scale={scale}
+  productType={formState.ProductType}
+  productColor={formState.ProductColor}
+  productView={formState.ProductView}
+  showGuides={showGuides}
+  onDragStart={handleDragStart}
+  onDragEnd={updatePosition}
+  isDragging={isDragging}
+  isOutOfBounds={isOutOfBounds}
+/>
             
             <div className="space-y-2">
               <label className="block text-sm font-medium">Design Scale</label>
