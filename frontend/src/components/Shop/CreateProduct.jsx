@@ -19,23 +19,16 @@ const CreateProduct = () => {
     DesignTitle: '',
     Description: '',
     Maintag: '',
-    mainTags: [], // Add this
-    Designtags: [],
+    Designtags: [], // Ensure this is always an array
     ProductType: 'hoodie',
     ProductColor: 'white',
     ProductView: 'front',
-    availableColors: ['white'],
+    availableColors: ['white','black'],
     DesignScale: 1,
   });
 
   // Fix designFile state initialization
-  const [designFile, setDesignFile] = useState({
-    file: null,
-    preview: null,
-    dpi: 0,
-    dimensions: { width: 0, height: 0 },
-    score: 0
-  });
+  const [designFile, setDesignFile] = useState(null);
   const [designPosition, setDesignPosition] = useState({ x: 50, y: 40 });
   const [previewUrl, setPreviewUrl] = useState('');
   const [errors, setErrors] = useState({});
@@ -202,50 +195,42 @@ const CreateProduct = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
   
     setIsSubmitting(true);
   
     try {
       const formData = new FormData();
       
-      // Only append file if it exists
-      if (designFile.file) {
-        formData.append('design', designFile.file);
-      }
-      
-      // Append all form fields
+      // Ensure arrays are properly handled
       Object.keys(formState).forEach(key => {
-        if (Array.isArray(formState[key])) {
-          formData.append(key, JSON.stringify(formState[key]));
+        const value = formState[key];
+        if (Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value));
         } else {
-          formData.append(key, formState[key]);
+          formData.append(key, value);
         }
       });
   
-      // Append position data
+      if (designFile) {
+        formData.append('design', designFile);
+      }
+  
       formData.append('designPosition', JSON.stringify({
         x: position.x,
         y: position.y,
         scale: scale
       }));
   
-      // Append quality score if available
-      if (designFile.score) {
-        formData.append('quality', designFile.score.toString());
-      }
-  
       await dispatch(createProduct(formData));
-      toast.success('Product created successfully');
       navigate('/dashboard');
     } catch (error) {
-      toast.error(error.message || 'Failed to create product');
+      console.error('Error creating product:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
+  
   useEffect(() => {
     return () => {
       // Cleanup preview URLs on unmount

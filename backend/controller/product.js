@@ -404,21 +404,19 @@ router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const query = { status: 'public' };
-
-    // Get total count
     const totalProducts = await Product.countDocuments(query);
 
-    // Get products
     const products = await Product.find(query)
       .populate('shopId', 'name email avatar')
       .sort('-createdAt')
       .skip(skip)
       .limit(limit)
-      .select('-__v');
+      .select('-__v')
+      .lean();
 
     res.status(200).json({
       success: true,
-      products,
+      products: products || [], // Ensure products is always an array
       currentPage: page,
       totalPages: Math.ceil(totalProducts / limit),
       totalProducts
@@ -429,6 +427,8 @@ router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler(error.message, 500));
   }
 }));
+
+
 // Get all products for a shop
 router.get(
   "/get-all-products-shop/:id",

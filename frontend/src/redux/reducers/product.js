@@ -3,31 +3,31 @@ import { createReducer } from "@reduxjs/toolkit";
 const initialState = {
   isLoading: false,
   product: null,
-  products: [],
+  products: [], // Ensure this is always an array
   pendingProducts: [],
   allProducts: [],
   error: null,
   success: false,
   message: null,
-  lastUpdated: null,  // New field to track last update
-  selectedProduct: null, // New field to track selected product
-  filters: {  // New field for filtering products
+  lastUpdated: null,
+  selectedProduct: null,
+  filters: {
     status: null,
     priceRange: null,
-    colors: [],
+    colors: [], // Ensure this is always an array
     productType: null
   },
-  pagination: {  // New field for pagination
+  pagination: {
     currentPage: 1,
     totalPages: 1,
     itemsPerPage: 10
   },
   designDefaults: {
     scale: 1,
-    position: { x: 50, y: 25 }
+    position: { x: 50, y: 40 },
   }
-
 };
+
 
 export const productReducer = createReducer(initialState, (builder) => {
   builder.addCase("productCreateRequest", (state) => {
@@ -95,13 +95,14 @@ export const productReducer = createReducer(initialState, (builder) => {
     })
     .addCase("getAllProductsSuccess", (state, action) => {
       state.isLoading = false;
-      state.allProducts = action.payload.products;
+      state.allProducts = Array.isArray(action.payload.products) ? 
+        action.payload.products : [];
       state.error = null;
       state.lastUpdated = new Date().toISOString();
       state.pagination = {
         ...state.pagination,
-        currentPage: action.payload.currentPage,
-        totalPages: action.payload.totalPages
+        currentPage: action.payload.currentPage || 1,
+        totalPages: action.payload.totalPages || 1
       };
     })
     .addCase("getAllProductsFailed", (state, action) => {
