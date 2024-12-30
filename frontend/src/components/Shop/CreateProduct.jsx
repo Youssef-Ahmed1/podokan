@@ -120,11 +120,6 @@ const CreateProduct = () => {
       }
   
       const previewUrl = URL.createObjectURL(processedFile);
-      
-      setProduct(prev => ({
-        ...prev,
-        designImage: previewUrl
-      }));
     
     
       const img = new Image();
@@ -177,6 +172,7 @@ const CreateProduct = () => {
         designImage: null
       }));
     }
+
   };
 
   const handleDrop = useCallback((e) => {
