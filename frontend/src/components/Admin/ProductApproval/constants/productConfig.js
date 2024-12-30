@@ -4,7 +4,7 @@ const CLOUDINARY_BASE = 'https://res.cloudinary.com/dkot9tyjm/image/upload';
 
 const VIEWS = ['front', 'back'];
 
-export const PRODUCT_TYPES = Object.keys(PRODUCT_CONFIG);
+export const PRODUCT_TYPES = Object.keys(DEFAULT_PRODUCT_CONFIG);
 
 
 
