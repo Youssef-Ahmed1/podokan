@@ -10,11 +10,11 @@ import { PRODUCT_TYPES, AVAILABLE_COLORS, DEFAULT_PRODUCT_CONFIG , PRODUCT_CONFI
 import imageCompression from 'browser-image-compression';
 
 const CreateProduct = () => {
+  // Move all hooks to the top level
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isLoading } = useSelector((state) => state.product);
 
-  // Initialize state with proper array types
   const [formState, setFormState] = useState({
     DesignTitle: '',
     Description: '',
@@ -27,6 +27,7 @@ const CreateProduct = () => {
     availableColors: ['white'],
     DesignScale: 1,
   });
+
   const [designFile, setDesignFile] = useState({
     file: null,
     preview: null,
@@ -34,23 +35,15 @@ const CreateProduct = () => {
     dimensions: { width: 0, height: 0 },
     score: 0
   });
+
   const [product, setProduct] = useState({
     ProductType: 'hoodie',
     ProductColor: 'white',
     ProductView: 'front',
-    designImage: null,
-    mainTags: [],
-    Designtags: []
+    designImage: null
   });
-  const [designPosition, setDesignPosition] = useState({ x: 50, y: 40 });
-  const [previewUrl, setPreviewUrl] = useState('');
-  const [errors, setErrors] = useState({});
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
-  const [showGuides, setShowGuides] = useState(true);
-  const [validationErrors, setValidationErrors] = useState({});
-
+  // Move hooks before any conditional logic
   const {
     position,
     scale,
@@ -62,19 +55,31 @@ const CreateProduct = () => {
     updatePosition,
     centerDesign,
   } = useDesignPosition({
-    initialPosition: { x: 50, y: 40 }, // Set default values directly
+    initialPosition: formState.position || { x: 50, y: 40 },
     productType: formState.ProductType,
     disabled: isSubmitting,
-    onChange: (newPosition) => {
-      setDesignPosition(newPosition);
-    }
+    onChange: (newPosition) => setDesignPosition(newPosition)
   });
+
+  const [designPosition, setDesignPosition] = useState({ x: 50, y: 40 });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [showGuides, setShowGuides] = useState(true);
+  const [validationErrors, setValidationErrors] = useState({});
+
   const handleTagsChange = (type, tags) => {
     setFormState(prev => ({
       ...prev,
       [type]: Array.isArray(tags) ? tags : []
     }));
   };
+  useEffect(() => {
+    return () => {
+      if (designFile?.preview) {
+        URL.revokeObjectURL(designFile.preview);
+      }
+    };
+  }, [designFile]);
 
 
   const calculateDPI = (width, height, physicalWidth = 10) => {
@@ -198,14 +203,6 @@ const CreateProduct = () => {
       processDesignFile(file);
     }
   }, [designFile]);
-  useEffect(() => {
-  return () => {
-    // Cleanup preview URL on unmount
-    if (designFile?.preview) {
-      URL.revokeObjectURL(designFile.preview);
-    }
-  };
-}, [designFile]);
 
 const validateForm = () => {
   const errors = {};

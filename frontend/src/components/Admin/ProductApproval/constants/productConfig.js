@@ -4,27 +4,15 @@ const CLOUDINARY_BASE = 'https://res.cloudinary.com/dkot9tyjm/image/upload';
 
 const VIEWS = ['front', 'back'];
 
-export const PRODUCT_CONFIG = {
-  'hoodie': {
-    label: 'Hoodie',
-    basePrice: 850,
-    productionCost: 650,
-    designCost: 200,
-    margins: {
-      min: 0.15,
-      recommended: 0.30
-    },
-    mockupConfig: {
-      version: "v1728392918",
-      folder: "hoodies",
-      getFilename: (color, view) => `hoodie-${color}-${view}`,
-      availableColors: ['white', 'black'],
-      views: ['front', 'back'],
-      boundaries: {
-        front: { x: [35, 65], y: [25, 45] },
-        back: { x: [30, 70], y: [20, 50] }
-      }
-    }
+const getMockupUrl = (productType, color, view) => {
+  try {
+    const config = PRODUCT_TYPES[productType]?.mockupConfig;
+    if (!config) return null;
+
+    return `${CLOUDINARY_BASE}/${config.version}/${config.folder}/${config.getFilename(color, view)}.png`;
+  } catch (error) {
+    console.error('Error generating mockup URL:', error);
+    return null;
   }
 };
 
@@ -62,7 +50,29 @@ export const DEFAULT_PRODUCT_CONFIG = {
     }
   }
 };
-
+export const PRODUCT_CONFIG = {
+  'hoodie': {
+    label: 'Hoodie',
+    basePrice: 850,
+    productionCost: 650,
+    designCost: 200,
+    margins: {
+      min: 0.15,
+      recommended: 0.30
+    },
+    mockupConfig: {
+      version: "v1728392918",
+      folder: "hoodies",
+      getFilename: (color, view) => `hoodie-${color}-${view}`,
+      availableColors: ['white', 'black'],
+      views: ['front', 'back'],
+      boundaries: {
+        front: { x: [35, 65], y: [25, 45] },
+        back: { x: [30, 70], y: [20, 50] }
+      }
+    }
+  }
+};
 
 export const STATUS_CONFIG = {
   pending: {
@@ -99,17 +109,6 @@ export const STATUS_CONFIG = {
   }
 };
 
-const getMockupUrl = (productType, color, view) => {
-  try {
-    const config = PRODUCT_TYPES[productType]?.mockupConfig;
-    if (!config) return null;
-
-    return `${CLOUDINARY_BASE}/${config.version}/${config.folder}/${config.getFilename(color, view)}.png`;
-  } catch (error) {
-    console.error('Error generating mockup URL:', error);
-    return null;
-  }
-};
 
 export const isMockupAvailable = (productType, color, view) => {
   const config = PRODUCT_TYPES[productType]?.mockupConfig;
