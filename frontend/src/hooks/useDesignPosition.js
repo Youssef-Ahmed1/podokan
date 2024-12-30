@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { PRODUCT_TYPES, DEFAULT_PRODUCT_CONFIG } from '../../src/components/Admin/ProductApproval/constants/productConfig';
+import { PRODUCT_TYPES, DEFAULT_PRODUCT_CONFIG , PRODUCT_CONFIG} from '../Admin/ProductApproval/constants/productConfig';
 
 export const useDesignPosition = ({
-  initialPosition = { x: 50, y: 35 }, // Adjusted y position
+  initialPosition = { x: 50, y: 40 }, // Adjusted y position
   initialScale = 0.5,
   productType = 'hoodie',
   productView = 'front',
@@ -16,14 +16,14 @@ export const useDesignPosition = ({
   const positionRef = useRef(position);
 
   // Updated boundaries to match the visible dotted line rectangle
-  const getBoundaries = useCallback(() => {
-    const config = PRODUCT_CONFIG[productType];
-    if (!config) return DEFAULT_PRODUCT_CONFIG.mockupConfig.boundaries.front;
-    
-    return config.mockupConfig.boundaries[productView] || 
-           config.mockupConfig.boundaries.front;
-  }, [productType, productView]);
+const getBoundaries = useCallback(() => {
+  const config = PRODUCT_CONFIG[productType];
+  if (!config) return DEFAULT_PRODUCT_CONFIG.mockupConfig.boundaries.front;
   
+  return config.mockupConfig.boundaries[productView] || 
+         config.mockupConfig.boundaries.front;
+}, [productType, productView]);
+
   const checkBoundaries = useCallback((pos, currentScale) => {
     const bounds = getBoundaries();
     
