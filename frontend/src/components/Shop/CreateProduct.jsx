@@ -7,6 +7,8 @@ import { createProduct } from "../../redux/actions/product";
 import { useDesignPosition } from '../../hooks/useDesignPosition';
 import DesignPreview from '../shared/DesignPreview';
 import { PRODUCT_TYPES, AVAILABLE_COLORS, DEFAULT_PRODUCT_CONFIG , PRODUCT_CONFIG} from '../Admin/ProductApproval/constants/productConfig';
+import imageCompression from 'browser-image-compression';
+
 const CreateProduct = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -19,28 +21,21 @@ const CreateProduct = () => {
     Maintag: '',
     mainTags: [],
     Designtags: [],
-    ProductType: PRODUCT_TYPES[0], // Use first available product type
-    ProductColor: AVAILABLE_COLORS[0].value, // Use first available color
+    ProductType: 'hoodie',
+    ProductColor: 'white',
     ProductView: 'front',
-    availableColors: [AVAILABLE_COLORS[0].value],
+    availableColors: ['white'],
     DesignScale: 1,
   });
-
-  // Fix designFile state initialization
-  const [designFile, setDesignFile] = useState({
-    file: null,
-    preview: null,
-    dpi: 0,
-    dimensions: { width: 0, height: 0 },
-    score: 0
-  });
+  
   const [product, setProduct] = useState({
     ProductType: 'hoodie',
     ProductColor: 'white',
     ProductView: 'front',
-    designImage: null
+    designImage: null,
+    mainTags: [],
+    Designtags: []
   });
-
   const [designPosition, setDesignPosition] = useState({ x: 50, y: 40 });
   const [previewUrl, setPreviewUrl] = useState('');
   const [errors, setErrors] = useState({});
@@ -102,10 +97,8 @@ const CreateProduct = () => {
   };
   const processDesignFile = async (file) => {
     try {
-      // Show loading toast
       const loadingToast = toast.loading("Processing design...");
-  
-      // Compress image if needed
+      
       let processedFile = file;
       if (file.size > 2 * 1024 * 1024) {
         processedFile = await imageCompression(file, {
@@ -115,10 +108,8 @@ const CreateProduct = () => {
         });
       }
   
-      // Create preview URL
       const previewUrl = URL.createObjectURL(processedFile);
   
-      // Get image dimensions and calculate DPI
       const img = new Image();
       await new Promise((resolve, reject) => {
         img.onload = resolve;
@@ -128,7 +119,7 @@ const CreateProduct = () => {
   
       const dpi = calculateDPI(img.width, img.height);
       const score = scoreDesignQuality(dpi, processedFile.size);
-      
+  
       setDesignFile({
         file: processedFile,
         preview: previewUrl,
@@ -137,8 +128,11 @@ const CreateProduct = () => {
         score
       });
   
-
-      // Update toast
+      setProduct(prev => ({
+        ...prev,
+        designImage: previewUrl
+      }));
+  
       toast.update(loadingToast, {
         render: "Design processed successfully",
         type: "success",
@@ -146,7 +140,6 @@ const CreateProduct = () => {
         autoClose: 2000
       });
   
-      // Show quality feedback
       if (score < 70) {
         toast.warning("Design quality could be improved. Consider using a higher resolution image.");
       }
@@ -154,7 +147,6 @@ const CreateProduct = () => {
       console.error("Error processing design:", error);
       toast.error("Failed to process design file");
       
-      // Reset design file state
       setDesignFile({
         file: null,
         preview: null,
@@ -162,6 +154,11 @@ const CreateProduct = () => {
         dimensions: { width: 0, height: 0 },
         score: 0
       });
+  
+      setProduct(prev => ({
+        ...prev,
+        designImage: null
+      }));
     }
   };
   setProduct(prev => ({

@@ -4,92 +4,50 @@ const CLOUDINARY_BASE = 'https://res.cloudinary.com/dkot9tyjm/image/upload';
 
 const VIEWS = ['front', 'back'];
 
-
-
-
-// Add a default product type configuration
-
-  // Commented out products for future use
-  /*
-  't-shirt': {
-    label: 'T-Shirt',
-    basePrice: 295,
-    productionCost: 205,
-    designCost: 90,
+export const PRODUCT_CONFIG = {
+  'hoodie': {
+    label: 'Hoodie',
+    basePrice: 850,
+    productionCost: 650,
+    designCost: 200,
     margins: {
       min: 0.15,
       recommended: 0.30
     },
     mockupConfig: {
-      version: "v1728393898",
-      folder: "t-shirts",
-      getFilename: (color, view) => `t-shirt-${color}-${view}`,
-      availableColors: ['white', 'black', 'red', 'blue', 'gray', 'green'],
-      views: VIEWS
-    }
-  },
-  'long-sleeve': {
-    label: 'Long Sleeve',
-    basePrice: 390,
-    productionCost: 300,
-    designCost: 90,
-    margins: {
-      min: 0.15,
-      recommended: 0.30
-    },
-    mockupConfig: {
-      version: "v1728394665",
-      folder: "long-sleeves",
-      getFilename: (color, view) => `longsleeves-${color}-${view}`,
-      availableColors: ['white', 'black', 'red', 'blue', 'gray'],
-      views: VIEWS
-    }
-  }
-  */
-
-
-  export const PRODUCT_CONFIG = {
-    'hoodie': {
-      label: 'Hoodie',
-      basePrice: 850,
-      productionCost: 650,
-      designCost: 200,
-      margins: {
-        min: 0.15,
-        recommended: 0.30
-      },
-      mockupConfig: {
-        version: "v1728392918",
-        folder: "hoodies",
-        getFilename: (color, view) => `hoodie-${color}-${view}`,
-        availableColors: ['white', 'black'],
-        views: ['front', 'back'],
-        boundaries: {
-          front: { x: [35, 65], y: [25, 45] },
-          back: { x: [30, 70], y: [20, 50] }
-        }
+      version: "v1728392918",
+      folder: "hoodies",
+      getFilename: (color, view) => `hoodie-${color}-${view}`,
+      availableColors: ['white', 'black'],
+      views: ['front', 'back'],
+      boundaries: {
+        front: { x: [35, 65], y: [25, 45] },
+        back: { x: [30, 70], y: [20, 50] }
       }
     }
-  };
-  
-  // Export PRODUCT_TYPES after PRODUCT_CONFIG is defined
-  export const PRODUCT_TYPES = Object.keys(PRODUCT_CONFIG);
-  
-  export const AVAILABLE_COLORS = [
-    { name: 'White', value: 'white' },
-    { name: 'Black', value: 'black' }
-  ];
+  }
+};
 
-export const AVAILABLE_TYPES = Object.entries(PRODUCT_TYPES).map(([value, config]) => ({
+// Fix: Define PRODUCT_TYPES before using it
+export const PRODUCT_TYPES = Object.keys(PRODUCT_CONFIG);
+
+export const AVAILABLE_COLORS = [
+  { name: 'White', value: 'white' },
+  { name: 'Black', value: 'black' }
+];
+
+// Fix: Use PRODUCT_CONFIG instead of PRODUCT_TYPES for mapping
+export const AVAILABLE_TYPES = Object.entries(PRODUCT_CONFIG).map(([value, config]) => ({
   name: config.label,
   value
 }));
+
 export const DEFAULT_PRODUCT_CONFIG = {
   label: 'Hoodie',
   basePrice: 850,
   productionCost: 650,
   designCost: 200,
-  position: { x: 50, y: 70 }, // Adjusted initial position
+  position: { x: 50, y: 40 }, // Adjusted to be consistent
   margins: {
     min: 0.15,
     recommended: 0.30
@@ -99,12 +57,11 @@ export const DEFAULT_PRODUCT_CONFIG = {
     availableColors: ['white', 'black'],
     views: ['front', 'back'],
     boundaries: {
-      front: { x: [35, 65], y: [40, 55] }, // Adjusted to match
+      front: { x: [35, 65], y: [40, 55] },
       back: { x: [30, 70], y: [20, 50] }
     }
   }
 };
-
 
 
 export const STATUS_CONFIG = {
