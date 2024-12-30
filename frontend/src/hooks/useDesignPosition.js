@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { PRODUCT_TYPES, DEFAULT_PRODUCT_CONFIG , PRODUCT_CONFIG} from '../Admin/ProductApproval/constants/productConfig';
+import { PRODUCT_TYPES, DEFAULT_PRODUCT_CONFIG , PRODUCT_CONFIG} from '../../src/components/Admin/ProductApproval/constants/productConfig';
 
 export const useDesignPosition = ({
   initialPosition = { x: 50, y: 40 }, // Adjusted y position
