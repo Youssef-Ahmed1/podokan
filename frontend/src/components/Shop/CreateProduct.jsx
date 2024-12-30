@@ -24,7 +24,7 @@ const CreateProduct = () => {
     ProductType: 'hoodie',
     ProductColor: 'white',
     ProductView: 'front',
-    availableColors: ['white'],
+    availableColors: ['white', 'black'],
     DesignScale: 1,
   });
 
