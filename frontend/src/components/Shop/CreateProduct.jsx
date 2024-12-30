@@ -6,9 +6,7 @@ import { AiOutlineCloudUpload } from "react-icons/ai";
 import { createProduct } from "../../redux/actions/product";
 import { useDesignPosition } from '../../hooks/useDesignPosition';
 import DesignPreview from '../shared/DesignPreview';
-import { PRODUCT_TYPES, AVAILABLE_COLORS, DEFAULT_PRODUCT_CONFIG } from '../Admin/ProductApproval/constants/productConfig';
-import imageCompression from 'browser-image-compression';
-
+import { PRODUCT_TYPES, AVAILABLE_COLORS, DEFAULT_PRODUCT_CONFIG , PRODUCT_CONFIG} from '../Admin/ProductApproval/constants/productConfig';
 const CreateProduct = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -19,12 +17,12 @@ const CreateProduct = () => {
     DesignTitle: '',
     Description: '',
     Maintag: '',
-    mainTags: [], // Ensure this is initialized as an array
-    Designtags: [], // Ensure this is initialized as an array
-    ProductType: 'hoodie',
-    ProductColor: 'white',
+    mainTags: [],
+    Designtags: [],
+    ProductType: PRODUCT_TYPES[0], // Use first available product type
+    ProductColor: AVAILABLE_COLORS[0].value, // Use first available color
     ProductView: 'front',
-    availableColors: ['white'],
+    availableColors: [AVAILABLE_COLORS[0].value],
     DesignScale: 1,
   });
 
