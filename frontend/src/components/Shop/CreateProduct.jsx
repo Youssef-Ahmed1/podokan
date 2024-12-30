@@ -120,7 +120,13 @@ const CreateProduct = () => {
       }
   
       const previewUrl = URL.createObjectURL(processedFile);
-  
+      
+      setProduct(prev => ({
+        ...prev,
+        designImage: previewUrl
+      }));
+    
+    
       const img = new Image();
       await new Promise((resolve, reject) => {
         img.onload = resolve;
@@ -172,11 +178,6 @@ const CreateProduct = () => {
       }));
     }
   };
-  setProduct(prev => ({
-    ...prev,
-    designImage: previewUrl
-  }));
-
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
