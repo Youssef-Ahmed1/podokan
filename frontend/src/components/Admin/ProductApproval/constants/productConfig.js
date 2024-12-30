@@ -123,9 +123,3 @@ export const getAvailableViews = (productType) => {
   return PRODUCT_CONFIG[productType]?.mockupConfig?.views || VIEWS;
 };
 
-
-export {
-  CLOUDINARY_BASE,
-  getMockupUrl,
-  VIEWS
-};
