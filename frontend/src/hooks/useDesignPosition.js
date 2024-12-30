@@ -17,21 +17,13 @@ export const useDesignPosition = ({
 
   // Updated boundaries to match the visible dotted line rectangle
   const getBoundaries = useCallback(() => {
-    const defaultBounds = {
-      hoodie: {
-        x: [30, 70], // Horizontal boundaries remain the same
-        y: [35, 65]  // Adjusted vertical boundaries to be lower
-      }
+    const config = PRODUCT_CONFIG[productType];
+    if (!config) return DEFAULT_PRODUCT_CONFIG.mockupConfig.boundaries.front;
     
-      // 't-shirt': {
-      //   x: [30, 70],
-      //   y: [20, 40]
-      // }
-    };
-
-    return defaultBounds[productType] || defaultBounds.hoodie;
-  }, [productType]);
-
+    return config.mockupConfig.boundaries[productView] || 
+           config.mockupConfig.boundaries.front;
+  }, [productType, productView]);
+  
   const checkBoundaries = useCallback((pos, currentScale) => {
     const bounds = getBoundaries();
     

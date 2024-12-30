@@ -21,7 +21,7 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
       ProductColor: availableColors[0]?.value || 'white',
       ProductView: 'front',
       DesignScale: 0.5, // Set default scale to 50%
-      DesignPosition: { x: 50, y: 50 } // Center position
+      DesignPosition: { x: 50, y: 40} // Center position
     };
     onUpdate(newProduct);
   }, [editedProduct, onUpdate, disabled]);
@@ -32,7 +32,7 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
     onUpdate({
       ...editedProduct, 
       ProductColor: color,
-      DesignPosition: { x: 50, y: 50 }, // Reset to center when changing color
+      DesignPosition: { x: 50, y: 40 }, // Reset to center when changing color
       DesignScale: 0.5 // Reset scale when changing color
     });
   }, [editedProduct, onUpdate, disabled]);
@@ -43,7 +43,7 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
     const newProduct = {
       ...editedProduct,
       ProductView: view,
-      DesignPosition: { x: 50, y: 50 }, // Reset to center when changing view
+      DesignPosition: { x: 50, y:40 }, // Reset to center when changing view
       DesignScale: 0.5 // Reset scale when changing view
     };
     onUpdate(newProduct);
