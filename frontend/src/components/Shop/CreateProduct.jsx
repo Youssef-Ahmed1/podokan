@@ -57,6 +57,7 @@ const CreateProduct = () => {
     scale,
     isDragging,
     isOutOfBounds,
+    bounds,
     handleDragStart,
     handleScaleChange,
     updatePosition,
@@ -129,7 +130,7 @@ const CreateProduct = () => {
   
       const dpi = calculateDPI(img.width, img.height);
       const score = scoreDesignQuality(dpi, processedFile.size);
-  
+      
       setDesignFile({
         file: processedFile,
         preview: previewUrl,
@@ -137,6 +138,7 @@ const CreateProduct = () => {
         dimensions: { width: img.width, height: img.height },
         score
       });
+  
 
       // Update toast
       toast.update(loadingToast, {
@@ -387,7 +389,10 @@ const renderTags = (tags, type) => {
   onChange={(e) => setFormState(prev => ({ ...prev, ProductType: e.target.value }))}
   className="w-full border rounded p-2"
 >
-  {Object.entries(PRODUCT_CONFIG).map(([type, config]) => (
+ 
+ 
+{Object.entries(DEFAULT_PRODUCT_CONFIG).map(([type, config]) => (
+
     <option key={type} value={type}>{config.label}</option>
   ))}
 </select>
