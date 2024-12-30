@@ -27,7 +27,13 @@ const CreateProduct = () => {
     availableColors: ['white'],
     DesignScale: 1,
   });
-  
+  const [designFile, setDesignFile] = useState({
+    file: null,
+    preview: null,
+    dpi: 0,
+    dimensions: { width: 0, height: 0 },
+    score: 0
+  });
   const [product, setProduct] = useState({
     ProductType: 'hoodie',
     ProductColor: 'white',
