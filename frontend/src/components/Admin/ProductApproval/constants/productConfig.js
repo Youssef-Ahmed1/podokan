@@ -1,5 +1,6 @@
 import { HiClock, HiCheck, HiX, HiExclamation } from 'react-icons/hi';
 
+// First, define all constants that don't depend on other declarations
 export const CLOUDINARY_BASE = 'https://res.cloudinary.com/dkot9tyjm/image/upload';
 
 export const VIEWS = ['front', 'back'];
@@ -9,6 +10,7 @@ export const AVAILABLE_COLORS = [
   { name: 'Black', value: 'black' }
 ];
 
+// Define the base configurations first
 export const PRODUCT_CONFIG = {
   'hoodie': {
     label: 'Hoodie',
@@ -33,6 +35,7 @@ export const PRODUCT_CONFIG = {
   }
 };
 
+// Then define dependent constants
 export const PRODUCT_TYPES = Object.keys(PRODUCT_CONFIG);
 
 export const AVAILABLE_TYPES = Object.entries(PRODUCT_CONFIG).map(([value, config]) => ({
@@ -96,11 +99,11 @@ export const STATUS_CONFIG = {
   }
 };
 
+// Define utility functions last, after all configs are defined
 export const getMockupUrl = (productType, color, view) => {
   try {
     const config = PRODUCT_CONFIG[productType]?.mockupConfig;
     if (!config) return null;
-
     return `${CLOUDINARY_BASE}/${config.version}/${config.folder}/${config.getFilename(color, view)}.png`;
   } catch (error) {
     console.error('Error generating mockup URL:', error);
