@@ -33,6 +33,13 @@ export const PRODUCT_CONFIG = {
   }
 };
 
+export const PRODUCT_TYPES = Object.keys(PRODUCT_CONFIG);
+
+export const AVAILABLE_TYPES = Object.entries(PRODUCT_CONFIG).map(([value, config]) => ({
+  name: config.label,
+  value
+}));
+
 export const DEFAULT_PRODUCT_CONFIG = {
   label: 'Hoodie',
   basePrice: 850,
@@ -53,13 +60,6 @@ export const DEFAULT_PRODUCT_CONFIG = {
     }
   }
 };
-
-export const PRODUCT_TYPES = Object.keys(PRODUCT_CONFIG);
-
-export const AVAILABLE_TYPES = Object.entries(PRODUCT_CONFIG).map(([value, config]) => ({
-  name: config.label,
-  value
-}));
 
 export const STATUS_CONFIG = {
   pending: {
@@ -122,4 +122,3 @@ export const getAvailableColorsForProduct = (productType) => {
 export const getAvailableViews = (productType) => {
   return PRODUCT_CONFIG[productType]?.mockupConfig?.views || VIEWS;
 };
-
