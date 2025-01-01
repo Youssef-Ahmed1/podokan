@@ -23,7 +23,7 @@ const initialState = {
     itemsPerPage: 10
   },
   designDefaults: {
-    scale: 1,
+    scale: 0.8,
     position: { x: 50, y: 40 },
   }
 };

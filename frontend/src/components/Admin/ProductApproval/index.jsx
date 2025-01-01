@@ -373,8 +373,8 @@ const AdminProductApproval = () => {
       setSelectedProduct(product);
       setEditedProduct({
         ...product,
-        DesignScale: product.DesignScale || 0.5,
-        DesignPosition: product.DesignPosition || { x: 50, y: 30 },
+        DesignScale: product.DesignScale || 0.8,
+        DesignPosition: product.DesignPosition || { x: 50, y: 40 },
         designImage: product.designImage?.url || product.designImage || '',
         mainTags: Array.isArray(product.mainTags) ? product.mainTags : [],
         Designtags: Array.isArray(product.Designtags) ? product.Designtags : []
