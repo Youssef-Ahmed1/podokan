@@ -1,47 +1,45 @@
 import { HiClock, HiCheck, HiX, HiExclamation } from 'react-icons/hi';
 
-// First, define all constants that don't depend on other declarations
+// 1. First, declare all independent constants
 export const CLOUDINARY_BASE = 'https://res.cloudinary.com/dkot9tyjm/image/upload';
-
 export const VIEWS = ['front', 'back'];
-
 export const AVAILABLE_COLORS = [
   { name: 'White', value: 'white' },
   { name: 'Black', value: 'black' }
 ];
 
-// Define the base configurations first
-export const PRODUCT_CONFIG = {
-  'hoodie': {
-    label: 'Hoodie',
-    basePrice: 850,
-    productionCost: 650,
-    designCost: 200,
-    margins: {
-      min: 0.15,
-      recommended: 0.30
-    },
-    mockupConfig: {
-      version: "v1728392918",
-      folder: "hoodies",
-      getFilename: (color, view) => `hoodie-${color}-${view}`,
-      availableColors: ['white', 'black'],
-      views: ['front', 'back'],
-      boundaries: {
-        front: { x: [35, 65], y: [25, 45] },
-        back: { x: [30, 70], y: [20, 50] }
-      }
-    }
+// 2. Create helper functions that don't depend on other declarations
+const createMockupConfig = (version, folder) => ({
+  version,
+  folder,
+  getFilename: (color, view) => `hoodie-${color}-${view}`,
+  availableColors: ['white', 'black'],
+  views: ['front', 'back'],
+  boundaries: {
+    front: { x: [35, 65], y: [25, 45] },
+    back: { x: [30, 70], y: [20, 50] }
   }
+});
+
+const createProductConfig = (label, mockupConfig) => ({
+  label,
+  basePrice: 850,
+  productionCost: 650,
+  designCost: 200,
+  margins: {
+    min: 0.15,
+    recommended: 0.30
+  },
+  mockupConfig
+});
+
+// 3. Define configurations using the helper functions
+export const PRODUCT_CONFIG = {
+  'hoodie': createProductConfig(
+    'Hoodie',
+    createMockupConfig("v1728392918", "hoodies")
+  )
 };
-
-// Then define dependent constants
-export const PRODUCT_TYPES = Object.keys(PRODUCT_CONFIG);
-
-export const AVAILABLE_TYPES = Object.entries(PRODUCT_CONFIG).map(([value, config]) => ({
-  name: config.label,
-  value
-}));
 
 export const DEFAULT_PRODUCT_CONFIG = {
   label: 'Hoodie',
@@ -64,6 +62,15 @@ export const DEFAULT_PRODUCT_CONFIG = {
   }
 };
 
+// 4. Define derived constants
+export const PRODUCT_TYPES = Object.keys(PRODUCT_CONFIG);
+
+export const AVAILABLE_TYPES = Object.entries(PRODUCT_CONFIG).map(([value, config]) => ({
+  name: config.label,
+  value
+}));
+
+// 5. Status configurations
 export const STATUS_CONFIG = {
   pending: {
     label: 'Pending Review',
@@ -99,7 +106,7 @@ export const STATUS_CONFIG = {
   }
 };
 
-// Define utility functions last, after all configs are defined
+// 6. Utility functions that use the configurations
 export const getMockupUrl = (productType, color, view) => {
   try {
     const config = PRODUCT_CONFIG[productType]?.mockupConfig;
