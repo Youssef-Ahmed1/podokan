@@ -53,7 +53,7 @@ export const DEFAULT_PRODUCT_CONFIG = {
     min: 0.15,
     recommended: 0.30
   },
-  scale: 0.5,
+  scale: 0.8,
   mockupConfig: {
     availableColors: ['white', 'black'],
     views: ['front', 'back'],

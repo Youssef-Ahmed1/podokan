@@ -137,8 +137,8 @@ const ProductDetails = ({ data }) => {
       shopId: data.shopId,
       shop: data.shop,
       price: data.discountPrice || data.originalPrice,
-      DesignScale: data.DesignScale || 0.5,
-      DesignPosition: data.DesignPosition || { x: 50, y: 50 }
+      DesignScale: data.DesignScale || 0.8,
+      DesignPosition: data.DesignPosition || { x: 50, y: 40 }
     };
   
     try {
