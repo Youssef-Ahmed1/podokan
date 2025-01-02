@@ -1,44 +1,19 @@
-// productConfig.js
+// constants/productConfig.js
 
-import { HiCheck, HiClock, HiX, HiExclamation } from 'react-icons/hi';
+// First define our imports 
+import { HiClock, HiCheck, HiX, HiExclamation } from 'react-icons/hi';
 
-// Base constants
-const BASE_CONFIG = {
-  CLOUDINARY_URL: 'https://res.cloudinary.com/dkot9tyjm/image/upload',
-  VIEWS: ['front', 'back'],
-  COLORS: ['white', 'black'],
-  PRICE: {
-    BASE: 850,
-    PRODUCTION: 650,
-    DESIGN: 200
-  },
-  POSITION: {
-    DEFAULT: { x: 50, y: 40 },
-    SCALE: 0.5
-  }
-};
+// Base constants defined first
+const CLOUDINARY_URL = 'https://res.cloudinary.com/dkot9tyjm/image/upload';
+const VIEWS = ['front', 'back'];
+const COLORS = ['white', 'black'];
+const BASE_PRICE = 850;
+const PRODUCTION_COST = 650;
+const DESIGN_COST = 200;
+const DEFAULT_POSITION = { x: 50, y: 40 };
+const DEFAULT_SCALE = 0.5;
 
-// Product configurations
-const PRODUCT_CONFIG = {
-  hoodie: {
-    label: 'Hoodie',
-    basePrice: BASE_CONFIG.PRICE.BASE,
-    productionCost: BASE_CONFIG.PRICE.PRODUCTION,
-    designCost: BASE_CONFIG.PRICE.DESIGN,
-    position: BASE_CONFIG.POSITION.DEFAULT,
-    scale: BASE_CONFIG.POSITION.SCALE,
-    mockupConfig: {
-      version: "v1728392918",
-      folder: "hoodies",
-      boundaries: {
-        front: { x: [35, 65], y: [25, 45] },
-        back: { x: [30, 70], y: [20, 50] }
-      }
-    }
-  }
-};
-
-// Status configurations
+// Define status config
 const STATUS_CONFIG = {
   pending: {
     label: 'Pending Review',
@@ -74,25 +49,48 @@ const STATUS_CONFIG = {
   }
 };
 
-// Derived constants
-const AVAILABLE_COLORS = BASE_CONFIG.COLORS.map(value => ({
+// Define product config
+const PRODUCT_CONFIG = {
+  hoodie: {
+    label: 'Hoodie',
+    basePrice: BASE_PRICE,
+    productionCost: PRODUCTION_COST,
+    designCost: DESIGN_COST,
+    position: DEFAULT_POSITION,
+    margins: {
+      min: 0.15,
+      recommended: 0.30
+    },
+    scale: DEFAULT_SCALE,
+    mockupConfig: {
+      version: "v1728392918",
+      folder: "hoodies",
+      boundaries: {
+        front: { x: [35, 65], y: [25, 45] },
+        back: { x: [30, 70], y: [20, 50] }
+      }
+    }
+  }
+};
+
+// Define derivative constants
+const PRODUCT_TYPES = Object.keys(PRODUCT_CONFIG);
+const AVAILABLE_COLORS = COLORS.map(value => ({
   name: value.charAt(0).toUpperCase() + value.slice(1),
   value
 }));
-
 const AVAILABLE_TYPES = Object.entries(PRODUCT_CONFIG).map(([value, config]) => ({
   name: config.label,
   value
 }));
+const DEFAULT_PRODUCT_CONFIG = PRODUCT_CONFIG.hoodie;
 
-const PRODUCT_TYPES = Object.keys(PRODUCT_CONFIG);
-
-// Utility functions
+// Define utility functions
 const getMockupUrl = (productType, color, view) => {
   try {
     const config = PRODUCT_CONFIG[productType]?.mockupConfig;
     if (!config) return null;
-    return `${BASE_CONFIG.CLOUDINARY_URL}/${config.version}/${config.folder}/${productType}-${color}-${view}.png`;
+    return `${CLOUDINARY_URL}/${config.version}/${config.folder}/${productType}-${color}-${view}.png`;
   } catch (error) {
     console.error('Error generating mockup URL:', error);
     return null;
@@ -100,40 +98,24 @@ const getMockupUrl = (productType, color, view) => {
 };
 
 const isMockupAvailable = (productType, color, view) => {
-  return BASE_CONFIG.COLORS.includes(color) && BASE_CONFIG.VIEWS.includes(view);
+  return COLORS.includes(color) && VIEWS.includes(view);
 };
 
 const getAvailableColorsForProduct = () => AVAILABLE_COLORS;
 
-const getAvailableViews = () => BASE_CONFIG.VIEWS;
+const getAvailableViews = () => VIEWS;
 
-// Exports
+// Export everything
 export {
-  BASE_CONFIG as CLOUDINARY_BASE,
-  BASE_CONFIG.VIEWS as VIEWS,
-  BASE_CONFIG.COLORS as COLORS,
+  CLOUDINARY_URL as CLOUDINARY_BASE,
+  VIEWS,
+  COLORS,
   AVAILABLE_COLORS,
   PRODUCT_CONFIG,
   PRODUCT_TYPES,
   STATUS_CONFIG,
   AVAILABLE_TYPES,
-  PRODUCT_CONFIG.hoodie as DEFAULT_PRODUCT_CONFIG,
-  getMockupUrl,
-  isMockupAvailable,
-  getAvailableColorsForProduct,
-  getAvailableViews
-};
-
-export default {
-  CLOUDINARY_BASE: BASE_CONFIG.CLOUDINARY_URL,
-  VIEWS: BASE_CONFIG.VIEWS,
-  COLORS: BASE_CONFIG.COLORS,
-  AVAILABLE_COLORS,
-  PRODUCT_CONFIG,
-  PRODUCT_TYPES,
-  STATUS_CONFIG,
-  AVAILABLE_TYPES,
-  DEFAULT_PRODUCT_CONFIG: PRODUCT_CONFIG.hoodie,
+  DEFAULT_PRODUCT_CONFIG,
   getMockupUrl,
   isMockupAvailable,
   getAvailableColorsForProduct,
