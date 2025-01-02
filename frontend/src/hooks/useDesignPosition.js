@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { PRODUCT_CONFIG, DEFAULT_PRODUCT_CONFIG } from '../Admin/ProductApproval/constants/productConfig';
+import { PRODUCT_CONFIG, DEFAULT_PRODUCT_CONFIG } from '../components/Admin/ProductApproval/constants/productConfig';
 
 export const useDesignPosition = (props) => {
   // Initialize all variables at the top

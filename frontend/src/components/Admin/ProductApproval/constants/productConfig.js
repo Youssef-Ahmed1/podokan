@@ -1,4 +1,3 @@
-// constants/productConfig.js
 
 // Move all imports to the top
 import { HiClock, HiCheck, HiX, HiExclamation } from 'react-icons/hi';
