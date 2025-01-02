@@ -211,7 +211,10 @@ const isMockupAvailable = (productType, color, view) => {
   return COLORS.includes(color) && VIEWS.includes(view);
 };
  const getAvailableViews = () => VIEWS;
-
+ const AVAILABLE_TYPES = Object.entries(PRODUCT_CONFIG).map(([value, config]) => ({
+  name: config.label,
+  value
+}));
 // Exports
 export {
   CLOUDINARY_URL,
@@ -230,4 +233,5 @@ export {
   getAvailableColorsForProduct,
   isMockupAvailable,
   getAvailableViews,
+  AVAILABLE_TYPES,
 };
