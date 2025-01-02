@@ -1,21 +1,32 @@
 // productConfig.js
 
-// Module-level constants
-const CLOUDINARY_URL = 'https://res.cloudinary.com/dkot9tyjm/image/upload';
-const VIEWS = ['front', 'back'];
-const COLORS = ['white', 'black'];
+import { HiCheck, HiClock, HiX, HiExclamation } from 'react-icons/hi';
+
+// Base constants
+const BASE_CONFIG = {
+  CLOUDINARY_URL: 'https://res.cloudinary.com/dkot9tyjm/image/upload',
+  VIEWS: ['front', 'back'],
+  COLORS: ['white', 'black'],
+  PRICE: {
+    BASE: 850,
+    PRODUCTION: 650,
+    DESIGN: 200
+  },
+  POSITION: {
+    DEFAULT: { x: 50, y: 40 },
+    SCALE: 0.5
+  }
+};
 
 // Product configurations
 const PRODUCT_CONFIG = {
   hoodie: {
     label: 'Hoodie',
-    basePrice: 850,
-    productionCost: 650,
-    designCost: 200,
-    margins: {
-      min: 0.15,
-      recommended: 0.30
-    },
+    basePrice: BASE_CONFIG.PRICE.BASE,
+    productionCost: BASE_CONFIG.PRICE.PRODUCTION,
+    designCost: BASE_CONFIG.PRICE.DESIGN,
+    position: BASE_CONFIG.POSITION.DEFAULT,
+    scale: BASE_CONFIG.POSITION.SCALE,
     mockupConfig: {
       version: "v1728392918",
       folder: "hoodies",
@@ -27,9 +38,6 @@ const PRODUCT_CONFIG = {
   }
 };
 
-// Derive product types from config
-export const PRODUCT_TYPES = Object.keys(PRODUCT_CONFIG);
-
 // Status configurations
 const STATUS_CONFIG = {
   pending: {
@@ -37,6 +45,7 @@ const STATUS_CONFIG = {
     color: 'bg-yellow-100',
     textColor: 'text-yellow-800',
     borderColor: 'border-yellow-200',
+    icon: HiClock,
     description: 'Awaiting admin review'
   },
   public: {
@@ -44,6 +53,7 @@ const STATUS_CONFIG = {
     color: 'bg-green-100',
     textColor: 'text-green-800',
     borderColor: 'border-green-200',
+    icon: HiCheck,
     description: 'Product is live and available for purchase'
   },
   rejected: {
@@ -51,6 +61,7 @@ const STATUS_CONFIG = {
     color: 'bg-red-100',
     textColor: 'text-red-800',
     borderColor: 'border-red-200',
+    icon: HiX,
     description: 'Product has been rejected'
   },
   review: {
@@ -58,22 +69,30 @@ const STATUS_CONFIG = {
     color: 'bg-blue-100',
     textColor: 'text-blue-800',
     borderColor: 'border-blue-200',
+    icon: HiExclamation,
     description: 'Under detailed review'
   }
 };
 
-// Default configuration
-const DEFAULT_CONFIG = {
-  position: { x: 50, y: 40 },
-  scale: 0.5
-};
+// Derived constants
+const AVAILABLE_COLORS = BASE_CONFIG.COLORS.map(value => ({
+  name: value.charAt(0).toUpperCase() + value.slice(1),
+  value
+}));
+
+const AVAILABLE_TYPES = Object.entries(PRODUCT_CONFIG).map(([value, config]) => ({
+  name: config.label,
+  value
+}));
+
+const PRODUCT_TYPES = Object.keys(PRODUCT_CONFIG);
 
 // Utility functions
 const getMockupUrl = (productType, color, view) => {
   try {
     const config = PRODUCT_CONFIG[productType]?.mockupConfig;
     if (!config) return null;
-    return `${CLOUDINARY_URL}/${config.version}/${config.folder}/${productType}-${color}-${view}.png`;
+    return `${BASE_CONFIG.CLOUDINARY_URL}/${config.version}/${config.folder}/${productType}-${color}-${view}.png`;
   } catch (error) {
     console.error('Error generating mockup URL:', error);
     return null;
@@ -81,54 +100,40 @@ const getMockupUrl = (productType, color, view) => {
 };
 
 const isMockupAvailable = (productType, color, view) => {
-  return COLORS.includes(color) && VIEWS.includes(view);
+  return BASE_CONFIG.COLORS.includes(color) && BASE_CONFIG.VIEWS.includes(view);
 };
 
-const getAvailableColorsForProduct = () => {
-  return COLORS.map(value => ({
-    name: value.charAt(0).toUpperCase() + value.slice(1),
-    value
-  }));
-};
+const getAvailableColorsForProduct = () => AVAILABLE_COLORS;
 
-const getAvailableViews = () => VIEWS;
+const getAvailableViews = () => BASE_CONFIG.VIEWS;
 
-// Export named constants and functions individually
+// Exports
 export {
-  CLOUDINARY_URL as CLOUDINARY_BASE,
-  VIEWS,
-  COLORS,
+  BASE_CONFIG as CLOUDINARY_BASE,
+  BASE_CONFIG.VIEWS as VIEWS,
+  BASE_CONFIG.COLORS as COLORS,
+  AVAILABLE_COLORS,
   PRODUCT_CONFIG,
+  PRODUCT_TYPES,
   STATUS_CONFIG,
+  AVAILABLE_TYPES,
+  PRODUCT_CONFIG.hoodie as DEFAULT_PRODUCT_CONFIG,
   getMockupUrl,
   isMockupAvailable,
   getAvailableColorsForProduct,
   getAvailableViews
 };
 
-// Export derived constants
-export const AVAILABLE_COLORS = getAvailableColorsForProduct();
-export const AVAILABLE_TYPES = Object.entries(PRODUCT_CONFIG).map(([value, config]) => ({
-  name: config.label,
-  value
-}));
-export const DEFAULT_PRODUCT_CONFIG = {
-  ...PRODUCT_CONFIG.hoodie,
-  position: DEFAULT_CONFIG.position,
-  scale: DEFAULT_CONFIG.scale,
-};
-
-// Default export for convenience
 export default {
-  CLOUDINARY_BASE: CLOUDINARY_URL,
-  VIEWS,
-  COLORS,
-  PRODUCT_TYPES,
-  PRODUCT_CONFIG,
-  STATUS_CONFIG,
+  CLOUDINARY_BASE: BASE_CONFIG.CLOUDINARY_URL,
+  VIEWS: BASE_CONFIG.VIEWS,
+  COLORS: BASE_CONFIG.COLORS,
   AVAILABLE_COLORS,
+  PRODUCT_CONFIG,
+  PRODUCT_TYPES,
+  STATUS_CONFIG,
   AVAILABLE_TYPES,
-  DEFAULT_PRODUCT_CONFIG,
+  DEFAULT_PRODUCT_CONFIG: PRODUCT_CONFIG.hoodie,
   getMockupUrl,
   isMockupAvailable,
   getAvailableColorsForProduct,
