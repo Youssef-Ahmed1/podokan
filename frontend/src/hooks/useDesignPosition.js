@@ -1,21 +1,28 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { 
-  PRODUCT_CONFIG,
-  DEFAULT_PRODUCT_CONFIG 
-} from '../components/Admin/ProductApproval/constants/productConfig';
+
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { PRODUCT_CONFIG, DEFAULT_PRODUCT_CONFIG } from '../components/Admin/ProductApproval/constants/productConfig';
+
+
+
 export const useDesignPosition = ({
-  initialPosition = { x: 50, y: 40 }, // Adjusted y position
+  initialPosition = { x: 50, y: 40 },
   initialScale = 0.5,
   productType = 'hoodie',
   productView = 'front',
   disabled = false,
   maxScale = 1.1
 }) => {
-  const [position, setPosition] = useState(initialPosition);
-  const [scale, setScale] = useState(initialScale);
-  const [isDragging, setIsDragging] = useState(false);
+  // Memoize initial values
+  const initialState = useMemo(() => ({
+    position: initialPosition,
+    scale: initialScale,
+    isDragging: false
+  }), [initialPosition, initialScale]);
+
+  const [state, setState] = useState(initialState);
   const dragStartRef = useRef({ x: 0, y: 0 });
-  const positionRef = useRef(position);
+  const positionRef = useRef(state.position);
+
 
   // Updated boundaries to match the visible dotted line rectangle
 const getBoundaries = useCallback(() => {
