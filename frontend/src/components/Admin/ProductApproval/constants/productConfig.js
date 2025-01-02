@@ -1,3 +1,4 @@
+// constants/productConfig.js
 
 // Move all imports to the top
 import { HiClock, HiCheck, HiX, HiExclamation } from 'react-icons/hi';
@@ -93,7 +94,7 @@ const getMockupUrl = (productType, color, view) => {
   const config = PRODUCT_CONFIG[productType]?.mockupConfig;
   return config ? `${CLOUDINARY_URL}/${config.version}/${config.folder}/${productType}-${color}-${view}.png` : null;
 };
-
+const getAvailableColorsForProduct = () => AVAILABLE_COLORS;
 // Exports
 export {
   CLOUDINARY_URL,
@@ -104,5 +105,6 @@ export {
   PRODUCT_TYPES,
   STATUS_CONFIG,
   BASE_PRODUCT_CONFIG as DEFAULT_PRODUCT_CONFIG,
-  getMockupUrl
+  getMockupUrl,
+  getAvailableColorsForProduct
 };
