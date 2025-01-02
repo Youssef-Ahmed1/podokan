@@ -1,30 +1,45 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux"; 
+import React, { useState, useCallback, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AiOutlineCloudUpload } from "react-icons/ai";
 import imageCompression from 'browser-image-compression';
 
-// Separate config imports
-import { 
-  PRODUCT_TYPES, 
-  AVAILABLE_COLORS, 
-  DEFAULT_PRODUCT_CONFIG 
-} from '../Admin/ProductApproval/constants/productConfig';
+// Import constants first
+const {
+  PRODUCT_TYPES,
+  AVAILABLE_COLORS,
+  DEFAULT_PRODUCT_CONFIG
+} = require('../Admin/ProductApproval/constants/productConfig');
 
-// Import actions and hooks last
-import { createProduct } from "../../redux/actions/product";
+// Import actions
+const { createProduct } = require("../../redux/actions/product");
+
+// Import hooks and components
 import { useDesignPosition } from '../../hooks/useDesignPosition';
 import DesignPreview from '../shared/DesignPreview';
 
 const CreateProduct = () => {
-  // Initialize hooks first
+  // Initialize all states at the top
+  const [stylesLoaded, setStylesLoaded] = useState(false);
+  const [initialRender, setInitialRender] = useState(true);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isLoading } = useSelector((state) => state.product);
 
-  // Use memoization for initial states
-  const initialFormState = useMemo(() => ({
+  // Check if styles are loaded
+  useEffect(() => {
+    if (document.readyState === 'complete') {
+      setStylesLoaded(true);
+    } else {
+      window.addEventListener('load', () => setStylesLoaded(true));
+    }
+    return () => window.removeEventListener('load', () => setStylesLoaded(true));
+  }, []);
+
+  // Initial state setup
+  const [formState, setFormState] = useState({
     DesignTitle: '',
     Description: '',
     Maintag: '',
@@ -34,10 +49,9 @@ const CreateProduct = () => {
     ProductColor: 'white',
     ProductView: 'front',
     availableColors: ['white'],
-    DesignScale: 1,
-  }), []);
+    DesignScale: 0.8,
+  });
 
-  const [formState, setFormState] = useState(initialFormState);
   const [designFile, setDesignFile] = useState({
     file: null,
     preview: null,
@@ -77,6 +91,10 @@ const CreateProduct = () => {
   const [showGuides, setShowGuides] = useState(true);
   const [validationErrors, setValidationErrors] = useState({});
 
+  
+  if (!stylesLoaded && initialRender) {
+    return <div style={{ visibility: 'hidden' }}></div>;
+  }
   const handleTagsChange = (type, tags) => {
     setFormState(prev => ({
       ...prev,

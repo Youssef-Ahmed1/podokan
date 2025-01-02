@@ -25,7 +25,6 @@ import {
   TrackOrderPage,
   UserInbox,
 } from "./routes/Routes.js";
-
 import {
   ShopDashboardPage,
   ShopCreateProduct,
@@ -41,7 +40,6 @@ import {
   ShopWithDrawMoneyPage,
   ShopInboxPage,
 } from "./routes/ShopRoutes";
-
 import {
   AdminDashboardPage,
   AdminDashboardUsers,
@@ -52,7 +50,6 @@ import {
   AdminDashboardWithdraw,
   AdminApprovalProducts,
 } from "./routes/AdminRoutes";
-
 import { ShopHomePage } from "./ShopRoutes.js";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import ProtectedAdminRoute from "./routes/ProtectedAdminRoute";
@@ -65,8 +62,15 @@ import "./App.css";
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [stylesLoaded, setStylesLoaded] = useState(false);
 
   useEffect(() => {
+    // Check if styles are loaded
+    const styleSheets = document.styleSheets;
+    if (styleSheets.length > 0) {
+      setStylesLoaded(true);
+    }
+    
     axios.defaults.withCredentials = true;
     
     const token = localStorage.getItem('token');
@@ -98,13 +102,14 @@ const App = () => {
     loadInitialData();
   }, []);
 
-  if (isLoading) {
+  if (isLoading || !stylesLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
+
 
   return (
     <BrowserRouter>
