@@ -18,7 +18,9 @@ export const useDesignPosition = ({
     scale: initialScale,
     isDragging: false
   }), [initialPosition, initialScale]);
-
+  const [position, setPosition] = useState(initialPosition);
+  const [scale, setScale] = useState(initialScale);
+  const [isDragging, setIsDragging] = useState(false);
   const [state, setState] = useState(initialState);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const positionRef = useRef(state.position);
