@@ -206,10 +206,11 @@ const validateDesignPosition = (position, productType, view) => {
     y: Math.max(bounds.y[0], Math.min(bounds.y[1], position.y))
   };
 };
-export const isMockupAvailable = (productType, color, view) => {
+
+const isMockupAvailable = (productType, color, view) => {
   return COLORS.includes(color) && VIEWS.includes(view);
 };
-export const getAvailableViews = () => VIEWS;
+ const getAvailableViews = () => VIEWS;
 
 // Exports
 export {
