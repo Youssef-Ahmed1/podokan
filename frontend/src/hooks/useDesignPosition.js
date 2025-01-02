@@ -1,40 +1,38 @@
-
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { PRODUCT_CONFIG, DEFAULT_PRODUCT_CONFIG } from '../components/Admin/ProductApproval/constants/productConfig';
 
+export const useDesignPosition = (props) => {
+  // Initialize all variables at the top
+  const {
+    initialPosition = { x: 50, y: 40 },
+    initialScale = 0.8,
+    productType = 'hoodie',
+    productView = 'front',
+    disabled = false,
+    maxScale = 1.2,
+    onChange
+  } = props || {};
 
-
-export const useDesignPosition = ({
-  initialPosition = { x: 50, y: 40 },
-  initialScale = 0.8,
-  productType = 'hoodie',
-  productView = 'front',
-  disabled = false,
-  maxScale = 1.2
-  
-}) => {
-  // Memoize initial values
-  const initialState = useMemo(() => ({
-    position: initialPosition,
-    scale: initialScale,
-    isDragging: false
-  }), [initialPosition, initialScale]);
+  // State declarations
   const [position, setPosition] = useState(initialPosition);
-    const [scale, setScale] = useState(initialScale);
+  const [scale, setScale] = useState(initialScale);
   const [isDragging, setIsDragging] = useState(false);
-  const [state, setState] = useState(initialState);
-  const dragStartRef = useRef({ x: 0, y: 0 });
-  const positionRef = useRef(state.position);
   const [isOutOfBounds, setIsOutOfBounds] = useState(false);
-  // Updated boundaries to match the visible dotted line rectangle
-const getBoundaries = useCallback(() => {
-  const config = PRODUCT_CONFIG[productType];
-  if (!config) return DEFAULT_PRODUCT_CONFIG.mockupConfig.boundaries.front;
-  
-  return config.mockupConfig.boundaries[productView] || 
-         config.mockupConfig.boundaries.front;
-}, [productType, productView]);
 
+  // Refs
+  const dragStartRef = useRef(null);
+  const positionRef = useRef(position);
+
+  // Get boundaries based on product type and view
+  const getBoundaries = useCallback(() => {
+    const config = PRODUCT_CONFIG[productType];
+    if (!config) return DEFAULT_PRODUCT_CONFIG.mockupConfig.boundaries.front;
+    
+    return config.mockupConfig.boundaries[productView] || 
+           config.mockupConfig.boundaries.front;
+  }, [productType, productView]);
+
+  // Check if position is within boundaries
   const checkBoundaries = useCallback((pos, currentScale) => {
     const bounds = getBoundaries();
     
@@ -48,12 +46,16 @@ const getBoundaries = useCallback(() => {
     const topBound = bounds.y[0] + (designHeight / 2);
     const bottomBound = bounds.y[1] - (designHeight / 2);
 
-    return pos.x >= leftBound && 
-           pos.x <= rightBound && 
-           pos.y >= topBound && 
-           pos.y <= bottomBound;
+    const withinBounds = pos.x >= leftBound && 
+                        pos.x <= rightBound && 
+                        pos.y >= topBound && 
+                        pos.y <= bottomBound;
+
+    setIsOutOfBounds(!withinBounds);
+    return withinBounds;
   }, [getBoundaries]);
 
+  // Update position with boundary checking
   const updatePosition = useCallback((newPosition, currentScale = scale) => {
     const bounds = getBoundaries();
     const designWidth = 20 * currentScale;
@@ -72,9 +74,13 @@ const getBoundaries = useCallback(() => {
 
     setPosition(clampedPosition);
     positionRef.current = clampedPosition;
-  }, [getBoundaries, scale]);
+    
+    if (onChange) {
+      onChange({ position: clampedPosition, scale: currentScale });
+    }
+  }, [getBoundaries, scale, onChange]);
 
-  // Add the missing centerDesign function
+  // Center the design
   const centerDesign = useCallback(() => {
     const bounds = getBoundaries();
     const centerPosition = {
@@ -84,15 +90,15 @@ const getBoundaries = useCallback(() => {
     updatePosition(centerPosition, scale);
   }, [getBoundaries, updatePosition, scale]);
 
-  // Add the missing reset function
+  // Reset to default position and scale
   const reset = useCallback(() => {
-    const defaultPosition = { x: 50, y: 35 }; // Adjusted y position
+    const defaultPosition = { x: 50, y: 35 };
     const defaultScale = 0.5;
     updatePosition(defaultPosition, defaultScale);
     setScale(defaultScale);
   }, [updatePosition]);
 
-  
+  // Handle drag start
   const handleDragStart = useCallback((e) => {
     if (disabled || !e.currentTarget) return;
     e.preventDefault();
@@ -139,6 +145,7 @@ const getBoundaries = useCallback(() => {
     window.addEventListener('mouseup', handleMouseUp);
   }, [disabled, updatePosition, checkBoundaries, scale]);
 
+  // Handle scale change
   const handleScaleChange = useCallback((newScale) => {
     const MIN_SCALE = 0.1;
     const MAX_SCALE = maxScale;
@@ -157,10 +164,12 @@ const getBoundaries = useCallback(() => {
     }
   }, [maxScale, position, checkBoundaries, getBoundaries, updatePosition]);
 
+  // Center design on mount and product type/view change
   useEffect(() => {
     centerDesign();
   }, [productType, productView, centerDesign]);
 
+  // Cleanup event listeners
   useEffect(() => {
     return () => {
       if (isDragging) {
@@ -174,7 +183,7 @@ const getBoundaries = useCallback(() => {
     position,
     scale,
     isDragging,
-    isOutOfBounds: !checkBoundaries(position, scale),
+    isOutOfBounds,
     handleDragStart,
     handleScaleChange,
     updatePosition,
