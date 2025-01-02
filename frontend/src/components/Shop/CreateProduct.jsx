@@ -1,25 +1,30 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux"; 
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AiOutlineCloudUpload } from "react-icons/ai";
 import imageCompression from 'browser-image-compression';
+
+// Separate config imports
 import { 
   PRODUCT_TYPES, 
   AVAILABLE_COLORS, 
-  DEFAULT_PRODUCT_CONFIG,
-  PRODUCT_CONFIG 
+  DEFAULT_PRODUCT_CONFIG 
 } from '../Admin/ProductApproval/constants/productConfig';
+
+// Import actions and hooks last
 import { createProduct } from "../../redux/actions/product";
 import { useDesignPosition } from '../../hooks/useDesignPosition';
 import DesignPreview from '../shared/DesignPreview';
+
 const CreateProduct = () => {
-  // Move all hooks to the top level
+  // Initialize hooks first
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isLoading } = useSelector((state) => state.product);
 
-  const [formState, setFormState] = useState({
+  // Use memoization for initial states
+  const initialFormState = useMemo(() => ({
     DesignTitle: '',
     Description: '',
     Maintag: '',
@@ -28,10 +33,11 @@ const CreateProduct = () => {
     ProductType: 'hoodie',
     ProductColor: 'white',
     ProductView: 'front',
-    availableColors: ['white', 'black'],
+    availableColors: ['white'],
     DesignScale: 1,
-  });
+  }), []);
 
+  const [formState, setFormState] = useState(initialFormState);
   const [designFile, setDesignFile] = useState({
     file: null,
     preview: null,
