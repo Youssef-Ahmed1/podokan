@@ -179,7 +179,7 @@ const PRODUCT_TYPES = {
     }
   }
 };
-
+const getAvailableColorsForProduct = () => AVAILABLE_COLORS;
 // Utility Functions
 const getMockupUrl = (productType, color, view) => {
   if (!productType || !color || !view) return null;
@@ -206,6 +206,10 @@ const validateDesignPosition = (position, productType, view) => {
     y: Math.max(bounds.y[0], Math.min(bounds.y[1], position.y))
   };
 };
+export const isMockupAvailable = (productType, color, view) => {
+  return COLORS.includes(color) && VIEWS.includes(view);
+};
+export const getAvailableViews = () => VIEWS;
 
 // Exports
 export {
@@ -221,5 +225,8 @@ export {
   getMockupUrl,
   getDesignArea,
   calculatePrice,
-  validateDesignPosition
+  validateDesignPosition,
+  getAvailableColorsForProduct,
+  isMockupAvailable,
+  getAvailableViews,
 };
