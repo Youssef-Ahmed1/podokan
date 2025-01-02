@@ -29,14 +29,6 @@ const CreateProduct = () => {
   const { isLoading } = useSelector((state) => state.product);
 
   // Check if styles are loaded
-  useEffect(() => {
-    if (document.readyState === 'complete') {
-      setStylesLoaded(true);
-    } else {
-      window.addEventListener('load', () => setStylesLoaded(true));
-    }
-    return () => window.removeEventListener('load', () => setStylesLoaded(true));
-  }, []);
 
   // Initial state setup
   const [formState, setFormState] = useState({
@@ -91,10 +83,20 @@ const CreateProduct = () => {
   const [showGuides, setShowGuides] = useState(true);
   const [validationErrors, setValidationErrors] = useState({});
 
-  
+
   if (!stylesLoaded && initialRender) {
+
+    
     return <div style={{ visibility: 'hidden' }}></div>;
-  }
+  }  useEffect(() => {
+    if (document.readyState === 'complete') {
+      setStylesLoaded(true);
+    } else {
+      window.addEventListener('load', () => setStylesLoaded(true));
+    }
+    return () => window.removeEventListener('load', () => setStylesLoaded(true));
+  }, []);
+
   const handleTagsChange = (type, tags) => {
     setFormState(prev => ({
       ...prev,
