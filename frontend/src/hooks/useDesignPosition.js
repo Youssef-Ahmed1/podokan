@@ -6,11 +6,12 @@ import { PRODUCT_CONFIG, DEFAULT_PRODUCT_CONFIG } from '../components/Admin/Prod
 
 export const useDesignPosition = ({
   initialPosition = { x: 50, y: 40 },
-  initialScale = 0.5,
+  initialScale = 0.8,
   productType = 'hoodie',
   productView = 'front',
   disabled = false,
-  maxScale = 1.1
+  maxScale = 1.2
+  
 }) => {
   // Memoize initial values
   const initialState = useMemo(() => ({
@@ -19,13 +20,12 @@ export const useDesignPosition = ({
     isDragging: false
   }), [initialPosition, initialScale]);
   const [position, setPosition] = useState(initialPosition);
-  const [scale, setScale] = useState(initialScale);
+    const [scale, setScale] = useState(initialScale);
   const [isDragging, setIsDragging] = useState(false);
   const [state, setState] = useState(initialState);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const positionRef = useRef(state.position);
-
-
+  const [isOutOfBounds, setIsOutOfBounds] = useState(false);
   // Updated boundaries to match the visible dotted line rectangle
 const getBoundaries = useCallback(() => {
   const config = PRODUCT_CONFIG[productType];
