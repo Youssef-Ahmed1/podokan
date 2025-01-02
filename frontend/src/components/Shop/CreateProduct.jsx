@@ -3,12 +3,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AiOutlineCloudUpload } from "react-icons/ai";
+import imageCompression from 'browser-image-compression';
+import { 
+  PRODUCT_TYPES, 
+  AVAILABLE_COLORS, 
+  DEFAULT_PRODUCT_CONFIG,
+  PRODUCT_CONFIG 
+} from '../Admin/ProductApproval/constants/productConfig';
 import { createProduct } from "../../redux/actions/product";
 import { useDesignPosition } from '../../hooks/useDesignPosition';
 import DesignPreview from '../shared/DesignPreview';
-import { PRODUCT_TYPES, AVAILABLE_COLORS, DEFAULT_PRODUCT_CONFIG , PRODUCT_CONFIG} from '../Admin/ProductApproval/constants/productConfig';
-import imageCompression from 'browser-image-compression';
-
 const CreateProduct = () => {
   // Move all hooks to the top level
   const dispatch = useDispatch();
