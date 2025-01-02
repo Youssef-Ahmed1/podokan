@@ -1,20 +1,20 @@
-// constants/productConfig.js
 
 // First define our imports 
 import { HiClock, HiCheck, HiX, HiExclamation } from 'react-icons/hi';
 
-// Base constants defined first
-const CLOUDINARY_URL = 'https://res.cloudinary.com/dkot9tyjm/image/upload';
-const VIEWS = ['front', 'back'];
-const COLORS = ['white', 'black'];
-const BASE_PRICE = 850;
-const PRODUCTION_COST = 650;
-const DESIGN_COST = 200;
-const DEFAULT_POSITION = { x: 50, y: 40 };
-const DEFAULT_SCALE = 0.5;
+// Export individual constants first
+export const CLOUDINARY_URL = 'https://res.cloudinary.com/dkot9tyjm/image/upload';
+export const VIEWS = ['front', 'back'];
+export const COLORS = ['white', 'black'];
+export const BASE_PRICE = 850;
+export const PRODUCTION_COST = 650;
+export const DESIGN_COST = 200;
+export const DEFAULT_POSITION = { x: 50, y: 40 };
+export const DEFAULT_SCALE = 0.8;
+
 
 // Define status config
-const STATUS_CONFIG = {
+export const STATUS_CONFIG = {
   pending: {
     label: 'Pending Review',
     color: 'bg-yellow-100',
@@ -50,7 +50,7 @@ const STATUS_CONFIG = {
 };
 
 // Define product config
-const PRODUCT_CONFIG = {
+export const PRODUCT_CONFIG = {
   hoodie: {
     label: 'Hoodie',
     basePrice: BASE_PRICE,
@@ -74,19 +74,19 @@ const PRODUCT_CONFIG = {
 };
 
 // Define derivative constants
-const PRODUCT_TYPES = Object.keys(PRODUCT_CONFIG);
-const AVAILABLE_COLORS = COLORS.map(value => ({
+export const PRODUCT_TYPES = Object.keys(PRODUCT_CONFIG);
+export const AVAILABLE_COLORS = COLORS.map(value => ({
   name: value.charAt(0).toUpperCase() + value.slice(1),
   value
 }));
-const AVAILABLE_TYPES = Object.entries(PRODUCT_CONFIG).map(([value, config]) => ({
+export const AVAILABLE_TYPES = Object.entries(PRODUCT_CONFIG).map(([value, config]) => ({
   name: config.label,
   value
 }));
-const DEFAULT_PRODUCT_CONFIG = PRODUCT_CONFIG.hoodie;
+ export const DEFAULT_PRODUCT_CONFIG = PRODUCT_CONFIG.hoodie;
 
 // Define utility functions
-const getMockupUrl = (productType, color, view) => {
+export const getMockupUrl = (productType, color, view) => {
   try {
     const config = PRODUCT_CONFIG[productType]?.mockupConfig;
     if (!config) return null;
@@ -97,27 +97,12 @@ const getMockupUrl = (productType, color, view) => {
   }
 };
 
-const isMockupAvailable = (productType, color, view) => {
+export const isMockupAvailable = (productType, color, view) => {
   return COLORS.includes(color) && VIEWS.includes(view);
 };
 
-const getAvailableColorsForProduct = () => AVAILABLE_COLORS;
+export const getAvailableColorsForProduct = () => AVAILABLE_COLORS;
 
-const getAvailableViews = () => VIEWS;
+export const getAvailableViews = () => VIEWS;
 
 // Export everything
-export {
-  CLOUDINARY_URL as CLOUDINARY_BASE,
-  VIEWS,
-  COLORS,
-  AVAILABLE_COLORS,
-  PRODUCT_CONFIG,
-  PRODUCT_TYPES,
-  STATUS_CONFIG,
-  AVAILABLE_TYPES,
-  DEFAULT_PRODUCT_CONFIG,
-  getMockupUrl,
-  isMockupAvailable,
-  getAvailableColorsForProduct,
-  getAvailableViews
-};
