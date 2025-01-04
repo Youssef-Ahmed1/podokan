@@ -310,17 +310,8 @@ const validateForm = (formState, designFile) => {
     errors.design = "Please upload a design image";
   }
 
-  const originalPrice = Number(formState.price?.original);
-  const discountPrice = Number(formState.price?.discount);
 
-  if (!originalPrice || originalPrice <= 0) {
-    errors.price = "Please set a valid original price";
-  }
-
-  if (discountPrice && discountPrice >= originalPrice) {
-    errors.discount = "Discount price must be less than original price";
-  }
-
+  
   if (formState.DesignScale < 0.3 || formState.DesignScale > 2.0) {
     errors.scale = "Design scale must be between 0.1 and 5.0";
   }
@@ -470,43 +461,7 @@ const CreateProduct = () => {
     );
   }, []);
 
-  const PriceInput = useCallback(({ type, value, onChange, error }) => {
-    const handleChange = (e) => {
-      const numValue = Math.max(0, parseFloat(e.target.value) || 0);
-      onChange(type, numValue);
-    };
   
-    return (
-      <div className="space-y-1">
-        <label className="block text-sm font-medium text-gray-700">
-          {type === 'original' ? 'Original Price' : 'Discount Price'}
-        </label>
-        <div className="relative rounded-md shadow-sm">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <AiOutlineDollar className="h-5 w-5 text-gray-400" />
-          </div>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={value}
-            onChange={handleChange}
-            className={`block w-full pl-10 pr-3 py-2 sm:text-sm rounded-md
-              ${error 
-                ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-              }`}
-            placeholder="0.00"
-          />
-        </div>
-        {error && (
-          <p className="mt-2 text-sm text-red-600">
-            {error}
-          </p>
-        )}
-      </div>
-    );
-  }, []);
 
   const handleFieldChange = useCallback((fieldName, value) => {
     setFormState(prev => ({
@@ -517,25 +472,6 @@ const CreateProduct = () => {
       setValidationErrors(prev => {
         const newErrors = { ...prev };
         delete newErrors[fieldName];
-        return newErrors;
-      });
-    }
-  }, [validationErrors]);
-
-  const handlePriceChange = useCallback((type, value) => {
-    const numValue = parseFloat(value) || 0;
-    setFormState(prev => ({
-      ...prev,
-      price: {
-        ...prev.price,
-        [type]: numValue
-      }
-    }));
-    if (validationErrors.price || validationErrors.discount) {
-      setValidationErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors.price;
-        delete newErrors.discount;
         return newErrors;
       });
     }
@@ -809,20 +745,7 @@ const CreateProduct = () => {
                 </div>
 
                 {/* Pricing */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <PriceInput
-                    type="original"
-                    value={formState.price.original}
-                    onChange={handlePriceChange}
-                    error={validationErrors.price}
-                  />
-                  <PriceInput
-                    type="discount"
-                    value={formState.price.discount}
-                    onChange={handlePriceChange}
-                    error={validationErrors.discount}
-                  />
-                </div>
+                
               </div>
             </div>
 
