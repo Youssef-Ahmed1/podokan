@@ -452,7 +452,6 @@ const AdminProductApproval = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Product List */}
           <div className="w-full lg:w-1/3">
-            {/* ... Product List Component (same as before) ... */}
           </div>
 
           {/* Product Review Area */}
