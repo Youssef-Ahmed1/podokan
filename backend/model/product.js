@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const VALID_COLORS = ['white', 'black',];
+const VALID_COLORS = ['white', 'black'];
 const VALID_PRODUCT_TYPES = ['hoodie'];
 const VALID_VIEWS = ['front', 'back'];
 const VALID_STATUSES = ['pending', 'public', 'rejected'];
