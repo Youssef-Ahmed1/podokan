@@ -1,7 +1,11 @@
 import React, { forwardRef, useState, useMemo } from 'react';
 import { HiRefresh, HiViewGrid } from 'react-icons/hi';
 import { toast } from 'react-toastify';
-import { getMockupUrl } from '../Admin/ProductApproval/constants/productConfig';
+import {
+  DESIGN_CONSTRAINTS,
+  getMockupUrl,
+  validateDesignPosition
+} from '../ProductApproval/constants/productConfig';
 
 const DesignPreview = forwardRef(({
   product,
@@ -20,7 +24,8 @@ const DesignPreview = forwardRef(({
 }, ref) => {
   const [mockupLoaded, setMockupLoaded] = useState(false);
   const [mockupError, setMockupError] = useState(false);
-
+  const { isValid, boundaries } = validateDesignPosition(position, product.ProductType, product.ProductView);
+  
   const mockupUrl = useMemo(() => {
     return `https://res.cloudinary.com/dkot9tyjm/image/upload/v1728392918/${product.ProductType}s/${product.ProductType}-${product.ProductColor}-${product.ProductView || 'front'}.png`;
   }, [product.ProductType, product.ProductColor, product.ProductView]);
@@ -65,15 +70,15 @@ const DesignPreview = forwardRef(({
             <label className="text-sm text-gray-600">Scale:</label>
             <input
   type="range"
-  min={0.5}
-  max={1.2}
+  min={DESIGN_CONSTRAINTS.scale.min}
+  max={DESIGN_CONSTRAINTS.scale.max}
   step={0.01}
   value={scale}
   onChange={(e) => onScaleChange(parseFloat(e.target.value))}
   disabled={disabled}
-  className="w-full sm:w-32 h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer 
-    disabled:opacity-50 disabled:cursor-not-allowed"
+  className="w-full sm:w-32 h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer"
 />
+
             <span className="text-sm text-gray-600 min-w-[3ch]">
               {Math.round(scale * 100)}%
             </span>

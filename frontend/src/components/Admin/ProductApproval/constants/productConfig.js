@@ -1,19 +1,46 @@
-// constants/productConfig.js
+// frontend/src/components/Admin/ProductApproval/constants/productConfig.js
 
-// First define our imports 
 import { HiClock, HiCheck, HiX, HiExclamation } from 'react-icons/hi';
 
-// Base constants defined first
+// Cloudinary configuration for mockup images
 const CLOUDINARY_URL = 'https://res.cloudinary.com/dkot9tyjm/image/upload';
-const VIEWS = ['front', 'back'];
-const COLORS = ['white', 'black'];
-const BASE_PRICE = 850;
-const PRODUCTION_COST = 650;
-const DESIGN_COST = 200;
-const DEFAULT_POSITION = { x: 50, y: 40 };
-const DEFAULT_SCALE = 0.8;
+const CLOUDINARY_VERSION = 'v1728392918';
 
-// Define status config
+// Product view options
+const VIEWS = ['front', 'back'];
+
+// Available product colors
+const COLORS = ['white', 'black'];
+
+// Design placement and scaling constraints
+// These values control where designs can be placed on products
+const DESIGN_BOUNDARIES = {
+  hoodie: {
+    front: {
+      x: { min: 35, max: 65 }, // Percentage from left
+      y: { min: 25, max: 55 }  // Percentage from top - adjusted to avoid pocket
+    },
+    back: {
+      x: { min: 35, max: 65 },
+      y: { min: 25, max: 55 }
+    }
+  }
+};
+
+// Design scale constraints
+const DESIGN_SCALE = {
+  min: 0.5,
+  max: 1.2,
+  default: 0.8
+};
+
+// Default positioning for new designs
+const DEFAULT_POSITION = {
+  x: 50,  // Center horizontally
+  y: 40   // Slightly above center vertically
+};
+
+// Product status configurations
 const STATUS_CONFIG = {
   pending: {
     label: 'Pending Review',
@@ -38,86 +65,75 @@ const STATUS_CONFIG = {
     borderColor: 'border-red-200',
     icon: HiX,
     description: 'Product has been rejected'
-  },
-  review: {
-    label: 'In Review',
-    color: 'bg-blue-100',
-    textColor: 'text-blue-800',
-    borderColor: 'border-blue-200',
-    icon: HiExclamation,
-    description: 'Under detailed review'
   }
 };
 
-// Define product config
+// Main product configuration
 const PRODUCT_CONFIG = {
   hoodie: {
     label: 'Hoodie',
-    basePrice: BASE_PRICE,
-    productionCost: PRODUCTION_COST,
-    designCost: DESIGN_COST,
-    position: DEFAULT_POSITION,
-    margins: {
-      min: 0.15,
-      recommended: 0.30
-    },
-    scale: DEFAULT_SCALE,
     mockupConfig: {
-      version: "v1728392918",
       folder: "hoodies",
-      boundaries: {
-        front: { x: [35, 65], y: [25, 45] },
-        back: { x: [30, 70], y: [20, 50] }
-      }
+      boundaries: DESIGN_BOUNDARIES.hoodie,
+      defaultPosition: DEFAULT_POSITION,
+      scale: DESIGN_SCALE
     }
   }
 };
 
-// Define derivative constants
-const PRODUCT_TYPES = Object.keys(PRODUCT_CONFIG);
-const AVAILABLE_COLORS = COLORS.map(value => ({
-  name: value.charAt(0).toUpperCase() + value.slice(1),
-  value
-}));
-const AVAILABLE_TYPES = Object.entries(PRODUCT_CONFIG).map(([value, config]) => ({
-  name: config.label,
-  value
-}));
-const DEFAULT_PRODUCT_CONFIG = PRODUCT_CONFIG.hoodie;
+// Helper functions for design position validation
+const validateDesignPosition = (position, productType, view = 'front') => {
+  const boundaries = DESIGN_BOUNDARIES[productType]?.[view];
+  if (!boundaries) return { isValid: false, boundaries: null };
 
-// Define utility functions
+  const isValid = 
+    position.x >= boundaries.x.min && 
+    position.x <= boundaries.x.max && 
+    position.y >= boundaries.y.min && 
+    position.y <= boundaries.y.max;
+
+  return { isValid, boundaries };
+};
+
+// Helper function for mockup URLs
 const getMockupUrl = (productType, color, view) => {
-  try {
-    const config = PRODUCT_CONFIG[productType]?.mockupConfig;
-    if (!config) return null;
-    return `${CLOUDINARY_URL}/${config.version}/${config.folder}/${productType}-${color}-${view}.png`;
-  } catch (error) {
-    console.error('Error generating mockup URL:', error);
-    return null;
-  }
+  if (!productType || !color || !view) return null;
+  if (!PRODUCT_CONFIG[productType]) return null;
+  if (!COLORS.includes(color)) return null;
+  if (!VIEWS.includes(view)) return null;
+
+  return `${CLOUDINARY_URL}/${CLOUDINARY_VERSION}/${productType}s/${productType}-${color}-${view}.png`;
 };
 
-const isMockupAvailable = (productType, color, view) => {
-  return COLORS.includes(color) && VIEWS.includes(view);
-};
+// Color configuration with display properties
+const AVAILABLE_COLORS = COLORS.map(color => ({
+  value: color,
+  label: color.charAt(0).toUpperCase() + color.slice(1),
+  hex: color === 'white' ? '#ffffff' : '#000000',
+  textColor: color === 'white' ? 'text-gray-800' : 'text-white'
+}));
 
-const getAvailableColorsForProduct = () => AVAILABLE_COLORS;
+// Product type configuration for UI
+const AVAILABLE_TYPES = Object.entries(PRODUCT_CONFIG).map(([value, config]) => ({
+  value,
+  label: config.label
+}));
 
-const getAvailableViews = () => VIEWS;
-
-// Export everything
 export {
+  // Constants
   CLOUDINARY_URL,
+  CLOUDINARY_VERSION,
   VIEWS,
   COLORS,
   AVAILABLE_COLORS,
-  PRODUCT_CONFIG,
-  PRODUCT_TYPES,
-  STATUS_CONFIG,
   AVAILABLE_TYPES,
-  DEFAULT_PRODUCT_CONFIG,
-  getMockupUrl,
-  isMockupAvailable,
-  getAvailableColorsForProduct,
-  getAvailableViews
+  DESIGN_BOUNDARIES,
+  DESIGN_SCALE,
+  DEFAULT_POSITION,
+  STATUS_CONFIG,
+  PRODUCT_CONFIG,
+  
+  // Helper functions
+  validateDesignPosition,
+  getMockupUrl
 };
