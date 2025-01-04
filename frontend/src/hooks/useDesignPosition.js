@@ -92,7 +92,7 @@ export const useDesignPosition = (props) => {
 
   // Reset to default position and scale
   const reset = useCallback(() => {
-    const defaultPosition = { x: 50, y: 35 };
+    const defaultPosition = { x: 50, y: 40 };
     const defaultScale = 0.5;
     updatePosition(defaultPosition, defaultScale);
     setScale(defaultScale);

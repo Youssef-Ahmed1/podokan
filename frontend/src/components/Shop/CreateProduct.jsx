@@ -9,37 +9,19 @@ import {
   AiOutlineInfoCircle,
   AiOutlineMinusCircle,
   AiOutlinePlusCircle,
-  AiOutlineDollar
+  
 } from "react-icons/ai";
 import { BiRuler, BiMove, BiTag } from "react-icons/bi";
 import { 
-  MdOutlineKeyboardArrowUp, 
-  MdOutlineKeyboardArrowDown, 
-  MdOutlineKeyboardArrowLeft, 
-  MdOutlineKeyboardArrowRight,
+
   MdTitle,
   MdDescription
 } from "react-icons/md";
 
 // Constants
 const BOUNDARY_LIMITS = {
-  't-shirt': { top: 30, bottom: 65, left: 30, right: 70 },
-  'hoodie': { top: 35, bottom: 60, left: 35, right: 65 },
-  'long-sleeve': { top: 30, bottom: 65, left: 30, right: 70 }
+  'hoodie': { top: 80, bottom: 60, left: 40, right: 70 }
 };
-
-const checkBoundaries = (position, productType) => {
-  const limits = BOUNDARY_LIMITS[productType];
-  if (!limits) return false;
-
-  return (
-    position.x >= limits.left &&
-    position.x <= limits.right &&
-    position.y >= limits.top &&
-    position.y <= limits.bottom
-  );
-};
-
 
 const COLOR_OPTIONS = {
   white: { value: 'white', label: 'White', hex: '#ffffff', textColor: 'text-gray-800' },
@@ -157,6 +139,7 @@ const compressDesign = async (file) => {
   });
 };
 
+
 const createDesignPreview = async (file, productColor) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -168,12 +151,18 @@ const createDesignPreview = async (file, productColor) => {
         canvas.height = img.height;
         const ctx = canvas.getContext('2d');
         
-        if (['black', 'navy', 'gray'].includes(productColor)) {
+        // Clear any background
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Only add white background for dark products
+        if (['black'].includes(productColor)) {
           ctx.fillStyle = 'white';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
         
         ctx.drawImage(img, 0, 0);
+        
+        // Ensure PNG with transparency
         resolve(canvas.toDataURL('image/png'));
       };
       img.onerror = () => reject(new Error('Failed to load image'));
@@ -211,25 +200,6 @@ const checkTransparency = async (file) => {
   });
 };
 
-const checkBoundariesAndUpdate = (position, productType, setIsDesignVisible, setFormState) => {
-  const boundaries = BOUNDARY_LIMITS[productType];
-  if (!boundaries) return false;
-
-  const isWithinBounds = 
-    position.x >= boundaries.left && 
-    position.x <= boundaries.right && 
-    position.y >= boundaries.top && 
-    position.y <= boundaries.bottom;
-
-  setIsDesignVisible(isWithinBounds);
-  
-  setFormState(prev => ({
-    ...prev,
-    designPosition: position
-  }));
-
-  return isWithinBounds;
-};
 
 const calculateDesignQualityScore = (imageInfo) => {
   let score = 100;
@@ -282,43 +252,6 @@ const calculateDesignQualityScore = (imageInfo) => {
     }
   };
 };
-const validateForm = (formState, designFile) => {
-  const errors = {};
-
-  if (!PRODUCT_TYPES[formState.ProductType]) {
-    errors.ProductType = "Invalid product type";
-  }
-  if (!formState.DesignTitle?.trim()) {
-    errors.DesignTitle = "Design title is required";
-  } else if (formState.DesignTitle.length < 3 || formState.DesignTitle.length > 100) {
-    errors.DesignTitle = "Design title must be between 3 and 100 characters";
-  }
-
-  if (!formState.Description?.trim()) {
-    errors.Description = "Description is required";
-  } else if (formState.Description.length < 10 || formState.Description.length > 1000) {
-    errors.Description = "Description must be between 10 and 1000 characters";
-  }
-
-  if (!formState.Maintag?.trim()) {
-    errors.Maintag = "Main tag is required";
-  } else if (formState.Maintag.length < 2 || formState.Maintag.length > 50) {
-    errors.Maintag = "Main tag must be between 2 and 50 characters";
-  }
-
-  if (!designFile.file) {
-    errors.design = "Please upload a design image";
-  }
-
-
-  
-  if (formState.DesignScale < 0.3 || formState.DesignScale > 2.0) {
-    errors.scale = "Design scale must be between 0.1 and 5.0";
-  }
-
-  return errors;
-};
-
 
 
 
@@ -398,7 +331,7 @@ const CreateProduct = () => {
     ProductColor: "white",
     ProductView: "front",
     DesignScale: 0.8,
-    designPosition: { x: 50, y: 50 },
+    designPosition: { x: 50, y: 40 },
     availableColors: ["white" , "black"]
   });
 
@@ -477,34 +410,102 @@ const CreateProduct = () => {
     }
   }, [validationErrors]);
 
-
+  const checkBoundariesAndUpdate = (position, productType, setIsDesignVisible, setFormState) => {
+    const boundaries = BOUNDARY_LIMITS[productType];
+    if (!boundaries) return false;
+  
+    // Add small buffer for strict enforcement
+    const buffer = 2; // 2% buffer zone
+    
+    const isWithinBounds = 
+      position.x >= (boundaries.left - buffer) && 
+      position.x <= (boundaries.right + buffer) && 
+      position.y >= (boundaries.top - buffer) && 
+      position.y <= (boundaries.bottom + buffer);
+  
+    // If outside bounds, snap to nearest valid position
+    const newPosition = {
+      x: Math.max(boundaries.left, Math.min(boundaries.right, position.x)),
+      y: Math.max(boundaries.top, Math.min(boundaries.bottom, position.y))
+    };
+  
+    setIsDesignVisible(isWithinBounds);
+    
+    setFormState(prev => ({
+      ...prev,
+      designPosition: isWithinBounds ? position : newPosition
+    }));
+  
+    return isWithinBounds;
+  };
+  
 
   const handleDesignDrag = useCallback((e) => {
     if (!mockupContainerRef.current || !isDragging) return;
-
+  
     const rect = mockupContainerRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-
+  
     requestAnimationFrame(() => {
       const newPosition = { x, y };
       const boundaries = BOUNDARY_LIMITS[formState.ProductType];
       
       if (boundaries) {
-        const isWithinBounds = 
-          newPosition.x >= boundaries.left && 
-          newPosition.x <= boundaries.right && 
-          newPosition.y >= boundaries.top && 
-          newPosition.y <= boundaries.bottom;
-
-        setIsDesignVisible(isWithinBounds);
-        setFormState(prev => ({
-          ...prev,
-          designPosition: newPosition
-        }));
+        // Add strict boundary checking
+        const isWithinBounds = checkBoundariesAndUpdate(
+          newPosition, 
+          formState.ProductType, 
+          setIsDesignVisible, 
+          setFormState
+        );
+  
+        if (!isWithinBounds) {
+          // Add visual feedback for out-of-bounds
+          if (designPreviewRef.current) {
+            designPreviewRef.current.style.opacity = '0.5';
+            designPreviewRef.current.style.filter = 'grayscale(50%)';
+          }
+        } else {
+          if (designPreviewRef.current) {
+            designPreviewRef.current.style.opacity = '1';
+            designPreviewRef.current.style.filter = 'none';
+          }
+        }
       }
     });
   }, [isDragging, formState.ProductType]);
+
+
+  const BoundaryGuides = ({ productType }) => {
+    const boundaries = BOUNDARY_LIMITS[productType];
+    
+    return (
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Safe area rectangle */}
+        <div 
+          className="absolute border-2 border-blue-500 border-dashed opacity-30"
+          style={{
+            top: `${boundaries.top}%`,
+            left: `${boundaries.left}%`,
+            right: `${100 - boundaries.right}%`,
+            bottom: `${100 - boundaries.bottom}%`
+          }}
+        />
+        
+        {/* Add corner markers */}
+        <div className="absolute w-2 h-2 bg-blue-500 rounded-full"
+          style={{ top: `${boundaries.top}%`, left: `${boundaries.left}%` }} />
+        <div className="absolute w-2 h-2 bg-blue-500 rounded-full"
+          style={{ top: `${boundaries.top}%`, right: `${100 - boundaries.right}%` }} />
+        <div className="absolute w-2 h-2 bg-blue-500 rounded-full"
+          style={{ bottom: `${100 - boundaries.bottom}%`, left: `${boundaries.left}%` }} />
+        <div className="absolute w-2 h-2 bg-blue-500 rounded-full"
+          style={{ bottom: `${100 - boundaries.bottom}%`, right: `${100 - boundaries.right}%` }} />
+      </div>
+    );
+  };
+
 
   const handleDesignUpload = useCallback(async (file) => {
     try {
@@ -676,23 +677,22 @@ const CreateProduct = () => {
   return (
     <div className="w-[90%] 800px:w-[90%] bg-white shadow h-[80vh] rounded-[4px] p-3 overflow-y-scroll">
       <style>
-        {`
-          .design-preview {
-            transition: transform 0.2s ease-out, opacity 0.2s ease-out;
-          }
-          
-          .design-preview.scaling {
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          }
-          
-          .design-preview img {
-            transition: opacity 0.2s ease-out;
-          }
-          
-          .design-preview.outside img {
-            opacity: 0.5;
-          }
-        `}
+      {`
+  .design-preview {
+    transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+    mix-blend-mode: multiply;  /* Add this */
+  }
+  
+  .design-preview img {
+    transition: opacity 0.2s ease-out;
+    background: transparent !important;  /* Add this */
+  }
+
+  /* Add this for dark backgrounds */
+  .dark-product .design-preview {
+    mix-blend-mode: screen;
+  }
+`}
       </style>
 
       <div className="max-w-4xl mx-auto">
@@ -915,9 +915,9 @@ const CreateProduct = () => {
                   {/* Design Preview */}
                   <div className="relative">
                     <div 
-                      ref={mockupContainerRef}
-                      className="relative w-full aspect-square... bg-gray-100 rounded-lg 
-                        overflow-hidden shadow-inner"
+                        ref={mockupContainerRef}
+                        className={`relative w-full aspect-square bg-gray-100 rounded-lg 
+                          overflow-hidden shadow-inner ${formState.ProductColor === 'black' ? 'dark-product' : ''}`}
                       onMouseMove={handleDesignDrag}
                       onMouseDown={() => setIsDragging(true)}
                       onMouseUp={() => setIsDragging(false)}
@@ -956,7 +956,7 @@ const CreateProduct = () => {
                           draggable="false"
                         />
                       </div>
-
+                      {showGuides && <BoundaryGuides productType={formState.ProductType} />}
                       {/* Design Guides */}
                       {showGuides && (
                         <div className="absolute inset-0 pointer-events-none">

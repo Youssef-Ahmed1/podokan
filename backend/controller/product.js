@@ -132,7 +132,7 @@ router.post("/create-product",
       });
 
       // Parse design position and tags
-      let designPosition = { x: 50, y: 50 };
+      let designPosition = { x: 50, y: 40 };
       try {
         if (req.body.designPosition) {
           designPosition = JSON.parse(req.body.designPosition);
@@ -177,7 +177,7 @@ router.post("/create-product",
         ProductType: req.body.ProductType,
         ProductColor: req.body.ProductColor,
         ProductView: req.body.ProductView || 'front',
-        DesignScale: parseFloat(req.body.DesignScale) || 1,
+        DesignScale: parseFloat(req.body.DesignScale) || 0.8 ,
         designPosition,
         shopId: req.seller._id,
         shop: req.seller._id,

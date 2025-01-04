@@ -11,7 +11,7 @@ const BASE_PRICE = 850;
 const PRODUCTION_COST = 650;
 const DESIGN_COST = 200;
 const DEFAULT_POSITION = { x: 50, y: 40 };
-const DEFAULT_SCALE = 0.5;
+const DEFAULT_SCALE = 0.8;
 
 // Define status config
 const STATUS_CONFIG = {
