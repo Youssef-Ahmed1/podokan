@@ -44,7 +44,7 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
       ...editedProduct,
       ProductView: view,
       DesignPosition: { x: 50, y:40 }, // Reset to center when changing view
-      DesignScale: 0.5 // Reset scale when changing view
+      DesignScale: 0.8 // Reset scale when changing view
     };
     onUpdate(newProduct);
   }, [editedProduct, onUpdate, disabled]);
