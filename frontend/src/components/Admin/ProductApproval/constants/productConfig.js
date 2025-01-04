@@ -1,4 +1,3 @@
-// frontend/src/components/Admin/ProductApproval/constants/productConfig.js
 
 import { HiClock, HiCheck, HiX, HiExclamation } from 'react-icons/hi';
 

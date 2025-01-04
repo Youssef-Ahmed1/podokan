@@ -5,7 +5,7 @@ import {
   DESIGN_CONSTRAINTS,
   getMockupUrl,
   validateDesignPosition
-} from '../ProductApproval/constants/productConfig';
+} from '../Admin/ProductApproval/constants/productConfig';
 
 const DesignPreview = forwardRef(({
   product,
