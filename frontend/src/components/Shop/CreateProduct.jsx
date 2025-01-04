@@ -20,9 +20,8 @@ import {
 
 // Constants
 const BOUNDARY_LIMITS = {
-  'hoodie': { top: 80, bottom: 60, left: 40, right: 70 }
+  'hoodie': { top: 25, bottom: 70, left: 35, right: 65 }  // Increased vertical space
 };
-
 const COLOR_OPTIONS = {
   white: { value: 'white', label: 'White', hex: '#ffffff', textColor: 'text-gray-800' },
   black: { value: 'black', label: 'Black', hex: '#000000', textColor: 'text-white' }
