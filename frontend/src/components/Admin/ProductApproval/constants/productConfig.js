@@ -18,6 +18,30 @@ const PRICE_CONFIG = {
     recommended: 0.30
   }
 };
+const DESIGN_CONSTRAINTS = {
+  scale: {
+    min: 0.5,
+    max: 1.2,
+    default: 0.8
+  },
+  position: {
+    default: { x: 50, y: 40 }
+  },
+  boundaries: {
+    front: {
+      top: 25,
+      bottom: 55,
+      left: 35,
+      right: 65
+    },
+    back: {
+      top: 25,
+      bottom: 55,
+      left: 35,
+      right: 65
+    }
+  }
+};
 
 // Design constraints
 const DESIGN_BOUNDARIES = {
@@ -168,6 +192,10 @@ const getProductConfig = (productType) => {
   return PRODUCT_CONFIG[productType] || DEFAULT_PRODUCT_CONFIG;
 };
 
+
+
+
+
 export {
   // Constants
   CLOUDINARY_URL,
@@ -184,7 +212,7 @@ export {
   DESIGN_BOUNDARIES,
   DESIGN_SCALE,
   DEFAULT_POSITION,
-  
+  DESIGN_CONSTRAINTS,
   // Utility Functions
   getMockupUrl,
   isMockupAvailable,
