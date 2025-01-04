@@ -20,8 +20,7 @@ import {
   MdTitle,
   MdDescription
 } from "react-icons/md";
-import { useDesignPosition } from '../../hooks/useDesignPosition';
-import DesignPreview from '../shared/DesignPreview';
+
 // Constants
 const BOUNDARY_LIMITS = {
   't-shirt': { top: 30, bottom: 65, left: 30, right: 70 },
@@ -44,42 +43,11 @@ const checkBoundaries = (position, productType) => {
 
 const COLOR_OPTIONS = {
   white: { value: 'white', label: 'White', hex: '#ffffff', textColor: 'text-gray-800' },
-  black: { value: 'black', label: 'Black', hex: '#000000', textColor: 'text-white' },
-  red: { value: 'red', label: 'Red', hex: '#ff0000', textColor: 'text-white' },
-  blue: { value: 'blue', label: 'Blue', hex: '#0000ff', textColor: 'text-white' },
-  gray: { value: 'gray', label: 'Gray', hex: '#808080', textColor: 'text-white' },
-  green: { value: 'green', label: 'Green', hex: '#008000', textColor: 'text-white' },
-  yellow: { value: 'yellow', label: 'Yellow', hex: '#ffff00', textColor: 'text-gray-800' }
+  black: { value: 'black', label: 'Black', hex: '#000000', textColor: 'text-white' }
 };
-
 const PRODUCT_TYPES = {
-  't-shirt': {
-    label: 'T-Shirt',
-    basePrice: 295,
-    productionCost: 205,
-    designCost: 90,
-    mockupConfig: {
-      version: "v1728393898",
-      folder: "t-shirts",
-      getFilename: (color, view) => `t-shirt-${color}-${view}`
-    }
-  },
-  'long-sleeve': {
-    label: 'Long Sleeve',
-    basePrice: 390,
-    productionCost: 300,
-    designCost: 90,
-    mockupConfig: {
-      version: "v1728394665",
-      folder: "long-sleeves",
-      getFilename: (color, view) => `long-sleeve-${color}-${view}`
-    }
-  },
   'hoodie': {
     label: 'Hoodie',
-    basePrice: 490,
-    productionCost: 400,
-    designCost: 90,
     mockupConfig: {
       version: "v1728392918",
       folder: "hoodies",
@@ -87,7 +55,6 @@ const PRODUCT_TYPES = {
     }
   }
 };
-
 const FORM_FIELDS = {
   DesignTitle: {
     label: "Design Title",
@@ -119,17 +86,6 @@ const FORM_FIELDS = {
   }
 };
 
-const calculateMinimumPrice = (productType) => {
-  const config = PRODUCT_TYPES[productType];
-  const baseCost = config.productionCost + config.designCost;
-  return Math.ceil(baseCost * 1.15);
-};
-
-const calculateRecommendedPrice = (productType) => {
-  const config = PRODUCT_TYPES[productType];
-  const baseCost = config.productionCost + config.designCost;
-  return Math.ceil(baseCost * 1.25);
-};
 
 const calculateDPI = (width, height) => {
   const PRINT_SIZE = 12;
@@ -370,7 +326,12 @@ const validateForm = (formState, designFile) => {
   }
 
   return errors;
-};const ScaleControl = ({ scale, onChange, disabled }) => (
+};
+
+
+
+
+const ScaleControl = ({ scale, onChange, disabled }) => (
   <div className="w-full max-w-xs mx-auto">
     <div className="flex items-center justify-between mb-2">
       <span className="text-sm font-medium text-gray-700">
@@ -379,8 +340,8 @@ const validateForm = (formState, designFile) => {
       <div className="flex items-center space-x-2">
         <button
           type="button"
-          onClick={() => onChange(Math.max(0.1, scale - 0.1))}
-          disabled={disabled || scale <= 0.1}
+          onClick={() => onChange(Math.max(0.5, scale - 0.1))}
+          disabled={disabled || scale <= 0.5}
           className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50
             transition-colors duration-200"
         >
@@ -388,8 +349,8 @@ const validateForm = (formState, designFile) => {
         </button>
         <button
           type="button"
-          onClick={() => onChange(Math.min(3, scale + 0.1))}
-          disabled={disabled || scale >= 3}
+          onClick={() => onChange(Math.min(1.2, scale + 0.1))}
+          disabled={disabled || scale >= 1.2}
           className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50
             transition-colors duration-200"
         >
@@ -399,8 +360,8 @@ const validateForm = (formState, designFile) => {
     </div>
     <input
       type="range"
-      min="0.1"
-      max="3"
+      min="0.5"
+      max="1.2"
       step="0.1"
       value={scale}
       onChange={(e) => onChange(parseFloat(e.target.value))}
@@ -440,17 +401,14 @@ const CreateProduct = () => {
     DesignTitle: "",
     Description: "",
     Maintag: "",
+    maintag: "",
     Designtags: "",
-    ProductType: "t-shirt",
+    ProductType: "hoodie",
     ProductColor: "white",
     ProductView: "front",
-    DesignScale: 1,
+    DesignScale: 0.8,
     designPosition: { x: 50, y: 50 },
-    availableColors: ["white"],
-    price: {
-      original: calculateMinimumPrice("t-shirt"),
-      discount: 0
-    }
+    availableColors: ["white" , "black"]
   });
 
   const [designFile, setDesignFile] = useState({
@@ -737,12 +695,10 @@ const CreateProduct = () => {
       setIsSubmitting(true);
       const formData = new FormData();
   
-      // Add design image first
       if (designFile.file) {
         formData.append('designImage', designFile.file);
       }
   
-      // Add basic fields
       formData.append('DesignTitle', formState.DesignTitle);
       formData.append('Description', formState.Description);
       formData.append('Maintag', formState.Maintag);
@@ -752,13 +708,6 @@ const CreateProduct = () => {
       formData.append('ProductView', formState.ProductView);
       formData.append('DesignScale', formState.DesignScale.toString());
       formData.append('designPosition', JSON.stringify(formState.designPosition));
-      formData.append('originalPrice', formState.price.original.toString());
-      
-      if (formState.price.discount) {
-        formData.append('discountPrice', formState.price.discount.toString());
-      }
-  
-      // Add available colors
       formData.append('availableColors', JSON.stringify([formState.ProductColor]));
   
       const response = await dispatch(createProduct(formData));
@@ -775,6 +724,7 @@ const CreateProduct = () => {
       setIsSubmitting(false);
     }
   };
+
   useEffect(() => {
     if (seller && seller._id) {
       setFormState(prev => ({ ...prev, shopId: seller._id }));
