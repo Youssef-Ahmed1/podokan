@@ -11,7 +11,7 @@ import ValidationSystem from '../../ProductApproval/ValidationSystem';
 import StatusManager from '../../ProductApproval/StatusManager';
 import PriceCalculator from '../../ProductApproval/PriceCalculator';
 
-import { STATUS_CONFIG, PRODUCT_TYPES, DEFAULT_PRODUCT_CONFIG } from '../../ProductApproval/constants/productConfig';
+import { STATUS_CONFIG, DESIGN_SCALE, DEFAULT_POSITION } from '../../ProductApproval/constants/productConfig';
 
 
 const ProductList = ({ products, onSelect, selectedProduct }) => {
