@@ -43,16 +43,16 @@ const ProductList = ({ products, onSelect, selectedProduct }) => {
               {product.designImage && (
                 <img
                   src={product.designImage.url || product.designImage}
-                  alt={product.DesignTitle}
+                  alt={product.DesignTitle || 'Design'}
                   className="w-20 h-20 object-cover rounded-lg"
                 />
               )}
               <div className="flex-1 text-left">
-                <h3 className="font-medium text-gray-900 line-clamp-1">
+                <h3 className="font-medium text-gray-900">
                   {product.DesignTitle || 'Untitled Design'}
                 </h3>
-                <p className="text-sm text-gray-500 line-clamp-2 mt-1">
-                  {product.Description}
+                <p className="text-sm text-gray-500 mt-1">
+                  {product.Description || 'No description provided'}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1">
                   {product.Maintag && (
@@ -60,20 +60,11 @@ const ProductList = ({ products, onSelect, selectedProduct }) => {
                       {product.Maintag}
                     </span>
                   )}
-                  {product.Designtags?.slice(0, 2).map(tag => (
-                    <span key={tag} className="inline-block px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
+                  {product.Designtags?.map((tag, index) => (
+                    <span key={index} className="inline-block px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
                       {tag}
                     </span>
                   ))}
-                </div>
-                <div className="flex items-center space-x-2 mt-2">
-                  <span className="text-sm text-gray-500">
-                    {new Date(product.createdAt).toLocaleDateString()}
-                  </span>
-                  <span className="text-gray-300">•</span>
-                  <span className="text-sm text-gray-500">
-                    ID: #{product._id.slice(-6)}
-                  </span>
                 </div>
               </div>
             </div>
@@ -373,20 +364,27 @@ const AdminProductApproval = () => {
       setSelectedProduct(product);
       setEditedProduct({
         ...product,
-        DesignScale: product.DesignScale || 0.8,
-        DesignPosition: product.DesignPosition || { x: 50, y: 40 },
+        DesignScale: product.DesignScale || DESIGN_SCALE.default,
+        DesignPosition: product.DesignPosition || DEFAULT_POSITION,
         designImage: product.designImage?.url || product.designImage || '',
         mainTags: Array.isArray(product.mainTags) ? product.mainTags : [],
-        Designtags: Array.isArray(product.Designtags) ? product.Designtags : []
+        Designtags: Array.isArray(product.Designtags) ? product.Designtags : [],
+        DesignTitle: product.DesignTitle || '',
+        Description: product.Description || ''
       });
   
-      resetDesignPosition();
+      // Reset design position with the product's saved values
+      if (product.DesignPosition && product.DesignScale) {
+        updatePosition(product.DesignPosition);
+        handleScaleChange(product.DesignScale);
+      } else {
+        resetDesignPosition();
+      }
     } catch (error) {
       console.error('Error in handleProductSelect:', error);
       toast.error('Failed to select product');
     }
-  }, [resetDesignPosition]);
-
+  }, [resetDesignPosition, updatePosition, handleScaleChange]);
   // Enhanced product update handling
   const handleProductUpdate = useCallback((updates) => {
     setEditedProduct(prev => {
