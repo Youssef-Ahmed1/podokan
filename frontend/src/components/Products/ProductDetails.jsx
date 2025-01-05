@@ -164,15 +164,14 @@ const addToCartHandler = () => {
                   />
                   
                   {/* Design Overlay */}
-{!showBack && data?.designImage && (
+                  {!showBack && data?.designImage && (
   <div 
     className="absolute pointer-events-none"
     style={{
       position: 'absolute',
-      left: `${data?.DesignPosition?.x || 50}%`,
-      top: `${data?.DesignPosition?.y || 40}%`,
-      transform: `translate(-50%, -50%) scale(${data?.DesignScale || 0.8})`,
-      width: '30%',
+      left: `${data?.DesignPosition?.x}%`,
+      top: `${data?.DesignPosition?.y}%`,
+      transform: `translate(-50%, -50%) scale(${data?.DesignScale})`,
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
