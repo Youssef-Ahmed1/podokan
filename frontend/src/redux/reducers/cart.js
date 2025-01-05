@@ -6,7 +6,6 @@ const cartInitialState = {
     : [],
 };
 
-
 export const cartReducer = createReducer(cartInitialState, (builder) => {
   builder
     .addCase("addToCart", (state, action) => {
@@ -23,16 +22,25 @@ export const cartReducer = createReducer(cartInitialState, (builder) => {
           i._id === existingItem._id && 
           i.selectedSize === item.selectedSize && 
           i.selectedColor === item.selectedColor
-            ? { ...i, quantity: i.quantity + item.quantity }
+            ? {
+                ...i,
+                quantity: i.quantity + item.quantity,
+                qty: i.quantity + item.quantity // Keep both quantity fields in sync
+              }
             : i
         );
       } else {
         state.cart.push(item);
       }
+      
       localStorage.setItem("cartItems", JSON.stringify(state.cart));
     })
     .addCase("removeFromCart", (state, action) => {
       state.cart = state.cart.filter((i) => i._id !== action.payload);
+      localStorage.setItem("cartItems", JSON.stringify(state.cart));
+    })
+    .addCase("UPDATE_CART", (state, action) => {
+      state.cart = action.payload;
       localStorage.setItem("cartItems", JSON.stringify(state.cart));
     });
 });

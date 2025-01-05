@@ -1,3 +1,4 @@
+// /home/user/podokan/frontend/src/components/Products/ProductDetails.jsx
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addTocart } from "../../redux/actions/cart";
@@ -7,7 +8,6 @@ import styles from "../../styles/styles";
 import { 
   AiFillHeart, 
   AiOutlineHeart, 
-  AiOutlineShoppingCart, 
   AiOutlineShareAlt 
 } from "react-icons/ai";
 import { 
@@ -25,7 +25,6 @@ import { IoCopy } from "react-icons/io5";
 const ProductDetails = ({ data }) => {
   const dispatch = useDispatch();
   const { wishlist } = useSelector((state) => state.wishlist);
-  const { cart } = useSelector((state) => state.cart);
   
   const [count, setCount] = useState(1);
   const [click, setClick] = useState(false);
@@ -47,12 +46,14 @@ const ProductDetails = ({ data }) => {
 
   const getProductImage = () => {
     try {
-      return `https://res.cloudinary.com/dkot9tyjm/image/upload/v1728392918/hoodies/hoodie-${selectedColor.toLowerCase()}-${showBack ? 'back' : 'front'}.png`;
+      const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/v1728392918";
+      return `${baseUrl}/${data.ProductType.toLowerCase()}s/${data.ProductType.toLowerCase()}-${selectedColor.toLowerCase()}-${showBack ? 'back' : 'front'}.png`;
     } catch (error) {
       console.error("Error getting product image:", error);
       return "";
     }
   };
+
   const handleWishlist = (e) => {
     e.preventDefault();
     if (click) {
@@ -71,7 +72,6 @@ const ProductDetails = ({ data }) => {
     const url = encodeURIComponent(window.location.href);
     
     let shareUrl = '';
-    
     switch (platform) {
       case 'facebook':
         shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
@@ -104,51 +104,44 @@ const ProductDetails = ({ data }) => {
       default:
         return;
     }
-
     window.open(shareUrl, '_blank', 'width=600,height=400');
   };
 
-  const decrementCount = () => {
-    if (count > 1) {
-      setCount(count - 1);
-    }
-  };
+  // In ProductDetails.jsx, update the addToCartHandler function:
 
-  const incrementCount = () => {
-    setCount(count + 1);
-  };
-
-  const addToCartHandler = () => {
-    if (!selectedSize) {
-      toast.error("Please select a size!");
-      return;
-    }
-    
-    
-    const cartItem = {
-      _id: data._id,
-      DesignTitle: data.DesignTitle,
-      designImage: data.designImage?.url || data.designImage,
-      ProductType: data.ProductType,
-      selectedColor: selectedColor,
-      selectedSize: selectedSize,
-      quantity: count,
-      stock: data.stock || 100, // Add default stock if not provided
-      shopId: data.shopId,
-      shop: data.shop,
-      price: data.discountPrice || data.originalPrice,
-      DesignScale: data.DesignScale || 0.8,
-      DesignPosition: data.DesignPosition || { x: 50, y: 40 }
-    };
+const addToCartHandler = () => {
+  if (!selectedSize) {
+    toast.error("Please select a size!");
+    return;
+  }
   
-    try {
-      dispatch(addTocart(cartItem));
-      toast.success("Added to cart successfully!");
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      toast.error("Failed to add to cart");
-    }
+  const cartItem = {
+    _id: data._id,
+    DesignTitle: data.DesignTitle,
+    designImage: data.designImage?.url || data.designImage,
+    ProductType: data.ProductType,
+    selectedColor: selectedColor,
+    selectedSize: selectedSize,
+    quantity: count,
+    stock: data.stock || 100,
+    shopId: data.shopId,
+    shop: data.shop,
+    originalPrice: data.originalPrice,
+    discountPrice: data.discountPrice,
+    price: data.discountPrice || data.originalPrice,
+    DesignScale: data.DesignScale || 0.8,
+    DesignPosition: data.DesignPosition || { x: 50, y: 40 }
   };
+
+  const result = dispatch(addTocart(cartItem));
+  
+  if (result.success) {
+    toast.success("Added to cart successfully!");
+  } else {
+    toast.error(result.message || "Failed to add to cart");
+  }
+};
+
   return (
     <div className="bg-white">
       {data ? (
@@ -157,50 +150,50 @@ const ProductDetails = ({ data }) => {
             <div className="block w-full 800px:flex">
               {/* Left side - Product Images */}
               <div className="w-full 800px:w-[50%]">
-                <div className="w-[80%] mx-auto relative">
+                <div className="w-[80%] mx-auto relative" style={{ aspectRatio: '3/4' }}>
                   {/* Product Mockup */}
                   <img
                     src={getProductImage()}
                     alt={data.DesignTitle}
-                    className="w-full h-auto object-contain"
+                    className="w-full h-full object-contain"
+                    style={{ transform: `scale(${data?.ProductScale || 1})` }}
                     onError={(e) => {
                       console.error("Error loading product image");
-                      e.target.src = ""; // Set a default image path if needed
+                      e.target.src = "";
                     }}
                   />
+                  
                   {/* Design Overlay */}
                   {!showBack && data?.designImage && (
-  <div 
-    className="absolute design-overlay"
-    style={{
-      position: 'absolute',
-      left: `${data?.DesignPosition?.x || 50}%`,
-      top: `${data?.DesignPosition?.y || 40}%`,
-      transform: `translate(-50%, -50%) scale(${data?.DesignScale || 0.8})`,
-      width: '30%',
-      transformOrigin: 'center center',
-      pointerEvents: 'none'
-    }}
-  >
-    <img
-      src={typeof data.designImage === 'string' ? data.designImage : data.designImage?.url}
-      alt="Design"
-      className="w-full h-full object-contain"
-      draggable="false"
-    />
-  </div>
-)}
-          </div>
+                    <div 
+                      className="absolute pointer-events-none"
+                      style={{
+                        position: 'absolute',
+                        left: `${data?.DesignPosition?.x || 50}%`,
+                        top: `${data?.DesignPosition?.y || 40}%`,
+                        transform: `translate(-50%, -50%) scale(${data?.DesignScale || 0.8})`,
+                        width: '30%',
+                        maxWidth: '30vh',
+                        aspectRatio: '1',
+                        transformOrigin: 'center center'
+                      }}
+                    >
+                      <img
+                        src={typeof data.designImage === 'string' ? data.designImage : data.designImage?.url}
+                        alt="Design"
+                        className="w-full h-full object-contain"
+                        draggable="false"
+                      />
+                    </div>
+                  )}
+                </div>
 
                 {/* View Toggle */}
                 <div className="w-[80%] mx-auto flex mt-4">
                   <button
                     className={`
                       flex-1 py-3 border-2 transition-colors
-                      ${!showBack 
-                        ? "border-[#4e64df] text-[#4e64df]" 
-                        : "border-gray-300 text-gray-600"
-                      }
+                      ${!showBack ? "border-[#4e64df] text-[#4e64df]" : "border-gray-300 text-gray-600"}
                     `}
                     onClick={() => setShowBack(false)}
                   >
@@ -209,10 +202,7 @@ const ProductDetails = ({ data }) => {
                   <button
                     className={`
                       flex-1 py-3 border-2 transition-colors
-                      ${showBack 
-                        ? "border-[#4e64df] text-[#4e64df]" 
-                        : "border-gray-300 text-gray-600"
-                      }
+                      ${showBack ? "border-[#4e64df] text-[#4e64df]" : "border-gray-300 text-gray-600"}
                     `}
                     onClick={() => setShowBack(true)}
                   >
@@ -228,9 +218,10 @@ const ProductDetails = ({ data }) => {
                 </h1>
                 
                 <div className="flex items-center mt-2">
-  <span className="text-[16px] text-gray-500 mr-2">Tag:</span>
-  <span className="text-[16px] text-[#4e64df]">{data.Maintag}</span>
-</div>
+                  <span className="text-[16px] text-gray-500 mr-2">Tag:</span>
+                  <span className="text-[16px] text-[#4e64df]">{data.Maintag}</span>
+                </div>
+
                 {/* Price */}
                 <div className="flex items-center mt-6">
                   <h3 className="text-[28px] font-bold text-gray-800">
@@ -259,10 +250,7 @@ const ProductDetails = ({ data }) => {
                         className={`
                           w-8 h-8 rounded-full border-2 transition-all
                           ${color === 'white' ? 'bg-white' : 'bg-black'}
-                          ${selectedColor === color 
-                            ? 'border-[#4e64df] scale-110' 
-                            : 'border-gray-300'
-                          }
+                          ${selectedColor === color ? 'border-[#4e64df] scale-110' : 'border-gray-300'}
                         `}
                         aria-label={color}
                       />
@@ -280,10 +268,7 @@ const ProductDetails = ({ data }) => {
                         onClick={() => setSelectedSize(size)}
                         className={`
                           w-14 h-10 border-2 rounded transition-colors
-                          ${selectedSize === size 
-                            ? 'border-[#4e64df] text-[#4e64df]' 
-                            : 'border-gray-300 text-gray-600'
-                          }
+                          ${selectedSize === size ? 'border-[#4e64df] text-[#4e64df]' : 'border-gray-300 text-gray-600'}
                         `}
                       >
                         {size}
@@ -297,7 +282,7 @@ const ProductDetails = ({ data }) => {
                   <h4 className="text-[16px] font-[600] text-gray-800 mb-3">Quantity:</h4>
                   <div className="flex items-center">
                     <button 
-                      onClick={decrementCount}
+                      onClick={() => setCount(prev => Math.max(1, prev - 1))}
                       className="w-8 h-8 border rounded-l flex items-center justify-center text-gray-600"
                     >
                       -
@@ -306,7 +291,7 @@ const ProductDetails = ({ data }) => {
                       {count}
                     </span>
                     <button 
-                      onClick={incrementCount}
+                      onClick={() => setCount(prev => prev + 1)}
                       className="w-8 h-8 border rounded-r flex items-center justify-center text-gray-600"
                     >
                       +
@@ -317,8 +302,7 @@ const ProductDetails = ({ data }) => {
                 {/* Actions */}
                 <div className="flex items-center mt-8 gap-4">
                   <button
-                    className="flex-1 py-4 bg-[#4e64df] text-white rounded-full 
-                      hover:bg-[#5d71e7] transition-colors font-medium"
+                    className="flex-1 py-4 bg-[#4e64df] text-white rounded-full hover:bg-[#5d71e7] transition-colors font-medium"
                     onClick={addToCartHandler}
                   >
                     Add to Cart
@@ -326,8 +310,7 @@ const ProductDetails = ({ data }) => {
                   
                   <button
                     onClick={handleWishlist}
-                    className="w-12 h-12 flex items-center justify-center rounded-full 
-                      bg-gray-100 hover:bg-gray-200 transition-colors"
+                    className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
                   >
                     {click ? (
                       <AiFillHeart className="text-[#4e64df] text-2xl" />
@@ -339,15 +322,13 @@ const ProductDetails = ({ data }) => {
                   <div className="relative">
                     <button
                       onClick={() => setShowShare(!showShare)}
-                      className="w-12 h-12 flex items-center justify-center rounded-full 
-                        bg-gray-100 hover:bg-gray-200 transition-colors"
+                      className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
                     >
                       <AiOutlineShareAlt className="text-gray-600 text-2xl" />
                     </button>
 
                     {showShare && (
-                      <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg 
-                        shadow-xl z-10 border border-gray-200">
+                      <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg shadow-xl z-10 border border-gray-200">
                         {[
                           { platform: 'whatsapp', icon: FaWhatsapp, color: 'text-green-500' },
                           { platform: 'facebook', icon: FaFacebook, color: 'text-blue-600' },
@@ -365,7 +346,9 @@ const ProductDetails = ({ data }) => {
                             className="flex items-center px-4 py-2 hover:bg-gray-50 w-full"
                           >
                             <Icon className={`mr-3 ${color}`} />
-                            <span className="capitalize text-gray-700">{platform}</span>
+                            <span className="capitalize text-gray-700">
+                              {platform}
+                            </span>
                           </button>
                         ))}
                       </div>
@@ -388,5 +371,5 @@ const ProductDetails = ({ data }) => {
     </div>
   );
 };
-//.
+
 export default ProductDetails;
