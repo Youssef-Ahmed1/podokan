@@ -109,20 +109,22 @@ const DesignPreview = forwardRef(({
 
         {/* Design Image */}
         {product.designImage && mockupLoaded && (
-         <div
-         className={`absolute design-container select-none ${
-           isDragging ? '' : 'transition-transform duration-200'
-         }`}
-         style={{
-           left: `${position.x}%`,
-           top: `${position.y}%`,
-           transform: `translate(-50%, -50%) scale(${scale})`,
-           width: '30%',
-           opacity: isOutOfBounds ? 0.5 : 1,
-           zIndex: isDragging ? 10 : 1,
-           pointerEvents: disabled ? 'none' : 'auto'
-         }}
-       >
+          <div
+  className={`absolute design-container select-none ${
+    isDragging ? '' : 'transition-transform duration-200'
+  }`}
+  style={{
+    left: `${position.x}%`,
+    top: `${position.y}%`,
+    transform: `translate(-50%, -50%) scale(${scale})`,
+    width: '30%', // Use percentage instead of fixed pixels
+    maxWidth: '30vh', // Prevent getting too large on tall screens
+    aspectRatio: '1', // Maintain square aspect ratio
+    opacity: isOutOfBounds ? 0.5 : 1,
+    zIndex: isDragging ? 10 : 1,
+    pointerEvents: disabled ? 'none' : 'auto'
+  }}
+>
             <img
               src={typeof product.designImage === 'string' ? product.designImage : product.designImage.url}
               alt="Design"
