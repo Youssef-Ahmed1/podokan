@@ -395,28 +395,27 @@ const AdminProductApproval = () => {
   
     try {
       setSelectedProduct(product);
-      const initialScale = product.DesignScale || DESIGN_SCALE.default;
-      const initialPosition = product.DesignPosition || DEFAULT_POSITION;
+      
+      // Just use the existing values or defaults
+      const currentScale = product.DesignScale || 0.8;
+      const currentPosition = product.DesignPosition || { x: 50, y: 40 };
   
       setEditedProduct({
         ...product,
-        DesignScale: initialScale,
-        DesignPosition: initialPosition,
-        designImage: product.designImage?.url || product.designImage || '',
-        mainTags: Array.isArray(product.mainTags) ? product.mainTags : [],
-        Designtags: Array.isArray(product.Designtags) ? product.Designtags : [],
-        DesignTitle: product.DesignTitle || '',
-        Description: product.Description || ''
+        DesignScale: currentScale,
+        DesignPosition: currentPosition,
+        // ... other properties
       });
   
-      // Update design position and scale immediately
-      updatePosition(initialPosition);
-      handleScaleChange(initialScale);
+      // Initialize design position controls
+      updatePosition(currentPosition);
+      handleScaleChange(currentScale);
     } catch (error) {
       console.error('Error in handleProductSelect:', error);
       toast.error('Failed to select product');
     }
   }, [updatePosition, handleScaleChange]);
+  
   // Enhanced product update handling
   const handleProductUpdate = useCallback((updates) => {
     setEditedProduct(prev => {
@@ -455,7 +454,7 @@ const AdminProductApproval = () => {
       toast.error('No product selected');
       return;
     }
-
+  
     try {
       setIsSubmitting(true);
       
@@ -476,7 +475,6 @@ const AdminProductApproval = () => {
           }
         )
       );
-
       if (result.success) {
         toast.success(result.message);
         setSelectedProduct(null);
@@ -490,14 +488,6 @@ const AdminProductApproval = () => {
       setIsSubmitting(false);
     }
   }, [editedProduct, dispatch, scale, position]);
-
-  // Sort handler
-  const handleSort = useCallback((key) => {
-    setSortConfig(prev => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
-  }, []);
 
   // Access check
   if (!user || !(user.role === 'Admin' || user.role === 'admin')) {
