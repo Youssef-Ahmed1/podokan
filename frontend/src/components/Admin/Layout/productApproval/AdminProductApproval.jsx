@@ -75,7 +75,7 @@ const ProductList = ({ products, onSelect, selectedProduct }) => {
     </div>
   );
 };
-const ProductDetails = ({ product }) => {
+const ProductDetails = ({ product, onUpdate, disabled }) => {
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
       <div className="p-4 border-b border-gray-200">
@@ -84,11 +84,25 @@ const ProductDetails = ({ product }) => {
       <div className="p-6 space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">Design Title</label>
-          <p className="mt-1 text-lg text-gray-900">{product.DesignTitle || 'Untitled Design'}</p>
+          <input
+            type="text"
+            value={product.DesignTitle || ''}
+            onChange={(e) => onUpdate({ DesignTitle: e.target.value })}
+            disabled={disabled}
+            className="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+            placeholder="Enter design title"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Description</label>
-          <p className="mt-1 text-gray-600">{product.Description || 'No description provided'}</p>
+          <textarea
+            value={product.Description || ''}
+            onChange={(e) => onUpdate({ Description: e.target.value })}
+            disabled={disabled}
+            rows={3}
+            className="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+            placeholder="Enter product description"
+          />
         </div>
       </div>
     </div>
@@ -382,10 +396,13 @@ const AdminProductApproval = () => {
   
     try {
       setSelectedProduct(product);
+      const initialScale = product.DesignScale || DESIGN_SCALE.default;
+      const initialPosition = product.DesignPosition || DEFAULT_POSITION;
+  
       setEditedProduct({
         ...product,
-        DesignScale: product.DesignScale || DESIGN_SCALE.default,
-        DesignPosition: product.DesignPosition || DEFAULT_POSITION,
+        DesignScale: initialScale,
+        DesignPosition: initialPosition,
         designImage: product.designImage?.url || product.designImage || '',
         mainTags: Array.isArray(product.mainTags) ? product.mainTags : [],
         Designtags: Array.isArray(product.Designtags) ? product.Designtags : [],
@@ -393,18 +410,14 @@ const AdminProductApproval = () => {
         Description: product.Description || ''
       });
   
-      // Reset design position with the product's saved values
-      if (product.DesignPosition && product.DesignScale) {
-        updatePosition(product.DesignPosition);
-        handleScaleChange(product.DesignScale);
-      } else {
-        resetDesignPosition();
-      }
+      // Update design position and scale immediately
+      updatePosition(initialPosition);
+      handleScaleChange(initialScale);
     } catch (error) {
       console.error('Error in handleProductSelect:', error);
       toast.error('Failed to select product');
     }
-  }, [resetDesignPosition, updatePosition, handleScaleChange]);
+  }, [updatePosition, handleScaleChange]);
   // Enhanced product update handling
   const handleProductUpdate = useCallback((updates) => {
     setEditedProduct(prev => {
@@ -412,20 +425,20 @@ const AdminProductApproval = () => {
   
       const updated = {
         ...prev,
-        ...updates,
-        updatedAt: new Date().toISOString()
+        ...updates
       };
   
-      // Ensure design position and scale are within bounds
-      if (updates.ProductType && updates.ProductType !== prev.ProductType) {
-        resetDesignPosition();
-        updated.DesignPosition = { x: 50, y: 40 };
-        updated.DesignScale = 0.8;
+      // If position or scale is updated, ensure it's reflected in the design preview
+      if (updates.DesignPosition) {
+        updatePosition(updates.DesignPosition);
+      }
+      if (updates.DesignScale) {
+        handleScaleChange(updates.DesignScale);
       }
   
       return updated;
     });
-  }, [resetDesignPosition]);
+  }, [updatePosition, handleScaleChange]);
   // Enhanced design position update handling
   const handleDesignPositionUpdate = useCallback((newPosition, newScale) => {
     updatePosition(newPosition);
@@ -548,8 +561,11 @@ const AdminProductApproval = () => {
           {/* Product Review Area */}
           {selectedProduct && editedProduct ? (
   <div className="w-full lg:w-2/3 space-y-6">
-    <ProductDetails product={editedProduct} />
-    
+    <ProductDetails
+      product={editedProduct}
+      onUpdate={handleProductUpdate}
+      disabled={isSubmitting}
+    />
     <DesignPreview
       product={editedProduct}
       position={position}
