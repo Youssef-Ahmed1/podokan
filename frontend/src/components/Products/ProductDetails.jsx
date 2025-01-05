@@ -169,14 +169,14 @@ const addToCartHandler = () => {
     className="absolute pointer-events-none"
     style={{
       position: 'absolute',
-      left: `${data?.DesignPosition?.x}%`,
-      top: `${data?.DesignPosition?.y}%`,
-      transform: `translate(-50%, -50%) scale(${data?.DesignScale})`,
+      left: `${data.DesignPosition?.x}%`,
+      top: `${data.DesignPosition?.y}%`,
+      transform: `translate(-50%, -50%) scale(${data.DesignScale})`,
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
       transformOrigin: 'center center',
-      mixBlendMode: data?.ProductColor === 'black' ? 'screen' : 'multiply'
+      mixBlendMode: data.ProductColor === 'black' ? 'screen' : 'multiply'
     }}
   >
     <img
@@ -188,6 +188,7 @@ const addToCartHandler = () => {
     />
   </div>
 )}
+
                 </div>
 
                 {/* View Toggle */}
