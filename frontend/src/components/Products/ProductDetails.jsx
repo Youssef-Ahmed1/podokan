@@ -164,28 +164,31 @@ const addToCartHandler = () => {
                   />
                   
                   {/* Design Overlay */}
-                  {!showBack && data?.designImage && (
-                    <div 
-                      className="absolute pointer-events-none"
-                      style={{
-                        position: 'absolute',
-                        left: `${data?.DesignPosition?.x || 50}%`,
-                        top: `${data?.DesignPosition?.y || 40}%`,
-                        transform: `translate(-50%, -50%) scale(${data?.DesignScale || 0.8})`,
-                        width: '30%',
-                        maxWidth: '30vh',
-                        aspectRatio: '1',
-                        transformOrigin: 'center center'
-                      }}
-                    >
-                      <img
-                        src={typeof data.designImage === 'string' ? data.designImage : data.designImage?.url}
-                        alt="Design"
-                        className="w-full h-full object-contain"
-                        draggable="false"
-                      />
-                    </div>
-                  )}
+{!showBack && data?.designImage && (
+  <div 
+    className="absolute pointer-events-none"
+    style={{
+      position: 'absolute',
+      left: `${data?.DesignPosition?.x || 50}%`,
+      top: `${data?.DesignPosition?.y || 40}%`,
+      transform: `translate(-50%, -50%) scale(${data?.DesignScale || 0.8})`,
+      width: '30%',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      transformOrigin: 'center center',
+      mixBlendMode: data?.ProductColor === 'black' ? 'screen' : 'multiply'
+    }}
+  >
+    <img
+      src={typeof data.designImage === 'string' ? data.designImage : data.designImage?.url}
+      alt="Design"
+      className="w-full h-full object-contain"
+      style={{ background: 'transparent' }}
+      draggable="false"
+    />
+  </div>
+)}
                 </div>
 
                 {/* View Toggle */}

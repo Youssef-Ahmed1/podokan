@@ -114,11 +114,32 @@ const productSchema = new mongoose.Schema({
     },
     default: 'front'
   },
+  DesignPosition: {
+    x: {
+      type: Number,
+      default: 50,
+      min: [0, "X position cannot be less than 0"],
+      max: [100, "X position cannot exceed 100"],
+      set: function(value) {
+        return parseFloat(parseFloat(value).toFixed(1));
+      }
+    },
+    y: {
+      type: Number,
+      default: 40,
+      min: [0, "Y position cannot be less than 0"],
+      max: [100, "Y position cannot exceed 100"],
+      set: function(value) {
+        return parseFloat(parseFloat(value).toFixed(1));
+      }
+    }
+  },
+
   DesignScale: {
     type: Number,
     default: 0.8,
-    min: [0.5, "Design scale cannot be less than 0.1"],
-    max:[ 1.2, "Design scale cannot exceed 1.2"],
+    min: [0.5, "Design scale cannot be less than 0.5"],
+    max: [1.2, "Design scale cannot exceed 1.2"],
     set: function(value) {
       return parseFloat(parseFloat(value).toFixed(1));
     }
