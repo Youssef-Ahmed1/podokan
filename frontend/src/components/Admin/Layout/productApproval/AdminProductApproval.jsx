@@ -12,7 +12,7 @@ import StatusManager from '../../ProductApproval/StatusManager';
 import PriceCalculator from '../../ProductApproval/PriceCalculator';
 
 import { STATUS_CONFIG, DESIGN_SCALE, DEFAULT_POSITION } from '../../ProductApproval/constants/productConfig';
-
+import { DesignScalingManager } from '../../../../utils/designScaling';
 
 const ProductList = ({ products, onSelect, selectedProduct }) => {
   return (
@@ -333,10 +333,10 @@ const AdminProductApproval = () => {
     reset: resetDesignPosition,
     bounds
   } = useDesignPosition({
-    initialPosition: editedProduct?.DesignPosition || { x: 50, y: 40 },
-    initialScale: editedProduct?.DesignScale || 0.8,
-    minScale: 0.5,
-    maxScale: 1.2,
+    initialPosition: editedProduct?.DesignPosition || DESIGN_CONFIG.position.default,
+    initialScale: editedProduct?.DesignScale || DESIGN_CONFIG.scale.default,
+    minScale: DESIGN_CONFIG.scale.min,
+    maxScale: DESIGN_CONFIG.scale.max,
     productType: editedProduct?.ProductType || 'hoodie',
     disabled: isSubmitting
   });
@@ -397,26 +397,30 @@ const AdminProductApproval = () => {
     try {
       setSelectedProduct(product);
       
-      // Just use the existing values or defaults
-      const currentScale = product.DesignScale || 0.8;
-      const currentPosition = product.DesignPosition || { x: 50, y: 40 };
+      // Use DesignScalingManager to get proper initial values
+      const initialScale = DesignScalingManager.clampScale(
+        product.DesignScale || DESIGN_CONFIG.scale.default
+      );
+      const initialPosition = DesignScalingManager.clampPosition(
+        product.DesignPosition || DESIGN_CONFIG.position.default,
+        product.ProductType || 'hoodie',
+        product.view || 'front'
+      );
   
       setEditedProduct({
         ...product,
-        DesignScale: currentScale,
-        DesignPosition: currentPosition,
-        // ... other properties
+        DesignScale: initialScale,
+        DesignPosition: initialPosition,
       });
   
       // Initialize design position controls
-      updatePosition(currentPosition);
-      handleScaleChange(currentScale);
+      updatePosition(initialPosition);
+      handleScaleChange(initialScale);
     } catch (error) {
       console.error('Error in handleProductSelect:', error);
       toast.error('Failed to select product');
     }
   }, [updatePosition, handleScaleChange]);
-  
   // Enhanced product update handling
   const handleProductUpdate = useCallback((updates) => {
     setEditedProduct(prev => {
@@ -440,15 +444,22 @@ const AdminProductApproval = () => {
   }, [updatePosition, handleScaleChange]);
   // Enhanced design position update handling
   const handleDesignPositionUpdate = useCallback((newPosition, newScale) => {
-    updatePosition(newPosition);
-    handleScaleChange(newScale);
+    // Clamp the position and scale using DesignScalingManager
+    const clampedPosition = DesignScalingManager.clampPosition(
+      newPosition,
+      editedProduct?.ProductType || 'hoodie',
+      editedProduct?.view || 'front'
+    );
+    const clampedScale = DesignScalingManager.clampScale(newScale);
+  
+    updatePosition(clampedPosition);
+    handleScaleChange(clampedScale);
     
     handleProductUpdate({
-      DesignPosition: newPosition,
-      DesignScale: newScale
+      DesignPosition: clampedPosition,
+      DesignScale: clampedScale
     });
-  }, [updatePosition, handleScaleChange, handleProductUpdate]);
-
+  }, [updatePosition, handleScaleChange, handleProductUpdate, editedProduct]);
   // Enhanced status change handling
   const handleStatusChange = useCallback(async (newStatus) => {
     if (!editedProduct) {
@@ -556,21 +567,41 @@ const AdminProductApproval = () => {
       onUpdate={handleProductUpdate}
       disabled={isSubmitting}
     />
-    <DesignPreview
-      product={editedProduct}
-      position={position}
-      scale={scale}
-      isDragging={isDragging}
-      isOutOfBounds={isOutOfBounds}
-      onDragStart={handleDragStart}
-      onScaleChange={handleScaleChange}
-      onPositionChange={handleDesignPositionUpdate}
-      onCenter={centerDesign}
-      showGridLines={showGridLines}
-      onToggleGridLines={() => setShowGridLines(!showGridLines)}
-      disabled={isSubmitting}
-      bounds={bounds}
-    />
+<DesignPreview
+  product={editedProduct}
+  position={position}
+  scale={scale}
+  isDragging={isDragging}
+  isOutOfBounds={isOutOfBounds}
+  onDragStart={handleDragStart}
+  onScaleChange={(newScale) => {
+    const clampedScale = DesignScalingManager.clampScale(newScale);
+    handleScaleChange(clampedScale);
+    handleProductUpdate({ DesignScale: clampedScale });
+  }}
+  onPositionChange={(newPosition) => {
+    const clampedPosition = DesignScalingManager.clampPosition(
+      newPosition,
+      editedProduct.ProductType || 'hoodie',
+      editedProduct.view || 'front'
+    );
+    handleDesignPositionUpdate(clampedPosition, scale);
+  }}
+  onCenter={centerDesign}
+  showGridLines={showGridLines}
+  onToggleGridLines={() => setShowGridLines(!showGridLines)}
+  disabled={isSubmitting}
+  bounds={bounds}
+  getDesignStyles={(pos, scl) => 
+    DesignScalingManager.getDesignStyles(
+      pos, 
+      scl, 
+      editedProduct.ProductColor,
+      editedProduct.view || 'front',
+      true // isPreview set to true for admin view
+    )
+  }
+/>
 
               <ProductConfig
                 editedProduct={editedProduct}
