@@ -17,6 +17,8 @@ import {
   MdTitle,
   MdDescription
 } from "react-icons/md";
+import { DESIGN_CONFIG, DesignScalingManager } from '../../utils/designScaling';
+import { useDesignPosition } from '../../hooks/useDesignPosition';
 
 // Constants
 const BOUNDARY_LIMITS = {
@@ -73,7 +75,7 @@ const calculateDPI = (width, height) => {
   return Math.min(width, height) / PRINT_SIZE;
 };
 
-const getMockupUrl = (productType = 't-shirt', color = 'white', view = 'front') => {
+const getMockupUrl = (productType = 'hoodie', color = 'white', view = 'front') => {
   const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
   const config = PRODUCT_TYPES[productType]?.mockupConfig;
   
@@ -341,6 +343,19 @@ const CreateProduct = () => {
     compressionStats: null,
     error: null,
     isCompressing: false
+  });
+  const {
+    position,
+    scale,
+    updatePosition,
+    updateScale,
+    isOutOfBounds,
+    handleDragStart
+  } = useDesignPosition({
+    initialPosition: DESIGN_CONFIG.position.default,
+    initialScale: DESIGN_CONFIG.scale.default,
+    productType: formState.ProductType,
+    productView: formState.ProductView
   });
 
   const FormField = useCallback(({ name, value, onChange, error }) => {
