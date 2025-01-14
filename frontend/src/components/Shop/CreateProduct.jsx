@@ -705,23 +705,14 @@ const CreateProduct = () => {
     }
   }, [seller, navigate]);
   useEffect(() => {
-    const verifyAuth = () => {
-      const token = localStorage.getItem('token');
-      const sellerToken = localStorage.getItem('seller_token');
-  
-      if (!token || !sellerToken) {
-        toast.error("Please login to create products");
-        navigate("/login");
-        return false;
-      }
-      return true;
-    };
-  
-    if (!verifyAuth()) {
-      return;
+    const token = localStorage.getItem('token');
+    const sellerToken = localStorage.getItem('seller_token');
+    
+    if (!token || !sellerToken) {
+      toast.error("Please login again to continue");
+      navigate("/login");
     }
   }, [navigate]);
-
   // Return/Render JSX
   return (
     <div className="w-[90%] 800px:w-[90%] bg-white shadow h-[80vh] rounded-[4px] p-3 overflow-y-scroll">
