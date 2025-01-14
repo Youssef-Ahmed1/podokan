@@ -163,31 +163,27 @@ const addToCartHandler = () => {
                     }}
                   />
                   
-                  {/* Design Overlay */}
 {/* Design Overlay */}
 {!showBack && data?.designImage && (
   <div 
-    className="absolute pointer-events-none"
+    className="absolute design-preview pointer-events-none"
     style={{
       position: 'absolute',
-      left: `${data.DesignPosition.x}%`,
-      top: `${data.DesignPosition.y}%`,
-      width: '40%',
-      maxWidth: '40vh', 
-      aspectRatio: '1',
-      transform: `translate(-50%, -50%) scale(${data.DesignScale})`,
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      transformOrigin: 'center center',
-      mixBlendMode: data.ProductColor === 'black' ? 'screen' : 'multiply'
+      top: `${data.DesignPosition?.y || 40}%`,
+      left: `${data.DesignPosition?.x || 50}%`,
+      transform: `translate(-50%, -50%) scale(${data.DesignScale || 1.2})`,
+      width: '200px',  // Match the admin's configuration
+      height: '200px', // Match the admin's configuration
     }}
   >
     <img
       src={typeof data.designImage === 'string' ? data.designImage : data.designImage?.url}
       alt="Design"
       className="w-full h-full object-contain"
-      style={{ background: 'transparent' }}
+      style={{
+        mixBlendMode: selectedColor === 'black' ? 'screen' : 'multiply',
+        background: 'transparent'
+      }}
       draggable="false"
     />
   </div>
