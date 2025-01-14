@@ -644,8 +644,19 @@ const CreateProduct = () => {
   
     try {
       setIsSubmitting(true);
-      const formData = new FormData();
   
+      // Verify tokens exist
+      const token = localStorage.getItem('token');
+      const sellerToken = localStorage.getItem('seller_token');
+  
+      if (!token || !sellerToken) {
+        toast.error("Please login again to continue");
+        navigate("/login");
+        return;
+      }
+  
+      const formData = new FormData();
+      
       if (designFile.file) {
         formData.append('designImage', designFile.file);
       }
@@ -662,7 +673,7 @@ const CreateProduct = () => {
       formData.append('availableColors', JSON.stringify([formState.ProductColor]));
   
       const response = await dispatch(createProduct(formData));
-  
+
       if (response.success) {
         toast.success("Product created successfully");
         navigate("/dashboard");
@@ -670,7 +681,15 @@ const CreateProduct = () => {
   
     } catch (error) {
       console.error("Submit error:", error);
-      toast.error(error.response?.data?.message || "Failed to create product");
+      
+      if (error.message === "Please login as a seller to create products" || 
+          error.response?.status === 401) {
+        toast.error("Please login again to continue");
+        navigate("/login");
+        return;
+      }
+      
+      toast.error(error.response?.data?.message || error.message || "Failed to create product");
     } finally {
       setIsSubmitting(false);
     }
@@ -685,7 +704,23 @@ const CreateProduct = () => {
       navigate("/login");
     }
   }, [seller, navigate]);
-
+  useEffect(() => {
+    const verifyAuth = () => {
+      const token = localStorage.getItem('token');
+      const sellerToken = localStorage.getItem('seller_token');
+  
+      if (!token || !sellerToken) {
+        toast.error("Please login to create products");
+        navigate("/login");
+        return false;
+      }
+      return true;
+    };
+  
+    if (!verifyAuth()) {
+      return;
+    }
+  }, [navigate]);
 
   // Return/Render JSX
   return (
