@@ -12,7 +12,7 @@ import StatusManager from '../../ProductApproval/StatusManager';
 import PriceCalculator from '../../ProductApproval/PriceCalculator';
 
 import { STATUS_CONFIG, DESIGN_SCALE, DEFAULT_POSITION } from '../../ProductApproval/constants/productConfig';
-import { DesignScalingManager } from '../../../../utils/designScaling';
+import { DesignScalingManager , DESIGN_CONFIG } from '../../../../utils/designScaling';
 
 const ProductList = ({ products, onSelect, selectedProduct }) => {
   return (
