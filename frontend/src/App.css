@@ -68,6 +68,20 @@ input,select{
 }
 
 
+.design-preview {
+  transition: transform 0.2s ease-out;
+}
+
+.design-preview img {
+  transition: opacity 0.2s ease-out;
+  background: transparent !important;
+}
+
+/* For dark backgrounds */
+.dark-product .design-preview {
+  mix-blend-mode: screen;
+}
+
 
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
@@ -131,6 +145,7 @@ input[type=number] {
 .category-swiper .swiper-button-disabled {
   opacity: 0.5;
 }
+
 
 .swiper-pagination-bullet {
   background: #6366F1 !important;
