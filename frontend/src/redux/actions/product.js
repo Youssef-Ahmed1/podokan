@@ -8,17 +8,16 @@ const getAuthHeaders = (isMultipart = false) => {
   const token = localStorage.getItem('token');
   const sellerToken = localStorage.getItem('seller_token');
   
+  if (!token || !sellerToken) {
+    throw new Error('Authentication tokens missing');
+  }
+
   const headers = {
     'Accept': 'application/json',
-    ...(isMultipart ? {} : {'Content-Type': 'application/json'})
+    ...(isMultipart ? {} : {'Content-Type': 'application/json'}),
+    'Authorization': `Bearer ${token}`,
+    'Seller-Authorization': `Bearer ${sellerToken}`
   };
-
-  if (sellerToken) {
-    headers['Seller-Authorization'] = `Bearer ${sellerToken}`;
-  }
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
 
   return headers;
 };
@@ -28,13 +27,17 @@ export const createProduct = (formData) => async (dispatch) => {
   try {
     dispatch({ type: "productCreateRequest" });
 
+    // Try to get auth headers
+    let headers;
+    try {
+      headers = getAuthHeaders(true); // true for multipart/form-data
+    } catch (error) {
+      dispatch({ type: "productCreateFail", payload: "Authentication required" });
+      throw new Error("Please login as a seller to create products");
+    }
+
     const config = {
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Seller-Authorization': `Bearer ${localStorage.getItem('seller_token')}`,
-        // Don't set Content-Type - let browser set it with boundary for multipart/form-data
-      },
+      headers,
       withCredentials: true
     };
 
@@ -51,14 +54,28 @@ export const createProduct = (formData) => async (dispatch) => {
 
     return data;
   } catch (error) {
-    dispatch({
-      type: "productCreateFail",
-      payload: error.response?.data?.message || "Failed to create product"
-    });
+    // Handle specific error cases
+    if (error.response?.status === 401) {
+      // Clear tokens on authentication failure
+      localStorage.removeItem('token');
+      localStorage.removeItem('seller_token');
+      
+      dispatch({
+        type: "productCreateFail",
+        payload: "Session expired. Please login again"
+      });
+      
+      // You might want to dispatch an action to clear user/seller state
+      dispatch({ type: "clearSellerData" });
+    } else {
+      dispatch({
+        type: "productCreateFail",
+        payload: error.response?.data?.message || error.message || "Failed to create product"
+      });
+    }
     throw error;
   }
 };
-
 // Fetch pending products
 export const fetchPendingProducts = () => async (dispatch) => {
   try {

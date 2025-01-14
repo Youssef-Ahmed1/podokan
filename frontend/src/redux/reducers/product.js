@@ -47,7 +47,14 @@ export const productReducer = createReducer(initialState, (builder) => {
       state.error = action.payload;
       state.success = false;
       state.product = null;
+    }).addCase("clearSellerData", (state) => {
+      // Reset relevant state when seller data is cleared
+      state.isLoading = false;
+      state.product = null;
+      state.error = null;
+      state.success = false;
     })
+    
 
     // Get Shop Products
     .addCase("getAllProductsShopRequest", (state) => {
