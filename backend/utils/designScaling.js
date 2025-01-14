@@ -1,5 +1,3 @@
-// /frontend/src/utils/designScaling.js
-
 const DESIGN_CONFIG = {
   dimensions: {
     default: {
@@ -74,26 +72,52 @@ class DesignScalingManager {
     );
   }
 
-  static getDesignStyles(position, scale, productColor, view = 'front') {
+  static getDesignStyles(position, scale, productColor, view = 'front', isPreview = false) {
+    const dimensions = isPreview ? DESIGN_CONFIG.dimensions.preview : DESIGN_CONFIG.dimensions.default;
+    
+    // Ensure position is within boundaries
+    const clampedPosition = this.clampPosition(position, 'hoodie', view);
+    const clampedScale = this.clampScale(scale);
+
     return {
       container: {
         position: 'absolute',
-        left: `${position.x}%`,
-        top: `${position.y}%`,
-        width: DESIGN_CONFIG.dimensions.default.width,
-        maxWidth: DESIGN_CONFIG.dimensions.default.maxWidth,
-        aspectRatio: DESIGN_CONFIG.dimensions.default.aspectRatio,
-        transform: `translate(-50%, -50%) scale(${scale})`,
-        mixBlendMode: DESIGN_CONFIG.blendModes[productColor],
+        left: `${clampedPosition.x}%`,
+        top: `${clampedPosition.y}%`,
+        width: dimensions.width,
+        maxWidth: dimensions.maxWidth,
+        aspectRatio: dimensions.aspectRatio,
+        transform: `translate(-50%, -50%) scale(${clampedScale})`,
+        mixBlendMode: DESIGN_CONFIG.blendModes[productColor] || 'normal',
         pointerEvents: 'none',
-        transformOrigin: 'center center'
+        transformOrigin: 'center center',
+        transition: 'all 0.2s ease-out' // Smooth transitions for position/scale changes
       },
       image: {
         width: '100%',
         height: '100%',
         objectFit: 'contain',
-        background: 'transparent'
+        background: 'transparent',
+        userSelect: 'none'
       }
+    };
+  }
+
+  // New method for consistent positioning across different view sizes
+  static normalizePosition(position, fromView, toView) {
+    const fromBoundaries = DESIGN_CONFIG.position.boundaries.hoodie[fromView];
+    const toBoundaries = DESIGN_CONFIG.position.boundaries.hoodie[toView];
+    
+    if (!fromBoundaries || !toBoundaries) return position;
+
+    // Calculate position as percentage within boundaries
+    const xPercentage = (position.x - fromBoundaries.left) / (fromBoundaries.right - fromBoundaries.left);
+    const yPercentage = (position.y - fromBoundaries.top) / (fromBoundaries.bottom - fromBoundaries.top);
+
+    // Apply percentage to new boundaries
+    return {
+      x: toBoundaries.left + xPercentage * (toBoundaries.right - toBoundaries.left),
+      y: toBoundaries.top + yPercentage * (toBoundaries.bottom - toBoundaries.top)
     };
   }
 }
