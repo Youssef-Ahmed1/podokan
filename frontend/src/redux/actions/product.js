@@ -8,16 +8,17 @@ const getAuthHeaders = (isMultipart = false) => {
   const token = localStorage.getItem('token');
   const sellerToken = localStorage.getItem('seller_token');
   
-  if (!token || !sellerToken) {
-    throw new Error('Authentication tokens missing');
-  }
-
   const headers = {
     'Accept': 'application/json',
-    ...(isMultipart ? {} : {'Content-Type': 'application/json'}),
-    'Authorization': `Bearer ${token}`,
-    'Seller-Authorization': `Bearer ${sellerToken}`
+    ...(isMultipart ? {} : {'Content-Type': 'application/json'})
   };
+
+  if (sellerToken) {
+    headers['Seller-Authorization'] = `Bearer ${sellerToken}`;
+  }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
 
   return headers;
 };
