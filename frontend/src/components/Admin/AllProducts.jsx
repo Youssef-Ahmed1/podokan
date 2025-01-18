@@ -152,7 +152,7 @@ const AllProducts = () => {
       minWidth: 120,
       flex: 0.5,
       renderCell: (params) => (
-        <span className={`px-2 py-1 rounded text-sm egp {
+        <span className={`px-2 py-1 rounded text-sm ${
           params.value === 'pending' ? 'bg-yellow-100 text-yellow-800' :
           params.value === 'public' ? 'bg-green-100 text-green-800' :
           'bg-red-100 text-red-800'
