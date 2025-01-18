@@ -200,7 +200,7 @@ const Payment = () => {
     paymentHandler,
     cashOnDeliveryHandler,
   }) => {
-    const [select, setSelect] = useState(3);
+   
   
   return (
     <div className="w-full flex flex-col items-center py-8">
@@ -224,7 +224,7 @@ const Payment = () => {
   );
 };
 
-
+const [select, setSelect] = useState(3);
   return (
     <div className="w-full 800px:w-[95%] bg-[#fff] rounded-md p-5 pb-8">
       {/* select buttons */}
