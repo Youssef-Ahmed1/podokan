@@ -191,7 +191,17 @@ const Payment = () => {
       toast.error(error.response ? error.response.data.message : "An error occurred while creating the order");
     });
   };
-
+  const PaymentInfo = ({
+    user,
+    open,
+    setOpen,
+    onApprove,
+    createOrder,
+    paymentHandler,
+    cashOnDeliveryHandler,
+  }) => {
+    const [select, setSelect] = useState(3);
+  
   return (
     <div className="w-full flex flex-col items-center py-8">
       <div className="w-[90%] 1000px:w-[70%] block 800px:flex">
@@ -214,16 +224,6 @@ const Payment = () => {
   );
 };
 
-const PaymentInfo = ({
-  user,
-  open,
-  setOpen,
-  onApprove,
-  createOrder,
-  paymentHandler,
-  cashOnDeliveryHandler,
-}) => {
-  const [select, setSelect] = useState(3);
 
   return (
     <div className="w-full 800px:w-[95%] bg-[#fff] rounded-md p-5 pb-8">
