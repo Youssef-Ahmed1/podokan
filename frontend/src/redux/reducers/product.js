@@ -29,8 +29,8 @@ const initialState = {
 };
 
 
-export const productReducer = createReducer(initialState, (builder) => {
-  builder.addCase("productCreateRequest", (state) => {
+export const productReducer = createReducer(initialState, (builder) => {builder
+.addCase("productCreateRequest", (state) => {
       state.isLoading = true;
       state.error = null;
       state.success = false;

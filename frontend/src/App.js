@@ -59,7 +59,7 @@ import { getAllProducts } from "./redux/actions/product";
 import { getAllEvents } from "./redux/actions/event";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
-
+import AdminOrderDetails from "./pages/Shop/AdminOrderDetails.jsx"
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [stylesLoaded, setStylesLoaded] = useState(false);
@@ -242,6 +242,14 @@ const App = () => {
             <SellerProtectedRoute>
               <ShopOrderDetails />
             </SellerProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin-order/:id"  
+          element={
+            <ProtectedAdminRoute>
+              <AdminOrderDetails />
+            </ProtectedAdminRoute>
           }
         />
         <Route
