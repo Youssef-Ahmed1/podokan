@@ -57,23 +57,24 @@ const Payment = () => {
   };
 
   const order = {
-    cart: orderData?.cart,
+    cart: orderData?.cart.map(item => ({
+        _id: item._id,
+        qty: item.qty,
+        shopId: item.shopId,
+        price: Number(item.price),
+        designImage: item.designImage,
+        DesignTitle: item.DesignTitle,
+        ProductType: item.ProductType,
+        ProductColor: item.ProductColor
+    })),
     shippingAddress: orderData?.shippingAddress,
-    user: user && user,
-    totalPrice: orderData?.totalPrice,
-  };
-
-  const onApprove = async (data, actions) => {
-    return actions.order.capture().then(function (details) {
-      const { payer } = details;
-
-      let paymentInfo = payer;
-
-      if (paymentInfo !== undefined) {
-        paypalPaymentHandler(paymentInfo);
-      }
-    });
-  };
+    user: user,
+    totalPrice: Number(orderData?.totalPrice),
+    paymentInfo: {
+        type: "Cash On Delivery",
+        status: "Pending"
+    }
+};
 
   const paypalPaymentHandler = async (paymentInfo) => {
     const config = {

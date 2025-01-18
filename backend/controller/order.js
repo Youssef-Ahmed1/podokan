@@ -120,6 +120,22 @@ router.post(
 
       const { cart, shippingAddress, user, totalPrice, paymentInfo } = req.body;
 
+      // Additional validation
+      if (!cart || !Array.isArray(cart) || cart.length === 0) {
+          return next(new ErrorHandler("Invalid cart data", 400));
+      }
+      
+      if (!shippingAddress || typeof shippingAddress !== 'object') {
+          return next(new ErrorHandler("Invalid shipping address", 400));
+      }
+      
+      if (!user || typeof user !== 'object') {
+          return next(new ErrorHandler("Invalid user data", 400));
+      }
+      
+      if (!totalPrice || isNaN(Number(totalPrice))) {
+          return next(new ErrorHandler("Invalid total price", 400));
+      }
       // Validate stock availability
       await Promise.all(cart.map(async (item) => {
         const product = await Product.findById(item._id);
