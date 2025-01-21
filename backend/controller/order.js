@@ -55,7 +55,15 @@ const validateOrderData = [
   body('paymentInfo')
     .optional()
     .isObject()
-    .withMessage('Payment info must be an object')
+    .withMessage('Payment info must be an object'),
+  body('paymentInfo.type')
+    .optional()
+    .isString()
+    .withMessage('Payment type must be a string'),
+  body('paymentInfo.status')
+    .optional()
+    .isString()
+    .withMessage('Payment status must be a string')
 ];
 // Utility Functions
 const validateMongoId = (id) => {
@@ -127,26 +135,28 @@ router.post(
         _id: item._id,
         qty: Number(item.qty),
         shopId: item.shopId,
-        price: Number(item.price || item.discountPrice || item.originalPrice),
+        price: Number(item.price),
         designImage: item.designImage,
         DesignTitle: item.DesignTitle,
         ProductType: item.ProductType,
         ProductColor: item.ProductColor
       }));
 
-      // Create the order with formatted data
-      const order = await Order.create({
+      // Create the order
+      const orderData = {
         cart: formattedCart,
         shippingAddress,
         user,
         totalPrice: Number(totalPrice),
         paymentInfo: {
-          ...paymentInfo,
+          id: paymentInfo?.id || null,
           status: paymentInfo?.status || "Processing",
           type: paymentInfo?.type || "Cash On Delivery"
         },
-        status: ORDER_STATUSES.PENDING
-      });
+        status: "Processing"
+      };
+
+      const order = await Order.create(orderData);
 
       res.status(201).json({
         success: true,
@@ -158,7 +168,6 @@ router.post(
     }
   })
 );
-
 // Get all orders of a user
 router.get(
   "/get-all-orders/:userId",

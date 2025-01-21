@@ -161,7 +161,6 @@ const Payment = () => {
       toast.error(error.response.data.message);
     }
   };
-
   const cashOnDeliveryHandler = async (e) => {
     e.preventDefault();
 
@@ -185,8 +184,9 @@ const Payment = () => {
         user: user,
         totalPrice: Number(orderData.totalPrice),
         paymentInfo: {
-            type: "Cash On Delivery",
-            status: "Processing"
+            id: null,
+            status: "Processing",
+            type: "Cash On Delivery"
         }
     };
 

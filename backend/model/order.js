@@ -13,7 +13,6 @@ const orderSchema = new mongoose.Schema({
         DesignTitle: String,
         ProductType: String,
         ProductColor: String,
-        // Add other cart item fields you need
     }],
     shippingAddress: {
         type: Object,
@@ -32,9 +31,9 @@ const orderSchema = new mongoose.Schema({
         default: "Processing",
     },
     paymentInfo: {
-        id: String,
-        status: String,
-        type: String,
+        id: { type: String, default: null },
+        status: { type: String, default: "Processing" },
+        type: { type: String, default: "Cash On Delivery" }
     },
     paidAt: {
         type: Date,
