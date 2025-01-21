@@ -32,9 +32,7 @@ const validateOrderData = [
       return cart.every(item => 
         item._id && 
         item.qty && 
-        item.shopId && 
-        mongoose.Types.ObjectId.isValid(item._id) &&
-        mongoose.Types.ObjectId.isValid(item.shopId)
+        item.shopId
       );
     })
     .withMessage('Invalid cart item format'),
@@ -43,18 +41,22 @@ const validateOrderData = [
     .withMessage('Shipping address is required')
     .isObject()
     .withMessage('Shipping address must be an object'),
-  body('totalPrice')
-    .isNumeric()
-    .withMessage('Total price must be a number')
-    .isFloat({ min: 0 })
-    .withMessage('Total price must be positive'),
-  body('paymentInfo')
+  body('user')
     .notEmpty()
-    .withMessage('Payment information is required')
+    .withMessage('User information is required'),
+  body('totalPrice')
+    .notEmpty()
+    .withMessage('Total price is required')
+    .custom((value) => {
+      const number = Number(value);
+      return !isNaN(number) && number >= 0;
+    })
+    .withMessage('Total price must be a valid positive number'),
+  body('paymentInfo')
+    .optional()
     .isObject()
     .withMessage('Payment info must be an object')
 ];
-
 // Utility Functions
 const validateMongoId = (id) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -120,41 +122,30 @@ router.post(
 
       const { cart, shippingAddress, user, totalPrice, paymentInfo } = req.body;
 
-      // Additional validation
-      if (!cart || !Array.isArray(cart) || cart.length === 0) {
-          return next(new ErrorHandler("Invalid cart data", 400));
-      }
-      
-      if (!shippingAddress || typeof shippingAddress !== 'object') {
-          return next(new ErrorHandler("Invalid shipping address", 400));
-      }
-      
-      if (!user || typeof user !== 'object') {
-          return next(new ErrorHandler("Invalid user data", 400));
-      }
-      
-      if (!totalPrice || isNaN(Number(totalPrice))) {
-          return next(new ErrorHandler("Invalid total price", 400));
-      }
-      // Validate stock availability
-      await Promise.all(cart.map(async (item) => {
-        const product = await Product.findById(item._id);
-        if (!product || product.stock < item.qty) {
-          throw new ErrorHandler(
-            `Insufficient stock for product: ${product ? product.DesignTitle : 'Unknown'}`,
-            400
-          );
-        }
+      // Format the cart data
+      const formattedCart = cart.map(item => ({
+        _id: item._id,
+        qty: Number(item.qty),
+        shopId: item.shopId,
+        price: Number(item.price || item.discountPrice || item.originalPrice),
+        designImage: item.designImage,
+        DesignTitle: item.DesignTitle,
+        ProductType: item.ProductType,
+        ProductColor: item.ProductColor
       }));
 
+      // Create the order with formatted data
       const order = await Order.create({
-        cart,
+        cart: formattedCart,
         shippingAddress,
         user,
-        totalPrice,
-        paymentInfo,
-        status: ORDER_STATUSES.PENDING,
-        orderId: `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`
+        totalPrice: Number(totalPrice),
+        paymentInfo: {
+          ...paymentInfo,
+          status: paymentInfo?.status || "Processing",
+          type: paymentInfo?.type || "Cash On Delivery"
+        },
+        status: ORDER_STATUSES.PENDING
       });
 
       res.status(201).json({
@@ -162,6 +153,7 @@ router.post(
         order,
       });
     } catch (error) {
+      console.error("Order creation error:", error);
       return next(new ErrorHandler(error.message, error.statusCode || 500));
     }
   })
