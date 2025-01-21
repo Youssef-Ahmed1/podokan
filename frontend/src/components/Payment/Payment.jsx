@@ -165,32 +165,61 @@ const Payment = () => {
   const cashOnDeliveryHandler = async (e) => {
     e.preventDefault();
 
+    if (!orderData?.cart || !orderData?.shippingAddress || !user) {
+        toast.error("Required order information is missing");
+        return;
+    }
+
+    const orderPayload = {
+        cart: orderData.cart.map(item => ({
+            _id: item._id,
+            qty: item.qty,
+            shopId: item.shopId,
+            price: Number(item.discountPrice || item.originalPrice),
+            designImage: item.designImage,
+            DesignTitle: item.DesignTitle,
+            ProductType: item.ProductType,
+            ProductColor: item.ProductColor
+        })),
+        shippingAddress: orderData.shippingAddress,
+        user: user,
+        totalPrice: Number(orderData.totalPrice),
+        paymentInfo: {
+            type: "Cash On Delivery",
+            status: "Processing"
+        }
+    };
+
     const config = {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      withCredentials: true,
+        headers: {
+            "Content-Type": "application/json",
+        },
+        withCredentials: true,
     };
 
-    order.paymentInfo = {
-      type: "Cash On Delivery",
-    };
+    try {
+        console.log("Sending order data:", orderPayload);
+        const { data } = await axios.post(
+            `${server}/order/create-order`, 
+            orderPayload, 
+            config
+        );
 
-    await axios
-    .post(`${server}/order/create-order`, order, config)
-    .then((res) => {
-      setOpen(false);
-      navigate("/order/success");
-      toast.success("Order successful!");
-      localStorage.setItem("cartItems", JSON.stringify([]));
-      localStorage.setItem("latestOrder", JSON.stringify([]));
-      window.location.reload();
-    })
-    .catch((error) => {
-      console.error("Error creating order:", error.response ? error.response.data : error.message);
-      toast.error(error.response ? error.response.data.message : "An error occurred while creating the order");
-    });
-  };
+        if (data.success) {
+            toast.success("Order successful!");
+            localStorage.setItem("cartItems", JSON.stringify([]));
+            localStorage.setItem("latestOrder", JSON.stringify([]));
+            navigate("/order/success");
+        }
+    } catch (error) {
+        console.error("Order creation error:", error.response?.data);
+        toast.error(
+            error.response?.data?.message || 
+            error.response?.data?.errors?.[0]?.msg || 
+            "Failed to create order"
+        );
+    }
+};
   const PaymentInfo = ({
     user,
     open,
