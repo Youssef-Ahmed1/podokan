@@ -13,6 +13,7 @@ import { DesignScalingManager } from '../utils/designScaling';
 import { Timeline } from '../components/Order/Timeline';
 import { Download, Clock, CheckCircle, Truck, Package } from "lucide-react";
 import { formatDistance } from 'date-fns';
+
 const UserOrderDetails = () => {
   const { orders } = useSelector((state) => state.order);
   const { user } = useSelector((state) => state.user);
