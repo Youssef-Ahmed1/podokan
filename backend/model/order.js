@@ -63,11 +63,24 @@ const orderSchema = new mongoose.Schema({
         default: Date.now(),
     },
 
-  estimatedDelivery: {
-    type: Date,
-    required: true,
-    default: () => new Date(Date.now() + 7*24*60*60*1000)
-  },
+    productSnapshot: {
+      title: String,
+      description: String,
+      color: String,
+      size: String,
+      designTags: [String],
+      originalProductId: mongoose.Schema.Types.ObjectId
+    },
+    estimatedDelivery: {
+      type: Date,
+      default: null
+    },
+    adminUpdates: [{
+      userId: mongoose.Schema.Types.ObjectId,
+      previousDate: Date,
+      newDate: Date,
+      updatedAt: Date
+    }],
   statusHistory: [{
     status: String,
     changedBy: { type: String, enum: ['system', 'admin'] },

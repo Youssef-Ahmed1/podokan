@@ -144,6 +144,14 @@ router.post(
 
       // Create the order
       const orderData = {
+        productSnapshot: {
+          title: Product.name,
+          description: Product.description,
+          color: Product.color,
+          size: req.body.selectedSize,
+          designTags: Product.tags,
+          originalProductId: Product._id
+        },
         cart: formattedCart,
         shippingAddress,
         user,
@@ -157,7 +165,6 @@ router.post(
       };
 
       const order = await Order.create(orderData);
-
       res.status(201).json({
         success: true,
         order,
@@ -306,6 +313,34 @@ router.put(
     } catch (error) {
       return next(new ErrorHandler(error.message, error.statusCode || 500));
     }
+  })
+);
+router.put("/set-delivery/:orderId",
+  isAdmin,
+  catchAsyncErrors(async (req, res) => {
+    const { deliveryDate } = req.body;
+    const order = await Order.findById(req.params.orderId);
+
+    order.adminUpdates.push({
+      userId: req.admin._id,
+      previousDate: order.estimatedDelivery,
+      newDate: deliveryDate,
+      updatedAt: Date.now()
+    });
+
+    order.estimatedDelivery = deliveryDate;
+    await order.save();
+
+    // Add real-time update logic here
+    io.emit('delivery-update', { 
+      orderId: order._id, 
+      newDate: deliveryDate 
+    });
+
+    res.status(200).json({ 
+      success: true,
+      newDeliveryDate: deliveryDate 
+    });
   })
 );
 
