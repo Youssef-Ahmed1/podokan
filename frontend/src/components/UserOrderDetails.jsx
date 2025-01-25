@@ -10,8 +10,9 @@ import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { DesignScalingManager } from '../utils/designScaling';
-import { OrderTimeline } from '../components/Order/Timeline';
-
+import { Timeline } from '../components/Order/Timeline';
+import { Download, Clock, CheckCircle, Truck, Package } from "lucide-react";
+import { formatDistance } from 'date-fns';
 const UserOrderDetails = () => {
   const { orders } = useSelector((state) => state.order);
   const { user } = useSelector((state) => state.user);
