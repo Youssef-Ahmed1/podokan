@@ -8,7 +8,7 @@ const Shop = require("../model/shop");
 const Product = require("../model/product");
 const { body, validationResult } = require('express-validator');
 const mongoose = require('mongoose');
-
+const sharp = require('sharp');
 // Constants
 const ORDER_STATUSES = {
   PENDING: 'Pending',
@@ -340,7 +340,44 @@ router.get(
   })
 );
 
+router.get('/download-design/:orderId',
+  isAdmin,
+  catchAsyncErrors(async (req, res) => {
+    const order = await Order.findById(req.params.orderId);
+    
+    const templatePath = `templates/${order.designSpecs.productType}.png`;
+    const outputBuffer = await sharp(templatePath)
+      .composite([{
+        input: order.cart[0].designImage,
+        top: Math.round(order.designSpecs.positionY * 10), // Convert % to px
+        left: Math.round(order.designSpecs.positionX * 10),
+        blend: 'over'
+      }])
+      .toBuffer();
 
+    res.set('Content-Type', 'image/png')
+       .set('Content-Disposition', `attachment; filename="design-${order._id}.png"`)
+       .send(outputBuffer);
+  })
+);
+router.get('/download-specs/:orderId',
+  isAdmin,
+  catchAsyncErrors(async (req, res) => {
+    const order = await Order.findById(req.params.orderId);
+    const pdfDefinition = {
+      content: [
+        `Design: ${order.cart[0].DesignTitle}`,
+        `Size: ${order.designSpecs.size}`,
+        `Position: X${order.designSpecs.positionX}%, Y${order.designSpecs.positionY}%`,
+        `Scale: ${order.designSpecs.scale}x`
+      ]
+    };
+    
+    const pdf = await pdfMake.createPdf(pdfDefinition).getBuffer();
+    res.contentType('application/pdf')
+       .send(pdf);
+  })
+);
 // Refund order
 router.put(
   "/refund-order/:id",
