@@ -9,6 +9,8 @@ import { RxCross1 } from "react-icons/rx";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { DesignScalingManager } from '../utils/designScaling';
+import { OrderTimeline } from '../components/order/OrderTImeline';
 
 const UserOrderDetails = () => {
   const { orders } = useSelector((state) => state.order);
@@ -36,6 +38,7 @@ const UserOrderDetails = () => {
           user,
           rating,
           comment,
+          
           productId: selectedItem?._id,
           orderId: id,
         },
@@ -52,7 +55,46 @@ const UserOrderDetails = () => {
         toast.error(error.response.data.message);
       });
   };
-  
+  const renderDeliveryStatus = () => {
+    if (!data.estimatedDelivery) {
+      return (
+        <div className="bg-yellow-100 p-4 rounded-lg mb-6">
+          <Clock className="inline-block mr-2" />
+          We're preparing your order. We'll notify you with a delivery date soon.
+        </div>
+      );
+    }
+
+    const daysRemaining = Math.ceil(
+      (new Date(data.estimatedDelivery) - new Date()) / (1000 * 60 * 60 * 24)
+    );
+
+    return (
+      <div className="bg-blue-100 p-4 rounded-lg mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <Truck className="text-blue-600" />
+          <span className="font-semibold">
+            {daysRemaining > 0 
+              ? `Estimated delivery in ${daysRemaining} days`
+              : 'Your order should arrive today!'}
+          </span>
+        </div>
+        <div className="text-sm">
+          Expected by: {new Date(data.estimatedDelivery).toLocaleDateString()}
+          {data.adminUpdates.length > 0 && (
+            <span className="text-gray-600 ml-2">
+              (Last updated {formatDistance(
+                new Date(data.adminUpdates.slice(-1)[0].updatedAt), 
+                new Date(), 
+                { addSuffix: true }
+              )})
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const refundHandler = async () => {
     await axios.put(`${server}/order/order-refund/${id}`, {
       status: "Processing refund"
@@ -65,6 +107,7 @@ const UserOrderDetails = () => {
   };
 
   return (
+    
     <div className={`py-4 min-h-screen ${styles.section}`}>
       <div className="w-full flex items-center justify-between">
         <div className="flex items-center">
@@ -72,7 +115,52 @@ const UserOrderDetails = () => {
           <h1 className="pl-2 text-[25px]">Order Details</h1>
         </div>
       </div>
-
+  <div className="container mx-auto p-4">
+      {renderDeliveryStatus()}
+      
+      {/* Product Preview */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-xl font-bold mb-4">
+          {data.productSnapshot.title}
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="relative">
+            <img
+              src={data.productSnapshot.designImage}
+              className="w-full h-auto max-h-96 object-contain"
+              alt="Product design"
+            />
+             <p className="mb-4">{data.productSnapshot.description}</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-gray-600">Color:</label>
+                <p className="font-medium">{data.productSnapshot.color}</p>
+              </div>
+              <div>
+                <label className="text-gray-600">Size:</label>
+                <p className="font-medium">{data.productSnapshot.size}</p>
+              </div>
+              <div className="col-span-2">
+                <label className="text-gray-600">Design Tags:</label>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {data.productSnapshot.designTags.map(tag => (
+                    <span 
+                      key={tag}
+                      className="bg-gray-100 px-2 py-1 rounded text-sm"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+          </div>
+          </div>
+          </div>
+          </div>
+          </div>
+          </div>
+          </div>
+          
+          
       <div className="w-full flex items-center justify-between pt-6">
         <h5 className="text-[#00000084]">
           Order ID: <span>#{data?._id?.slice(0, 8)}</span>
@@ -227,6 +315,7 @@ const UserOrderDetails = () => {
       <br />
       <br />
     </div>
+    
   );
 };
 

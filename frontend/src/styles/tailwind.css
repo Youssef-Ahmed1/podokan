@@ -1,0 +1,22 @@
+@screen md {
+    .order-status-card {
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+  
+    .product-preview-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @screen sm {
+    .date-picker-input {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+  
+    .delivery-update-button {
+      width: 100%;
+    }
+  }
+  
