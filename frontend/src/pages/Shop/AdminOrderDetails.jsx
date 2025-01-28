@@ -6,7 +6,7 @@ import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
 import { Timeline } from '../../components/Order/Timeline';
-import { DesignScalingManager, DESIGN_CONFIG } from '../utils/designScaling';
+import { DesignScalingManager, DESIGN_CONFIG } from '../../utils/designScaling';
 import { Download, Package } from "lucide-react";
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
