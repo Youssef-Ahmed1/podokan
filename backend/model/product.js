@@ -57,6 +57,16 @@ const productSchema = new mongoose.Schema({
       message: "Main tag must be between 2 and 50 characters"
     }
   },
+  designSpecs: {
+    position: {
+      x: Number,
+      y: Number
+    },
+    scale: Number,
+    productType: String,
+    productColor: String,
+    productView: String
+  },
   Designtags: {
     type: [String],
     validate: {

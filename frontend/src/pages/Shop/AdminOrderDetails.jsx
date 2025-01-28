@@ -11,7 +11,7 @@ import { Download, Package } from "lucide-react";
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { motion } from 'framer-motion';
-
+import { DesignDownloader } from '../../utils/designDownload.jsx';
 
 //.
 
@@ -78,25 +78,17 @@ const AdminOrderDetails = () => {
     }
   };
 
-  const handleDownloadSpecs = async () => {
+const handleDownloadSpecs = async () => {
+  try {
     setIsLoading(true);
-    try {
-      const response = await axios.get(`${server}/order/download-specs/${id}`, {
-        responseType: 'blob'
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `order-${id}-specs.zip`);
-      document.body.appendChild(link);
-      link.click();
-    } catch (error) {
-      toast.error("Error downloading specs");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+    await DesignDownloader.downloadOrderDesigns(order);
+    toast.success('Designs package downloaded successfully!');
+  } catch (error) {
+    toast.error('Failed to download designs package');
+  } finally {
+    setIsLoading(false);
+  }
+};
   if (adminOrderLoading) return <div>Loading...</div>;
   if (!order) return <div>Order not found</div>;
 
@@ -133,7 +125,7 @@ const AdminOrderDetails = () => {
         <div className="mt-6">
           <h2 className="text-xl font-semibold mb-4">Order Items</h2>
           {order.cart.map((item, index) => (
-            <div key={index} className="bg-gray-50 p-4 rounded-lg mb-4">
+  <div key={index} className="bg-gray-50 p-4 rounded-lg mb-4">
               <h3 className="text-lg font-medium">{item.DesignTitle}</h3>
               <div className="relative w-full h-64">
                 <img
@@ -168,7 +160,21 @@ const AdminOrderDetails = () => {
             </div>
           ))}
         </div>
-
+        <button 
+      onClick={async () => {
+        try {
+          await DesignDownloader.downloadSingleDesign(item);
+          toast.success('Design downloaded successfully!');
+        } catch (error) {
+          toast.error('Failed to download design');
+        }
+      }}
+      className="mt-4 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+    >
+      <Download size={16} />
+      Download This Design
+    </button>
+    
         <div className="mt-6 flex justify-between items-center">
           <div>
             <select 

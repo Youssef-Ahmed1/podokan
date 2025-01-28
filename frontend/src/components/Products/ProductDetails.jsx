@@ -21,6 +21,8 @@ import {
   FaWhatsapp
 } from "react-icons/fa";
 import { IoCopy } from "react-icons/io5";
+import { DesignScalingManager } from '../../utils/designScaling';
+
 
 const ProductDetails = ({ data }) => {
   const dispatch = useDispatch();
@@ -29,12 +31,21 @@ const ProductDetails = ({ data }) => {
   const [count, setCount] = useState(1);
   const [click, setClick] = useState(false);
   const [selectedSize, setSelectedSize] = useState("");
-  const [selectedColor, setSelectedColor] = useState("white");
+  const [selectedColor, setSelectedColor] = useState(data?.ProductColor || "white");
   const [showBack, setShowBack] = useState(false);
   const [showShare, setShowShare] = useState(false);
 
+  // Get design specifications from product data
+  const designSpecs = {
+    position: data?.DesignPosition || { x: 50, y: 40 },
+    scale: data?.DesignScale || 0.8,
+    productType: data?.ProductType || 'hoodie',
+    productColor: selectedColor,
+    productView: showBack ? 'back' : 'front'
+  };
+
   const SIZES = ["S", "M", "L", "XL", "2XL"];
-  const COLORS = ["white", "black"];
+  const COLORS = data?.availableColors || ["white", "black"];
 
   useEffect(() => {
     if (wishlist && wishlist.find((i) => i._id === data?._id)) {
@@ -47,13 +58,14 @@ const ProductDetails = ({ data }) => {
   const getProductImage = () => {
     try {
       const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/v1728392918";
-      return `${baseUrl}/${data.ProductType.toLowerCase()}s/${data.ProductType.toLowerCase()}-${selectedColor.toLowerCase()}-${showBack ? 'back' : 'front'}.png`;
+      const productType = data?.ProductType?.toLowerCase() || 'hoodie';
+      const view = showBack ? 'back' : 'front';
+      return `${baseUrl}/${productType}s/${productType}-${selectedColor.toLowerCase()}-${view}.png`;
     } catch (error) {
       console.error("Error getting product image:", error);
       return "";
     }
   };
-
   const handleWishlist = (e) => {
     e.preventDefault();
     if (click) {
@@ -107,40 +119,41 @@ const ProductDetails = ({ data }) => {
     window.open(shareUrl, '_blank', 'width=600,height=400');
   };
 
-  // In ProductDetails.jsx, update the addToCartHandler function:
+  const addToCartHandler = () => {
+    if (!selectedSize) {
+      toast.error("Please select a size!");
+      return;
+    }
+    
+    const cartItem = {
+      _id: data._id,
+      DesignTitle: data.DesignTitle,
+      designImage: data.designImage?.url || data.designImage,
+      ProductType: data.ProductType,
+      selectedColor: selectedColor,
+      selectedSize: selectedSize,
+      quantity: count,
+      stock: data.stock || 100,
+      shopId: data.shopId,
+      shop: data.shop,
+      originalPrice: data.originalPrice,
+      discountPrice: data.discountPrice,
+      price: data.discountPrice || data.originalPrice,
+      // Include design specifications
+      DesignScale: designSpecs.scale,
+      DesignPosition: designSpecs.position,
+      ProductView: designSpecs.productView
+    };
 
-const addToCartHandler = () => {
-  if (!selectedSize) {
-    toast.error("Please select a size!");
-    return;
-  }
-  
-  const cartItem = {
-    _id: data._id,
-    DesignTitle: data.DesignTitle,
-    designImage: data.designImage?.url || data.designImage,
-    ProductType: data.ProductType,
-    selectedColor: selectedColor,
-    selectedSize: selectedSize,
-    quantity: count,
-    stock: data.stock || 100,
-    shopId: data.shopId,
-    shop: data.shop,
-    originalPrice: data.originalPrice,
-    discountPrice: data.discountPrice,
-    price: data.discountPrice || data.originalPrice,
-    DesignScale: data.DesignScale || 0.8,
-    DesignPosition: data.DesignPosition || { x: 50, y: 40 }
+    const result = dispatch(addTocart(cartItem));
+    
+    if (result.success) {
+      toast.success("Added to cart successfully!");
+    } else {
+      toast.error(result.message || "Failed to add to cart");
+    }
   };
 
-  const result = dispatch(addTocart(cartItem));
-  
-  if (result.success) {
-    toast.success("Added to cart successfully!");
-  } else {
-    toast.error(result.message || "Failed to add to cart");
-  }
-};
 
   return (
     <div className="bg-white">
@@ -156,7 +169,6 @@ const addToCartHandler = () => {
                     src={getProductImage()}
                     alt={data.DesignTitle}
                     className="w-full h-full object-contain"
-                    style={{ transform: `scale(${data?.ProductScale || 1})` }}
                     onError={(e) => {
                       console.error("Error loading product image");
                       e.target.src = "";
@@ -165,30 +177,30 @@ const addToCartHandler = () => {
                   
 {/* Design Overlay */}
 {!showBack && data?.designImage && (
-  <div 
-    className="absolute design-preview pointer-events-none"
-    style={{
-      position: 'absolute',
-      top: `${data.DesignPosition?.y || 40}%`,
-      left: `${data.DesignPosition?.x || 50}%`,
-      transform: `translate(-50%, -50%) scale(${data.DesignScale || 1})`,
-      width: '200px',  // Match the admin's configuration
-      height: '200px', // Match the admin's configuration
-    }}
-  >
-    <img
-      src={typeof data.designImage === 'string' ? data.designImage : data.designImage?.url}
-      alt="Design"
-      className="w-full h-full object-contain"
-      style={{
-        mixBlendMode: selectedColor === 'black' ? 'screen' : 'multiply',
-        background: 'transparent'
-      }}
-      draggable="false"
-    />
-  </div>
-)}
-
+                    <div 
+                      className="absolute design-preview pointer-events-none"
+                      style={{
+                        position: 'absolute',
+                        top: `${designSpecs.position.y}%`,
+                        left: `${designSpecs.position.x}%`,
+                        transform: `translate(-50%, -50%) scale(${designSpecs.scale})`,
+                        width: '200px',
+                        height: '200px',
+                        ...designStyles
+                      }}
+                    >
+                      <img
+                        src={typeof data.designImage === 'string' ? data.designImage : data.designImage?.url}
+                        alt="Design"
+                        className="w-full h-full object-contain"
+                        style={{
+                          mixBlendMode: selectedColor === 'black' ? 'screen' : 'multiply',
+                          background: 'transparent'
+                        }}
+                        draggable="false"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* View Toggle */}

@@ -5,7 +5,7 @@ import { getAllOrdersOfAdmin } from "../redux/actions/order";
 import { Link } from "react-router-dom";
 import { DownloadCloud, Eye, Filter, Search } from 'lucide-react';
 import Loader from "../components/Layout/Loader";
-
+import { DesignDownloader } from '../utils/designDownload';
 const AdminDashboardOrders = () => {
   const dispatch = useDispatch();
   const { adminOrders, adminOrderLoading } = useSelector((state) => state.order);
@@ -44,7 +44,14 @@ const AdminDashboardOrders = () => {
     };
     return styles[status] || "bg-gray-100 text-gray-800";
   };
-
+  const handleDownload = async (order) => {
+    try {
+      await DesignDownloader.downloadOrderDesigns(order);
+      toast.success('Designs downloaded successfully!');
+    } catch (error) {
+      toast.error('Failed to download designs');
+    }
+  };
   return (
     <div className="w-full p-4 min-h-screen bg-gray-50">
       <div className="max-w-[1200px] mx-auto">
@@ -121,13 +128,13 @@ const AdminDashboardOrders = () => {
                       View Details
                     </button>
                   </Link>
-                      <button 
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        onClick={() => {/* Download functionality */}}
-                      >
-                        <DownloadCloud size={20} />
-                        Download Design
-                      </button>
+                  <button 
+  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+  onClick={() => handleDownload(order)}
+>
+  <DownloadCloud size={20} />
+  Download Design
+</button>
                     </div>
                   </div>
 

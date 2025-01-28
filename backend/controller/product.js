@@ -274,17 +274,27 @@ router.put(
         ProductType,
         ProductColor,
         ProductView,
-        availableColors
+        availableColors,
+        // Add these new fields
+        DesignScale,
+        DesignPosition,
+        mainTags,
+        Designtags
       } = req.body;
 
       const updateData = {
         status,
         statusReason,
         lastModified: new Date(),
-        lastModifiedBy: req.user._id
+        lastModifiedBy: req.user._id,
+        // Add design specifications
+        DesignScale,
+        DesignPosition,
+        mainTags,
+        Designtags
       };
 
-      // Only update price fields if they are provided
+      // Only update optional fields if provided
       if (originalPrice) updateData.originalPrice = originalPrice;
       if (discountPrice) updateData.discountPrice = discountPrice;
       if (ProductType) updateData.ProductType = ProductType;

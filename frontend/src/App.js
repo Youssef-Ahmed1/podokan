@@ -244,14 +244,14 @@ const App = () => {
             </SellerProtectedRoute>
           }
         />
-        <Route
-          path="/admin-order/:id"  
-          element={
-            <ProtectedAdminRoute>
-              <AdminOrderDetails />
-            </ProtectedAdminRoute>
-          }
-        />
+     <Route
+  path="/admin/order/:id"
+  element={
+    <ProtectedAdminRoute>
+      <AdminOrderDetails />
+    </ProtectedAdminRoute>
+  }
+/>
         <Route
           path="/dashboard-products"
           element={
