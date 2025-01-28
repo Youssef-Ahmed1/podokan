@@ -63,7 +63,23 @@ export const orderReducer = createReducer(initialState, (builder) => {
       state.totalAmount = 0;
       state.ordersCount = 0;
     })
-    
+
+    .addCase("updateOrderStatusRequest", (state) => {
+      state.isLoading = true;
+      state.error = null;
+    })
+    .addCase("updateOrderStatusSuccess", (state, action) => {
+      state.isLoading = false;
+      state.adminOrders = state.adminOrders.map(order => 
+        order._id === action.payload._id ? action.payload : order
+      );
+      state.error = null;
+    })
+    .addCase("updateOrderStatusFailed", (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })
+
     .addCase("clearErrors", (state) => {
       state.error = null;
     });

@@ -93,3 +93,27 @@ export const getAllOrdersOfAdmin = () => async (dispatch) => {
     });
   }
 };
+
+export const updateOrderStatus = (orderId, status) => async (dispatch) => {
+  try {
+    dispatch({
+      type: "updateOrderStatusRequest",
+    });
+
+    const { data } = await axios.put(
+      `${server}/order/update-order-status/${orderId}`,
+      { status },
+      { withCredentials: true }
+    );
+
+    dispatch({
+      type: "updateOrderStatusSuccess",
+      payload: data.order,
+    });
+  } catch (error) {
+    dispatch({
+      type: "updateOrderStatusFailed",
+      payload: error.response.data.message,
+    });
+  }
+};
