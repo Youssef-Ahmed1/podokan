@@ -9,7 +9,12 @@ const Product = require("../model/product");
 const { body, validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 const sharp = require('sharp');
+const JSZip = require('jszip');
+const cloudinary = require('cloudinary').v2;
 // Constants
+
+
+
 const ORDER_STATUSES = {
   PENDING: 'Pending',
   PROCESSING: 'Processing',
@@ -99,6 +104,53 @@ const updateProductStock = async (productId, quantity, action = 'decrease') => {
   }
 };
 
+router.get('/download-specs/:orderId', isAdmin, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const zip = new JSZip();
+
+    for (const item of order.cart) {
+      // Add specs JSON
+      const specs = {
+        productType: item.ProductType,
+        productColor: item.ProductColor,
+        designSpecs: item.designSpecs,
+        quantity: item.qty
+      };
+      zip.file(`${item._id}-specs.json`, JSON.stringify(specs, null, 2));
+
+      // Add design image
+      const designImage = await cloudinary.api.resource(item.designImage.public_id);
+      const designImageBuffer = await (await fetch(designImage.secure_url)).buffer();
+      zip.file(`${item._id}-design.png`, designImageBuffer);
+
+      // Create composite image
+      const productImage = await sharp(`./assets/${item.ProductType}-${item.ProductColor}.png`);
+      const compositeImage = await productImage
+        .composite([{
+          input: designImageBuffer,
+          top: Math.round(item.designSpecs.positionY * productImage.height / 100),
+          left: Math.round(item.designSpecs.positionX * productImage.width / 100),
+          blend: item.ProductColor === 'white' ? 'multiply' : 'screen'
+        }])
+        .toBuffer();
+      zip.file(`${item._id}-composite.png`, compositeImage);
+    }
+
+    const zipBuffer = await zip.generateAsync({type: "nodebuffer"});
+    res.set('Content-Type', 'application/zip');
+    res.set('Content-Disposition', `attachment; filename="order-${order._id}-specs.zip"`);
+    res.send(zipBuffer);
+
+  } catch (error) {
+    console.error("Error generating specs zip:", error);
+    res.status(500).json({ message: "Error generating specs zip" });
+  }
+});
 const updateSellerBalance = async (sellerId, amount) => {
   try {
     const seller = await Shop.findById(sellerId);
