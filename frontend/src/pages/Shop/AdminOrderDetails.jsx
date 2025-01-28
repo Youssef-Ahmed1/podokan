@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 
 //.
 
+
 const DesignPreview = ({ item }) => {
   const designStyles = DesignScalingManager.getDesignStyles(
     { x: item.designSpecs.positionX, y: item.designSpecs.positionY },
@@ -40,13 +41,16 @@ const DesignPreview = ({ item }) => {
     </div>
   );
 };
+
+
 const AdminOrderDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [order, setOrder] = useState(null);
   const [status, setStatus] = useState("");
-  const { adminOrders, adminOrderLoading, isLoading , setIsLoading} = useSelector((state) => state.order);
+  const [isLoading, setIsLoading] = useState(false);
+  const { adminOrders, adminOrderLoading } = useSelector((state) => state.order);
 
   useEffect(() => {
     dispatch(getAllOrdersOfAdmin());
@@ -55,23 +59,27 @@ const AdminOrderDetails = () => {
   useEffect(() => {
     if (adminOrders) {
       const foundOrder = adminOrders.find(o => o._id === id);
-      setOrder(foundOrder);
-      setStatus(foundOrder?.status);
+      if (foundOrder) {
+        setOrder(foundOrder);
+        setStatus(foundOrder.status);
+      }
     }
   }, [adminOrders, id]);
 
-
- 
   const handleStatusUpdate = async () => {
+    setIsLoading(true);
     try {
       await dispatch(updateOrderStatus(id, status));
       toast.success("Order status updated");
     } catch (error) {
       toast.error("Failed to update order status");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDownloadSpecs = async () => {
+    setIsLoading(true);
     try {
       const response = await axios.get(`${server}/order/download-specs/${id}`, {
         responseType: 'blob'
@@ -84,88 +92,13 @@ const AdminOrderDetails = () => {
       link.click();
     } catch (error) {
       toast.error("Error downloading specs");
-    }
-  };
-
-  if (adminOrderLoading) return <div>Loading...</div>;
-  if (!order) return <div>Order not found</div>;
-
-  const downloadAllSpecs = async () => {
-    setIsLoading(true);
-    try {
-      const zip = new JSZip();
-      
-      for (const item of order.cart) {
-        // Create a JSON file with product specs
-        const specs = {
-          productType: item.ProductType,
-          productColor: item.ProductColor,
-          designPosition: item.DesignPosition,
-          designScale: item.DesignScale,
-          size: item.size,
-        };
-        zip.file(`${item._id}-specs.json`, JSON.stringify(specs, null, 2));
-
-        // Download and add the design image
-        const designResponse = await axios.get(item.designImage.url, { responseType: 'arraybuffer' });
-        zip.file(`${item._id}-design.png`, designResponse.data);
-
-        // Create and add the composite image (product with design)
-        const compositeImage = await createCompositeImage(item);
-        zip.file(`${item._id}-composite.png`, compositeImage);
-      }
-      
-      const content = await zip.generateAsync({type: "blob"});
-      saveAs(content, `order-${id}-specs.zip`);
-      
-    } catch (error) {
-      toast.error("Error downloading specs");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const createCompositeImage = async (item) => {
-    const productImage = await loadImage(`/images/${item.ProductType}-${item.ProductColor}.png`);
-    const designImage = await loadImage(item.designImage.url);
-    
-    const canvas = document.createElement('canvas');
-    canvas.width = productImage.width;
-    canvas.height = productImage.height;
-    const ctx = canvas.getContext('2d');
-
-    // Draw product image
-    ctx.drawImage(productImage, 0, 0);
-
-    // Apply design image
-    const designStyles = DesignScalingManager.getDesignStyles(
-      item.DesignPosition,
-      item.DesignScale,
-      item.ProductColor,
-      item.ProductView
-    );
-
-    const designWidth = productImage.width * parseFloat(designStyles.container.width) / 100;
-    const designHeight = designWidth / parseFloat(designStyles.container.aspectRatio);
-    const designX = (productImage.width * item.DesignPosition.x / 100) - (designWidth / 2);
-    const designY = (productImage.height * item.DesignPosition.y / 100) - (designHeight / 2);
-
-    ctx.globalCompositeOperation = designStyles.container.mixBlendMode;
-    ctx.drawImage(designImage, designX, designY, designWidth, designHeight);
-
-    return canvas.toDataURL('image/png');
-  };
-
-  const loadImage = (src) => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = src;
-    });
-  };
-
-  if (!order) return <div>Loading...</div>;
+  if (adminOrderLoading) return <div>Loading...</div>;
+  if (!order) return <div>Order not found</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -177,6 +110,7 @@ const AdminOrderDetails = () => {
         <h1 className="text-2xl font-bold text-gray-800 mb-4">Order #{order._id}</h1>
         
         <Timeline status={order.status} deliveryDate={order.estimatedDelivery} />
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <div className="bg-gray-50 p-4 rounded-lg">
@@ -256,16 +190,16 @@ const AdminOrderDetails = () => {
           </div>
           <button 
             onClick={handleDownloadSpecs}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center"
+            disabled={isLoading}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center disabled:opacity-50"
           >
             <Package className="mr-2" />
-            Download All Specs (ZIP)
+            {isLoading ? 'Downloading...' : 'Download All Specs (ZIP)'}
           </button>
         </div>
       </motion.div>
     </div>
   );
 };
-
 
 export default AdminOrderDetails;
