@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllOrdersOfAdmin,updateOrderStatus } from "../redux/actions/order";
 import axios from "axios";
-import { server } from "../server";
+import { server } from "../../server";
 import { toast } from "react-toastify";
 import { Timeline } from '../../components/Order/Timeline';
 import { DesignScalingManager, DESIGN_CONFIG } from '../utils/designScaling';
