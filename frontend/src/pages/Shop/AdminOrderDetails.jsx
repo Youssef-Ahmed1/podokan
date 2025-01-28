@@ -161,7 +161,7 @@ const handleDownloadSpecs = async () => {
           ))}
         </div>
         <button 
-      onClick={async () => {
+      onClick={async (item) => {
         try {
           await DesignDownloader.downloadSingleDesign(item);
           toast.success('Design downloaded successfully!');

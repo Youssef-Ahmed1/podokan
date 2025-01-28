@@ -36,13 +36,21 @@ const ProductDetails = ({ data }) => {
   const [showShare, setShowShare] = useState(false);
 
   // Get design specifications from product data
-  const designSpecs = {
-    position: data?.DesignPosition || { x: 50, y: 40 },
-    scale: data?.DesignScale || 0.8,
+  const designSpecs = data?.designSpecs || {
+    position: { x: 50, y: 40 },
+    scale: 0.8,
     productType: data?.ProductType || 'hoodie',
-    productColor: selectedColor,
-    productView: showBack ? 'back' : 'front'
+    productColor: data?.ProductColor || 'white',
+    productView: 'front'
   };
+
+  // Update design overlay styles
+  const designStyles = DesignScalingManager.getDesignStyles(
+    designSpecs.position,
+    designSpecs.scale,
+    designSpecs.productColor,
+    designSpecs.productView
+  );
 
   const SIZES = ["S", "M", "L", "XL", "2XL"];
   const COLORS = data?.availableColors || ["white", "black"];
