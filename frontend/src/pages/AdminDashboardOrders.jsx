@@ -85,18 +85,18 @@ const AdminDashboardOrders = () => {
             </div>
           </div>
 
-          {/* Orders Grid */}
-          {adminOrderLoading ? (
-            <Loader />
-          ) : (
-            <div className="grid gap-4">
-              {currentOrders?.map((order) => (
-                <motion.div
-                  key={order._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-white rounded-lg shadow-md p-6"
-                >
+     {/* Orders Grid */}
+     {adminOrderLoading ? (
+          <Loader />
+        ) : (
+          <div className="grid gap-4">
+            {currentOrders?.map((order) => (
+              <motion.div
+                key={order._id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-lg shadow-md p-6"
+              >
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-800">
@@ -115,12 +115,12 @@ const AdminDashboardOrders = () => {
                     </div>
                     
                     <div className="flex gap-3">
-                      <Link to={`/admin/order/${order._id}`}>
-                        <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                          <Eye size={20} />
-                          View Details
-                        </button>
-                      </Link>
+                  <Link to={`/admin/order/${order._id}`}>
+                    <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                      <Eye size={20} />
+                      View Details
+                    </button>
+                  </Link>
                       <button 
                         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                         onClick={() => {/* Download functionality */}}
