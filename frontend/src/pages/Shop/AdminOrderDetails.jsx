@@ -13,7 +13,7 @@ import { saveAs } from 'file-saver';
 import { motion } from 'framer-motion';
 
 
-
+//.
 
 const DesignPreview = ({ item }) => {
   const designStyles = DesignScalingManager.getDesignStyles(
