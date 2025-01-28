@@ -46,7 +46,7 @@ const AdminOrderDetails = () => {
   const dispatch = useDispatch();
   const [order, setOrder] = useState(null);
   const [status, setStatus] = useState("");
-  const { adminOrders, adminOrderLoading, isLoading } = useSelector((state) => state.order);
+  const { adminOrders, adminOrderLoading, isLoading , setIsLoading} = useSelector((state) => state.order);
 
   useEffect(() => {
     dispatch(getAllOrdersOfAdmin());
