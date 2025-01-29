@@ -7,7 +7,7 @@ import { DownloadCloud, Eye, Filter, Search } from 'lucide-react';
 import Loader from "../components/Layout/Loader";
 import { DesignDownloader } from '../utils/designDownload';
 import { toast } from "react-toastify";
-
+import { useNavigate } from "react-router-dom";
 const AdminDashboardOrders = () => {
   const dispatch = useDispatch();
   const { adminOrders, adminOrderLoading } = useSelector((state) => state.order)
@@ -15,7 +15,7 @@ const AdminDashboardOrders = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 10;
-
+  const navigate = useNavigate();
   
   useEffect(() => {
     const fetchOrders = async () => {
@@ -31,7 +31,7 @@ const AdminDashboardOrders = () => {
     };
     fetchOrders();
   }, [dispatch]);
-  
+
   // Filter and search logic
   const filteredOrders = adminOrders?.filter(order => {
     const matchesSearch = order._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
