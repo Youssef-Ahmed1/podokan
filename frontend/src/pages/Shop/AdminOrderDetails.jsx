@@ -71,6 +71,9 @@ const AdminOrderDetails = () => {
     }
   }, [adminOrders, id]);
 
+  const canDownloadDesign = (item) => {
+    return item && (item.designImage?.url || item.design?.url || item.designUrl);
+  };
   const handleStatusUpdate = async () => {
     setIsLoading(true);
     try {
@@ -82,7 +85,37 @@ const AdminOrderDetails = () => {
       setIsLoading(false);
     }
   };
+  const handleDownload = async (item) => {
+    try {
+      const result = await DesignDownloader.downloadSingleDesign(item);
+      if (result) {
+        toast.success('Design downloaded successfully');
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error(error.message || 'Failed to download design');
+    }
+  };
 
+  const handleBulkDownload = async () => {
+    try {
+      setIsLoading(true);
+      const results = await DesignDownloader.downloadOrderDesigns(order);
+      
+      // Show summary toast
+      if (results.success.length > 0) {
+        toast.success(`Successfully downloaded ${results.success.length} designs`);
+      }
+      if (results.failed.length > 0) {
+        toast.warning(`Failed to download ${results.failed.length} designs`);
+      }
+    } catch (error) {
+      console.error('Bulk download error:', error);
+      toast.error(error.message || 'Failed to download designs');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 const handleDownloadSpecs = async () => {
   try {
     setIsLoading(true);
@@ -129,9 +162,9 @@ const handleDownloadSpecs = async () => {
 
         <div className="mt-6">
           <h2 className="text-xl font-semibold mb-4">Order Items</h2>
-          {order.cart.map((item, index) => (
+{order.cart.map((item, index) => (
   <div key={index} className="bg-gray-50 p-4 rounded-lg mb-4">
-    <h3 className="text-lg font-medium">{item.DesignTitle}</h3>
+        <h3 className="text-lg font-medium">{item.DesignTitle}</h3>
     {/* Only render design preview if design data exists */}
     {item.designImage?.url && (
       <div className="relative w-full h-64">
@@ -160,6 +193,17 @@ const handleDownloadSpecs = async () => {
           />
         </div>
       </div>
+    )}
+      {canDownloadDesign(item) ? (
+      <button 
+        onClick={() => handleDownload(item)}
+        className="mt-4 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+      >
+        <Download size={16} />
+        Download This Design
+      </button>
+    ) : (
+      <p className="mt-4 text-gray-500 text-sm">Design not available for download</p>
     )}
     <p>Type: {item.ProductType}</p>
     <p>Color: {item.ProductColor}</p>
