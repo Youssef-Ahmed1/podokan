@@ -3,47 +3,49 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
 export const DesignDownloader = {
-  async downloadSingleDesign(item) {
-    try {
-      const zip = new JSZip();
-
-      // Add design image
-      const imageResponse = await fetch(item.designImage.url);
-      const imageBlob = await imageResponse.blob();
-      zip.file(`design_${item._id}.png`, imageBlob);
-
-      // Create specs JSON
-      const specs = {
-        product: {
-          type: item.ProductType,
-          color: item.ProductColor,
-          size: item.size,
-          view: item.ProductView || 'front'
-        },
-        design: {
-          title: item.DesignTitle,
-          position: item.DesignPosition,
-          scale: item.DesignScale
-        },
-        order: {
-          quantity: item.qty,
-          itemId: item._id
+    async downloadSingleDesign(item) {
+      try {
+        if (!item?.designImage?.url) {
+          throw new Error('Design image not available');
         }
-      };
-
-      zip.file(`specs_${item._id}.json`, JSON.stringify(specs, null, 2));
-
-      // Generate and download zip
-      const content = await zip.generateAsync({ type: "blob" });
-      saveAs(content, `design_${item._id}.zip`);
-
-      return true;
-    } catch (error) {
-      console.error('Download error:', error);
-      throw error;
-    }
-  },
-
+  
+        const zip = new JSZip();
+  
+        // Add design image
+        const imageResponse = await fetch(item.designImage.url);
+        const imageBlob = await imageResponse.blob();
+        zip.file(`design_${item._id}.png`, imageBlob);
+  
+        // Create specs JSON with default values
+        const specs = {
+          product: {
+            type: item.ProductType || 'unknown',
+            color: item.ProductColor || 'white',
+            size: item.size || 'unknown',
+            view: item.ProductView || 'front'
+          },
+          design: {
+            title: item.DesignTitle || `Design_${item._id}`,
+            position: item.DesignPosition || { x: 50, y: 40 },
+            scale: item.DesignScale || 0.8
+          },
+          order: {
+            quantity: item.qty || 1,
+            itemId: item._id
+          }
+        };
+  
+        zip.file(`specs_${item._id}.json`, JSON.stringify(specs, null, 2));
+  
+        const content = await zip.generateAsync({ type: "blob" });
+        saveAs(content, `design_${item._id}.zip`);
+  
+        return true;
+      } catch (error) {
+        console.error('Download error:', error);
+        throw error;
+      }
+    },
   async downloadOrderDesigns(order) {
     try {
       const zip = new JSZip();

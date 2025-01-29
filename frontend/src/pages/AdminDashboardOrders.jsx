@@ -10,16 +10,28 @@ import { toast } from "react-toastify";
 
 const AdminDashboardOrders = () => {
   const dispatch = useDispatch();
-  const { adminOrders, adminOrderLoading } = useSelector((state) => state.order);
+  const { adminOrders, adminOrderLoading } = useSelector((state) => state.order)
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 10;
 
+  
   useEffect(() => {
-    dispatch(getAllOrdersOfAdmin());
+    const fetchOrders = async () => {
+      try {
+        await dispatch(getAllOrdersOfAdmin());
+      } catch (error) {
+        toast.error("Failed to fetch orders. Please try again.");
+        // Optionally redirect to login if authentication failed
+        if (error?.response?.status === 401) {
+          navigate("/admin-login");
+        }
+      }
+    };
+    fetchOrders();
   }, [dispatch]);
-
+  
   // Filter and search logic
   const filteredOrders = adminOrders?.filter(order => {
     const matchesSearch = order._id.toLowerCase().includes(searchTerm.toLowerCase()) ||

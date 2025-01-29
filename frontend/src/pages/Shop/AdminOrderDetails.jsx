@@ -17,31 +17,36 @@ import { DesignDownloader } from '../../utils/designDownload.jsx';
 
 
 const DesignPreview = ({ item }) => {
+  // Add default values for undefined properties
+  const position = item.DesignPosition || { x: 50, y: 40 };
+  const scale = item.DesignScale || 0.8;
+  
   const designStyles = DesignScalingManager.getDesignStyles(
-    { x: item.designSpecs.positionX, y: item.designSpecs.positionY },
-    item.designSpecs.scale,
-    item.ProductColor,
-    item.ProductType
+    position,
+    scale,
+    item.ProductColor || 'white',
+    item.ProductView || 'front'
   );
 
   return (
     <div className="relative w-full h-64">
       <img
-        src={`/images/${item.ProductType}-${item.ProductColor}.png`}
+        src={`/images/${item.ProductType}-${item.ProductColor || 'white'}.png`}
         alt={item.ProductType}
         className="w-full h-full object-contain"
       />
-      <div style={designStyles.container}>
-        <img
-          src={item.designImage.url}
-          alt="Design"
-          style={designStyles.image}
-        />
-      </div>
+      {item.designImage?.url && (
+        <div style={designStyles.container}>
+          <img
+            src={item.designImage.url}
+            alt="Design"
+            style={designStyles.image}
+          />
+        </div>
+      )}
     </div>
   );
 };
-
 
 const AdminOrderDetails = () => {
   const { id } = useParams();
@@ -126,39 +131,43 @@ const handleDownloadSpecs = async () => {
           <h2 className="text-xl font-semibold mb-4">Order Items</h2>
           {order.cart.map((item, index) => (
   <div key={index} className="bg-gray-50 p-4 rounded-lg mb-4">
-              <h3 className="text-lg font-medium">{item.DesignTitle}</h3>
-              <div className="relative w-full h-64">
-                <img
-                  src={`/images/${item.ProductType}-${item.ProductColor}.png`}
-                  alt={item.ProductType}
-                  className="w-full h-full object-contain"
-                />
-                <div
-                  style={DesignScalingManager.getDesignStyles(
-                    item.DesignPosition,
-                    item.DesignScale,
-                    item.ProductColor,
-                    item.ProductView
-                  ).container}
-                >
-                  <img
-                    src={item.designImage.url}
-                    alt="Design"
-                    style={DesignScalingManager.getDesignStyles(
-                      item.DesignPosition,
-                      item.DesignScale,
-                      item.ProductColor,
-                      item.ProductView
-                    ).image}
-                  />
-                </div>
-              </div>
-              <p>Type: {item.ProductType}</p>
-              <p>Color: {item.ProductColor}</p>
-              <p>Size: {item.size}</p>
-              <p>Quantity: {item.qty}</p>
-            </div>
-          ))}
+    <h3 className="text-lg font-medium">{item.DesignTitle}</h3>
+    {/* Only render design preview if design data exists */}
+    {item.designImage?.url && (
+      <div className="relative w-full h-64">
+        <img
+          src={`/images/${item.ProductType}-${item.ProductColor || 'white'}.png`}
+          alt={item.ProductType}
+          className="w-full h-full object-contain"
+        />
+        <div
+          style={DesignScalingManager.getDesignStyles(
+            item.DesignPosition || { x: 50, y: 40 },
+            item.DesignScale || 0.8,
+            item.ProductColor || 'white',
+            item.ProductView || 'front'
+          ).container}
+        >
+          <img
+            src={item.designImage.url}
+            alt="Design"
+            style={DesignScalingManager.getDesignStyles(
+              item.DesignPosition || { x: 50, y: 40 },
+              item.DesignScale || 0.8,
+              item.ProductColor || 'white',
+              item.ProductView || 'front'
+            ).image}
+          />
+        </div>
+      </div>
+    )}
+    <p>Type: {item.ProductType}</p>
+    <p>Color: {item.ProductColor}</p>
+    <p>Size: {item.size}</p>
+    <p>Quantity: {item.qty}</p>
+  </div>
+))}
+
         </div>
         <button 
       onClick={async (item) => {
