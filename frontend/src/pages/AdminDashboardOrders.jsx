@@ -58,12 +58,34 @@ const AdminDashboardOrders = () => {
     };
     return styles[status] || "bg-gray-100 text-gray-800";
   };
-  const handleDownload = async (order) => {
+  const handleDownload = async (item) => {
     try {
-      await DesignDownloader.downloadOrderDesigns(order);
-      toast.success('Designs downloaded successfully!');
+      const result = await DesignDownloader.downloadSingleDesign(item);
+      if (result) {
+        toast.success('Design downloaded successfully');
+      }
     } catch (error) {
-      toast.error('Failed to download designs');
+      console.error('Download error:', error);
+      toast.error(error.message || 'Failed to download design');
+    }
+  };
+  const handleBulkDownload = async () => {
+    try {
+      setIsLoading(true);
+      const results = await DesignDownloader.downloadOrderDesigns(order);
+      
+      // Show summary toast
+      if (results.success.length > 0) {
+        toast.success(`Successfully downloaded ${results.success.length} designs`);
+      }
+      if (results.failed.length > 0) {
+        toast.warning(`Failed to download ${results.failed.length} designs`);
+      }
+    } catch (error) {
+      console.error('Bulk download error:', error);
+      toast.error(error.message || 'Failed to download designs');
+    } finally {
+      setIsLoading(false);
     }
   };
   return (
