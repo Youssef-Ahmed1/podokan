@@ -16,7 +16,8 @@ const AdminDashboardOrders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 10;
   const navigate = useNavigate();
-  
+    const [isLoading, setIsLoading] = useState(false);
+      const [order, setOrder] = useState(null);
   useEffect(() => {
     const fetchOrders = async () => {
       try {
