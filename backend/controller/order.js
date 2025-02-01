@@ -6,6 +6,7 @@ const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
 const Order = require("../model/order");
 const Shop = require("../model/shop");
 const Product = require("../model/product");
+const { ORDER_STATUSES } = require('../constants/orderStatuses');
 const { body, validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 const sharp = require('sharp');
