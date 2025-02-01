@@ -61,18 +61,26 @@ const AdminOrderDetails = () => {
     dispatch(getAllOrdersOfAdmin());
   }, [dispatch]);
 
+
   useEffect(() => {
     if (adminOrders) {
       const foundOrder = adminOrders.find(o => o._id === id);
       if (foundOrder) {
         setOrder(foundOrder);
-        setStatus(foundOrder.status);
+        setStatus(foundOrder.status || "Processing"); // Set default status
       }
     }
   }, [adminOrders, id]);
 
   const canDownloadDesign = (item) => {
-    return item && (item.designImage?.url || item.design?.url || item.designUrl);
+    const hasDesignImage = 
+      item?.designImage?.url ||
+      item?.cart?.[0]?.designImage?.url ||
+      item?.design?.url ||
+      item?.products?.[0]?.designImage?.url ||
+      (Array.isArray(item?.cart) && item.cart[0]?.design?.url);
+    
+    return Boolean(hasDesignImage);
   };
   const handleStatusUpdate = async () => {
     setIsLoading(true);
@@ -85,17 +93,62 @@ const AdminOrderDetails = () => {
       setIsLoading(false);
     }
   };
-  const handleDownload = async (item) => {
-    try {
-      const result = await DesignDownloader.downloadSingleDesign(item);
-      if (result) {
-        toast.success('Design downloaded successfully');
-      }
-    } catch (error) {
-      console.error('Download error:', error);
-      toast.error(error.message || 'Failed to download design');
+ // For design downloads, let's add detailed logging
+ const handleDownload = async (item) => {
+  try {
+    console.log("Downloading item:", item);
+    console.log("Design image path:", item?.designImage);
+    console.log("Item full structure:", JSON.stringify(item, null, 2));
+
+    // Check if we have the correct data structure
+    if (!item?.designImage?.url) {
+      throw new Error("Design image not found in the correct format");
     }
-  };
+
+    const zip = new JSZip();
+
+    // Download the design image
+    const imageResponse = await fetch(item.designImage.url);
+    if (!imageResponse.ok) {
+      throw new Error(`Failed to fetch image: ${imageResponse.statusText}`);
+    }
+
+    const imageBlob = await imageResponse.blob();
+    zip.file(`design_${item._id}.png`, imageBlob);
+
+    // Add design specifications
+    const specs = {
+      orderInfo: {
+        orderId: order._id,
+        orderDate: order.createdAt,
+        status: order.status
+      },
+      productInfo: {
+        title: item.title || "Unknown Product",
+        type: item.ProductType || "Unknown Type",
+        color: item.ProductColor || "Unknown Color",
+        size: item.size || "Unknown Size"
+      },
+      designInfo: {
+        image: item.designImage?.url,
+        position: item.DesignPosition || { x: 50, y: 50 },
+        scale: item.DesignScale || 1
+      }
+    };
+
+    zip.file(`specs_${item._id}.json`, JSON.stringify(specs, null, 2));
+
+    // Generate and download zip
+    const content = await zip.generateAsync({ type: "blob" });
+    saveAs(content, `design_${item._id}.zip`);
+
+    toast.success("Design package downloaded successfully");
+  } catch (error) {
+    console.error("Download error:", error);
+    toast.error(error.message || "Failed to download design");
+  }
+};
+
 
   const handleBulkDownload = async () => {
     try {
@@ -132,15 +185,23 @@ const handleDownloadSpecs = async () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl shadow-lg p-6"
-      >
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6"
+    >
         <h1 className="text-2xl font-bold text-gray-800 mb-4">Order #{order._id}</h1>
         
         <Timeline status={order.status} deliveryDate={order.estimatedDelivery} />
-
+        
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-800">
+            Order #{order?._id?.slice(0, 8)}
+          </h1>
+          <p className="text-gray-600">
+            {order?.createdAt && new Date(order.createdAt).toLocaleString()}
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <div className="bg-gray-50 p-4 rounded-lg">
@@ -162,7 +223,7 @@ const handleDownloadSpecs = async () => {
 
         <div className="mt-6">
           <h2 className="text-xl font-semibold mb-4">Order Items</h2>
-{order.cart.map((item, index) => (
+          {order.cart.map((item, index) => (
   <div key={index} className="bg-gray-50 p-4 rounded-lg mb-4">
         <h3 className="text-lg font-medium">{item.DesignTitle}</h3>
     {/* Only render design preview if design data exists */}
@@ -194,13 +255,13 @@ const handleDownloadSpecs = async () => {
         </div>
       </div>
     )}
-      {canDownloadDesign(item) ? (
+     {canDownloadDesign(item) ? (
       <button 
         onClick={() => handleDownload(item)}
         className="mt-4 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
       >
         <Download size={16} />
-        Download This Design
+        Download Design
       </button>
     ) : (
       <p className="mt-4 text-gray-500 text-sm">Design not available for download</p>
@@ -255,6 +316,60 @@ const handleDownloadSpecs = async () => {
             <Package className="mr-2" />
             {isLoading ? 'Downloading...' : 'Download All Specs (ZIP)'}
           </button>
+        </div>
+   {/* Status Update Section */}
+   <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+          <h2 className="text-lg font-semibold mb-4">Update Order Status</h2>
+          <div className="flex items-center gap-4">
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              disabled={isLoading}
+            >
+              <option value="Processing">Processing</option>
+              <option value="Transferred to delivery partner">Transferred to delivery partner</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+            <button
+              onClick={handleStatusUpdate}
+              disabled={isLoading}
+              className={`px-4 py-2 rounded-lg ${
+                isLoading 
+                  ? "bg-gray-400 cursor-not-allowed" 
+                  : "bg-blue-600 hover:bg-blue-700"
+              } text-white`}
+            >
+              {isLoading ? "Updating..." : "Update Status"}
+            </button>
+          </div>
+        </div>
+
+        {/* Order Items */}
+        <div className="mt-6">
+          <h2 className="text-xl font-semibold mb-4">Order Items</h2>
+          {order?.cart?.map((item, index) => (
+            <div key={index} className="mb-4 p-4 border rounded-lg">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-medium">{item.title || "Product"}</h3>
+                  <p className="text-gray-600">Quantity: {item.qty}</p>
+                  <p className="text-gray-600">Size: {item.size}</p>
+                  <p className="text-gray-600">Color: {item.ProductColor}</p>
+                </div>
+                {item.designImage?.url && (
+                  <button
+                    onClick={() => handleDownload(item)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    <Download size={16} />
+                    Download Design
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </motion.div>
     </div>
