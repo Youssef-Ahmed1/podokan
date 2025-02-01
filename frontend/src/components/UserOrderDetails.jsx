@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { BsFillBagFill, BsTagFill } from "react-icons/bs";
-import { TShirt, ShoppingBag, Info, Truck, Package } from "lucide-react";
+import { Truck, Package, ShoppingCart, Info, Shirt, CreditCard } from "lucide-react";
 import { getAllOrdersOfUser } from "../redux/actions/order";
 import { useParams } from "react-router-dom";
 
@@ -12,7 +12,7 @@ const UserOrderDetails = () => {
   const dispatch = useDispatch();
   const { id } = useParams();
   const [loadingImage, setLoadingImage] = useState(true);
-  const data = orders && orders.find((item) => item._id === id);
+  const data = orders?.find((item) => item._id === id);
 
   useEffect(() => {
     dispatch(getAllOrdersOfUser(user._id));
@@ -35,11 +35,11 @@ const UserOrderDetails = () => {
               alt="Product base"
             />
             <img
-              src={item.designImage.url}
+              src={item.designImage?.url}
               className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
               style={{
-                width: `${item.designSpecs.scale * 100}%`,
-                transform: `rotate(${item.designSpecs.rotation}deg)`,
+                width: `${item.designSpecs?.scale * 100 || 100}%`,
+                transform: `rotate(${item.designSpecs?.rotation || 0}deg)`,
                 mixBlendMode: item.ProductColor === 'white' ? 'multiply' : 'overlay'
               }}
               alt="Product design"
@@ -55,7 +55,7 @@ const UserOrderDetails = () => {
           {/* Pricing Card */}
           <div className="bg-white p-6 rounded-xl shadow-md">
             <div className="flex items-center gap-2 mb-4">
-              <ShoppingBag className="text-purple-600" />
+              <ShoppingCart className="text-purple-600" />
               <h3 className="text-xl font-semibold">Pricing Details</h3>
             </div>
             
@@ -78,7 +78,7 @@ const UserOrderDetails = () => {
           {/* Product Specifications */}
           <div className="bg-white p-6 rounded-xl shadow-md">
             <div className="flex items-center gap-2 mb-4">
-              <TShirt className="text-purple-600" />
+              <Shirt className="text-purple-600" />
               <h3 className="text-xl font-semibold">Product Specifications</h3>
             </div>
 
@@ -115,7 +115,7 @@ const UserOrderDetails = () => {
               <div className="col-span-2">
                 <p className="text-gray-600">Product Tags:</p>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {item.tags.map((tag) => (
+                  {(item.tags || []).map((tag) => (
                     <span
                       key={tag}
                       className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full"
@@ -147,20 +147,20 @@ const UserOrderDetails = () => {
         <div>
           <p className="text-gray-600">Shipping Address:</p>
           <p className="mt-1 font-medium">
-            {data.shippingAddress.address1}, {data.shippingAddress.city}
+            {data?.shippingAddress?.address1}, {data?.shippingAddress?.city}
           </p>
         </div>
 
         <div>
           <p className="text-gray-600">Contact Information:</p>
-          <p className="mt-1 font-medium">{data.shippingAddress.phoneNumber}</p>
+          <p className="mt-1 font-medium">{data?.shippingAddress?.phoneNumber}</p>
         </div>
 
         <div className="md:col-span-2">
           <div className="bg-blue-50 p-4 rounded-lg">
             <p className="flex items-center gap-2 text-sm">
               <Package className="flex-shrink-0" />
-              {data.status === 'Delivered'
+              {data?.status === 'Delivered'
                 ? `Delivered on ${new Date(data.deliveredAt).toLocaleDateString()}`
                 : 'Expected delivery within 5-7 business days'}
             </p>
@@ -179,7 +179,7 @@ const UserOrderDetails = () => {
         <h1 className="text-3xl font-bold text-gray-900">Order Summary</h1>
       </div>
 
-      {data.cart.map((item, index) => (
+      {data?.cart?.map((item, index) => (
         <div key={index}>
           {renderProductPreview(item)}
         </div>
@@ -194,19 +194,19 @@ const UserOrderDetails = () => {
         animate={{ opacity: 1 }}
       >
         <div className="flex items-center gap-2 mb-4">
-          <ShoppingBag className="text-purple-600" />
+          <CreditCard className="text-purple-600" />
           <h3 className="text-xl font-semibold">Payment Summary</h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <p className="text-gray-600">Payment Method:</p>
-            <p className="mt-1 font-medium">{data.paymentInfo.type}</p>
+            <p className="mt-1 font-medium">{data?.paymentInfo?.type}</p>
           </div>
 
           <div>
             <p className="text-gray-600">Total Amount Paid:</p>
-            <p className="mt-1 font-bold text-purple-600 text-xl">EGP{data.totalPrice}</p>
+            <p className="mt-1 font-bold text-purple-600 text-xl">EGP{data?.totalPrice}</p>
           </div>
 
           <div className="md:col-span-2">
@@ -214,11 +214,11 @@ const UserOrderDetails = () => {
               <p className="flex items-center gap-2 text-sm">
                 <span className="font-medium">Payment Status:</span>
                 <span className={`px-3 py-1 rounded-full ${
-                  data.paymentInfo.status === 'Succeeded'
+                  data?.paymentInfo?.status === 'Succeeded'
                     ? 'bg-green-100 text-green-800'
                     : 'bg-yellow-100 text-yellow-800'
                 }`}>
-                  {data.paymentInfo.status}
+                  {data?.paymentInfo?.status}
                 </span>
               </p>
             </div>
