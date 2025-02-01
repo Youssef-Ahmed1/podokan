@@ -1,6 +1,7 @@
+// UserOrderDetails.jsx
 import React, { useEffect, useState } from "react";
 import { BsFillBagFill } from "react-icons/bs";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "../styles/styles";
 import { getAllOrdersOfUser } from "../redux/actions/order";
@@ -9,10 +10,7 @@ import { RxCross1 } from "react-icons/rx";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { DesignScalingManager } from '../utils/designScaling';
-import { Timeline } from '../components/Order/Timeline';
-import { Download, Clock, CheckCircle, Truck, Package } from "lucide-react";
-import { formatDistance } from 'date-fns';
+import { Clock, Package, Truck } from "lucide-react";
 
 const UserOrderDetails = () => {
   const { orders } = useSelector((state) => state.order);
@@ -40,7 +38,6 @@ const UserOrderDetails = () => {
           user,
           rating,
           comment,
-          
           productId: selectedItem?._id,
           orderId: id,
         },
@@ -57,41 +54,28 @@ const UserOrderDetails = () => {
         toast.error(error.response.data.message);
       });
   };
-  const renderDeliveryStatus = () => {
-    if (!data.estimatedDelivery) {
+
+  const renderOrderStatus = () => {
+    if (!data?.estimatedDelivery) {
       return (
-        <div className="bg-yellow-100 p-4 rounded-lg mb-6">
-          <Clock className="inline-block mr-2" />
-          We're preparing your order. We'll notify you with a delivery date soon.
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center gap-2">
+            <Clock className="w-5 h-5 text-yellow-600" />
+            <span className="text-yellow-700">
+              We're preparing your order. We'll notify you with a delivery date soon.
+            </span>
+          </div>
         </div>
       );
     }
 
-    const daysRemaining = Math.ceil(
-      (new Date(data.estimatedDelivery) - new Date()) / (1000 * 60 * 60 * 24)
-    );
-
     return (
-      <div className="bg-blue-100 p-4 rounded-lg mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <Truck className="text-blue-600" />
-          <span className="font-semibold">
-            {daysRemaining > 0 
-              ? `Estimated delivery in ${daysRemaining} days`
-              : 'Your order should arrive today!'}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div className="flex items-center gap-2">
+          <Truck className="w-5 h-5 text-blue-600" />
+          <span className="text-blue-700">
+            Estimated delivery: {new Date(data.estimatedDelivery).toLocaleDateString()}
           </span>
-        </div>
-        <div className="text-sm">
-          Expected by: {new Date(data.estimatedDelivery).toLocaleDateString()}
-          {data.adminUpdates.length > 0 && (
-            <span className="text-gray-600 ml-2">
-              (Last updated {formatDistance(
-                new Date(data.adminUpdates.slice(-1)[0].updatedAt), 
-                new Date(), 
-                { addSuffix: true }
-              )})
-            </span>
-          )}
         </div>
       </div>
     );
@@ -109,7 +93,6 @@ const UserOrderDetails = () => {
   };
 
   return (
-    
     <div className={`py-4 min-h-screen ${styles.section}`}>
       <div className="w-full flex items-center justify-between">
         <div className="flex items-center">
@@ -117,207 +100,201 @@ const UserOrderDetails = () => {
           <h1 className="pl-2 text-[25px]">Order Details</h1>
         </div>
       </div>
-  <div className="container mx-auto p-4">
-      {renderDeliveryStatus()}
-      
-      {/* Product Preview */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-xl font-bold mb-4">
-          {data.productSnapshot.title}
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="relative">
-            <img
-              src={data.productSnapshot.designImage}
-              className="w-full h-auto max-h-96 object-contain"
-              alt="Product design"
-            />
-             <p className="mb-4">{data.productSnapshot.description}</p>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-gray-600">Color:</label>
-                <p className="font-medium">{data.productSnapshot.color}</p>
+
+      {renderOrderStatus()}
+
+      {/* Product Information */}
+      <div className="bg-white rounded-lg shadow p-6 mb-6">
+        {data?.productSnapshot && (
+          <>
+            <h3 className="text-xl font-bold mb-4">{data.productSnapshot.title}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-gray-600 block">Color:</label>
+                  <p className="font-medium">{data.productSnapshot.color}</p>
+                </div>
+                <div>
+                  <label className="text-gray-600 block">Size:</label>
+                  <p className="font-medium">{data.productSnapshot.size}</p>
+                </div>
+                <div>
+                  <label className="text-gray-600 block">Design Tags:</label>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {data.productSnapshot.designTags?.map((tag, index) => (
+                      <span 
+                        key={index}
+                        className="bg-gray-100 px-2 py-1 rounded text-sm"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="text-gray-600">Size:</label>
-                <p className="font-medium">{data.productSnapshot.size}</p>
-              </div>
-              <div className="col-span-2">
-                <label className="text-gray-600">Design Tags:</label>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {data.productSnapshot.designTags.map(tag => (
-                    <span 
-                      key={tag}
-                      className="bg-gray-100 px-2 py-1 rounded text-sm"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-          </div>
-          </div>
-          </div>
-          </div>
-          </div>
-          </div>
-          </div>
-          
-          
-      <div className="w-full flex items-center justify-between pt-6">
-        <h5 className="text-[#00000084]">
-          Order ID: <span>#{data?._id?.slice(0, 8)}</span>
-        </h5>
-        <h5 className="text-[#00000084]">
-          Placed on: <span>{data?.createdAt?.slice(0, 10)}</span>
-        </h5>
+              
+              {data.productSnapshot.description && (
+                <div>
+                  <label className="text-gray-600 block">Description:</label>
+                  <p className="mt-1">{data.productSnapshot.description}</p>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
-      {/* order items */}
-      <br />
-      <br />
-      {data &&
-        data?.cart.map((item, index) => (
-          <div key={index} className="w-full flex items-start mb-5">
+      {/* Order Items */}
+      <div className="space-y-4">
+        {data?.cart.map((item, index) => (
+          <div key={index} className="bg-white rounded-lg shadow p-4 flex items-start">
             <img
               src={item.designImage?.url || item.designImage}
-              alt=""
-              className="w-[80px] h-[80px] object-cover"
+              alt={item.DesignTitle}
+              className="w-24 h-24 object-cover rounded-lg"
             />
-            <div className="w-full pl-3">
-              <h5 className="text-[20px]">{item.DesignTitle}</h5>
-              <h5 className="text-[20px] text-[#00000091]">
-                egp{item.discountPrice} x {item.qty}
-              </h5>
+            <div className="flex-1 ml-4">
+              <h5 className="text-lg font-medium">{item.DesignTitle}</h5>
+              <p className="text-gray-600">
+                EGP{item.discountPrice} x {item.qty}
+              </p>
+              {!item.isReviewed && data?.status === "Delivered" && (
+                <button
+                  className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  onClick={() => setOpen(true) || setSelectedItem(item)}
+                >
+                  Write a review
+                </button>
+              )}
             </div>
-            {!item.isReviewed && data?.status === "Delivered" && (
-              <div
-                className={`${styles.button} text-[#fff]`}
-                onClick={() => setOpen(true) || setSelectedItem(item)}
-              >
-                Write a review
-              </div>
-            )}
           </div>
         ))}
+      </div>
 
-      {/* review popup */}
+      {/* Review Modal */}
       {open && (
-        <div className="fixed inset-0 bg-[#0005] z-50 flex items-center justify-center">
-          <div className="w-[50%] max-w-[500px] bg-white shadow rounded-md p-5">
-            <div className="w-full flex justify-end">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6">
+            <div className="flex justify-end">
               <RxCross1
-                size={30}
+                size={24}
                 onClick={() => setOpen(false)}
                 className="cursor-pointer"
               />
             </div>
-            <h2 className="text-[30px] font-[500] font-Poppins text-center">
-              Give a Review
+            <h2 className="text-2xl font-medium text-center mb-6">
+              Write a Review
             </h2>
-            <div className="w-full flex mt-5">
+            <div className="flex items-center gap-4 mb-6">
               <img
                 src={selectedItem?.designImage?.url || selectedItem?.designImage}
                 alt=""
-                className="w-[80px] h-[80px] object-cover"
+                className="w-20 h-20 object-cover rounded-lg"
               />
-              <div className="pl-3">
-                <h4 className="text-[20px]">{selectedItem?.DesignTitle}</h4>
-                <h4 className="text-[20px]">
-                  egp{selectedItem?.discountPrice} x {selectedItem?.qty}
-                </h4>
+              <div>
+                <h4 className="font-medium">{selectedItem?.DesignTitle}</h4>
+                <p className="text-gray-600">
+                  EGP{selectedItem?.discountPrice} x {selectedItem?.qty}
+                </p>
               </div>
             </div>
-            <br />
-            <h5 className="text-[20px] font-[500]">
-              Give a Rating <span className="text-red-500">*</span>
-            </h5>
-            <div className="flex w-full pt-1">
-              {[1, 2, 3, 4, 5].map((i) =>
-                rating >= i ? (
-                  <AiFillStar
-                    key={i}
-                    className="mr-1 cursor-pointer"
-                    color="rgb(246,186,0)"
-                    size={25}
-                    onClick={() => setRating(i)}
-                  />
-                ) : (
-                  <AiOutlineStar
-                    key={i}
-                    className="mr-1 cursor-pointer"
-                    color="rgb(246,186,0)"
-                    size={25}
-                    onClick={() => setRating(i)}
-                  />
-                )
-              )}
+            
+            <div className="mb-6">
+              <label className="block font-medium mb-2">
+                Rating <span className="text-red-500">*</span>
+              </label>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((i) =>
+                  rating >= i ? (
+                    <AiFillStar
+                      key={i}
+                      className="cursor-pointer"
+                      color="rgb(246,186,0)"
+                      size={28}
+                      onClick={() => setRating(i)}
+                    />
+                  ) : (
+                    <AiOutlineStar
+                      key={i}
+                      className="cursor-pointer"
+                      color="rgb(246,186,0)"
+                      size={28}
+                      onClick={() => setRating(i)}
+                    />
+                  )
+                )}
+              </div>
             </div>
-            <br />
-            <div className="w-full">
-              <label className="block text-[20px] font-[500]">
-                Write a comment
-                <span className="ml-1 font-[400] text-[16px] text-[#00000052]">
-                  (optional)
-                </span>
+            
+            <div className="mb-6">
+              <label className="block font-medium mb-2">
+                Comment
+                <span className="ml-1 text-sm text-gray-500">(optional)</span>
               </label>
               <textarea
-                name="comment"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="How was your product? Write your expression about it!"
-                className="mt-2 w-full border p-2 outline-none"
+                placeholder="Share your thoughts about the product..."
+                className="w-full border rounded-lg p-3 h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows="5"
               ></textarea>
             </div>
-            <div
-              className={`${styles.button} text-white text-[20px] mt-5`}
+            
+            <button
+              className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               onClick={reviewHandler}
             >
-              Submit
-            </div>
+              Submit Review
+            </button>
           </div>
         </div>
       )}
 
-      <div className="border-t w-full text-right">
-        <h5 className="pt-3 text-[18px]">
-          Total Price: <strong>EGP{data?.totalPrice}</strong>
-        </h5>
-      </div>
-      <br />
-      <br />
-      <div className="w-full flex flex-col md:flex-row">
-        <div className="w-full md:w-[60%]">
-          <h4 className="pt-3 text-[20px] font-[600]">Shipping Address:</h4>
-          <h4 className="pt-3 text-[20px]">
-            {data?.shippingAddress.address1} {data?.shippingAddress.address2}
-          </h4>
-          <h4 className="text-[20px]">{data?.shippingAddress.city}</h4>
-          <h4 className="text-[20px]">{data?.shippingAddress.phoneNumber}</h4>
+      {/* Order Summary */}
+      <div className="mt-6 bg-white rounded-lg shadow p-6">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <p className="text-gray-600">Order ID: #{data?._id?.slice(0, 8)}</p>
+            <p className="text-gray-600">
+              Placed on: {data?.createdAt?.slice(0, 10)}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-xl font-bold">
+              Total Price: EGP{data?.totalPrice}
+            </p>
+          </div>
         </div>
-        <div className="w-full md:w-[40%] mt-5 md:mt-0">
-          <h4 className="pt-3 text-[20px]">Payment Info:</h4>
-          <h4>
-            Status: {data?.paymentInfo?.status ? data?.paymentInfo?.status : "Not Paid"}
-          </h4>
-          {data?.status === "Delivered" && (
-            <div
-              className={`${styles.button} text-white mt-5`}
-              onClick={refundHandler}
-            >
-              Give a Refund
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="font-medium text-lg mb-2">Shipping Address</h4>
+            <div className="space-y-1 text-gray-600">
+              <p>{data?.shippingAddress?.address1}</p>
+              <p>{data?.shippingAddress?.address2}</p>
+              <p>{data?.shippingAddress?.city}</p>
+              <p>{data?.shippingAddress?.phoneNumber}</p>
             </div>
-          )}
+          </div>
+          
+          <div>
+            <h4 className="font-medium text-lg mb-2">Payment Information</h4>
+            <p className="text-gray-600">
+              Status: {data?.paymentInfo?.status ? data?.paymentInfo?.status : "Not Paid"}
+            </p>
+            {data?.status === "Delivered" && (
+              <button
+                className="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                onClick={refundHandler}
+              >
+                Request Refund
+              </button>
+            )}
+          </div>
         </div>
       </div>
-      <br />
-      <Link to="/">
-        <div className={`${styles.button} text-white`}>Send Message</div>
-      </Link>
-      <br />
-      <br />
+
     </div>
-    
   );
 };
 
