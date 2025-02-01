@@ -7,5 +7,6 @@ module.exports = {
       REFUND_PROCESSING: 'Refund Processing',
       REFUND_SUCCESS: 'Refund Success',
       CANCELLED: 'Cancelled'
-    }
+    },
   };
+
