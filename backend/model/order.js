@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const { ORDER_STATUSES } = require('../constants/orderStatuses');
 const designSpecSchema = new mongoose.Schema({
   size: {
     type: String,
