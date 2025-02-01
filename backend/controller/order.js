@@ -182,28 +182,45 @@ router.post(
 
       const { cart, shippingAddress, user, totalPrice, paymentInfo } = req.body;
 
-      // Format the cart data
-      const formattedCart = cart.map(item => ({
-        _id: item._id,
-        qty: Number(item.qty),
-        shopId: item.shopId,
-        price: Number(item.price),
-        designImage: item.designImage,
-        DesignTitle: item.DesignTitle,
-        ProductType: item.ProductType,
-        ProductColor: item.ProductColor
+      // Fetch complete product details for snapshot
+      const formattedCart = await Promise.all(cart.map(async (item) => {
+        const product = await Product.findById(item._id);
+        if (!product) {
+          throw new ErrorHandler(`Product not found: ${item._id}`, 404);
+        }
+
+        return {
+          _id: item._id,
+          qty: Number(item.qty),
+          shopId: item.shopId,
+          price: Number(item.price),
+          designImage: item.designImage,
+          DesignTitle: product.DesignTitle,
+          ProductType: product.ProductType,
+          ProductColor: product.ProductColor,
+          designSpecs: {
+            size: item.selectedSize,
+            positionX: item.designSpecs?.positionX || 50,
+            positionY: item.designSpecs?.positionY || 50,
+            scale: item.designSpecs?.scale || 1,
+            rotation: item.designSpecs?.rotation || 0
+          }
+        };
+      }));
+
+      // Create product snapshots
+      const productSnapshots = formattedCart.map(item => ({
+        title: item.DesignTitle,
+        description: `Custom ${item.ProductType} design`,
+        color: item.ProductColor,
+        size: item.designSpecs.size,
+        designTags: item.designTags || [],
+        originalProductId: item._id
       }));
 
       // Create the order
       const orderData = {
-        productSnapshot: {
-          title: Product.name,
-          description: Product.description,
-          color: Product.color,
-          size: req.body.selectedSize,
-          designTags: Product.tags,
-          originalProductId: Product._id
-        },
+        productSnapshots,
         cart: formattedCart,
         shippingAddress,
         user,
@@ -213,10 +230,17 @@ router.post(
           status: paymentInfo?.status || "Processing",
           type: paymentInfo?.type || "Cash On Delivery"
         },
-        status: "Processing"
+        status: "Processing",
+        estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Default 7 days delivery
       };
 
       const order = await Order.create(orderData);
+      
+      // Update product stock
+      await Promise.all(formattedCart.map(item => 
+        updateProductStock(item._id, item.qty)
+      ));
+
       res.status(201).json({
         success: true,
         order,
@@ -227,6 +251,8 @@ router.post(
     }
   })
 );
+
+
 // Get all orders of a user
 router.get(
   "/get-all-orders/:userId",

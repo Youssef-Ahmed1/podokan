@@ -1,18 +1,15 @@
+// orderActions.js
 import axios from "axios";
 import { server } from "../../server";
 
-// get all orders of user
+// Get user orders
 export const getAllOrdersOfUser = (userId) => async (dispatch) => {
   try {
-    dispatch({
-      type: "getAllOrdersUserRequest",
-    });
+    dispatch({ type: "getAllOrdersUserRequest" });
 
     const { data } = await axios.get(
       `${server}/order/get-all-orders/${userId}`,
-      {
-        withCredentials: true,
-      }
+      { withCredentials: true }
     );
 
     dispatch({
@@ -22,13 +19,12 @@ export const getAllOrdersOfUser = (userId) => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: "getAllOrdersUserFailed",
-      payload: error.response.data.message,
+      payload: error.response?.data?.message || "Error fetching user orders",
     });
   }
 };
 
-// get all orders of seller  if it disappeared it will cause an error
-// that the seller won't be able to see the order that are is 
+// Get shop orders
 export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
   try {
     dispatch({ type: "getAllOrdersShopRequest" });
@@ -39,32 +35,27 @@ export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
         withCredentials: true,
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Seller-Authorization': `Bearer ${localStorage.getItem('seller_token')}`
+          'Shop-Authorization': `Bearer ${localStorage.getItem('seller_token')}`
         }
       }
     );
-
-    if (!data.success) {
-      throw new Error(data.message || 'Failed to fetch orders');
-    }
 
     dispatch({
       type: "getAllOrdersShopSuccess",
       payload: data.orders
     });
   } catch (error) {
-    console.error('Shop orders fetch error:', error);
     dispatch({
       type: "getAllOrdersShopFailed",
-      payload: error.response?.data?.message || error.message || "Failed to fetch orders"
+      payload: error.response?.data?.message || "Error fetching shop orders",
     });
   }
 };
 
-// get all orders of Admin
+// Get admin orders
 export const getAllOrdersOfAdmin = () => async (dispatch) => {
   try {
-    dispatch({ type: "getAllOrdersOfAdminRequest" });
+    dispatch({ type: "getAllOrdersAdminRequest" });
 
     const { data } = await axios.get(`${server}/order/admin-all-orders`, {
       headers: {
@@ -73,12 +64,8 @@ export const getAllOrdersOfAdmin = () => async (dispatch) => {
       withCredentials: true
     });
 
-    if (!data.success) {
-      throw new Error(data.message || 'Failed to fetch orders');
-    }
-
     dispatch({
-      type: "getAllOrdersOfAdminSuccess",
+      type: "getAllOrdersAdminSuccess",
       payload: {
         orders: data.orders || [],
         totalAmount: data.totalAmount || 0,
@@ -86,19 +73,17 @@ export const getAllOrdersOfAdmin = () => async (dispatch) => {
       }
     });
   } catch (error) {
-    console.error('Admin orders fetch error:', error);
     dispatch({
-      type: "getAllOrdersOfAdminFailed",
-      payload: error.response?.data?.message || error.message || "Failed to fetch orders"
+      type: "getAllOrdersAdminFailed",
+      payload: error.response?.data?.message || "Error fetching admin orders"
     });
   }
 };
 
+// Update order status
 export const updateOrderStatus = (orderId, status) => async (dispatch) => {
   try {
-    dispatch({
-      type: "updateOrderStatusRequest",
-    });
+    dispatch({ type: "updateOrderStatusRequest" });
 
     const { data } = await axios.put(
       `${server}/order/update-order-status/${orderId}`,
@@ -113,7 +98,12 @@ export const updateOrderStatus = (orderId, status) => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: "updateOrderStatusFailed",
-      payload: error.response.data.message,
+      payload: error.response?.data?.message || "Error updating order status",
     });
   }
+};
+
+// Clear order errors
+export const clearOrderErrors = () => (dispatch) => {
+  dispatch({ type: "clearOrderErrors" });
 };
