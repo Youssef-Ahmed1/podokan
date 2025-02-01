@@ -11,7 +11,12 @@ const app = express();
 //
 // Security headers
 app.use(helmet({
-  contentSecurityPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      "img-src": ["'self'", "data:", "https://res.cloudinary.com"]
+    }
+  },
   crossOriginEmbedderPolicy: false
 }));
 
@@ -34,10 +39,14 @@ app.use(cors({
     'Content-Type',
     'Authorization',
     'Seller-Authorization',
-    'X-Requested-With'
+    'X-Requested-With',
+    'Content-Disposition'  
   ],
-  exposedHeaders: ['Authorization', 'Seller-Authorization']
-}));
+  exposedHeaders: [
+    'Authorization',
+    'Seller-Authorization',
+    'Content-Disposition'  
+  ]}));
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
