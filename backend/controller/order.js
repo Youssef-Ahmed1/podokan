@@ -14,18 +14,6 @@ const JSZip = require('jszip');
 const cloudinary = require('cloudinary').v2;
 // Constants
 
-
-
-const ORDER_STATUSES = {
-  PENDING: 'Pending',
-  PROCESSING: 'Processing',
-  TRANSFERRED: 'Transferred to delivery partner',
-  DELIVERED: 'Delivered',
-  REFUND_PROCESSING: 'Refund Processing',
-  REFUND_SUCCESS: 'Refund Success',
-  CANCELLED: 'Cancelled'
-};
-
 const SERVICE_CHARGE_PERCENTAGE = 0.10; // 10% service charge
 
 // Validation middleware
