@@ -13,7 +13,7 @@ const sharp = require('sharp');
 const JSZip = require('jszip');
 const cloudinary = require('cloudinary').v2;
 // Constants
-
+//.
 const SERVICE_CHARGE_PERCENTAGE = 0.10; // 10% service charge
 
 const getOrderDetails = catchAsync(async (req, res) => {
