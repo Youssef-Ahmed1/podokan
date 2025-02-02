@@ -16,6 +16,24 @@ const cloudinary = require('cloudinary').v2;
 
 const SERVICE_CHARGE_PERCENTAGE = 0.10; // 10% service charge
 
+const getOrderDetails = catchAsync(async (req, res) => {
+  const order = await Order.findById(req.params.id).lean();
+  
+  if (!order) return next(new ErrorHandler("Order not found", 404));
+
+  // Fix image URLs
+  order.cart = order.cart.map(item => ({
+    ...item,
+    designImage: item.designImage?.url 
+      ? `https://res.cloudinary.com/dkot9tyjm/image/upload/${item.designImage.public_id}` 
+      : null
+  }));
+
+  res.status(200).json({
+    success: true,
+    order
+  });
+});
 // Validation middleware
 const validateOrderData = [
   body('cart')
@@ -129,24 +147,7 @@ router.get('/download-specs/:orderId', isAdmin, async (req, res) => {
         .toBuffer();
       zip.file(`${item._id}-composite.png`, compositeImage);
     }
-    exports.getOrderDetails = catchAsync(async (req, res) => {
-      const order = await Order.findById(req.params.id).lean();
-      
-      if (!order) return next(new ErrorHandler("Order not found", 404));
-    
-      // Fix image URLs
-      order.cart = order.cart.map(item => ({
-        ...item,
-        designImage: item.designImage?.url 
-          ? `https://res.cloudinary.com/dkot9tyjm/image/upload/${item.designImage.public_id}` 
-          : null
-      }));
-    
-      res.status(200).json({
-        success: true,
-        order
-      });
-    });
+
     const zipBuffer = await zip.generateAsync({type: "nodebuffer"});
     res.set('Content-Type', 'application/zip');
     res.set('Content-Disposition', `attachment; filename="order-${order._id}-specs.zip"`);
