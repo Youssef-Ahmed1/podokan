@@ -27,18 +27,12 @@ const UserOrderDetails = () => {
     );
   }
 
-  // Helper function to construct Cloudinary URL correctly
-  const getCloudinaryUrl = (publicId) => {
-    if (!publicId) return null;
-    return `https://res.cloudinary.com/dkot9tyjm/image/upload/${publicId}`;
-  };
-
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Order Header */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
         <h1 className="text-2xl font-bold">
-          Order #{order._id.slice(0, 8)}
+          Order #{order._id?.slice(0, 8)}
         </h1>
         <div className="flex items-center gap-4 mt-2">
           <span className={`px-3 py-1 rounded-full text-sm ${
@@ -61,19 +55,27 @@ const UserOrderDetails = () => {
           <div className="relative aspect-square rounded-lg bg-gray-50 overflow-hidden">
             <div className="relative w-full h-full flex items-center justify-center">
               <img
-                src={`/${cartItem?.ProductType?.toLowerCase()}-${cartItem?.ProductColor?.toLowerCase()}.png`}
+                src={`/images/${cartItem?.productType?.toLowerCase()}-${cartItem?.productColor?.toLowerCase()}.png`}
                 className="w-full h-full object-contain"
-                alt="Product base"
+                alt={cartItem?.designTitle}
               />
-              {cartItem?.designImage?.public_id && (
-                <img
-                  src={getCloudinaryUrl(cartItem.designImage.public_id)}
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-[60%] max-h-[60%]"
+              {cartItem?.designImage && (
+                <div 
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
                   style={{
-                    mixBlendMode: cartItem?.ProductColor?.toLowerCase() === 'white' ? 'multiply' : 'screen'
+                    maxWidth: '60%',
+                    maxHeight: '60%'
                   }}
-                  alt="Design"
-                />
+                >
+                  <img
+                    src={cartItem.designImage}
+                    className="w-full h-full object-contain"
+                    style={{
+                      mixBlendMode: cartItem.productColor?.toLowerCase() === 'white' ? 'multiply' : 'screen'
+                    }}
+                    alt="Design"
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -82,7 +84,7 @@ const UserOrderDetails = () => {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-                {cartItem?.DesignTitle}
+                {cartItem?.designTitle}
               </h2>
             </div>
 
@@ -91,17 +93,17 @@ const UserOrderDetails = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-gray-600">Product Type:</p>
-                  <p className="font-medium capitalize">{cartItem?.ProductType}</p>
+                  <p className="font-medium capitalize">{cartItem?.productType}</p>
                 </div>
                 
                 <div>
                   <p className="text-gray-600">Color:</p>
-                  <p className="font-medium capitalize">{cartItem?.ProductColor}</p>
+                  <p className="font-medium capitalize">{cartItem?.productColor}</p>
                 </div>
 
                 <div>
                   <p className="text-gray-600">Size:</p>
-                  <p className="font-medium">{cartItem?.designSpecs?.size}</p>
+                  <p className="font-medium">{cartItem?.size}</p>
                 </div>
 
                 <div>
@@ -122,9 +124,8 @@ const UserOrderDetails = () => {
         </div>
       </div>
 
-      {/* Shipping & Payment Details */}
+      {/* Shipping Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Shipping Details */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center gap-2 mb-4">
             <Truck className="text-purple-600 w-6 h-6" />
@@ -154,12 +155,12 @@ const UserOrderDetails = () => {
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-gray-600">Payment Method:</p>
-              <p className="font-medium mt-1">Cash On Delivery</p>
+              <p className="font-medium mt-1">{order.paymentInfo?.type || "Cash On Delivery"}</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-gray-600">Payment Status:</p>
               <span className="inline-block px-2 py-1 rounded-full text-sm mt-1 bg-yellow-100 text-yellow-800">
-                Processing
+                {order.paymentInfo?.status || "Processing"}
               </span>
             </div>
           </div>
