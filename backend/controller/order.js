@@ -134,7 +134,10 @@ router.get('/download-specs/:orderId', isAdmin, async (req, res) => {
         productType: item.ProductType,
         productColor: item.ProductColor,
         designSpecs: item.designSpecs,
-        quantity: item.qty
+        quantity: item.qty,
+        size:item.size,
+        color:item.ProductColor,
+        designImage:item.designImage
       };
       zip.file(`${item._id}-specs.json`, JSON.stringify(specs, null, 2));
 
