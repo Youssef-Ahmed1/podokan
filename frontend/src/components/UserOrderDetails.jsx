@@ -19,6 +19,11 @@ const UserOrderDetails = () => {
     }
   }, [dispatch, user?._id]);
 
+  const getProductImage = (type, color) => {
+    if (!type || !color) return '';
+    return `/images/${type.toLowerCase()}-${color.toLowerCase()}.png`;
+  };
+
   if (!order) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -32,7 +37,7 @@ const UserOrderDetails = () => {
       {/* Order Header */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
         <h1 className="text-2xl font-bold">
-          Order #{order._id?.slice(0, 8)}
+          Order #{order._id.slice(0, 8)}
         </h1>
         <div className="flex items-center gap-4 mt-2">
           <span className={`px-3 py-1 rounded-full text-sm ${
@@ -54,11 +59,13 @@ const UserOrderDetails = () => {
           {/* Product Image with Design */}
           <div className="relative aspect-square rounded-lg bg-gray-50 overflow-hidden">
             <div className="relative w-full h-full flex items-center justify-center">
+              {/* Base Product Image */}
               <img
-                src={`/images/${cartItem?.productType?.toLowerCase()}-${cartItem?.productColor?.toLowerCase()}.png`}
+                src={getProductImage(cartItem?.selectedSize?.productType || cartItem?.productType, cartItem?.selectedColor || cartItem?.productColor)}
                 className="w-full h-full object-contain"
-                alt={cartItem?.designTitle}
+                alt="Product"
               />
+              {/* Design Overlay */}
               {cartItem?.designImage && (
                 <div 
                   className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
@@ -68,10 +75,10 @@ const UserOrderDetails = () => {
                   }}
                 >
                   <img
-                    src={cartItem.designImage}
+                    src={cartItem.designImage?.url || cartItem.designImage}
                     className="w-full h-full object-contain"
                     style={{
-                      mixBlendMode: cartItem.productColor?.toLowerCase() === 'white' ? 'multiply' : 'screen'
+                      mixBlendMode: (cartItem?.selectedColor || cartItem?.productColor)?.toLowerCase() === 'white' ? 'multiply' : 'screen'
                     }}
                     alt="Design"
                   />
@@ -84,7 +91,7 @@ const UserOrderDetails = () => {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-                {cartItem?.designTitle}
+                {cartItem?.DesignTitle}
               </h2>
             </div>
 
@@ -93,22 +100,28 @@ const UserOrderDetails = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-gray-600">Product Type:</p>
-                  <p className="font-medium capitalize">{cartItem?.productType}</p>
+                  <p className="font-medium capitalize">
+                    {cartItem?.productType || cartItem?.selectedSize?.productType}
+                  </p>
                 </div>
                 
                 <div>
                   <p className="text-gray-600">Color:</p>
-                  <p className="font-medium capitalize">{cartItem?.productColor}</p>
+                  <p className="font-medium capitalize">
+                    {cartItem?.productColor || cartItem?.selectedColor}
+                  </p>
                 </div>
 
                 <div>
                   <p className="text-gray-600">Size:</p>
-                  <p className="font-medium">{cartItem?.size}</p>
+                  <p className="font-medium">
+                    {cartItem?.size || cartItem?.selectedSize?.size}
+                  </p>
                 </div>
 
                 <div>
                   <p className="text-gray-600">Quantity:</p>
-                  <p className="font-medium">{cartItem?.qty}</p>
+                  <p className="font-medium">{cartItem?.qty || 1}</p>
                 </div>
               </div>
             </div>
