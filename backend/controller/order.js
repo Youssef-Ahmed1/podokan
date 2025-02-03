@@ -1,4 +1,5 @@
 const express = require("express");
+const catchAsync = require("../utils/catchAsync");  
 const router = express.Router();
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
@@ -16,7 +17,7 @@ const cloudinary = require('cloudinary').v2;
 //.
 const SERVICE_CHARGE_PERCENTAGE = 0.10; // 10% service charge
 
-const getOrderDetails = catchAsync(async (req, res) => {
+const getOrderDetails = catchAsyncErrors(async (req, res) => {
   const order = await Order.findById(req.params.id).lean();
   
   if (!order) return next(new ErrorHandler("Order not found", 404));
