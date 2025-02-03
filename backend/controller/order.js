@@ -16,17 +16,23 @@ const cloudinary = require('cloudinary').v2;
 //.
 const SERVICE_CHARGE_PERCENTAGE = 0.10; // 10% service charge
 
-const getOrderDetails = catchAsyncErrors(async (req, res) => {
-  const order = await Order.findById(req.params.id).lean();
+const getOrderDetails = catchAsyncErrors(async (req, res, next) => {
+  const order = await Order.findById(req.params.id)
+    .populate('cart.product')
+    .populate('cart.shop')
+    .lean();
   
   if (!order) return next(new ErrorHandler("Order not found", 404));
 
   // Fix image URLs
   order.cart = order.cart.map(item => ({
     ...item,
-    designImage: item.designImage?.url 
-      ? `https://res.cloudinary.com/dkot9tyjm/image/upload/${item.designImage.public_id}` 
-      : null
+    designImage: {
+      ...item.designImage,
+      url: item.designImage?.public_id 
+        ? `https://res.cloudinary.com/dkot9tyjm/image/upload/${item.designImage.public_id}` 
+        : null
+    }
   }));
 
   res.status(200).json({
@@ -34,6 +40,7 @@ const getOrderDetails = catchAsyncErrors(async (req, res) => {
     order
   });
 });
+
 // Validation middleware
 const validateOrderData = [
   body('cart')

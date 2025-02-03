@@ -19,9 +19,9 @@ const initialState = {
   error: null
 };
 
+
 export const orderReducer = createReducer(initialState, (builder) => {
   builder
-    // User Orders
     .addCase("getAllOrdersUserRequest", (state) => {
       state.isLoading = true;
       state.error = null;
@@ -36,7 +36,6 @@ export const orderReducer = createReducer(initialState, (builder) => {
       state.error = action.payload;
       state.orders = [];
     })
-
     // Shop Orders
     .addCase("getAllOrdersShopRequest", (state) => {
       state.shop.isLoading = true;

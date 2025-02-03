@@ -9,18 +9,26 @@ export const getAllOrdersOfUser = (userId) => async (dispatch) => {
 
     const { data } = await axios.get(
       `${server}/order/get-all-orders/${userId}`,
-      { withCredentials: true }
+      { 
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      }
     );
 
     dispatch({
       type: "getAllOrdersUserSuccess",
       payload: data.orders,
     });
+
+    return data.orders;
   } catch (error) {
     dispatch({
       type: "getAllOrdersUserFailed",
-      payload: error.response?.data?.message || "Error fetching user orders",
+      payload: error.response?.data?.message || "Error fetching orders",
     });
+    throw error;
   }
 };
 
@@ -103,6 +111,34 @@ export const updateOrderStatus = (orderId, status) => async (dispatch) => {
   }
 };
 
+export const getOrderDetails = (orderId) => async (dispatch) => {
+  try {
+    dispatch({ type: "getAllOrdersUserRequest" });
+
+    const { data } = await axios.get(
+      `${server}/order/user-order/${orderId}`,
+      { 
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      }
+    );
+
+    dispatch({
+      type: "getAllOrdersUserSuccess",
+      payload: [data.order],
+    });
+
+    return data.order;
+  } catch (error) {
+    dispatch({
+      type: "getAllOrdersUserFailed",
+      payload: error.response?.data?.message || "Error fetching order details",
+    });
+    throw error;
+  }
+};
 // Clear order errors
 export const clearOrderErrors = () => (dispatch) => {
   dispatch({ type: "clearOrderErrors" });
