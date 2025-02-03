@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Package, Truck, CreditCard } from "lucide-react";
 import { getAllOrdersOfUser } from "../redux/actions/order";
@@ -9,7 +9,6 @@ const UserOrderDetails = () => {
   const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const { id } = useParams();
-  const [productImage, setProductImage] = useState(null);
 
   const order = orders?.find((item) => item._id === id);
   const cartItem = order?.cart?.[0];
@@ -20,16 +19,6 @@ const UserOrderDetails = () => {
     }
   }, [dispatch, user?._id]);
 
-  useEffect(() => {
-    // Load product base image
-    if (cartItem?.ProductType && cartItem?.ProductColor) {
-      const img = new Image();
-      img.src = `/images/${cartItem.ProductType.toLowerCase()}-${cartItem.ProductColor.toLowerCase()}.png`;
-      img.onload = () => setProductImage(img.src);
-      img.onerror = () => setProductImage('/fallback-product-image.png');
-    }
-  }, [cartItem?.ProductType, cartItem?.ProductColor]);
-
   if (!order) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -37,6 +26,12 @@ const UserOrderDetails = () => {
       </div>
     );
   }
+
+  // Helper function to construct Cloudinary URL correctly
+  const getCloudinaryUrl = (publicId) => {
+    if (!publicId) return null;
+    return `https://res.cloudinary.com/dkot9tyjm/image/upload/${publicId}`;
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -64,39 +59,30 @@ const UserOrderDetails = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Product Image with Design */}
           <div className="relative aspect-square rounded-lg bg-gray-50 overflow-hidden">
-            {productImage && (
-              <div className="relative w-full h-full">
+            <div className="relative w-full h-full flex items-center justify-center">
+              <img
+                src={`/${cartItem?.ProductType?.toLowerCase()}-${cartItem?.ProductColor?.toLowerCase()}.png`}
+                className="w-full h-full object-contain"
+                alt="Product base"
+              />
+              {cartItem?.designImage?.public_id && (
                 <img
-                  src={productImage}
-                  className="w-full h-full object-contain"
-                  alt="Product base"
+                  src={getCloudinaryUrl(cartItem.designImage.public_id)}
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-[60%] max-h-[60%]"
+                  style={{
+                    mixBlendMode: cartItem?.ProductColor?.toLowerCase() === 'white' ? 'multiply' : 'screen'
+                  }}
+                  alt="Design"
                 />
-                {cartItem?.designImage?.url && (
-                  <div 
-                    className="absolute inset-0 flex items-center justify-center"
-                    style={{
-                      transform: `translate(-50%, -50%) scale(${cartItem.designSpecs?.scale || 1})`
-                    }}
-                  >
-                    <img
-                      src={cartItem.designImage.url}
-                      className="max-w-[60%] max-h-[60%]"
-                      style={{
-                        mixBlendMode: cartItem.ProductColor?.toLowerCase() === 'white' ? 'multiply' : 'screen'
-                      }}
-                      alt="Design"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Product Info */}
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-                {cartItem?.DesignTitle || "Custom Design"}
+                {cartItem?.DesignTitle}
               </h2>
             </div>
 
@@ -105,47 +91,22 @@ const UserOrderDetails = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-gray-600">Product Type:</p>
-                  <p className="font-medium capitalize">{cartItem?.ProductType || 'N/A'}</p>
+                  <p className="font-medium capitalize">{cartItem?.ProductType}</p>
                 </div>
                 
                 <div>
                   <p className="text-gray-600">Color:</p>
-                  <p className="font-medium capitalize">{cartItem?.ProductColor || 'N/A'}</p>
+                  <p className="font-medium capitalize">{cartItem?.ProductColor}</p>
                 </div>
 
                 <div>
                   <p className="text-gray-600">Size:</p>
-                  <p className="font-medium">
-                    {cartItem?.designSpecs?.size || cartItem?.size || 'N/A'}
-                  </p>
+                  <p className="font-medium">{cartItem?.designSpecs?.size}</p>
                 </div>
 
                 <div>
                   <p className="text-gray-600">Quantity:</p>
-                  <p className="font-medium">{cartItem?.qty || 1}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Design Details */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold mb-3">Design Specifications</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-gray-600">Position X:</p>
-                  <p className="font-medium">{cartItem?.designSpecs?.positionX || '50'}%</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Position Y:</p>
-                  <p className="font-medium">{cartItem?.designSpecs?.positionY || '50'}%</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Scale:</p>
-                  <p className="font-medium">{cartItem?.designSpecs?.scale || '1'}x</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Rotation:</p>
-                  <p className="font-medium">{cartItem?.designSpecs?.rotation || '0'}°</p>
+                  <p className="font-medium">{cartItem?.qty}</p>
                 </div>
               </div>
             </div>
@@ -178,9 +139,7 @@ const UserOrderDetails = () => {
             <div className="flex items-center gap-2">
               <Package className="text-purple-600 w-5 h-5" />
               <span className="text-sm font-medium">
-                {order.estimatedDelivery 
-                  ? `Estimated delivery: ${new Date(order.estimatedDelivery).toLocaleDateString()}`
-                  : 'Delivery date will be confirmed soon'}
+                Delivery date will be confirmed soon
               </span>
             </div>
           </div>
@@ -195,16 +154,12 @@ const UserOrderDetails = () => {
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-gray-600">Payment Method:</p>
-              <p className="font-medium mt-1">{order.paymentInfo?.type || "Cash On Delivery"}</p>
+              <p className="font-medium mt-1">Cash On Delivery</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-gray-600">Payment Status:</p>
-              <span className={`inline-block px-2 py-1 rounded-full text-sm mt-1 ${
-                order.paymentInfo?.status === "Succeeded" 
-                  ? "bg-green-100 text-green-800"
-                  : "bg-yellow-100 text-yellow-800"
-              }`}>
-                {order.paymentInfo?.status || "Processing"}
+              <span className="inline-block px-2 py-1 rounded-full text-sm mt-1 bg-yellow-100 text-yellow-800">
+                Processing
               </span>
             </div>
           </div>
