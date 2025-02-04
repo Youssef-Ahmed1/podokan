@@ -19,6 +19,12 @@ const UserOrderDetails = () => {
     }
   }, [dispatch, user?._id]);
 
+  const getProductImage = (type, color) => {
+    if (!type || !color) return '';
+    // Use absolute URL for product images
+    return `${process.env.REACT_APP_BACKEND_URL}/images/${type.toLowerCase()}-${color.toLowerCase()}.png`;
+  };
+
   if (!order) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -56,18 +62,22 @@ const UserOrderDetails = () => {
             <div className="relative w-full h-full flex items-center justify-center">
               {/* Base Product Image */}
               <img
-                src={`/images/${cartItem?.ProductType?.toLowerCase()}-${cartItem?.ProductColor?.toLowerCase()}.png`}
+                src={getProductImage(cartItem?.ProductType, cartItem?.ProductColor)}
                 className="w-full h-full object-contain"
                 alt="Product base"
+                onError={(e) => {
+                  console.error("Error loading product image");
+                  e.target.src = ""; // Clear broken image
+                }}
               />
               {/* Design Overlay */}
-              {cartItem?.designImage && (
+              {cartItem?.designImage?.url && (
                 <div 
                   className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
                   style={{
                     maxWidth: '60%',
                     maxHeight: '60%',
-                    transform: `translate(-50%, -50%) scale(${cartItem.DesignScale || 1})`
+                    transform: `translate(-50%, -50%) scale(${cartItem.designSpecs?.scale || 1})`
                   }}
                 >
                   <img
@@ -77,6 +87,10 @@ const UserOrderDetails = () => {
                       mixBlendMode: cartItem.ProductColor?.toLowerCase() === 'white' ? 'multiply' : 'screen'
                     }}
                     alt="Design"
+                    onError={(e) => {
+                      console.error("Error loading design image");
+                      e.target.src = ""; // Clear broken image
+                    }}
                   />
                 </div>
               )}
@@ -113,7 +127,7 @@ const UserOrderDetails = () => {
 
                 <div>
                   <p className="text-gray-600">Quantity:</p>
-                  <p className="font-medium">{cartItem?.qty}</p>
+                  <p className="font-medium">{cartItem?.qty || 1}</p>
                 </div>
               </div>
             </div>
