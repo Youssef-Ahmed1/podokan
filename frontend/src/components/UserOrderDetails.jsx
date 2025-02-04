@@ -4,15 +4,17 @@ import { Package, Truck, CreditCard } from "lucide-react";
 import { getAllOrdersOfUser } from "../redux/actions/order";
 import { useParams } from "react-router-dom";
 
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600"></div>
+  </div>
+);
+
 const UserOrderDetails = () => {
-  const { orders } = useSelector((state) => state.order);
+  const { orders, isLoading } = useSelector((state) => state.order);
   const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const { id } = useParams();
-
-  const order = orders?.find((item) => item._id === id);
-  console.log("Order data:", order); // Let's see the full order data structure
-  console.log("Cart item:", order?.cart?.[0]); // Let's see the cart item structure
 
   useEffect(() => {
     if (user?._id) {
@@ -20,10 +22,18 @@ const UserOrderDetails = () => {
     }
   }, [dispatch, user?._id]);
 
+  // Handle loading state
+  if (isLoading || !orders) {
+    return <LoadingSpinner />;
+  }
+
+  const order = orders.find((item) => item._id === id);
+  
+  // Handle case where order is not found
   if (!order) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600"></div>
+      <div className="max-w-4xl mx-auto px-4 py-8 text-center">
+        <h2 className="text-2xl font-bold text-gray-900">Order not found</h2>
       </div>
     );
   }
@@ -56,42 +66,30 @@ const UserOrderDetails = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Product Image with Design */}
           <div className="relative aspect-square rounded-lg bg-gray-50 overflow-hidden">
-            <div className="relative w-full h-full flex items-center justify-center">
-              {/* Design Overlay */}
-              {cartItem?.designImage && (
-                <div 
-                  className="absolute inset-0 pointer-events-none"
+            {cartItem.designImage && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <img
+                  src={cartItem.designImage}
+                  className="w-4/5 h-4/5 object-contain"
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+                    mixBlendMode: 'multiply'
                   }}
-                >
-                  <img
-                    src={cartItem.designImage.url}
-                    className="w-4/5 h-4/5 object-contain"
-                    style={{
-                      mixBlendMode: 'multiply',
-                      transform: `scale(${cartItem.DesignScale || 1})`
-                    }}
-                    alt="Design"
-                    onError={(e) => {
-                      console.error("Error loading design image");
-                      e.target.src = ""; // Clear broken image
-                    }}
-                  />
-                </div>
-              )}
-            </div>
+                  alt={cartItem.DesignTitle}
+                  onError={(e) => {
+                    console.error("Error loading design image");
+                    e.target.src = ""; // Clear broken image
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-                {cartItem?.DesignTitle}
+                {cartItem.DesignTitle}
               </h2>
-              <p className="mt-2 text-gray-600">{cartItem?.Description}</p>
             </div>
 
             {/* Product Specifications */}
@@ -99,22 +97,12 @@ const UserOrderDetails = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-gray-600">Product Type:</p>
-                  <p className="font-medium capitalize">{cartItem?.ProductType}</p>
+                  <p className="font-medium capitalize">{cartItem.ProductType}</p>
                 </div>
                 
                 <div>
-                  <p className="text-gray-600">Color:</p>
-                  <p className="font-medium capitalize">{cartItem?.ProductColor}</p>
-                </div>
-
-                <div>
-                  <p className="text-gray-600">Size:</p>
-                  <p className="font-medium">{cartItem?.selectedSize || cartItem?.size}</p>
-                </div>
-
-                <div>
                   <p className="text-gray-600">Quantity:</p>
-                  <p className="font-medium">{cartItem?.qty || 1}</p>
+                  <p className="font-medium">{cartItem.qty}</p>
                 </div>
               </div>
             </div>
@@ -123,15 +111,15 @@ const UserOrderDetails = () => {
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-gray-600">Original Price:</p>
-                  <p className="text-lg line-through text-gray-500">
-                    EGP {cartItem?.originalPrice?.toFixed(2)}
+                  <p className="text-gray-600">Item Price:</p>
+                  <p className="text-xl font-bold text-purple-600">
+                    EGP {cartItem.price?.toFixed(2)}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-gray-600">Final Price:</p>
+                  <p className="text-gray-600">Total Price:</p>
                   <p className="text-2xl font-bold text-purple-600">
-                    EGP {cartItem?.discountPrice?.toFixed(2)}
+                    EGP {order.totalPrice?.toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -150,8 +138,12 @@ const UserOrderDetails = () => {
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="font-medium">{order.shippingAddress?.address1}</p>
-              <p className="text-gray-600">{order.shippingAddress?.city}</p>
-              <p className="text-gray-600">{order.shippingAddress?.phoneNumber}</p>
+              {order.shippingAddress?.address2 && (
+                <p className="text-gray-600">{order.shippingAddress.address2}</p>
+              )}
+              <p className="text-gray-600 mt-2">
+                Phone: {order.shippingAddress?.phoneNumber}
+              </p>
             </div>
           </div>
         </div>
@@ -164,14 +156,30 @@ const UserOrderDetails = () => {
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-gray-600">Payment Method:</p>
-              <p className="font-medium mt-1">{order.paymentInfo?.type || "Cash On Delivery"}</p>
+              <p className="font-medium mt-1">{order.paymentInfo?.type}</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-gray-600">Payment Status:</p>
-              <span className="inline-block px-2 py-1 rounded-full text-sm mt-1 bg-yellow-100 text-yellow-800">
-                {order.paymentInfo?.status || "Processing"}
+              <span className={`inline-block px-2 py-1 rounded-full text-sm mt-1 ${
+                order.paymentInfo?.status === "succeeded" 
+                  ? "bg-green-100 text-green-800"
+                  : "bg-yellow-100 text-yellow-800"
+              }`}>
+                {order.paymentInfo?.status}
               </span>
             </div>
+            {order.deliveryStatus && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-gray-600">Delivery Status:</p>
+                <span className={`inline-block px-2 py-1 rounded-full text-sm mt-1 ${
+                  order.deliveryStatus.isDelivered 
+                    ? "bg-green-100 text-green-800"
+                    : "bg-yellow-100 text-yellow-800"
+                }`}>
+                  {order.deliveryStatus.isDelivered ? "Delivered" : "Pending"}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
