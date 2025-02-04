@@ -19,11 +19,6 @@ const UserOrderDetails = () => {
     }
   }, [dispatch, user?._id]);
 
-  const getProductImage = (type, color) => {
-    if (!type || !color) return '';
-    return `/images/${type.toLowerCase()}-${color.toLowerCase()}.png`;
-  };
-
   if (!order) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -61,9 +56,9 @@ const UserOrderDetails = () => {
             <div className="relative w-full h-full flex items-center justify-center">
               {/* Base Product Image */}
               <img
-                src={getProductImage(cartItem?.selectedSize?.productType || cartItem?.productType, cartItem?.selectedColor || cartItem?.productColor)}
+                src={`/images/${cartItem?.ProductType?.toLowerCase()}-${cartItem?.ProductColor?.toLowerCase()}.png`}
                 className="w-full h-full object-contain"
-                alt="Product"
+                alt="Product base"
               />
               {/* Design Overlay */}
               {cartItem?.designImage && (
@@ -71,14 +66,15 @@ const UserOrderDetails = () => {
                   className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
                   style={{
                     maxWidth: '60%',
-                    maxHeight: '60%'
+                    maxHeight: '60%',
+                    transform: `translate(-50%, -50%) scale(${cartItem.DesignScale || 1})`
                   }}
                 >
                   <img
-                    src={cartItem.designImage?.url || cartItem.designImage}
+                    src={cartItem.designImage.url}
                     className="w-full h-full object-contain"
                     style={{
-                      mixBlendMode: (cartItem?.selectedColor || cartItem?.productColor)?.toLowerCase() === 'white' ? 'multiply' : 'screen'
+                      mixBlendMode: cartItem.ProductColor?.toLowerCase() === 'white' ? 'multiply' : 'screen'
                     }}
                     alt="Design"
                   />
@@ -100,28 +96,24 @@ const UserOrderDetails = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-gray-600">Product Type:</p>
-                  <p className="font-medium capitalize">
-                    {cartItem?.productType || cartItem?.selectedSize?.productType}
-                  </p>
+                  <p className="font-medium capitalize">{cartItem?.ProductType}</p>
                 </div>
                 
                 <div>
                   <p className="text-gray-600">Color:</p>
-                  <p className="font-medium capitalize">
-                    {cartItem?.productColor || cartItem?.selectedColor}
-                  </p>
+                  <p className="font-medium capitalize">{cartItem?.ProductColor}</p>
                 </div>
 
                 <div>
                   <p className="text-gray-600">Size:</p>
                   <p className="font-medium">
-                    {cartItem?.size || cartItem?.selectedSize?.size}
+                    {cartItem?.designSpecs?.size || cartItem?.size}
                   </p>
                 </div>
 
                 <div>
                   <p className="text-gray-600">Quantity:</p>
-                  <p className="font-medium">{cartItem?.qty || 1}</p>
+                  <p className="font-medium">{cartItem?.qty}</p>
                 </div>
               </div>
             </div>
@@ -137,7 +129,7 @@ const UserOrderDetails = () => {
         </div>
       </div>
 
-      {/* Shipping Details */}
+      {/* Shipping & Payment Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center gap-2 mb-4">
@@ -150,16 +142,9 @@ const UserOrderDetails = () => {
               <p className="text-gray-600">{order.shippingAddress?.city}</p>
               <p className="text-gray-600">{order.shippingAddress?.phoneNumber}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <Package className="text-purple-600 w-5 h-5" />
-              <span className="text-sm font-medium">
-                Delivery date will be confirmed soon
-              </span>
-            </div>
           </div>
         </div>
 
-        {/* Payment Details */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center gap-2 mb-4">
             <CreditCard className="text-purple-600 w-6 h-6" />
