@@ -8,30 +8,39 @@ const path = require('path');
 const helmet = require('helmet');
 
 const app = express();
-//
-// Security headers
+
+// Constants
+const ALLOWED_ORIGINS = [
+  'https://testpodokan.store', 
+  'http://localhost:3000',
+  'https://res.cloudinary.com'  // Add Cloudinary domain
+];
+
+// Security headers with updated CSP
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-      "img-src": ["'self'", "data:", "https://res.cloudinary.com"]
+      "img-src": ["'self'", "data:", "https:", "http:", "blob:"], // More permissive for images
+      "connect-src": ["'self'", ...ALLOWED_ORIGINS],
+      "default-src": ["'self'", ...ALLOWED_ORIGINS]
     }
   },
   crossOriginEmbedderPolicy: false
 }));
 
-// Constants
-const ALLOWED_ORIGINS = ['https://testpodokan.store', 'http://localhost:3000'];
-
 // CORS configuration
 app.use(cookieParser());
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is allowed
+    if (ALLOWED_ORIGINS.indexOf(origin) === -1) {
+      return callback(null, true); // Changed to allow all origins temporarily
     }
+    return callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -40,20 +49,25 @@ app.use(cors({
     'Authorization',
     'Seller-Authorization',
     'X-Requested-With',
-    'Content-Disposition'  
+    'Content-Disposition',
+    'Origin',
+    'Accept'
   ],
   exposedHeaders: [
     'Authorization',
     'Seller-Authorization',
-    'Content-Disposition'  
-  ]}));
+    'Content-Disposition'
+  ]
+}));
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-// Routes
+// Serve static files
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
+
 // Routes
 const routes = {
   user: require("./controller/user"),
@@ -72,6 +86,7 @@ const routes = {
 Object.entries(routes).forEach(([name, router]) => {
   app.use(`/api/v2/${name}`, router);
 });
+
 // Error handling
 app.use(ErrorHandler);
 
