@@ -3,8 +3,6 @@ const ErrorHandler = require("./middleware/error");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const multer = require('multer');
-const path = require('path');
 const helmet = require('helmet');
 
 const app = express();
@@ -12,17 +10,16 @@ const app = express();
 // Constants
 const ALLOWED_ORIGINS = [
   'https://testpodokan.store', 
-  'http://localhost:3000',
-  'https://res.cloudinary.com'  // Add Cloudinary domain
+  'http://localhost:3000'
 ];
 
-// Security headers with updated CSP
+// Security headers
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-      "img-src": ["'self'", "data:", "https:", "http:", "blob:"], // More permissive for images
-      "connect-src": ["'self'", ...ALLOWED_ORIGINS],
+      "img-src": ["'self'", "data:", "https://res.cloudinary.com"],
+      "connect-src": ["'self'", ...ALLOWED_ORIGINS, "https://res.cloudinary.com"],
       "default-src": ["'self'", ...ALLOWED_ORIGINS]
     }
   },
@@ -34,13 +31,11 @@ app.use(cookieParser());
 app.use(cors({
   origin: function(origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Check if origin is allowed
-    if (ALLOWED_ORIGINS.indexOf(origin) === -1) {
-      return callback(null, true); // Changed to allow all origins temporarily
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
     }
-    return callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -64,9 +59,6 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
-
-// Serve static files
-app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
 // Routes
 const routes = {

@@ -19,10 +19,9 @@ const UserOrderDetails = () => {
     }
   }, [dispatch, user?._id]);
 
-  const getProductImage = (type, color) => {
+  const getProductImage = (type, color, view = 'front') => {
     if (!type || !color) return '';
-    // Use absolute URL for product images
-    return `${process.env.REACT_APP_BACKEND_URL}/images/${type.toLowerCase()}-${color.toLowerCase()}.png`;
+    return `https://res.cloudinary.com/dkot9tyjm/image/upload/v1728392918/${type.toLowerCase()}s/${type.toLowerCase()}-${color.toLowerCase()}-${view}.png`;
   };
 
   if (!order) {
@@ -71,26 +70,24 @@ const UserOrderDetails = () => {
                 }}
               />
               {/* Design Overlay */}
-              {cartItem?.designImage?.url && (
+              {cartItem?.designImage && (
                 <div 
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
                   style={{
                     maxWidth: '60%',
                     maxHeight: '60%',
-                    transform: `translate(-50%, -50%) scale(${cartItem.designSpecs?.scale || 1})`
+                    transform: `translate(-50%, -50%) scale(${cartItem.DesignScale || 1})`
                   }}
                 >
                   <img
-                    src={cartItem.designImage.url}
+                    src={typeof cartItem.designImage === 'string' ? cartItem.designImage : cartItem.designImage?.url}
                     className="w-full h-full object-contain"
                     style={{
-                      mixBlendMode: cartItem.ProductColor?.toLowerCase() === 'white' ? 'multiply' : 'screen'
+                      mixBlendMode: cartItem.ProductColor?.toLowerCase() === 'white' ? 'multiply' : 'screen',
+                      background: 'transparent'
                     }}
                     alt="Design"
-                    onError={(e) => {
-                      console.error("Error loading design image");
-                      e.target.src = ""; // Clear broken image
-                    }}
+                    draggable="false"
                   />
                 </div>
               )}
@@ -121,7 +118,7 @@ const UserOrderDetails = () => {
                 <div>
                   <p className="text-gray-600">Size:</p>
                   <p className="font-medium">
-                    {cartItem?.designSpecs?.size || cartItem?.size}
+                    {cartItem?.size}
                   </p>
                 </div>
 
