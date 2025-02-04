@@ -11,18 +11,14 @@ const UserOrderDetails = () => {
   const { id } = useParams();
 
   const order = orders?.find((item) => item._id === id);
-  const cartItem = order?.cart?.[0];
+  console.log("Order data:", order); // Let's see the full order data structure
+  console.log("Cart item:", order?.cart?.[0]); // Let's see the cart item structure
 
   useEffect(() => {
     if (user?._id) {
       dispatch(getAllOrdersOfUser(user._id));
     }
   }, [dispatch, user?._id]);
-
-  const getProductImage = (type, color, view = 'front') => {
-    if (!type || !color) return '';
-    return `https://res.cloudinary.com/dkot9tyjm/image/upload/v1728392918/${type.toLowerCase()}s/${type.toLowerCase()}-${color.toLowerCase()}-${view}.png`;
-  };
 
   if (!order) {
     return (
@@ -31,6 +27,8 @@ const UserOrderDetails = () => {
       </div>
     );
   }
+
+  const cartItem = order.cart[0];
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -59,35 +57,28 @@ const UserOrderDetails = () => {
           {/* Product Image with Design */}
           <div className="relative aspect-square rounded-lg bg-gray-50 overflow-hidden">
             <div className="relative w-full h-full flex items-center justify-center">
-              {/* Base Product Image */}
-              <img
-                src={getProductImage(cartItem?.ProductType, cartItem?.ProductColor)}
-                className="w-full h-full object-contain"
-                alt="Product base"
-                onError={(e) => {
-                  console.error("Error loading product image");
-                  e.target.src = ""; // Clear broken image
-                }}
-              />
               {/* Design Overlay */}
               {cartItem?.designImage && (
                 <div 
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                  className="absolute inset-0 pointer-events-none"
                   style={{
-                    maxWidth: '60%',
-                    maxHeight: '60%',
-                    transform: `translate(-50%, -50%) scale(${cartItem.DesignScale || 1})`
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                 >
                   <img
-                    src={typeof cartItem.designImage === 'string' ? cartItem.designImage : cartItem.designImage?.url}
-                    className="w-full h-full object-contain"
+                    src={cartItem.designImage.url}
+                    className="w-4/5 h-4/5 object-contain"
                     style={{
-                      mixBlendMode: cartItem.ProductColor?.toLowerCase() === 'white' ? 'multiply' : 'screen',
-                      background: 'transparent'
+                      mixBlendMode: 'multiply',
+                      transform: `scale(${cartItem.DesignScale || 1})`
                     }}
                     alt="Design"
-                    draggable="false"
+                    onError={(e) => {
+                      console.error("Error loading design image");
+                      e.target.src = ""; // Clear broken image
+                    }}
                   />
                 </div>
               )}
@@ -100,6 +91,7 @@ const UserOrderDetails = () => {
               <h2 className="text-2xl font-bold text-gray-900">
                 {cartItem?.DesignTitle}
               </h2>
+              <p className="mt-2 text-gray-600">{cartItem?.Description}</p>
             </div>
 
             {/* Product Specifications */}
@@ -117,9 +109,7 @@ const UserOrderDetails = () => {
 
                 <div>
                   <p className="text-gray-600">Size:</p>
-                  <p className="font-medium">
-                    {cartItem?.size}
-                  </p>
+                  <p className="font-medium">{cartItem?.selectedSize || cartItem?.size}</p>
                 </div>
 
                 <div>
@@ -131,10 +121,20 @@ const UserOrderDetails = () => {
 
             {/* Price Information */}
             <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-gray-600">Total Price:</p>
-              <p className="text-2xl font-bold text-purple-600">
-                EGP {order.totalPrice?.toFixed(2)}
-              </p>
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-gray-600">Original Price:</p>
+                  <p className="text-lg line-through text-gray-500">
+                    EGP {cartItem?.originalPrice?.toFixed(2)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-gray-600">Final Price:</p>
+                  <p className="text-2xl font-bold text-purple-600">
+                    EGP {cartItem?.discountPrice?.toFixed(2)}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
