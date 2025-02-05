@@ -12,6 +12,8 @@ const mongoose = require('mongoose');
 const sharp = require('sharp');
 const JSZip = require('jszip');
 const cloudinary = require('cloudinary').v2;
+const SSE = require('express-sse');
+const sse = new SSE();
 // Constants
 //.
 const SERVICE_CHARGE_PERCENTAGE = 0.10; // 10% service charge
@@ -418,6 +420,79 @@ router.put(
     }
   })
 );
+router.put(
+  "/update-order-status/:orderId",
+  isAdmin,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { orderId } = req.params;
+      const { status } = req.body;
+
+      if (!Object.values(ORDER_STATUSES).includes(status)) {
+        return next(new ErrorHandler("Invalid status", 400));
+      }
+
+      const order = await Order.findById(orderId);
+      if (!order) {
+        return next(new ErrorHandler("Order not found", 404));
+      }
+
+      // Update status and add to history
+      const statusUpdate = {
+        status,
+        updatedAt: new Date(),
+        updatedBy: req.admin._id,
+        previousStatus: order.status
+      };
+
+      order.status = status;
+      order.statusHistory.push(statusUpdate);
+
+      // Handle status-specific logic
+      if (status === ORDER_STATUSES.DELIVERED) {
+        order.deliveredAt = new Date();
+        
+        // Update product stocks and sales
+        for (const item of order.cart) {
+          await Product.findByIdAndUpdate(item.product, {
+            $inc: { 
+              stock: -item.qty,
+              sold_out: item.qty
+            }
+          });
+
+          // Update shop statistics
+          if (item.shop) {
+            await Shop.findByIdAndUpdate(item.shop, {
+              $inc: { 
+                totalSales: item.price * item.qty,
+                soldItems: item.qty
+              }
+            });
+          }
+        }
+      }
+
+      await order.save();
+
+      // Emit SSE event for real-time updates
+      sse.send({
+        type: 'ORDER_STATUS_UPDATE',
+        orderId,
+        status,
+        timestamp: new Date()
+      });
+
+      res.status(200).json({
+        success: true,
+        order
+      });
+    } catch (error) {
+      console.error('Status update error:', error);
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
 router.put("/set-delivery/:orderId",
   isAdmin,
   catchAsyncErrors(async (req, res) => {
@@ -446,6 +521,9 @@ router.put("/set-delivery/:orderId",
     });
   })
 );
+router.get('/status-updates', (req, res) => {
+  sse.init(req, res);
+});
 
 // Admin: Get all orders
 router.get(
@@ -454,21 +532,45 @@ router.get(
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const orders = await Order.find()
+      // Add pagination
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      // Add filtering
+      const filterOptions = {};
+      if (req.query.status) {
+        filterOptions.status = req.query.status;
+      }
+      if (req.query.startDate && req.query.endDate) {
+        filterOptions.createdAt = {
+          $gte: new Date(req.query.startDate),
+          $lte: new Date(req.query.endDate)
+        };
+      }
+
+      // Get orders with populated data
+      const orders = await Order.find(filterOptions)
+        .populate('user', 'name email')
+        .populate('cart.shop', 'name')
         .sort({ createdAt: -1 })
-        .select('-paymentInfo.cardDetails')
+        .skip(skip)
+        .limit(limit)
         .lean();
 
-      // Safely calculate total amount
-      const totalAmount = orders.reduce((acc, order) => {
-        const orderTotal = Number(order.totalPrice) || 0;
-        return acc + orderTotal;
-      }, 0);
+      // Get total count for pagination
+      const totalOrders = await Order.countDocuments(filterOptions);
+
+      // Calculate totals and stats
+      const totalAmount = orders.reduce((acc, order) => acc + (order.totalPrice || 0), 0);
 
       res.status(200).json({
         success: true,
         orders,
         totalAmount,
+        totalOrders,
+        currentPage: page,
+        totalPages: Math.ceil(totalOrders / limit),
         ordersCount: orders.length
       });
     } catch (error) {
@@ -478,26 +580,53 @@ router.get(
   })
 );
 
-router.get('/download-design/:orderId',
+router.get('/download-design/:orderId/:itemId',
   isAdmin,
-  catchAsyncErrors(async (req, res) => {
-    const order = await Order.findById(req.params.orderId);
-    
-    const templatePath = `templates/${order.designSpecs.productType}.png`;
-    const outputBuffer = await sharp(templatePath)
-      .composite([{
-        input: order.cart[0].designImage,
-        top: Math.round(order.designSpecs.positionY * 10), // Convert % to px
-        left: Math.round(order.designSpecs.positionX * 10),
-        blend: 'over'
-      }])
-      .toBuffer();
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { orderId, itemId } = req.params;
+      const order = await Order.findById(orderId);
+      
+      if (!order) {
+        return next(new ErrorHandler("Order not found", 404));
+      }
 
-    res.set('Content-Type', 'image/png')
-       .set('Content-Disposition', `attachment; filename="design-${order._id}.png"`)
-       .send(outputBuffer);
+      const orderItem = order.cart.find(item => item._id.toString() === itemId);
+      if (!orderItem) {
+        return next(new ErrorHandler("Order item not found", 404));
+      }
+
+      // Download design from Cloudinary
+      const designResponse = await axios.get(orderItem.designImage.url, {
+        responseType: 'arraybuffer'
+      });
+
+      // Get product template
+      const productTemplate = `${orderItem.ProductType}-${orderItem.ProductColor}.png`;
+      const templatePath = `./assets/templates/${productTemplate}`;
+
+      // Create composite image
+      const composite = await sharp(templatePath)
+        .composite([{
+          input: Buffer.from(designResponse.data),
+          top: Math.round(orderItem.designSpecs.positionY * orderItem.designSpecs.scale),
+          left: Math.round(orderItem.designSpecs.positionX * orderItem.designSpecs.scale),
+          blend: orderItem.ProductColor === 'white' ? 'multiply' : 'screen'
+        }])
+        .png()
+        .toBuffer();
+
+      res.set('Content-Type', 'image/png');
+      res.set('Content-Disposition', `attachment; filename=design_${orderId}_${itemId}.png`);
+      res.send(composite);
+
+    } catch (error) {
+      console.error('Design download error:', error);
+      return next(new ErrorHandler(error.message, 500));
+    }
   })
 );
+
 router.get('/download-specs/:orderId',
   isAdmin,
   catchAsyncErrors(async (req, res) => {
