@@ -69,6 +69,97 @@ const ProfileContent = ({ active }) => {
   );
 };
 
+const ProfileInfo = () => {
+  const { user } = useSelector((state) => state.user);
+  const [name, setName] = useState(user?.name || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || "");
+  const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    dispatch(updateUserInformation(name, email, phoneNumber, password));
+  };
+
+  return (
+    <div className="w-full px-5">
+      <div className="flex flex-col items-center 800px:w-[50%] w-full mx-auto">
+        <div className="relative">
+          <img
+            src={user?.avatar?.url || "/default-avatar.png"}
+            className="w-[150px] h-[150px] rounded-full object-cover border-[3px] border-[#3ad132]"
+            alt="avatar"
+          />
+          <div className="w-[30px] h-[30px] bg-[#E3E9EE] rounded-full flex items-center justify-center cursor-pointer absolute bottom-[5px] right-[5px]">
+            <AiOutlineCamera />
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="w-full mt-6">
+          <div className="w-full flex flex-col mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Full Name
+            </label>
+            <input
+              type="text"
+              className={`${styles.input} !w-[95%] mb-1`}
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="w-full flex flex-col mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email Address
+            </label>
+            <input
+              type="email"
+              className={`${styles.input} !w-[95%] mb-1`}
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div className="w-full flex flex-col mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Phone Number
+            </label>
+            <input
+              type="number"
+              className={`${styles.input} !w-[95%] mb-1`}
+              required
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+            />
+          </div>
+
+          <div className="w-full flex flex-col mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Enter your password to update
+            </label>
+            <input
+              type="password"
+              className={`${styles.input} !w-[95%] mb-1`}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <input
+            className={`w-[95%] h-[40px] border border-[#3a24db] text-center text-[#3a24db] rounded-[3px] mt-8 cursor-pointer`}
+            required
+            value="Update"
+            type="submit"
+          />
+        </form>
+      </div>
+    </div>
+  );
+};
 const AllOrders = () => {
   const { user } = useSelector((state) => state.user);
   const { orders } = useSelector((state) => state.order);
