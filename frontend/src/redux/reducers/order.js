@@ -2,40 +2,64 @@
 import { createReducer } from "@reduxjs/toolkit";
 
 const initialState = {
-  isLoading: true,
+  isLoading: false,
+  error: null,
   orders: [],
-  admin: {
-    isLoading: false,
+  user: {
     orders: [],
-    totalAmount: 0,
-    ordersCount: 0,
+    isLoading: false,
     error: null
   },
   shop: {
-    isLoading: false,
     orders: [],
+    isLoading: false,
     error: null
   },
-  error: null
+  admin: {
+    orders: [],
+    totalAmount: 0,
+    ordersCount: 0,
+    totalPages: 1,
+    currentPage: 1,
+    isLoading: false,
+    error: null
+  },
+  statusUpdate: {
+    loading: false,
+    success: false,
+    error: null
+  },
+  designDownload: {
+    loading: false,
+    success: false,
+    error: null
+  },
+  filters: {
+    status: '',
+    startDate: '',
+    endDate: '',
+    sort: '-createdAt'
+  }
 };
-
 
 export const orderReducer = createReducer(initialState, (builder) => {
   builder
+    // User Orders
     .addCase("getAllOrdersUserRequest", (state) => {
-      state.isLoading = true;
-      state.error = null;
+      state.user.isLoading = true;
+      state.user.error = null;
     })
     .addCase("getAllOrdersUserSuccess", (state, action) => {
-      state.isLoading = false;
-      state.orders = action.payload;
-      state.error = null;
+      state.user.isLoading = false;
+      state.user.orders = action.payload;
+      state.user.error = null;
     })
     .addCase("getAllOrdersUserFailed", (state, action) => {
-      state.isLoading = false;
-      state.error = action.payload;
-      state.orders = [];
+      state.user.isLoading = false;
+      state.user.error = action.payload;
+      state.user.orders = [];
     })
+
     // Shop Orders
     .addCase("getAllOrdersShopRequest", (state) => {
       state.shop.isLoading = true;
@@ -62,6 +86,8 @@ export const orderReducer = createReducer(initialState, (builder) => {
       state.admin.orders = action.payload.orders;
       state.admin.totalAmount = action.payload.totalAmount;
       state.admin.ordersCount = action.payload.ordersCount;
+      state.admin.totalPages = action.payload.totalPages;
+      state.admin.currentPage = action.payload.currentPage;
       state.admin.error = null;
     })
     .addCase("getAllOrdersAdminFailed", (state, action) => {
@@ -74,13 +100,14 @@ export const orderReducer = createReducer(initialState, (builder) => {
 
     // Update Order Status
     .addCase("updateOrderStatusRequest", (state) => {
-      state.isLoading = true;
-      state.error = null;
+      state.statusUpdate.loading = true;
+      state.statusUpdate.error = null;
     })
     .addCase("updateOrderStatusSuccess", (state, action) => {
-      state.isLoading = false;
+      state.statusUpdate.loading = false;
+      state.statusUpdate.success = true;
       // Update in user orders
-      state.orders = state.orders.map(order => 
+      state.user.orders = state.user.orders.map(order => 
         order._id === action.payload._id ? action.payload : order
       );
       // Update in shop orders
@@ -91,17 +118,71 @@ export const orderReducer = createReducer(initialState, (builder) => {
       state.admin.orders = state.admin.orders.map(order => 
         order._id === action.payload._id ? action.payload : order
       );
-      state.error = null;
     })
     .addCase("updateOrderStatusFailed", (state, action) => {
-      state.isLoading = false;
-      state.error = action.payload;
+      state.statusUpdate.loading = false;
+      state.statusUpdate.error = action.payload;
+      state.statusUpdate.success = false;
     })
 
-    // Clear Errors
+    // Design Download
+    .addCase("downloadDesignRequest", (state) => {
+      state.designDownload.loading = true;
+      state.designDownload.error = null;
+    })
+    .addCase("downloadDesignSuccess", (state) => {
+      state.designDownload.loading = false;
+      state.designDownload.success = true;
+      state.designDownload.error = null;
+    })
+    .addCase("downloadDesignFailed", (state, action) => {
+      state.designDownload.loading = false;
+      state.designDownload.success = false;
+      state.designDownload.error = action.payload;
+    })
+
+    // Filter Updates
+    .addCase("updateFilters", (state, action) => {
+      state.filters = {
+        ...state.filters,
+        ...action.payload
+      };
+    })
+
+    // Real-time Updates
+    .addCase("realTimeOrderUpdate", (state, action) => {
+      const { orderId, status, timestamp } = action.payload;
+      // Update in all relevant order lists
+      ['user', 'shop', 'admin'].forEach(section => {
+        if (state[section].orders) {
+          state[section].orders = state[section].orders.map(order =>
+            order._id === orderId ? { ...order, status, updatedAt: timestamp } : order
+          );
+        }
+      });
+    })
+
+    // Clear States
     .addCase("clearOrderErrors", (state) => {
       state.error = null;
+      state.user.error = null;
       state.shop.error = null;
       state.admin.error = null;
+      state.statusUpdate.error = null;
+      state.designDownload.error = null;
+    })
+    .addCase("clearOrderSuccess", (state) => {
+      state.statusUpdate.success = false;
+      state.designDownload.success = false;
+    })
+    
+    // Reset Filters
+    .addCase("resetFilters", (state) => {
+      state.filters = {
+        status: '',
+        startDate: '',
+        endDate: '',
+        sort: '-createdAt'
+      };
     });
 });
