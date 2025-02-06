@@ -498,9 +498,21 @@ router.get('/status-updates', (req, res) => {
 // Admin: Get all orders
 router.get("/admin-all-orders", isAuthenticated, isAdmin, async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, startDate, endDate, sort = '-createdAt' } = req.query;
+    console.log("Starting admin orders fetch...");
     
-    console.log("Admin orders request received with params:", { page, limit, status, startDate, endDate, sort });
+    // Validate database connection
+    if (mongoose.connection.readyState !== 1) {
+      throw new Error("Database not connected");
+    }
+
+    const { 
+      page = 1, 
+      limit = 10, 
+      status, 
+      startDate, 
+      endDate, 
+      sort = '-createdAt' 
+    } = req.query;
 
     const filterOptions = {};
     if (status) filterOptions.status = status;
@@ -511,15 +523,27 @@ router.get("/admin-all-orders", isAuthenticated, isAdmin, async (req, res) => {
       };
     }
 
-    const orders = await Order.find(filterOptions)
-      .populate('user', 'name email')
-      .populate('cart.shop', 'name')
-      .sort(sort)
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit))
-      .lean();
+    console.log("Fetching orders with filters:", filterOptions);
 
-    const totalOrders = await Order.countDocuments(filterOptions);
+    // Use Promise.all for parallel queries
+    const [orders, totalOrders] = await Promise.all([
+      Order.find(filterOptions)
+        .populate('user', 'name email')
+        .populate('cart.shop', 'name')
+        .sort(sort)
+        .skip((parseInt(page) - 1) * parseInt(limit))
+        .limit(parseInt(limit))
+        .lean()
+        .exec(),
+      Order.countDocuments(filterOptions)
+    ]);
+
+    if (!orders) {
+      throw new Error("Failed to fetch orders");
+    }
+
+    console.log(`Found ${orders.length} orders`);
+
     const totalAmount = orders.reduce((acc, order) => acc + (order.totalPrice || 0), 0);
 
     const response = {
@@ -528,42 +552,21 @@ router.get("/admin-all-orders", isAuthenticated, isAdmin, async (req, res) => {
       totalAmount,
       totalOrders,
       currentPage: parseInt(page),
-      totalPages: Math.ceil(totalOrders / limit),
+      totalPages: Math.ceil(totalOrders / parseInt(limit)),
       ordersCount: orders.length
     };
 
-    console.log("Sending admin orders response:", response);
+    console.log("Sending response with total orders:", totalOrders);
     res.status(200).json(response);
 
   } catch (error) {
     console.error("Admin orders error:", error);
     res.status(500).json({
       success: false,
-      message: error.message || "Error fetching admin orders"
+      message: error.message || "Error fetching admin orders",
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
-});
-
-// Add SSE endpoint
-router.get('/status-updates', isAuthenticated, (req, res) => {
-  res.writeHead(200, {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive'
-  });
-
-  const clientId = Date.now();
-
-  const newClient = {
-    id: clientId,
-    res
-  };
-
-  sse.init(req, res);
-
-  req.on('close', () => {
-    console.log(`Client ${clientId} Connection closed`);
-  });
 });
 router.get('/download-design/:orderId/:itemId',
   isAdmin,

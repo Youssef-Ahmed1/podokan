@@ -70,8 +70,8 @@
     "timeago.js": "^4.0.2",
     "web-vitals": "^3.5.0"
   },
-  "scripts": {
-    "start": "react-scripts start",
+      "scripts": {
+      "start": "pm2 start server.js --name podokan --watch --max-memory-restart 300M --restart-delay 3000",
     "build": "GENERATE_SOURCEMAP=false node --max_old_space_size=4096 node_modules/.bin/react-scripts build",
     "test": "react-scripts test",
     "build:analyze": "source-map-explorer 'build/static/js/*.js'",

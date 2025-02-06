@@ -1,49 +1,65 @@
 const mongoose = require("mongoose");
 
-const connectDatabase = () => {
-  mongoose
-    .connect(process.env.DB_URL, {
- 
+const connectDatabase = async () => {
+  try {
+    const connectionParams = {
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 30000,
+      family: 4,
+      keepAlive: true,
+      keepAliveInitialDelay: 300000,
+      autoIndex: true,
+      retryWrites: true,
+      connectTimeoutMS: 30000,
+      maxIdleTimeMS: 60000
+    };
 
-      serverSelectionTimeoutMS: 5000, // Time to wait for server selection
-      maxPoolSize: 10, // Maximum number of connections in the pool
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      family: 4, // Use IPv4, skip trying IPv6
-      autoIndex: true, // Build indexes
-      retryWrites: true, // Retry failed writes
-      connectTimeoutMS: 10000, // Give up initial connection after 10 seconds
-
-   
-    })
-    .then((data) => {
-      console.log(`MongoDB connected successfully to: ${data.connection.host}`);
-    })
-    .catch((error) => {
-      console.error('MongoDB connection error:', error);
-      // Retry logic or graceful shutdown
-      process.exit(1);
+    mongoose.connection.on('connecting', () => {
+      console.log('MongoDB: Connecting...');
     });
 
-  // Add error handlers
-  mongoose.connection.on('error', (err) => {
-    console.error('MongoDB connection error:', err);
-  });
+    mongoose.connection.on('connected', () => {
+      console.log('MongoDB: Connected successfully');
+    });
 
-  mongoose.connection.on('disconnected', () => {
-    console.warn('MongoDB disconnected. Attempting to reconnect...');
-  });
+    mongoose.connection.on('disconnected', () => {
+      console.log('MongoDB: Disconnected. Attempting to reconnect...');
+      // Attempt to reconnect after 5 seconds
+      setTimeout(async () => {
+        try {
+          await mongoose.connect(process.env.DB_URL, connectionParams);
+        } catch (error) {
+          console.error('MongoDB: Reconnection failed:', error);
+        }
+      }, 5000);
+    });
 
-  // Handle process termination
-  process.on('SIGINT', async () => {
-    try {
-      await mongoose.connection.close();
-      console.log('MongoDB connection closed through app termination');
-      process.exit(0);
-    } catch (err) {
-      console.error('Error during MongoDB connection closure:', err);
-      process.exit(1);
-    }
-  });
+    mongoose.connection.on('error', (err) => {
+      console.error('MongoDB connection error:', err);
+    });
+
+    // Initial connection
+    await mongoose.connect(process.env.DB_URL, connectionParams);
+    console.log(`MongoDB connected successfully to: ${mongoose.connection.host}`);
+
+    // Handle process termination
+    process.on('SIGINT', async () => {
+      try {
+        await mongoose.connection.close();
+        console.log('MongoDB: Connection closed through app termination');
+        process.exit(0);
+      } catch (err) {
+        console.error('Error during MongoDB connection closure:', err);
+        process.exit(1);
+      }
+    });
+
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    // Retry connection after 5 seconds
+    setTimeout(() => connectDatabase(), 5000);
+  }
 };
 
 module.exports = connectDatabase;
