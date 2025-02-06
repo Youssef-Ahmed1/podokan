@@ -90,28 +90,40 @@ export const getAllOrdersOfAdmin = (filters = {}) => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.ADMIN_ORDERS_REQUEST });
 
+    // Add token validation check
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    // Add debug logging
+    console.log("Fetching admin orders with token:", token);
+
     const queryParams = new URLSearchParams({
       page: filters.page || 1,
       limit: filters.limit || 10,
       status: filters.status || '',
       startDate: filters.startDate || '',
       endDate: filters.endDate || '',
-      sort: filters.sort || '-createdAt',
-      search: filters.search || '',
-      paymentStatus: filters.paymentStatus || '',
-      minAmount: filters.minAmount || '',
-      maxAmount: filters.maxAmount || ''
+      sort: filters.sort || '-createdAt'
     }).toString();
 
     const { data } = await axios.get(
       `${server}/order/admin-all-orders?${queryParams}`,
       {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
+          Authorization: `Bearer ${token}`
         },
         withCredentials: true
       }
     );
+
+    // Debug logging
+    console.log("Admin orders received:", data);
+
+    if (!data.orders) {
+      throw new Error("No orders data received from server");
+    }
 
     dispatch({
       type: ORDER_ACTIONS.ADMIN_ORDERS_SUCCESS,
@@ -120,16 +132,16 @@ export const getAllOrdersOfAdmin = (filters = {}) => async (dispatch) => {
         totalAmount: data.totalAmount,
         ordersCount: data.ordersCount,
         totalPages: data.totalPages,
-        currentPage: data.currentPage,
-        statistics: data.statistics // Include any additional statistics
+        currentPage: data.currentPage
       }
     });
 
     return data;
   } catch (error) {
+    console.error("Admin orders fetch error:", error);
     dispatch({
       type: ORDER_ACTIONS.ADMIN_ORDERS_FAIL,
-      payload: error.response?.data?.message || "Error fetching admin orders"
+      payload: error.response?.data?.message || error.message || "Error fetching admin orders"
     });
     throw error;
   }
