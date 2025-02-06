@@ -30,7 +30,6 @@ app.use(helmet({
 app.use(cookieParser());
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin || ALLOWED_ORIGINS.includes(origin)) {
       callback(null, true);
     } else {
@@ -46,7 +45,8 @@ app.use(cors({
     'X-Requested-With',
     'Content-Disposition',
     'Origin',
-    'Accept'
+    'Accept',
+    'Last-Event-ID' 
   ],
   exposedHeaders: [
     'Authorization',
