@@ -119,6 +119,11 @@ const updateProductStock = async (productId, quantity, action = 'decrease') => {
     throw error;
   }
 };
+router.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  next();
+});
 
 router.get('/download-specs/:orderId', isAdmin, async (req, res) => {
   try {
@@ -420,79 +425,44 @@ router.put(
     }
   })
 );
-router.put(
-  "/update-order-status/:orderId",
-  isAdmin,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const { orderId } = req.params;
-      const { status } = req.body;
+router.put("/update-order-status/:orderId", isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
 
-      if (!Object.values(ORDER_STATUSES).includes(status)) {
-        return next(new ErrorHandler("Invalid status", 400));
-      }
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
 
-      const order = await Order.findById(orderId);
-      if (!order) {
-        return next(new ErrorHandler("Order not found", 404));
-      }
+    order.status = status;
+    await order.save();
 
-      // Update status and add to history
-      const statusUpdate = {
-        status,
-        updatedAt: new Date(),
-        updatedBy: req.admin._id,
-        previousStatus: order.status
-      };
-
-      order.status = status;
-      order.statusHistory.push(statusUpdate);
-
-      // Handle status-specific logic
-      if (status === ORDER_STATUSES.DELIVERED) {
-        order.deliveredAt = new Date();
-        
-        // Update product stocks and sales
-        for (const item of order.cart) {
-          await Product.findByIdAndUpdate(item.product, {
-            $inc: { 
-              stock: -item.qty,
-              sold_out: item.qty
-            }
-          });
-
-          // Update shop statistics
-          if (item.shop) {
-            await Shop.findByIdAndUpdate(item.shop, {
-              $inc: { 
-                totalSales: item.price * item.qty,
-                soldItems: item.qty
-              }
-            });
-          }
-        }
-      }
-
-      await order.save();
-
-      // Emit SSE event for real-time updates
-      sse.send({
-        type: 'ORDER_STATUS_UPDATE',
+    // Emit SSE event
+    sse.send({
+      type: 'ORDER_STATUS_UPDATE',
+      data: {
         orderId,
         status,
         timestamp: new Date()
-      });
+      }
+    });
 
-      res.status(200).json({
-        success: true,
-        order
-      });
-    } catch (error) {
-      console.error('Status update error:', error);
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
+    res.status(200).json({
+      success: true,
+      order
+    });
+  } catch (error) {
+    console.error("Status update error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
 router.put("/set-delivery/:orderId",
   isAdmin,
   catchAsyncErrors(async (req, res) => {
@@ -526,60 +496,75 @@ router.get('/status-updates', (req, res) => {
 });
 
 // Admin: Get all orders
-router.get(
-  "/admin-all-orders",
-  isAuthenticated,
-  isAdmin,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      // Add pagination
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const skip = (page - 1) * limit;
+router.get("/admin-all-orders", isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const { page = 1, limit = 10, status, startDate, endDate, sort = '-createdAt' } = req.query;
+    
+    console.log("Admin orders request received with params:", { page, limit, status, startDate, endDate, sort });
 
-      // Add filtering
-      const filterOptions = {};
-      if (req.query.status) {
-        filterOptions.status = req.query.status;
-      }
-      if (req.query.startDate && req.query.endDate) {
-        filterOptions.createdAt = {
-          $gte: new Date(req.query.startDate),
-          $lte: new Date(req.query.endDate)
-        };
-      }
-
-      // Get orders with populated data
-      const orders = await Order.find(filterOptions)
-        .populate('user', 'name email')
-        .populate('cart.shop', 'name')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean();
-
-      // Get total count for pagination
-      const totalOrders = await Order.countDocuments(filterOptions);
-
-      // Calculate totals and stats
-      const totalAmount = orders.reduce((acc, order) => acc + (order.totalPrice || 0), 0);
-
-      res.status(200).json({
-        success: true,
-        orders,
-        totalAmount,
-        totalOrders,
-        currentPage: page,
-        totalPages: Math.ceil(totalOrders / limit),
-        ordersCount: orders.length
-      });
-    } catch (error) {
-      console.error('Admin orders fetch error:', error);
-      return next(new ErrorHandler(error.message, 500));
+    const filterOptions = {};
+    if (status) filterOptions.status = status;
+    if (startDate && endDate) {
+      filterOptions.createdAt = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
     }
-  })
-);
 
+    const orders = await Order.find(filterOptions)
+      .populate('user', 'name email')
+      .populate('cart.shop', 'name')
+      .sort(sort)
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .lean();
+
+    const totalOrders = await Order.countDocuments(filterOptions);
+    const totalAmount = orders.reduce((acc, order) => acc + (order.totalPrice || 0), 0);
+
+    const response = {
+      success: true,
+      orders,
+      totalAmount,
+      totalOrders,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(totalOrders / limit),
+      ordersCount: orders.length
+    };
+
+    console.log("Sending admin orders response:", response);
+    res.status(200).json(response);
+
+  } catch (error) {
+    console.error("Admin orders error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error fetching admin orders"
+    });
+  }
+});
+
+// Add SSE endpoint
+router.get('/status-updates', isAuthenticated, (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive'
+  });
+
+  const clientId = Date.now();
+
+  const newClient = {
+    id: clientId,
+    res
+  };
+
+  sse.init(req, res);
+
+  req.on('close', () => {
+    console.log(`Client ${clientId} Connection closed`);
+  });
+});
 router.get('/download-design/:orderId/:itemId',
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {

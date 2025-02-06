@@ -28,6 +28,13 @@ app.use(helmet({
 
 // CORS configuration
 app.use(cookieParser());
+app.use((req, res, next) => {
+  res.setHeader('X-Powered-By', 'Express');
+  res.setHeader('Cache-Control', 'no-cache');
+  next();
+});
+
+// Add this to your CORS configuration
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin || ALLOWED_ORIGINS.includes(origin)) {
@@ -46,7 +53,8 @@ app.use(cors({
     'Content-Disposition',
     'Origin',
     'Accept',
-    'Last-Event-ID' 
+    'Cache-Control',
+    'Last-Event-ID'
   ],
   exposedHeaders: [
     'Authorization',
