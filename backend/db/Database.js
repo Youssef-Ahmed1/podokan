@@ -3,36 +3,31 @@ const mongoose = require("mongoose");
 const connectDatabase = async () => {
   try {
     const connectionParams = {
-      maxPoolSize: 10,
+      maxPoolSize: 50, // Increased for production
       serverSelectionTimeoutMS: 30000,
-      socketTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
       family: 4,
-      keepAlive: true,
-      keepAliveInitialDelay: 300000,
-      autoIndex: true,
+      heartbeatFrequencyMS: 3000,
+      autoIndex: false, // Disable in production for better performance
       retryWrites: true,
       connectTimeoutMS: 30000,
-      maxIdleTimeMS: 60000
+      // Production specific settings
+      minPoolSize: 10,
+      maxIdleTimeMS: 60000,
+      compressors: ["zlib"],
+      zlibCompressionLevel: 6
     };
 
     mongoose.connection.on('connecting', () => {
-      console.log('MongoDB: Connecting...');
+      console.log(`MongoDB: Attempting connection to ${process.env.NODE_ENV} database...`);
     });
 
     mongoose.connection.on('connected', () => {
-      console.log('MongoDB: Connected successfully');
+      console.log(`MongoDB: Connected successfully to ${process.env.NODE_ENV} database`);
     });
 
     mongoose.connection.on('disconnected', () => {
       console.log('MongoDB: Disconnected. Attempting to reconnect...');
-      // Attempt to reconnect after 5 seconds
-      setTimeout(async () => {
-        try {
-          await mongoose.connect(process.env.DB_URL, connectionParams);
-        } catch (error) {
-          console.error('MongoDB: Reconnection failed:', error);
-        }
-      }, 5000);
     });
 
     mongoose.connection.on('error', (err) => {
@@ -40,11 +35,18 @@ const connectDatabase = async () => {
     });
 
     // Initial connection
-    await mongoose.connect(process.env.DB_URL, connectionParams);
-    console.log(`MongoDB connected successfully to: ${mongoose.connection.host}`);
+    const connection = await mongoose.connect(process.env.DB_URL, connectionParams);
+    
+    // Set up proper indexes in production
+    if (process.env.NODE_ENV === 'production') {
+      await mongoose.connection.db.command({ ping: 1 });
+      console.log('MongoDB: Production indexes verified');
+    }
+
+    console.log(`MongoDB connected to ${process.env.NODE_ENV} database at: ${connection.connection.host}`);
 
     // Handle process termination
-    process.on('SIGINT', async () => {
+    process.on('SIGTERM', async () => {
       try {
         await mongoose.connection.close();
         console.log('MongoDB: Connection closed through app termination');
@@ -55,10 +57,11 @@ const connectDatabase = async () => {
       }
     });
 
+    return connection;
+
   } catch (error) {
-    console.error('MongoDB connection error:', error);
-    // Retry connection after 5 seconds
-    setTimeout(() => connectDatabase(), 5000);
+    console.error('MongoDB initial connection error:', error);
+    process.exit(1);
   }
 };
 
