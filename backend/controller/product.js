@@ -259,6 +259,7 @@ router.get(
 
 // Approve/reject product
 
+// controller/product.js
 router.put(
   "/approve-reject-product/:id",
   isAuthenticated,
@@ -271,55 +272,56 @@ router.put(
         statusReason,
         originalPrice,
         discountPrice,
-        ProductType,
-        ProductColor,
-        ProductView,
-        availableColors,
-        // Add these new fields
         DesignScale,
         DesignPosition,
         mainTags,
         Designtags
       } = req.body;
 
+      // Validate product exists
+      const product = await Product.findById(id);
+      if (!product) {
+        return next(new ErrorHandler("Product not found", 404));
+      }
+
+      // Validate design specifications based on ValidationSystem
+      if (DesignPosition) {
+        if (DesignPosition.x < 20 || DesignPosition.x > 80 ||
+            DesignPosition.y < 15 || DesignPosition.y > 45) {
+          return next(new ErrorHandler("Design position out of safe area", 400));
+        }
+      }
+
+      if (DesignScale && (DesignScale < 0.3 || DesignScale > 2)) {
+        return next(new ErrorHandler("Invalid design scale", 400));
+      }
+
+      // Update product with validation rules
       const updateData = {
         status,
         statusReason,
-        lastModified: new Date(),
-        lastModifiedBy: req.user._id,
-        // Add design specifications
+        originalPrice,
+        discountPrice,
         DesignScale,
         DesignPosition,
         mainTags,
-        Designtags
+        Designtags,
+        lastModified: new Date(),
+        lastModifiedBy: req.user._id
       };
 
-      // Only update optional fields if provided
-      if (originalPrice) updateData.originalPrice = originalPrice;
-      if (discountPrice) updateData.discountPrice = discountPrice;
-      if (ProductType) updateData.ProductType = ProductType;
-      if (ProductColor) updateData.ProductColor = ProductColor;
-      if (ProductView) updateData.ProductView = ProductView;
-      if (availableColors) updateData.availableColors = availableColors;
-
-      const product = await Product.findByIdAndUpdate(
+      const updatedProduct = await Product.findByIdAndUpdate(
         id,
-        updateData,
-        { new: true }
+        { $set: updateData },
+        { new: true, runValidators: true }
       );
-
-      if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: "Product not found"
-        });
-      }
 
       res.status(200).json({
         success: true,
         message: `Product ${status} successfully`,
-        product
+        product: updatedProduct
       });
+
     } catch (error) {
       console.error('Product status update error:', error);
       return next(new ErrorHandler(error.message, 500));

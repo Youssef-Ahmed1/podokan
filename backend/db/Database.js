@@ -1,49 +1,64 @@
+// db/Database.js
 const mongoose = require("mongoose");
-const path = require('path');
-const dotenv = require('dotenv');
+const MAX_RETRIES = 5;
+const RETRY_INTERVAL = 5000; // 5 seconds
 
-// Load environment variables from config folder
-dotenv.config({ path: path.join(__dirname, '..', 'config', '.env') });
-
-const connectDatabase = async () => {
+const connectDatabase = async (retryCount = 0) => {
   try {
-    // Debug connection attempt
     console.log('Attempting database connection...', {
-      dbUrlExists: !!process.env.DB_URL,
-      nodeEnv: process.env.NODE_ENV
+      attempt: retryCount + 1,
+      maxRetries: MAX_RETRIES
     });
 
     const connectionParams = {
-      maxPoolSize: 50,
-      serverSelectionTimeoutMS: 30000,
+      maxPoolSize: 10,
+      minPoolSize: 2,
       socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000,
+      serverSelectionTimeoutMS: 30000,
       family: 4,
-      autoIndex: false,
       retryWrites: true,
-      connectTimeoutMS: 30000
+      maxIdleTimeMS: 60000,
+      compressors: 'zlib'
     };
 
     mongoose.connection.on('connecting', () => {
-      console.log(`MongoDB: Attempting connection to ${process.env.NODE_ENV} database...`);
+      console.log('MongoDB: Connecting...');
     });
 
     mongoose.connection.on('connected', () => {
-      console.log(`MongoDB: Connected successfully to ${process.env.NODE_ENV} database`);
+      console.log('MongoDB: Connected successfully');
+    });
+
+    mongoose.connection.on('disconnected', () => {
+      console.log('MongoDB: Disconnected');
+      if (retryCount < MAX_RETRIES) {
+        setTimeout(() => {
+          connectDatabase(retryCount + 1);
+        }, RETRY_INTERVAL);
+      }
     });
 
     mongoose.connection.on('error', (err) => {
       console.error('MongoDB connection error:', err);
+      if (retryCount < MAX_RETRIES) {
+        setTimeout(() => {
+          connectDatabase(retryCount + 1);
+        }, RETRY_INTERVAL);
+      }
     });
 
-    // Initial connection
-    const connection = await mongoose.connect(process.env.DB_URL, connectionParams);
-    console.log(`MongoDB connected to ${connection.connection.host}`);
-
-    return connection;
+    await mongoose.connect(process.env.DB_URL, connectionParams);
+    return mongoose.connection;
 
   } catch (error) {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
+    console.error('Database connection error:', error);
+    if (retryCount < MAX_RETRIES) {
+      console.log(`Retrying connection in ${RETRY_INTERVAL/1000} seconds... (${retryCount + 1}/${MAX_RETRIES})`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+      return connectDatabase(retryCount + 1);
+    }
+    throw error;
   }
 };
 

@@ -94,7 +94,111 @@ const validateMongoId = (id) => {
   }
   return true;
 };
+const updateOrderStatus = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
 
+    // Validate status
+    if (!Object.values(ORDER_STATUSES).includes(status)) {
+      return next(new ErrorHandler("Invalid order status", 400));
+    }
+
+    // Find order and validate
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return next(new ErrorHandler("Order not found", 404));
+    }
+
+    // Update status with history
+    order.status = status;
+    order.statusHistory.push({
+      status,
+      changedBy: req.user._id,
+      userType: 'Admin',
+      timestamp: new Date()
+    });
+
+    // Handle status-specific logic
+    if (status === ORDER_STATUSES.DELIVERED) {
+      order.deliveredAt = new Date();
+    }
+
+    await order.save();
+
+    // Emit SSE event
+    const sseData = {
+      type: 'ORDER_STATUS_UPDATE',
+      data: {
+        orderId: order._id,
+        status: order.status,
+        updatedAt: new Date(),
+        statusHistory: order.statusHistory
+      }
+    };
+
+    req.app.emit('orderUpdate', sseData);
+
+    res.status(200).json({
+      success: true,
+      order
+    });
+
+  } catch (error) {
+    console.error("Order status update error:", error);
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+// controller/order.js
+const getOrdersWithFilters = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const query = {};
+    
+    // Add status filter if provided
+    if (req.query.status) {
+      query.status = req.query.status;
+    }
+
+    // Add date range filter if provided
+    if (req.query.startDate && req.query.endDate) {
+      query.createdAt = {
+        $gte: new Date(req.query.startDate),
+        $lte: new Date(req.query.endDate)
+      };
+    }
+
+    // Add shop filter for sellers
+    if (req.seller) {
+      query['cart.shop'] = req.seller._id;
+    }
+
+    const orders = await Order.find(query)
+      .select('cart status totalPrice createdAt deliveredAt statusHistory paymentInfo shippingAddress')
+      .populate('user', 'name email')
+      .populate('cart.shop', 'name email')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalOrders = await Order.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      orders,
+      currentPage: page,
+      totalPages: Math.ceil(totalOrders / limit),
+      totalOrders
+    });
+
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
 const updateProductStock = async (productId, quantity, action = 'decrease') => {
   try {
     const product = await Product.findById(productId);
