@@ -1,10 +1,23 @@
-require("dotenv").config({
-  path: "config/.env",
+// server.js
+const app = require("./app");
+const connectDatabase = require("./db/Database");
+const cloudinary = require("cloudinary").v2;
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err);
+  process.exit(1);
 });
 
-const app = require("./app");
-const connectDatabase = require("./db/Database.js");
-const cloudinary = require("cloudinary").v2;
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.error('UNHANDLED REJECTION:', err);
+  if (server) {
+    server.close(() => process.exit(1));
+  } else {
+    process.exit(1);
+  }
+});
 
 // Configure cloudinary
 cloudinary.config({
@@ -13,39 +26,34 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Create HTTP server
-const httpServer = require('http').createServer(app);
+let server;
 
-// Database connection with retry
-const connectWithRetry = async (retries = 5) => {
+// Start server function
+const startServer = async () => {
   try {
+    // Connect to database
     await connectDatabase();
-    const port = process.env.PORT || 8000;
-    httpServer.listen(port, () => {
-      console.log(`Server running on port ${port}`);
-      console.log('Database connected');
+
+    // Start server
+    const PORT = process.env.PORT || 8000;
+    const HOST = process.env.HOST || '0.0.0.0'; // Listen on all network interfaces
+
+    server = app.listen(PORT, HOST, () => {
+      console.log(`Server running in ${process.env.NODE_ENV} mode`);
+      console.log(`Server started on ${HOST}:${PORT}`);
     });
-  } catch (err) {
-    console.error('Database connection failed:', err.message);
-    if (retries > 0) {
-      console.log(`Retrying in 5 seconds... (${retries} attempts remaining)`);
-      setTimeout(() => connectWithRetry(retries - 1), 5000);
-    } else {
-      console.error('Max retries reached, exiting...');
+
+    // Handle server errors
+    server.on('error', (err) => {
+      console.error('Server error:', err);
       process.exit(1);
-    }
+    });
+
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
   }
 };
 
-// Error handlers
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err);
-  httpServer.close(() => process.exit(1));
-});
-
-process.on("unhandledRejection", (err) => {
-  console.error("Unhandled Rejection:", err);
-  httpServer.close(() => process.exit(1));
-});
-
-connectWithRetry();
+// Start the server
+startServer();
