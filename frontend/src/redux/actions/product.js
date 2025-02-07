@@ -162,7 +162,10 @@ export const approveRejectProduct = (productId, status, reason, productData) => 
     });
     throw error;
   }
-};// Get all products
+};
+
+
+// Get all products
 export const getAllProducts = (page = 1, limit = 20) => async (dispatch) => {
   try {
     dispatch({ type: "getAllProductsRequest" });
