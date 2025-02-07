@@ -1,5 +1,4 @@
 const express = require("express");
-const catchAsync = require("../utils/catchAsync");  
 const router = express.Router();
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
@@ -298,7 +297,6 @@ router.get('/download-specs/:orderId', isAdmin, async (req, res) => {
     res.status(500).json({ message: "Error generating specs zip" });
   }
 });
-//
 const updateSellerBalance = async (sellerId, amount) => {
   try {
     const seller = await Shop.findById(sellerId);
