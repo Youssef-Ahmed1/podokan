@@ -31,7 +31,6 @@
     "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^7.4.1",
     "express-session": "^1.18.1",
-    "express-sse": "^0.5.3",
     "express-validator": "^7.0.1",
     "file-saver": "^2.0.5",
     "helmet": "^8.0.0",
