@@ -266,8 +266,8 @@ router.put(
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { id } = req.params;
-      const { 
-        status, 
+      const {
+        status,
         statusReason,
         originalPrice,
         discountPrice,
@@ -283,28 +283,36 @@ router.put(
         return next(new ErrorHandler("Product not found", 404));
       }
 
-      // Validate design specifications based on ValidationSystem
-      if (DesignPosition) {
-        if (DesignPosition.x < 20 || DesignPosition.x > 80 ||
-            DesignPosition.y < 15 || DesignPosition.y > 45) {
-          return next(new ErrorHandler("Design position out of safe area", 400));
+      // Validate prices
+      if (typeof originalPrice !== 'undefined' && typeof discountPrice !== 'undefined') {
+        if (Number(discountPrice) > Number(originalPrice)) {
+          return next(new ErrorHandler("Discount price cannot be greater than original price", 400));
         }
       }
 
-      if (DesignScale && (DesignScale < 0.3 || DesignScale > 2)) {
+      // Validate design specifications
+      if (DesignPosition) {
+        if (typeof DesignPosition.x !== 'number' || typeof DesignPosition.y !== 'number' ||
+            DesignPosition.x < 20 || DesignPosition.x > 80 ||
+            DesignPosition.y < 15 || DesignPosition.y > 45) {
+          return next(new ErrorHandler("Invalid design position", 400));
+        }
+      }
+
+      if (typeof DesignScale !== 'undefined' && (DesignScale < 0.3 || DesignScale > 2)) {
         return next(new ErrorHandler("Invalid design scale", 400));
       }
 
-      // Update product with validation rules
+      // Update product with validated data
       const updateData = {
         status,
-        statusReason,
-        originalPrice,
-        discountPrice,
-        DesignScale,
-        DesignPosition,
-        mainTags,
-        Designtags,
+        statusReason: statusReason || '',
+        ...(typeof originalPrice !== 'undefined' && { originalPrice }),
+        ...(typeof discountPrice !== 'undefined' && { discountPrice }),
+        ...(DesignScale && { DesignScale }),
+        ...(DesignPosition && { DesignPosition }),
+        ...(mainTags && { mainTags }),
+        ...(Designtags && { Designtags }),
         lastModified: new Date(),
         lastModifiedBy: req.user._id
       };
@@ -323,7 +331,7 @@ router.put(
 
     } catch (error) {
       console.error('Product status update error:', error);
-      return next(new ErrorHandler(error.message, 500));
+      return next(new ErrorHandler(error.message || "Internal server error", 500));
     }
   })
 );

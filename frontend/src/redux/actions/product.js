@@ -117,6 +117,7 @@ export const fetchPendingProducts = () => async (dispatch) => {
   }
 };
 // Approve/Reject product
+// redux/actions/product.js
 export const approveRejectProduct = (productId, status, reason, productData) => async (dispatch) => {
   try {
     dispatch({ type: "approveRejectProductRequest" });
@@ -129,12 +130,11 @@ export const approveRejectProduct = (productId, status, reason, productData) => 
       withCredentials: true
     };
 
-    // Structure request data to match controller expectations
     const requestData = {
       status,
-      statusReason: reason || '',
-      originalPrice: productData.originalPrice,
-      discountPrice: productData.discountPrice,
+      statusReason: reason,
+      originalPrice: Number(productData.originalPrice),
+      discountPrice: Number(productData.discountPrice),
       DesignScale: productData.DesignScale,
       DesignPosition: productData.DesignPosition,
       mainTags: productData.mainTags,
@@ -152,10 +152,7 @@ export const approveRejectProduct = (productId, status, reason, productData) => 
       payload: data
     });
 
-    // Refresh the products lists
-    dispatch(fetchPendingProducts());
-
-    return data; // Return data for component handling
+    return data;
 
   } catch (error) {
     console.error('Approve/Reject Error:', error);
@@ -163,11 +160,9 @@ export const approveRejectProduct = (productId, status, reason, productData) => 
       type: "approveRejectProductFail",
       payload: error.response?.data?.message || "Failed to update product status"
     });
-    throw error; // Throw error for component error handling
+    throw error;
   }
-};
-
-// Get all products
+};// Get all products
 export const getAllProducts = (page = 1, limit = 20) => async (dispatch) => {
   try {
     dispatch({ type: "getAllProductsRequest" });
