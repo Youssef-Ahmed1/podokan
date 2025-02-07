@@ -19,6 +19,7 @@ const sse = new SSE();
 const SERVICE_CHARGE_PERCENTAGE = 0.10; // 10% service charge
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 const getOrderDetails = catchAsyncErrors(async (req, res, next) => {
   const order = await Order.findById(req.params.id)
     .populate('cart.product')
@@ -44,6 +45,8 @@ const getOrderDetails = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
+=======
+>>>>>>> parent of c1b4129 (save)
 =======
 >>>>>>> parent of c1b4129 (save)
 // Validation middleware
