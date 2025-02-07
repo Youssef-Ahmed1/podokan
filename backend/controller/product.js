@@ -259,7 +259,6 @@ router.get(
 
 // Approve/reject product
 
-// controller/product.js
 router.put(
   "/approve-reject-product/:id",
   isAuthenticated,
