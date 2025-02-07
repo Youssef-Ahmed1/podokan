@@ -129,43 +129,41 @@ export const approveRejectProduct = (productId, status, reason, productData) => 
       withCredentials: true
     };
 
-    // Include price data in the request
+    // Structure request data to match controller expectations
     const requestData = {
       status,
       statusReason: reason || '',
       originalPrice: productData.originalPrice,
       discountPrice: productData.discountPrice,
-      ProductType: productData.ProductType,
-      ProductColor: productData.ProductColor,
-      ProductView: productData.ProductView,
-      availableColors: productData.availableColors
+      DesignScale: productData.DesignScale,
+      DesignPosition: productData.DesignPosition,
+      mainTags: productData.mainTags,
+      Designtags: productData.Designtags
     };
 
-    const response = await axios.put(
+    const { data } = await axios.put(
       `${server}/product/approve-reject-product/${productId}`,
       requestData,
       config
     );
 
-    if (response.data.success) {
-      dispatch({ 
-        type: "approveRejectProductSuccess",
-        payload: response.data
-      });
+    dispatch({ 
+      type: "approveRejectProductSuccess",
+      payload: data
+    });
 
-      // Refresh products lists
-      dispatch(fetchPendingProducts());
-      dispatch(getAllProducts());
+    // Refresh the products lists
+    dispatch(fetchPendingProducts());
 
-      return response.data;
-    }
+    return data; // Return data for component handling
+
   } catch (error) {
     console.error('Approve/Reject Error:', error);
     dispatch({
       type: "approveRejectProductFail",
       payload: error.response?.data?.message || "Failed to update product status"
     });
-    throw error;
+    throw error; // Throw error for component error handling
   }
 };
 
