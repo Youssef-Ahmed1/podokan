@@ -468,38 +468,52 @@ const AdminProductApproval = () => {
   
     try {
       setIsSubmitting(true);
-      
-      const result = await dispatch(
-        approveRejectProduct(
-          editedProduct._id,
-          newStatus,
-          editedProduct.rejectionReason || '',
-          {
-            originalPrice: editedProduct.originalPrice,
-            discountPrice: editedProduct.discountPrice,
-            ProductType: editedProduct.ProductType,
-            ProductColor: editedProduct.ProductColor,
-            DesignScale: scale,
-            DesignPosition: position,
-            mainTags: editedProduct.mainTags,
-            Designtags: editedProduct.Designtags
-          }
-        )
-      );
+  
+      // Parse prices to numbers to ensure proper comparison
+      const originalPrice = Number(editedProduct.originalPrice);
+      const discountPrice = Number(editedProduct.discountPrice);
+  
+      // Validate prices before sending request
+      if (discountPrice > originalPrice) {
+        toast.error('Discount price cannot be greater than original price');
+        return;
+      }
+  
+      const requestData = {
+        status: newStatus,
+        statusReason: editedProduct.rejectionReason || '',
+        originalPrice,
+        discountPrice,
+        DesignScale: editedProduct.DesignScale,
+        DesignPosition: editedProduct.DesignPosition,
+        mainTags: editedProduct.mainTags,
+        Designtags: editedProduct.Designtags,
+        ProductType: editedProduct.ProductType,
+        ProductColor: editedProduct.ProductColor,
+        ProductView: editedProduct.ProductView
+      };
+  
+      const result = await dispatch(approveRejectProduct(
+        editedProduct._id,
+        newStatus,
+        editedProduct.rejectionReason || '',
+        requestData
+      ));
+  
       if (result.success) {
-        toast.success(result.message);
+        toast.success(`Product ${newStatus} successfully`);
         setSelectedProduct(null);
         setEditedProduct(null);
         dispatch(fetchPendingProducts());
       }
     } catch (error) {
       console.error('Status change failed:', error);
-      toast.error(error.response?.data?.message || 'Failed to update product status');
+      const errorMessage = error.response?.data?.message || 'Failed to update product status';
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
-  }, [editedProduct, dispatch, scale, position]);
-
+  }, [editedProduct, dispatch]);
   // Access check
   if (!user || !(user.role === 'Admin' || user.role === 'admin')) {
     return (
