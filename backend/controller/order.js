@@ -297,6 +297,7 @@ router.get('/download-specs/:orderId', isAdmin, async (req, res) => {
     res.status(500).json({ message: "Error generating specs zip" });
   }
 });
+//.
 const updateSellerBalance = async (sellerId, amount) => {
   try {
     const seller = await Shop.findById(sellerId);
