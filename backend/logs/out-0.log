@@ -21,3 +21,34 @@
 2025-02-08T12:23:11:   email: 'moropass1212@gmail.com'
 2025-02-08T12:23:11: }
 2025-02-08T12:23:11: Is admin? true
+2025-02-08T13:48:11: Attempting database connection... { attempt: 1, maxRetries: 5 }
+2025-02-08T13:48:11: MongoDB: Connecting...
+2025-02-08T13:48:12: MongoDB: Connected successfully
+2025-02-08T13:48:12: Server running on port 8000
+2025-02-08T13:48:12: Database connected
+2025-02-08T14:02:04: Auth check - User data: {
+2025-02-08T14:02:04:   id: new ObjectId('651c6e8ce2edc539babd18a4'),
+2025-02-08T14:02:04:   role: 'Admin',
+2025-02-08T14:02:04:   email: 'moropass1212@gmail.com'
+2025-02-08T14:02:04: }
+2025-02-08T14:02:04: Is admin? true
+2025-02-08T14:02:04: Fetching pending products for admin: moropass1212@gmail.com
+2025-02-08T14:02:18: Auth check - User data: {
+2025-02-08T14:02:18:   id: new ObjectId('651c6e8ce2edc539babd18a4'),
+2025-02-08T14:02:18:   role: 'Admin',
+2025-02-08T14:02:18:   email: 'moropass1212@gmail.com'
+2025-02-08T14:02:18: }
+2025-02-08T14:02:18: Is admin? true
+2025-02-08T14:25:40: Auth check - User data: {
+2025-02-08T14:25:40:   id: new ObjectId('651c6e8ce2edc539babd18a4'),
+2025-02-08T14:25:40:   role: 'Admin',
+2025-02-08T14:25:40:   email: 'moropass1212@gmail.com'
+2025-02-08T14:25:40: }
+2025-02-08T14:25:40: Is admin? true
+2025-02-08T14:25:40: Fetching pending products for admin: moropass1212@gmail.com
+2025-02-08T14:25:58: Auth check - User data: {
+2025-02-08T14:25:58:   id: new ObjectId('651c6e8ce2edc539babd18a4'),
+2025-02-08T14:25:58:   role: 'Admin',
+2025-02-08T14:25:58:   email: 'moropass1212@gmail.com'
+2025-02-08T14:25:58: }
+2025-02-08T14:25:58: Is admin? true
