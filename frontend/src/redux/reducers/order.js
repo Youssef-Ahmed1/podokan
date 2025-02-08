@@ -1,7 +1,7 @@
-// orderReducer.js
 import { createReducer } from "@reduxjs/toolkit";
 
 const initialState = {
+<<<<<<< HEAD
   isLoading: false,
   error: null,
   orders: [],
@@ -40,11 +40,36 @@ const initialState = {
     endDate: '',
     sort: '-createdAt'
   }
+=======
+  isLoading: true,
+  orders: [], // Add this
+  adminOrders: [],
+  adminOrderLoading: false,
+  totalAmount: 0,
+  ordersCount: 0,
+  error: null
+>>>>>>> parent of bb3e5595 (save)
 };
 
 export const orderReducer = createReducer(initialState, (builder) => {
   builder
-    // User Orders
+    // Seller orders
+    .addCase("getAllOrdersShopRequest", (state) => {
+      state.isLoading = true;
+      state.error = null;
+    })
+    .addCase("getAllOrdersShopSuccess", (state, action) => {
+      state.isLoading = false;
+      state.orders = action.payload;
+      state.error = null;
+    })
+    .addCase("getAllOrdersShopFailed", (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+      state.orders = [];
+    })
+    
+    // User orders
     .addCase("getAllOrdersUserRequest", (state) => {
       state.user.isLoading = true;
       state.user.error = null;
@@ -60,22 +85,27 @@ export const orderReducer = createReducer(initialState, (builder) => {
       state.user.orders = [];
     })
 
-    // Shop Orders
-    .addCase("getAllOrdersShopRequest", (state) => {
-      state.shop.isLoading = true;
-      state.shop.error = null;
+    // Admin orders
+    .addCase("getAllOrdersOfAdminRequest", (state) => {
+      state.adminOrderLoading = true;
+      state.error = null;
     })
-    .addCase("getAllOrdersShopSuccess", (state, action) => {
-      state.shop.isLoading = false;
-      state.shop.orders = action.payload;
-      state.shop.error = null;
+    .addCase("getAllOrdersOfAdminSuccess", (state, action) => {
+      state.adminOrderLoading = false;
+      state.adminOrders = action.payload.orders;
+      state.totalAmount = action.payload.totalAmount;
+      state.ordersCount = action.payload.ordersCount;
+      state.error = null;
     })
-    .addCase("getAllOrdersShopFailed", (state, action) => {
-      state.shop.isLoading = false;
-      state.shop.error = action.payload;
-      state.shop.orders = [];
+    .addCase("getAllOrdersOfAdminFailed", (state, action) => {
+      state.adminOrderLoading = false;
+      state.error = action.payload;
+      state.adminOrders = [];
+      state.totalAmount = 0;
+      state.ordersCount = 0;
     })
 
+<<<<<<< HEAD
     // Admin Orders
     .addCase("getAllOrdersAdminRequest", (state) => {
       state.admin.isLoading = true;
@@ -99,11 +129,14 @@ export const orderReducer = createReducer(initialState, (builder) => {
     })
 
     // Update Order Status
+=======
+>>>>>>> parent of bb3e5595 (save)
     .addCase("updateOrderStatusRequest", (state) => {
       state.statusUpdate.loading = true;
       state.statusUpdate.error = null;
     })
     .addCase("updateOrderStatusSuccess", (state, action) => {
+<<<<<<< HEAD
       state.statusUpdate.loading = false;
       state.statusUpdate.success = true;
       // Update in user orders
@@ -116,6 +149,10 @@ export const orderReducer = createReducer(initialState, (builder) => {
       );
       // Update in admin orders
       state.admin.orders = state.admin.orders.map(order => 
+=======
+      state.isLoading = false;
+      state.adminOrders = state.adminOrders.map(order => 
+>>>>>>> parent of bb3e5595 (save)
         order._id === action.payload._id ? action.payload : order
       );
     })
@@ -125,6 +162,7 @@ export const orderReducer = createReducer(initialState, (builder) => {
       state.statusUpdate.success = false;
     })
 
+<<<<<<< HEAD
     // Design Download
     .addCase("downloadDesignRequest", (state) => {
       state.designDownload.loading = true;
@@ -184,5 +222,9 @@ export const orderReducer = createReducer(initialState, (builder) => {
         endDate: '',
         sort: '-createdAt'
       };
+=======
+    .addCase("clearErrors", (state) => {
+      state.error = null;
+>>>>>>> parent of bb3e5595 (save)
     });
 });

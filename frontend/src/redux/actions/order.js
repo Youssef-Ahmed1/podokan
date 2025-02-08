@@ -1,19 +1,25 @@
-// orderActions.js
 import axios from "axios";
 import { server } from "../../server";
 
-// Get user orders
+// get all orders of user
 export const getAllOrdersOfUser = (userId) => async (dispatch) => {
   try {
-    dispatch({ type: "getAllOrdersUserRequest" });
+    dispatch({
+      type: "getAllOrdersUserRequest",
+    });
 
     const { data } = await axios.get(
       `${server}/order/get-all-orders/${userId}`,
+<<<<<<< HEAD
       { 
         withCredentials: true,
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`
         }
+=======
+      {
+        withCredentials: true,
+>>>>>>> parent of bb3e5595 (save)
       }
     );
 
@@ -26,13 +32,18 @@ export const getAllOrdersOfUser = (userId) => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: "getAllOrdersUserFailed",
+<<<<<<< HEAD
       payload: error.response?.data?.message || "Error fetching orders",
+=======
+      payload: error.response.data.message,
+>>>>>>> parent of bb3e5595 (save)
     });
     throw error;
   }
 };
 
-// Get shop orders
+// get all orders of seller  if it disappeared it will cause an error
+// that the seller won't be able to see the order that are is 
 export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
   try {
     dispatch({ type: "getAllOrdersShopRequest" });
@@ -43,22 +54,28 @@ export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
         withCredentials: true,
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Shop-Authorization': `Bearer ${localStorage.getItem('seller_token')}`
+          'Seller-Authorization': `Bearer ${localStorage.getItem('seller_token')}`
         }
       }
     );
+
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch orders');
+    }
 
     dispatch({
       type: "getAllOrdersShopSuccess",
       payload: data.orders
     });
   } catch (error) {
+    console.error('Shop orders fetch error:', error);
     dispatch({
       type: "getAllOrdersShopFailed",
-      payload: error.response?.data?.message || "Error fetching shop orders",
+      payload: error.response?.data?.message || error.message || "Failed to fetch orders"
     });
   }
 };
+<<<<<<< HEAD
 export const ORDER_ACTIONS = {
   // Admin Orders
   ADMIN_ORDERS_REQUEST: 'ADMIN_ORDERS_REQUEST',
@@ -89,6 +106,13 @@ export const ORDER_ACTIONS = {
 export const getAllOrdersOfAdmin = (filters = {}) => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.ADMIN_ORDERS_REQUEST });
+=======
+
+// get all orders of Admin
+export const getAllOrdersOfAdmin = () => async (dispatch) => {
+  try {
+    dispatch({ type: "getAllOrdersOfAdminRequest" });
+>>>>>>> parent of bb3e5595 (save)
 
     // Add token validation check
     const token = localStorage.getItem("token");
@@ -125,8 +149,16 @@ export const getAllOrdersOfAdmin = (filters = {}) => async (dispatch) => {
       throw new Error("No orders data received from server");
     }
 
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch orders');
+    }
+
     dispatch({
+<<<<<<< HEAD
       type: ORDER_ACTIONS.ADMIN_ORDERS_SUCCESS,
+=======
+      type: "getAllOrdersOfAdminSuccess",
+>>>>>>> parent of bb3e5595 (save)
       payload: {
         orders: data.orders,
         totalAmount: data.totalAmount,
@@ -138,10 +170,17 @@ export const getAllOrdersOfAdmin = (filters = {}) => async (dispatch) => {
 
     return data;
   } catch (error) {
+<<<<<<< HEAD
     console.error("Admin orders fetch error:", error);
     dispatch({
       type: ORDER_ACTIONS.ADMIN_ORDERS_FAIL,
       payload: error.response?.data?.message || error.message || "Error fetching admin orders"
+=======
+    console.error('Admin orders fetch error:', error);
+    dispatch({
+      type: "getAllOrdersOfAdminFailed",
+      payload: error.response?.data?.message || error.message || "Failed to fetch orders"
+>>>>>>> parent of bb3e5595 (save)
     });
     throw error;
   }
@@ -150,6 +189,7 @@ export const clearOrderSuccess = () => ({
   type: ORDER_ACTIONS.CLEAR_SUCCESS
 });
 
+<<<<<<< HEAD
 export const updateAdminFilters = (filters) => ({
   type: ORDER_ACTIONS.ADMIN_FILTER_UPDATE,
   payload: filters
@@ -238,6 +278,13 @@ export const exportOrders = (filters = {}) => async (dispatch) => {
 export const updateOrderStatus = (orderId, status) => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.UPDATE_STATUS_REQUEST });
+=======
+export const updateOrderStatus = (orderId, status) => async (dispatch) => {
+  try {
+    dispatch({
+      type: "updateOrderStatusRequest",
+    });
+>>>>>>> parent of bb3e5595 (save)
 
     const { data } = await axios.put(
       `${server}/order/update-order-status/${orderId}`,
@@ -275,8 +322,13 @@ export const updateOrderStatus = (orderId, status) => async (dispatch) => {
     return data.order;
   } catch (error) {
     dispatch({
+<<<<<<< HEAD
       type: ORDER_ACTIONS.UPDATE_STATUS_FAIL,
       payload: error.response?.data?.message || "Error updating order status"
+=======
+      type: "updateOrderStatusFailed",
+      payload: error.response.data.message,
+>>>>>>> parent of bb3e5595 (save)
     });
     throw error;
   }
@@ -318,6 +370,7 @@ export const downloadOrderDesign = (orderId, itemId, type = 'single') => async (
     });
     throw error;
   }
+<<<<<<< HEAD
 };
 
 // Bulk download designs
@@ -421,3 +474,6 @@ export const setupSSEListener = () => (dispatch) => {
     eventSource.close();
   };
 };
+=======
+};
+>>>>>>> parent of bb3e5595 (save)
