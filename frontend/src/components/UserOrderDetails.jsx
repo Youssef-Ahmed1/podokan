@@ -41,8 +41,11 @@ const UserOrderDetails = () => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   const cartItem = order.cart[0];
 =======
+=======
+>>>>>>> parent of 22e0b32d (save)
 =======
 >>>>>>> parent of 22e0b32d (save)
 =======
@@ -54,6 +57,9 @@ const UserOrderDetails = () => {
   };
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> parent of 22e0b32d (save)
+=======
 >>>>>>> parent of 22e0b32d (save)
 =======
 >>>>>>> parent of 22e0b32d (save)
@@ -131,7 +137,11 @@ const UserOrderDetails = () => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 {cartItem.DesignTitle}
+=======
+                {cartItem?.DesignTitle}
+>>>>>>> parent of 22e0b32d (save)
 =======
                 {cartItem?.DesignTitle}
 >>>>>>> parent of 22e0b32d (save)
@@ -152,11 +162,14 @@ const UserOrderDetails = () => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                   <p className="font-medium capitalize">{cartItem.ProductType}</p>
                 </div>
                 
                 <div>
 =======
+=======
+>>>>>>> parent of 22e0b32d (save)
 =======
 >>>>>>> parent of 22e0b32d (save)
 =======
@@ -235,6 +248,7 @@ const UserOrderDetails = () => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
               <p className="font-medium mt-1">{order.paymentInfo?.type}</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
@@ -250,6 +264,8 @@ const UserOrderDetails = () => {
 >>>>>>> parent of 22e0b32d (save)
 =======
 >>>>>>> parent of 22e0b32d (save)
+=======
+>>>>>>> parent of 22e0b32d (save)
               <p className="font-medium mt-1">Cash On Delivery</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
@@ -258,6 +274,9 @@ const UserOrderDetails = () => {
                 Processing
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> parent of 22e0b32d (save)
+=======
 >>>>>>> parent of 22e0b32d (save)
 =======
 >>>>>>> parent of 22e0b32d (save)
