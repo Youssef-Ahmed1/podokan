@@ -38,33 +38,7 @@ const UserOrderDetails = () => {
     );
   }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
   const cartItem = order.cart[0];
-=======
-=======
->>>>>>> parent of 22e0b32d (save)
-=======
->>>>>>> parent of 22e0b32d (save)
-=======
->>>>>>> parent of 22e0b32d (save)
-  // Helper function to construct Cloudinary URL correctly
-  const getCloudinaryUrl = (publicId) => {
-    if (!publicId) return null;
-    return `https://res.cloudinary.com/dkot9tyjm/image/upload/${publicId}`;
-  };
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> parent of 22e0b32d (save)
-=======
->>>>>>> parent of 22e0b32d (save)
-=======
->>>>>>> parent of 22e0b32d (save)
-=======
->>>>>>> parent of 22e0b32d (save)
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -92,7 +66,6 @@ const UserOrderDetails = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Product Image with Design */}
           <div className="relative aspect-square rounded-lg bg-gray-50 overflow-hidden">
-<<<<<<< HEAD
             {cartItem.designImage && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <img
@@ -109,48 +82,13 @@ const UserOrderDetails = () => {
                 />
               </div>
             )}
-=======
-            <div className="relative w-full h-full flex items-center justify-center">
-              <img
-                src={`/${cartItem?.ProductType?.toLowerCase()}-${cartItem?.ProductColor?.toLowerCase()}.png`}
-                className="w-full h-full object-contain"
-                alt="Product base"
-              />
-              {cartItem?.designImage?.public_id && (
-                <img
-                  src={getCloudinaryUrl(cartItem.designImage.public_id)}
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-[60%] max-h-[60%]"
-                  style={{
-                    mixBlendMode: cartItem?.ProductColor?.toLowerCase() === 'white' ? 'multiply' : 'screen'
-                  }}
-                  alt="Design"
-                />
-              )}
-            </div>
->>>>>>> parent of 22e0b32d (save)
           </div>
 
           {/* Product Info */}
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                 {cartItem.DesignTitle}
-=======
-                {cartItem?.DesignTitle}
->>>>>>> parent of 22e0b32d (save)
-=======
-                {cartItem?.DesignTitle}
->>>>>>> parent of 22e0b32d (save)
-=======
-                {cartItem?.DesignTitle}
->>>>>>> parent of 22e0b32d (save)
-=======
-                {cartItem?.DesignTitle}
->>>>>>> parent of 22e0b32d (save)
               </h2>
             </div>
 
@@ -159,36 +97,10 @@ const UserOrderDetails = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-gray-600">Product Type:</p>
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                   <p className="font-medium capitalize">{cartItem.ProductType}</p>
                 </div>
                 
                 <div>
-=======
-=======
->>>>>>> parent of 22e0b32d (save)
-=======
->>>>>>> parent of 22e0b32d (save)
-=======
->>>>>>> parent of 22e0b32d (save)
-                  <p className="font-medium capitalize">{cartItem?.ProductType}</p>
-                </div>
-                
-                <div>
-                  <p className="text-gray-600">Color:</p>
-                  <p className="font-medium capitalize">{cartItem?.ProductColor}</p>
-                </div>
-
-                <div>
-                  <p className="text-gray-600">Size:</p>
-                  <p className="font-medium">{cartItem?.designSpecs?.size}</p>
-                </div>
-
-                <div>
->>>>>>> parent of 22e0b32d (save)
                   <p className="text-gray-600">Quantity:</p>
                   <p className="font-medium">{cartItem.qty}</p>
                 </div>
@@ -218,7 +130,6 @@ const UserOrderDetails = () => {
 
       {/* Shipping & Payment Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Shipping Details */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center gap-2 mb-4">
             <Truck className="text-purple-600 w-6 h-6" />
@@ -245,10 +156,6 @@ const UserOrderDetails = () => {
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-gray-600">Payment Method:</p>
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
               <p className="font-medium mt-1">{order.paymentInfo?.type}</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
@@ -259,29 +166,6 @@ const UserOrderDetails = () => {
                   : "bg-yellow-100 text-yellow-800"
               }`}>
                 {order.paymentInfo?.status}
-=======
-=======
->>>>>>> parent of 22e0b32d (save)
-=======
->>>>>>> parent of 22e0b32d (save)
-=======
->>>>>>> parent of 22e0b32d (save)
-              <p className="font-medium mt-1">Cash On Delivery</p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-gray-600">Payment Status:</p>
-              <span className="inline-block px-2 py-1 rounded-full text-sm mt-1 bg-yellow-100 text-yellow-800">
-                Processing
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> parent of 22e0b32d (save)
-=======
->>>>>>> parent of 22e0b32d (save)
-=======
->>>>>>> parent of 22e0b32d (save)
-=======
->>>>>>> parent of 22e0b32d (save)
               </span>
             </div>
             {order.deliveryStatus && (
