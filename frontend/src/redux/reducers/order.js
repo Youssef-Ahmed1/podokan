@@ -1,4 +1,3 @@
-// orderReducer.js
 import { createReducer } from "@reduxjs/toolkit";
 
 const initialState = {
@@ -44,7 +43,23 @@ const initialState = {
 
 export const orderReducer = createReducer(initialState, (builder) => {
   builder
-    // User Orders
+    // Seller orders
+    .addCase("getAllOrdersShopRequest", (state) => {
+      state.isLoading = true;
+      state.error = null;
+    })
+    .addCase("getAllOrdersShopSuccess", (state, action) => {
+      state.isLoading = false;
+      state.orders = action.payload;
+      state.error = null;
+    })
+    .addCase("getAllOrdersShopFailed", (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+      state.orders = [];
+    })
+    
+    // User orders
     .addCase("getAllOrdersUserRequest", (state) => {
       state.user.isLoading = true;
       state.user.error = null;
@@ -60,20 +75,24 @@ export const orderReducer = createReducer(initialState, (builder) => {
       state.user.orders = [];
     })
 
-    // Shop Orders
-    .addCase("getAllOrdersShopRequest", (state) => {
-      state.shop.isLoading = true;
-      state.shop.error = null;
+    // Admin orders
+    .addCase("getAllOrdersOfAdminRequest", (state) => {
+      state.adminOrderLoading = true;
+      state.error = null;
     })
-    .addCase("getAllOrdersShopSuccess", (state, action) => {
-      state.shop.isLoading = false;
-      state.shop.orders = action.payload;
-      state.shop.error = null;
+    .addCase("getAllOrdersOfAdminSuccess", (state, action) => {
+      state.adminOrderLoading = false;
+      state.adminOrders = action.payload.orders;
+      state.totalAmount = action.payload.totalAmount;
+      state.ordersCount = action.payload.ordersCount;
+      state.error = null;
     })
-    .addCase("getAllOrdersShopFailed", (state, action) => {
-      state.shop.isLoading = false;
-      state.shop.error = action.payload;
-      state.shop.orders = [];
+    .addCase("getAllOrdersOfAdminFailed", (state, action) => {
+      state.adminOrderLoading = false;
+      state.error = action.payload;
+      state.adminOrders = [];
+      state.totalAmount = 0;
+      state.ordersCount = 0;
     })
 
     // Admin Orders

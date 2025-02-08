@@ -1,11 +1,12 @@
-// orderActions.js
 import axios from "axios";
 import { server } from "../../server";
 
-// Get user orders
+// get all orders of user
 export const getAllOrdersOfUser = (userId) => async (dispatch) => {
   try {
-    dispatch({ type: "getAllOrdersUserRequest" });
+    dispatch({
+      type: "getAllOrdersUserRequest",
+    });
 
     const { data } = await axios.get(
       `${server}/order/get-all-orders/${userId}`,
@@ -32,7 +33,8 @@ export const getAllOrdersOfUser = (userId) => async (dispatch) => {
   }
 };
 
-// Get shop orders
+// get all orders of seller  if it disappeared it will cause an error
+// that the seller won't be able to see the order that are is 
 export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
   try {
     dispatch({ type: "getAllOrdersShopRequest" });
@@ -43,19 +45,24 @@ export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
         withCredentials: true,
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Shop-Authorization': `Bearer ${localStorage.getItem('seller_token')}`
+          'Seller-Authorization': `Bearer ${localStorage.getItem('seller_token')}`
         }
       }
     );
+
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch orders');
+    }
 
     dispatch({
       type: "getAllOrdersShopSuccess",
       payload: data.orders
     });
   } catch (error) {
+    console.error('Shop orders fetch error:', error);
     dispatch({
       type: "getAllOrdersShopFailed",
-      payload: error.response?.data?.message || "Error fetching shop orders",
+      payload: error.response?.data?.message || error.message || "Failed to fetch orders"
     });
   }
 };
@@ -123,6 +130,10 @@ export const getAllOrdersOfAdmin = (filters = {}) => async (dispatch) => {
 
     if (!data.orders) {
       throw new Error("No orders data received from server");
+    }
+
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch orders');
     }
 
     dispatch({
