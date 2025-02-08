@@ -373,19 +373,7 @@ router.post(
     }
   })
 );
-<<<<<<< HEAD
 
-router.get('/user-order/:id', 
-  (req, res, next) => {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return next(new ErrorHandler("Invalid order ID format", 400));
-    }
-    next();
-  },
-  getOrderDetails
-);
-=======
->>>>>>> parent of bb3e5595 (save)
 // Get all orders of a user
 router.get(
   "/get-all-orders/:userId",

@@ -1,7 +1,6 @@
 import { createReducer } from "@reduxjs/toolkit";
 
 const initialState = {
-<<<<<<< HEAD
   isLoading: false,
   error: null,
   orders: [],
@@ -40,15 +39,6 @@ const initialState = {
     endDate: '',
     sort: '-createdAt'
   }
-=======
-  isLoading: true,
-  orders: [], // Add this
-  adminOrders: [],
-  adminOrderLoading: false,
-  totalAmount: 0,
-  ordersCount: 0,
-  error: null
->>>>>>> parent of bb3e5595 (save)
 };
 
 export const orderReducer = createReducer(initialState, (builder) => {
@@ -105,7 +95,6 @@ export const orderReducer = createReducer(initialState, (builder) => {
       state.ordersCount = 0;
     })
 
-<<<<<<< HEAD
     // Admin Orders
     .addCase("getAllOrdersAdminRequest", (state) => {
       state.admin.isLoading = true;
@@ -129,14 +118,11 @@ export const orderReducer = createReducer(initialState, (builder) => {
     })
 
     // Update Order Status
-=======
->>>>>>> parent of bb3e5595 (save)
     .addCase("updateOrderStatusRequest", (state) => {
       state.statusUpdate.loading = true;
       state.statusUpdate.error = null;
     })
     .addCase("updateOrderStatusSuccess", (state, action) => {
-<<<<<<< HEAD
       state.statusUpdate.loading = false;
       state.statusUpdate.success = true;
       // Update in user orders
@@ -149,10 +135,6 @@ export const orderReducer = createReducer(initialState, (builder) => {
       );
       // Update in admin orders
       state.admin.orders = state.admin.orders.map(order => 
-=======
-      state.isLoading = false;
-      state.adminOrders = state.adminOrders.map(order => 
->>>>>>> parent of bb3e5595 (save)
         order._id === action.payload._id ? action.payload : order
       );
     })
@@ -162,7 +144,6 @@ export const orderReducer = createReducer(initialState, (builder) => {
       state.statusUpdate.success = false;
     })
 
-<<<<<<< HEAD
     // Design Download
     .addCase("downloadDesignRequest", (state) => {
       state.designDownload.loading = true;
@@ -222,9 +203,5 @@ export const orderReducer = createReducer(initialState, (builder) => {
         endDate: '',
         sort: '-createdAt'
       };
-=======
-    .addCase("clearErrors", (state) => {
-      state.error = null;
->>>>>>> parent of bb3e5595 (save)
     });
 });
