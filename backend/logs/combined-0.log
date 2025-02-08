@@ -1,0 +1,5 @@
+2025-02-07T23:38:46: Attempting database connection... { attempt: 1, maxRetries: 5 }
+2025-02-07T23:38:46: MongoDB: Connecting...
+2025-02-07T23:38:47: MongoDB: Connected successfully
+2025-02-07T23:38:47: Server running on port 8000
+2025-02-07T23:38:47: Database connected
