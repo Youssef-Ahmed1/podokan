@@ -3,3 +3,21 @@
 2025-02-07T23:38:47: MongoDB: Connected successfully
 2025-02-07T23:38:47: Server running on port 8000
 2025-02-07T23:38:47: Database connected
+2025-02-08T12:14:16: Attempting database connection... { attempt: 1, maxRetries: 5 }
+2025-02-08T12:14:16: MongoDB: Connecting...
+2025-02-08T12:14:16: MongoDB: Connected successfully
+2025-02-08T12:14:16: Server running on port 8000
+2025-02-08T12:14:16: Database connected
+2025-02-08T12:22:51: Auth check - User data: {
+2025-02-08T12:22:51:   id: new ObjectId('651c6e8ce2edc539babd18a4'),
+2025-02-08T12:22:51:   role: 'Admin',
+2025-02-08T12:22:51:   email: 'moropass1212@gmail.com'
+2025-02-08T12:22:51: }
+2025-02-08T12:22:51: Is admin? true
+2025-02-08T12:22:51: Fetching pending products for admin: moropass1212@gmail.com
+2025-02-08T12:23:11: Auth check - User data: {
+2025-02-08T12:23:11:   id: new ObjectId('651c6e8ce2edc539babd18a4'),
+2025-02-08T12:23:11:   role: 'Admin',
+2025-02-08T12:23:11:   email: 'moropass1212@gmail.com'
+2025-02-08T12:23:11: }
+2025-02-08T12:23:11: Is admin? true

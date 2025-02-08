@@ -3,3 +3,64 @@
 2025-02-07T23:38:47: MongoDB: Connected successfully
 2025-02-07T23:38:47: Server running on port 8000
 2025-02-07T23:38:47: Database connected
+2025-02-08T12:14:16: Attempting database connection... { attempt: 1, maxRetries: 5 }
+2025-02-08T12:14:16: MongoDB: Connecting...
+2025-02-08T12:14:16: MongoDB: Connected successfully
+2025-02-08T12:14:16: Server running on port 8000
+2025-02-08T12:14:16: Database connected
+2025-02-08T12:22:51: Auth check - User data: {
+2025-02-08T12:22:51:   id: new ObjectId('651c6e8ce2edc539babd18a4'),
+2025-02-08T12:22:51:   role: 'Admin',
+2025-02-08T12:22:51:   email: 'moropass1212@gmail.com'
+2025-02-08T12:22:51: }
+2025-02-08T12:22:51: Is admin? true
+2025-02-08T12:22:51: Fetching pending products for admin: moropass1212@gmail.com
+2025-02-08T12:23:11: Auth check - User data: {
+2025-02-08T12:23:11:   id: new ObjectId('651c6e8ce2edc539babd18a4'),
+2025-02-08T12:23:11:   role: 'Admin',
+2025-02-08T12:23:11:   email: 'moropass1212@gmail.com'
+2025-02-08T12:23:11: }
+2025-02-08T12:23:11: Is admin? true
+2025-02-08T12:23:11: Product status update error: Error: Validation failed: discountPrice: Discount price must be less than or equal to original price
+2025-02-08T12:23:11:     at ValidationError.inspect (/var/www/podokan/backend/node_modules/mongoose/lib/error/validation.js:52:26)
+2025-02-08T12:23:11:     at formatValue (node:internal/util/inspect:806:19)
+2025-02-08T12:23:11:     at inspect (node:internal/util/inspect:365:10)
+2025-02-08T12:23:11:     at formatWithOptionsInternal (node:internal/util/inspect:2304:40)
+2025-02-08T12:23:11:     at formatWithOptions (node:internal/util/inspect:2166:10)
+2025-02-08T12:23:11:     at console.value (node:internal/console/constructor:357:14)
+2025-02-08T12:23:11:     at console.error (node:internal/console/constructor:394:61)
+2025-02-08T12:23:11:     at /var/www/podokan/backend/controller/product.js:333:15
+2025-02-08T12:23:11:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+2025-02-08T12:23:11:   errors: {
+2025-02-08T12:23:11:     discountPrice: ValidatorError: Discount price must be less than or equal to original price
+2025-02-08T12:23:11:         at validate (/var/www/podokan/backend/node_modules/mongoose/lib/schemaType.js:1404:13)
+2025-02-08T12:23:11:         at SchemaType.doValidate (/var/www/podokan/backend/node_modules/mongoose/lib/schemaType.js:1388:7)
+2025-02-08T12:23:11:         at /var/www/podokan/backend/node_modules/mongoose/lib/helpers/updateValidators.js:151:22
+2025-02-08T12:23:11:         at module.exports (/var/www/podokan/backend/node_modules/mongoose/lib/helpers/updateValidators.js:202:7)
+2025-02-08T12:23:11:         at /var/www/podokan/backend/node_modules/mongoose/lib/query.js:3931:7
+2025-02-08T12:23:11:         at new Promise (<anonymous>)
+2025-02-08T12:23:11:         at model.Query.validate (/var/www/podokan/backend/node_modules/mongoose/lib/query.js:3930:11)
+2025-02-08T12:23:11:         at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-02-08T12:23:11:         at async model.Query._findOneAndUpdate (/var/www/podokan/backend/node_modules/mongoose/lib/query.js:3452:5)
+2025-02-08T12:23:11:         at async model.Query.exec (/var/www/podokan/backend/node_modules/mongoose/lib/query.js:4438:63) {
+2025-02-08T12:23:11:       properties: [Object],
+2025-02-08T12:23:11:       kind: 'user defined',
+2025-02-08T12:23:11:       path: 'discountPrice',
+2025-02-08T12:23:11:       value: 850,
+2025-02-08T12:23:11:       reason: undefined,
+2025-02-08T12:23:11:       [Symbol(mongoose#validatorError)]: true
+2025-02-08T12:23:11:     }
+2025-02-08T12:23:11:   },
+2025-02-08T12:23:11:   _message: 'Validation failed'
+2025-02-08T12:23:11: }
+2025-02-08T12:23:11: Error: {
+2025-02-08T12:23:11:   path: '/api/v2/product/approve-reject-product/67a4fa983fb7fe55ff98a3c0',
+2025-02-08T12:23:11:   method: 'PUT',
+2025-02-08T12:23:11:   error: {
+2025-02-08T12:23:11:     message: 'Validation failed: discountPrice: Discount price must be less than or equal to original price',
+2025-02-08T12:23:11:     stack: 'Error: Validation failed: discountPrice: Discount price must be less than or equal to original price\n' +
+2025-02-08T12:23:11:       '    at /var/www/podokan/backend/controller/product.js:334:19\n' +
+2025-02-08T12:23:11:       '    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)',
+2025-02-08T12:23:11:     status: 500
+2025-02-08T12:23:11:   }
+2025-02-08T12:23:11: }
