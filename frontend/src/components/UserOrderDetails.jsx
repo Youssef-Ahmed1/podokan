@@ -39,13 +39,19 @@ const UserOrderDetails = () => {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   const cartItem = order.cart[0];
 =======
+=======
+>>>>>>> parent of 22e0b32d (save)
   // Helper function to construct Cloudinary URL correctly
   const getCloudinaryUrl = (publicId) => {
     if (!publicId) return null;
     return `https://res.cloudinary.com/dkot9tyjm/image/upload/${publicId}`;
   };
+<<<<<<< HEAD
+>>>>>>> parent of 22e0b32d (save)
+=======
 >>>>>>> parent of 22e0b32d (save)
 
   return (
@@ -117,7 +123,11 @@ const UserOrderDetails = () => {
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
 <<<<<<< HEAD
+<<<<<<< HEAD
                 {cartItem.DesignTitle}
+=======
+                {cartItem?.DesignTitle}
+>>>>>>> parent of 22e0b32d (save)
 =======
                 {cartItem?.DesignTitle}
 >>>>>>> parent of 22e0b32d (save)
@@ -130,11 +140,14 @@ const UserOrderDetails = () => {
                 <div>
                   <p className="text-gray-600">Product Type:</p>
 <<<<<<< HEAD
+<<<<<<< HEAD
                   <p className="font-medium capitalize">{cartItem.ProductType}</p>
                 </div>
                 
                 <div>
 =======
+=======
+>>>>>>> parent of 22e0b32d (save)
                   <p className="font-medium capitalize">{cartItem?.ProductType}</p>
                 </div>
                 
@@ -207,6 +220,7 @@ const UserOrderDetails = () => {
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-gray-600">Payment Method:</p>
 <<<<<<< HEAD
+<<<<<<< HEAD
               <p className="font-medium mt-1">{order.paymentInfo?.type}</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
@@ -218,12 +232,17 @@ const UserOrderDetails = () => {
               }`}>
                 {order.paymentInfo?.status}
 =======
+=======
+>>>>>>> parent of 22e0b32d (save)
               <p className="font-medium mt-1">Cash On Delivery</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-gray-600">Payment Status:</p>
               <span className="inline-block px-2 py-1 rounded-full text-sm mt-1 bg-yellow-100 text-yellow-800">
                 Processing
+<<<<<<< HEAD
+>>>>>>> parent of 22e0b32d (save)
+=======
 >>>>>>> parent of 22e0b32d (save)
               </span>
             </div>
