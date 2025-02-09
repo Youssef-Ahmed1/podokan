@@ -163,11 +163,11 @@ const ProductCard = ({ data }) => {
                 className="flex items-center gap-2"
               >
                 <span className="text-white font-semibold">
-               EGP{data.discountPrice || data.originalPrice}
+                  ${data.discountPrice || data.originalPrice}
                 </span>
                 {data.discountPrice && (
                   <span className="text-gray-300 line-through text-sm">
-                 EGP{data.originalPrice}
+                    ${data.originalPrice}
                   </span>
                 )}
               </motion.div>

@@ -171,7 +171,7 @@ const addToCartHandler = () => {
       position: 'absolute',
       top: `${data.DesignPosition?.y || 40}%`,
       left: `${data.DesignPosition?.x || 50}%`,
-      transform: `translate(-50%, -50%) scale(${data.DesignScale || 1})`,
+      transform: `translate(-50%, -50%) scale(${data.DesignScale || 1.2})`,
       width: '200px',  // Match the admin's configuration
       height: '200px', // Match the admin's configuration
     }}
@@ -228,12 +228,12 @@ const addToCartHandler = () => {
                 {/* Price */}
                 <div className="flex items-center mt-6">
                   <h3 className="text-[28px] font-bold text-gray-800">
-              EGP{data.discountPrice || data.originalPrice}
+                    ${data.discountPrice || data.originalPrice}
                   </h3>
                   {data.discountPrice && (
                     <>
                       <h4 className="text-[20px] text-gray-400 line-through ml-3">
-                    EGP{data.originalPrice}
+                        ${data.originalPrice}
                       </h4>
                       <span className="ml-2 text-[#4e64df] text-[18px]">
                         {data.discountPercentage}% OFF

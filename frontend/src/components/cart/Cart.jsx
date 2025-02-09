@@ -127,7 +127,7 @@ const FilledCart = ({
     <div className="p-4 border-t bg-gray-50">
       <div className="flex justify-between mb-4">
         <span className="text-gray-600">Subtotal:</span>
-        <span className="font-medium text-gray-800">EGP{totalPrice.toFixed(2)}</span>
+        <span className="font-medium text-gray-800">${totalPrice.toFixed(2)}</span>
       </div>
       <Link to="/checkout" onClick={() => setOpenCart(false)}>
         <motion.button
@@ -220,7 +220,7 @@ const CartItem = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
             </div>
 
             <div className="text-[#4e64df] font-medium">
-           egp{((data.discountPrice || data.originalPrice) * value).toFixed(2)}
+              ${((data.discountPrice || data.originalPrice) * value).toFixed(2)}
             </div>
           </div>
         </div>
