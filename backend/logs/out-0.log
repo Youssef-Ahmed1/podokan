@@ -52,3 +52,37 @@
 2025-02-08T14:25:58:   email: 'moropass1212@gmail.com'
 2025-02-08T14:25:58: }
 2025-02-08T14:25:58: Is admin? true
+2025-02-08T14:45:26: Attempting database connection... { attempt: 1, maxRetries: 5 }
+2025-02-08T14:45:26: MongoDB: Connecting...
+2025-02-08T14:45:27: MongoDB: Connected successfully
+2025-02-08T14:45:27: Server running on port 8000
+2025-02-08T14:45:27: Database connected
+2025-02-08T16:02:54: MongoDB: Disconnected
+2025-02-08T16:02:59: Attempting database connection... { attempt: 2, maxRetries: 5 }
+2025-02-08T16:02:59: MongoDB: Connecting...
+2025-02-08T16:02:59: MongoDB: Connecting...
+2025-02-08T16:03:00: MongoDB: Connected successfully
+2025-02-08T16:03:00: MongoDB: Connected successfully
+2025-02-09T04:17:47: MongoDB: Disconnected
+2025-02-09T04:17:47: MongoDB: Disconnected
+2025-02-09T04:17:52: Attempting database connection... { attempt: 2, maxRetries: 5 }
+2025-02-09T04:17:52: MongoDB: Connecting...
+2025-02-09T04:17:52: MongoDB: Connecting...
+2025-02-09T04:17:52: MongoDB: Connecting...
+2025-02-09T04:17:52: Attempting database connection... { attempt: 3, maxRetries: 5 }
+2025-02-09T04:17:53: MongoDB: Connected successfully
+2025-02-09T04:17:53: MongoDB: Connected successfully
+2025-02-09T04:17:53: MongoDB: Connected successfully
+2025-02-09T04:17:53: MongoDB: Connected successfully
+2025-02-09T14:40:35: MongoDB: Disconnected
+2025-02-09T14:40:35: MongoDB: Disconnected
+2025-02-09T14:40:35: MongoDB: Disconnected
+2025-02-09T14:40:35: MongoDB: Disconnected
+2025-02-09T14:40:35: MongoDB: Connected successfully
+2025-02-09T14:40:35: MongoDB: Connected successfully
+2025-02-09T14:40:35: MongoDB: Connected successfully
+2025-02-09T14:40:35: MongoDB: Connected successfully
+2025-02-09T14:40:40: Attempting database connection... { attempt: 2, maxRetries: 5 }
+2025-02-09T14:40:40: Attempting database connection... { attempt: 3, maxRetries: 5 }
+2025-02-09T14:40:40: Attempting database connection... { attempt: 3, maxRetries: 5 }
+2025-02-09T14:40:40: Attempting database connection... { attempt: 4, maxRetries: 5 }
