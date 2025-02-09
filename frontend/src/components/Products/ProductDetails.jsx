@@ -185,6 +185,7 @@ const ProductDetails = ({ data }) => {
                   
 {/* Design Overlay */}
 {!showBack && data?.designImage && (
+<<<<<<< HEAD
                     <div 
                       className="absolute design-preview pointer-events-none"
                       style={{
@@ -209,6 +210,32 @@ const ProductDetails = ({ data }) => {
                       />
                     </div>
                   )}
+=======
+  <div 
+    className="absolute design-preview pointer-events-none"
+    style={{
+      position: 'absolute',
+      top: `${data.DesignPosition?.y || 40}%`,
+      left: `${data.DesignPosition?.x || 50}%`,
+      transform: `translate(-50%, -50%) scale(${data.DesignScale || 1.2})`,
+      width: '200px',  // Match the admin's configuration
+      height: '200px', // Match the admin's configuration
+    }}
+  >
+    <img
+      src={typeof data.designImage === 'string' ? data.designImage : data.designImage?.url}
+      alt="Design"
+      className="w-full h-full object-contain"
+      style={{
+        mixBlendMode: selectedColor === 'black' ? 'screen' : 'multiply',
+        background: 'transparent'
+      }}
+      draggable="false"
+    />
+  </div>
+)}
+
+>>>>>>> refs/remotes/origin/main
                 </div>
 
                 {/* View Toggle */}
@@ -248,12 +275,12 @@ const ProductDetails = ({ data }) => {
                 {/* Price */}
                 <div className="flex items-center mt-6">
                   <h3 className="text-[28px] font-bold text-gray-800">
-              EGP{data.discountPrice || data.originalPrice}
+                    ${data.discountPrice || data.originalPrice}
                   </h3>
                   {data.discountPrice && (
                     <>
                       <h4 className="text-[20px] text-gray-400 line-through ml-3">
-                    EGP{data.originalPrice}
+                        ${data.originalPrice}
                       </h4>
                       <span className="ml-2 text-[#4e64df] text-[18px]">
                         {data.discountPercentage}% OFF
