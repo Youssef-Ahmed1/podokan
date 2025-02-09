@@ -13,6 +13,7 @@ import PriceCalculator from '../ProductApproval/PriceCalculator';
 import { STATUS_CONFIG, DESIGN_SCALE, DEFAULT_POSITION }  from '../ProductApproval/constants/productConfig';
 import { DesignScalingManager , DESIGN_CONFIG }  from '../../../utils/designScaling';
 
+
 const ProductList = ({ products, onSelect, selectedProduct }) => {
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">

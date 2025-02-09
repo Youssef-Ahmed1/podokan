@@ -328,7 +328,6 @@ router.post(
 
       const { cart, shippingAddress, user, totalPrice, paymentInfo } = req.body;
 
-<<<<<<< HEAD
       // Format the cart data
       const formattedCart = cart.map(item => ({
         _id: item._id,
@@ -339,17 +338,6 @@ router.post(
         DesignTitle: item.DesignTitle,
         ProductType: item.ProductType,
         ProductColor: item.ProductColor
-=======
-      // Validate stock availability
-      await Promise.all(cart.map(async (item) => {
-        const product = await Product.findById(item._id);
-        if (!product || product.stock < item.qty) {
-          throw new ErrorHandler(
-            `Insufficient stock for product: ${product ? product.DesignTitle : 'Unknown'}`,
-            400
-          );
-        }
->>>>>>> parent of e26434e1 (save)
       }));
 
       // Create the order
