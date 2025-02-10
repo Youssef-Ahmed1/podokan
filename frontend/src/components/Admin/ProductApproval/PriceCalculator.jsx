@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { PRODUCT_TYPES } from './constants/productConfig';
+import { toast } from "react-toastify";
 
 // Add default product config
 const DEFAULT_PRODUCT_CONFIG = {
