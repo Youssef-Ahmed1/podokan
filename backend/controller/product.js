@@ -283,32 +283,26 @@ router.put(
         return next(new ErrorHandler("Product not found", 404));
       }
 
-      // Validate prices
-      if (typeof originalPrice !== 'undefined' && typeof discountPrice !== 'undefined') {
-        if (Number(discountPrice) > Number(originalPrice)) {
+      // Price validation
+      const parsedOriginalPrice = parseFloat(originalPrice);
+      const parsedDiscountPrice = discountPrice ? parseFloat(discountPrice) : null;
+
+      if (status === 'public') {
+        if (!parsedOriginalPrice || parsedOriginalPrice < 850) {
+          return next(new ErrorHandler("Original price must be at least 850 THB for public products", 400));
+        }
+
+        if (parsedDiscountPrice && parsedDiscountPrice > parsedOriginalPrice) {
           return next(new ErrorHandler("Discount price cannot be greater than original price", 400));
         }
       }
 
-      // Validate design specifications
-      if (DesignPosition) {
-        if (typeof DesignPosition.x !== 'number' || typeof DesignPosition.y !== 'number' ||
-            DesignPosition.x < 20 || DesignPosition.x > 80 ||
-            DesignPosition.y < 15 || DesignPosition.y > 45) {
-          return next(new ErrorHandler("Invalid design position", 400));
-        }
-      }
-
-      if (typeof DesignScale !== 'undefined' && (DesignScale < 0.3 || DesignScale > 2)) {
-        return next(new ErrorHandler("Invalid design scale", 400));
-      }
-
-      // Update product with validated data
+      // Create update object with validated data
       const updateData = {
         status,
         statusReason: statusReason || '',
-        ...(typeof originalPrice !== 'undefined' && { originalPrice }),
-        ...(typeof discountPrice !== 'undefined' && { discountPrice }),
+        originalPrice: parsedOriginalPrice,
+        ...(parsedDiscountPrice && { discountPrice: parsedDiscountPrice }),
         ...(DesignScale && { DesignScale }),
         ...(DesignPosition && { DesignPosition }),
         ...(mainTags && { mainTags }),
@@ -317,11 +311,31 @@ router.put(
         lastModifiedBy: req.user._id
       };
 
-      const updatedProduct = await Product.findByIdAndUpdate(
-        id,
-        { $set: updateData },
-        { new: true, runValidators: true }
+      // Add status history
+      const statusHistoryEntry = {
+        status,
+        timestamp: new Date(),
+        reason: statusReason,
+        updatedBy: req.user._id
+      };
+
+      // Use findOneAndUpdate with validation
+      const updatedProduct = await Product.findOneAndUpdate(
+        { _id: id },
+        { 
+          $set: updateData,
+          $push: { statusHistory: statusHistoryEntry }
+        },
+        { 
+          new: true, 
+          runValidators: true,
+          context: 'query'
+        }
       );
+
+      if (!updatedProduct) {
+        return next(new ErrorHandler("Failed to update product", 500));
+      }
 
       res.status(200).json({
         success: true,

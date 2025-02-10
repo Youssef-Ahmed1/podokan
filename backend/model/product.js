@@ -170,7 +170,10 @@ const productSchema = new mongoose.Schema({
     type: Number,
     validate: {
       validator: function(price) {
-        return !price || price <= this.originalPrice;
+        
+        if (price === undefined || price === null) return true;
+        if (this.status !== 'public') return true;
+        return price <= this.originalPrice;
       },
       message: "Discount price must be less than or equal to original price"
     },

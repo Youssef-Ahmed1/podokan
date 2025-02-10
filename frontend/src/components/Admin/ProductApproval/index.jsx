@@ -470,14 +470,20 @@ const AdminProductApproval = () => {
     try {
       setIsSubmitting(true);
   
-      // Parse prices to numbers to ensure proper comparison
-      const originalPrice = Number(editedProduct.originalPrice);
-      const discountPrice = Number(editedProduct.discountPrice);
+      // Validate prices
+      const originalPrice = parseFloat(editedProduct.originalPrice);
+      const discountPrice = editedProduct.discountPrice ? parseFloat(editedProduct.discountPrice) : null;
   
-      // Validate prices before sending request
-      if (discountPrice > originalPrice) {
-        toast.error('Discount price cannot be greater than original price');
-        return;
+      if (newStatus === 'public') {
+        if (!originalPrice || originalPrice < 850) {
+          toast.error('Original price must be at least 850 THB for public products');
+          return;
+        }
+  
+        if (discountPrice && discountPrice > originalPrice) {
+          toast.error('Discount price cannot be greater than original price');
+          return;
+        }
       }
   
       const requestData = {
@@ -487,11 +493,8 @@ const AdminProductApproval = () => {
         discountPrice,
         DesignScale: editedProduct.DesignScale,
         DesignPosition: editedProduct.DesignPosition,
-        mainTags: editedProduct.mainTags,
-        Designtags: editedProduct.Designtags,
-        ProductType: editedProduct.ProductType,
-        ProductColor: editedProduct.ProductColor,
-        ProductView: editedProduct.ProductView
+        mainTags: editedProduct.mainTags || [],
+        Designtags: editedProduct.Designtags || []
       };
   
       const result = await dispatch(approveRejectProduct(
@@ -502,15 +505,14 @@ const AdminProductApproval = () => {
       ));
   
       if (result.success) {
-        toast.success(`Product ${newStatus} successfully`);
+        toast.success(`Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully`);
         setSelectedProduct(null);
         setEditedProduct(null);
         dispatch(fetchPendingProducts());
       }
     } catch (error) {
       console.error('Status change failed:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to update product status';
-      toast.error(errorMessage);
+      toast.error(error.response?.data?.message || 'Failed to update product status');
     } finally {
       setIsSubmitting(false);
     }

@@ -589,11 +589,6 @@ router.get("/admin-all-orders", isAuthenticated, isAdmin, async (req, res) => {
   try {
     console.log("Starting admin orders fetch...");
     
-    // Validate database connection
-    if (mongoose.connection.readyState !== 1) {
-      throw new Error("Database not connected");
-    }
-
     const { 
       page = 1, 
       limit = 10, 
@@ -614,11 +609,11 @@ router.get("/admin-all-orders", isAuthenticated, isAdmin, async (req, res) => {
 
     console.log("Fetching orders with filters:", filterOptions);
 
-    // Use Promise.all for parallel queries
+    // Changed cart.shop to cart.shopId in populate
     const [orders, totalOrders] = await Promise.all([
       Order.find(filterOptions)
         .populate('user', 'name email')
-        .populate('cart.shop', 'name')
+        .populate('cart.shopId', 'name email') // Changed from cart.shop to cart.shopId
         .sort(sort)
         .skip((parseInt(page) - 1) * parseInt(limit))
         .limit(parseInt(limit))
@@ -631,18 +626,26 @@ router.get("/admin-all-orders", isAuthenticated, isAdmin, async (req, res) => {
       throw new Error("Failed to fetch orders");
     }
 
-    console.log(`Found ${orders.length} orders`);
+    // Format the response data
+    const formattedOrders = orders.map(order => ({
+      ...order,
+      cart: order.cart.map(item => ({
+        ...item,
+        shop: item.shopId, // Map shopId to shop for frontend compatibility
+        shopId: item.shopId?._id // Keep the original shopId
+      }))
+    }));
 
-    const totalAmount = orders.reduce((acc, order) => acc + (order.totalPrice || 0), 0);
+    const totalAmount = formattedOrders.reduce((acc, order) => acc + (order.totalPrice || 0), 0);
 
     const response = {
       success: true,
-      orders,
+      orders: formattedOrders,
       totalAmount,
       totalOrders,
       currentPage: parseInt(page),
       totalPages: Math.ceil(totalOrders / parseInt(limit)),
-      ordersCount: orders.length
+      ordersCount: formattedOrders.length
     };
 
     console.log("Sending response with total orders:", totalOrders);

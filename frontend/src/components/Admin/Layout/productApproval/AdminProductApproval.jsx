@@ -461,60 +461,64 @@ const AdminProductApproval = () => {
     });
   }, [updatePosition, handleScaleChange, handleProductUpdate, editedProduct]);
   // Enhanced status change handling
-  const handleStatusChange = useCallback(async (newStatus) => {
-    if (!editedProduct) {
-      toast.error('No product selected');
-      return;
-    }
-  
-    try {
-      setIsSubmitting(true);
-  
-      // Parse prices to numbers to ensure proper comparison
-      const originalPrice = Number(editedProduct.originalPrice);
-      const discountPrice = Number(editedProduct.discountPrice);
-  
-      // Validate prices before sending request
-      if (discountPrice > originalPrice) {
+
+
+const handleStatusChange = useCallback(async (newStatus) => {
+  if (!editedProduct) {
+    toast.error('No product selected');
+    return;
+  }
+
+  try {
+    setIsSubmitting(true);
+
+    // Validate prices
+    const originalPrice = parseFloat(editedProduct.originalPrice);
+    const discountPrice = editedProduct.discountPrice ? parseFloat(editedProduct.discountPrice) : null;
+
+    if (newStatus === 'public') {
+      if (!originalPrice || originalPrice < 850) {
+        toast.error('Original price must be at least 850 THB for public products');
+        return;
+      }
+
+      if (discountPrice && discountPrice > originalPrice) {
         toast.error('Discount price cannot be greater than original price');
         return;
       }
-  
-      const requestData = {
-        status: newStatus,
-        statusReason: editedProduct.rejectionReason || '',
-        originalPrice,
-        discountPrice,
-        DesignScale: editedProduct.DesignScale,
-        DesignPosition: editedProduct.DesignPosition,
-        mainTags: editedProduct.mainTags,
-        Designtags: editedProduct.Designtags,
-        ProductType: editedProduct.ProductType,
-        ProductColor: editedProduct.ProductColor,
-        ProductView: editedProduct.ProductView
-      };
-  
-      const result = await dispatch(approveRejectProduct(
-        editedProduct._id,
-        newStatus,
-        editedProduct.rejectionReason || '',
-        requestData
-      ));
-  
-      if (result.success) {
-        toast.success(`Product ${newStatus} successfully`);
-        setSelectedProduct(null);
-        setEditedProduct(null);
-        dispatch(fetchPendingProducts());
-      }
-    } catch (error) {
-      console.error('Status change failed:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to update product status';
-      toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
     }
-  }, [editedProduct, dispatch]);
+
+    const requestData = {
+      status: newStatus,
+      statusReason: editedProduct.rejectionReason || '',
+      originalPrice,
+      discountPrice,
+      DesignScale: editedProduct.DesignScale,
+      DesignPosition: editedProduct.DesignPosition,
+      mainTags: editedProduct.mainTags || [],
+      Designtags: editedProduct.Designtags || []
+    };
+
+    const result = await dispatch(approveRejectProduct(
+      editedProduct._id,
+      newStatus,
+      editedProduct.rejectionReason || '',
+      requestData
+    ));
+
+    if (result.success) {
+      toast.success(`Product ${newStatus === 'public' ? 'approved' : 'rejected'} successfully`);
+      setSelectedProduct(null);
+      setEditedProduct(null);
+      dispatch(fetchPendingProducts());
+    }
+  } catch (error) {
+    console.error('Status change failed:', error);
+    toast.error(error.response?.data?.message || 'Failed to update product status');
+  } finally {
+    setIsSubmitting(false);
+  }
+}, [editedProduct, dispatch]);
   // Access check
   if (!user || !(user.role === 'Admin' || user.role === 'admin')) {
     return (

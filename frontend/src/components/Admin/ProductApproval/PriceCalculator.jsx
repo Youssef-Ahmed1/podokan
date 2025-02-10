@@ -26,11 +26,27 @@ const PriceCalculator = ({
     (productConfig?.productionCost || DEFAULT_PRODUCT_CONFIG.productionCost) / 
     (1 - (productConfig?.margins.recommended || DEFAULT_PRODUCT_CONFIG.margins.recommended))
   );
-
+  const validatePrice = (type, value) => {
+    const numValue = Number(value);
+    
+    if (type === 'original') {
+      if (numValue < minPrice) {
+        toast.error(`Original price must be at least ${minPrice} THB`);
+        return false;
+      }
+    } else if (type === 'discount') {
+      if (numValue > originalPrice) {
+        toast.error('Discount price cannot be greater than original price');
+        return false;
+      }
+    }
+    return true;
+  };
   // Rest of your component remains the same
   const handlePriceChange = (type, value) => {
-    const numValue = Math.max(minPrice, Number(value));
+    if (!validatePrice(type, value)) return;
     
+    const numValue = parseFloat(value);
     if (type === 'original') {
       onChange({
         originalPrice: numValue,
@@ -39,11 +55,11 @@ const PriceCalculator = ({
     } else {
       onChange({
         originalPrice,
-        discountPrice: Math.min(numValue, originalPrice)
+        discountPrice: numValue
       });
     }
   };
-
+  
   const calculateMargin = (price) => {
     if (!price) return 0;
     const prodCost = productConfig?.productionCost || DEFAULT_PRODUCT_CONFIG.productionCost;
