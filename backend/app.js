@@ -3,87 +3,121 @@ const ErrorHandler = require("./middleware/error");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const path = require("path");
+const compression = require('compression');
 const helmet = require('helmet');
+const morgan = require('morgan');
 
 const app = express();
 
-// Constants
-const ALLOWED_ORIGINS = [
-  'https://testpodokan.store', 
-  'http://localhost:3000'
-];
-
-// Security headers
+// Security Configurations
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
-      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-      "img-src": ["'self'", "data:", "https://res.cloudinary.com"],
-      "connect-src": ["'self'", ...ALLOWED_ORIGINS, "https://res.cloudinary.com"],
-      "default-src": ["'self'", ...ALLOWED_ORIGINS]
+      defaultSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https:", "data:", "blob:"],
+      connectSrc: ["'self'", "https://testpodokan.store", "https://*.cloudinary.com", "http://localhost:8000", "ws:", "wss:"],
+      imgSrc: ["'self'", "data:", "https:", "https://*.cloudinary.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+      mediaSrc: ["'self'", "https://*.cloudinary.com"],
+      frameAncestors: ["'self'"],
+      upgradeInsecureRequests: []
     }
   },
-  crossOriginEmbedderPolicy: false
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+// Enable compression
+app.use(compression());
+
+// Logging
+app.use(morgan('combined'));
+
+// CORS Configuration
+app.use(cors({
+  origin: ['https://testpodokan.store', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Seller-Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Cache-Control'
+  ],
+  exposedHeaders: ['Authorization', 'Seller-Authorization']
 }));
 
-// CORS configuration
-app.use(cookieParser());
+// Add this before your routes
 app.use((req, res, next) => {
-  res.setHeader('X-Powered-By', 'Express');
-  res.setHeader('Cache-Control', 'no-cache');
+  res.header('Access-Control-Allow-Origin', 'https://testpodokan.store');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Seller-Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
   next();
 });
+// Body Parser Configuration
 app.use(express.json({ limit: '50mb' }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+app.use(cookieParser());
 
-app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (ALLOWED_ORIGINS.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['*'],
-  exposedHeaders: ['Content-Disposition', 'Authorization', 'Seller-Authorization']
-}));
-// Middleware
+// Import all routes
+const user = require("./controller/user");
+const shop = require("./controller/shop");
+const product = require("./controller/product");
+const event = require("./controller/event");
+const coupon = require("./controller/coupounCode");
+const payment = require("./controller/payment");
+const order = require("./controller/order");
+const conversation = require("./controller/conversation");
+const message = require("./controller/message");
+const withdraw = require("./controller/withdraw");
 
-// Routes
-const routes = {
-  user: require("./controller/user"),
-  shop: require("./controller/shop"),
-  product: require("./controller/product"),
-  event: require("./controller/event"),
-  coupon: require("./controller/coupounCode"),
-  payment: require("./controller/payment"),
-  order: require("./controller/order"),
-  conversation: require("./controller/conversation"),
-  message: require("./controller/message"),
-  withdraw: require("./controller/withdraw")
-};
+// API Routes
+app.use("/api/v2/user", user);
+app.use("/api/v2/shop", shop);
+app.use("/api/v2/product", product);
+app.use("/api/v2/event", event);
+app.use("/api/v2/coupon", coupon);
+app.use("/api/v2/payment", payment);
+app.use("/api/v2/order", order);
+app.use("/api/v2/conversation", conversation);
+app.use("/api/v2/message", message);
+app.use("/api/v2/withdraw", withdraw);
 
-// Mount routes with /api/v2 prefix
-Object.entries(routes).forEach(([name, router]) => {
-  app.use(`/api/v2/${name}`, router);
+// Error Handling
+app.use(ErrorHandler);
+
+// Handle Uncaught Exception
+process.on("uncaughtException", (err) => {
+  console.log(`Error: ${err.message}`);
+  console.log("Shutting down server for handling uncaught exception");
 });
 
-// Error handling
-app.use(ErrorHandler);
+// Unhandled Promise Rejection
+process.on("unhandledRejection", (err) => {
+  console.log(`Error: ${err.message}`);
+  console.log("Shutting down server for unhandled promise rejection");
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // 404 Handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Route not found',
-    path: req.originalUrl,
-    method: req.method
+    message: 'API endpoint not found',
+    path: req.originalUrl
   });
 });
 
