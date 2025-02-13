@@ -12,11 +12,14 @@ const mongoose = require('mongoose');
 const sharp = require('sharp');
 const JSZip = require('jszip');
 const cloudinary = require('cloudinary').v2;
-const SSE = require('express-sse');
-const sse = new SSE();
+const EventEmitter = require('events');
+const orderEmitter = new EventEmitter();
+
 // Constants
-//.
 const SERVICE_CHARGE_PERCENTAGE = 0.10; // 10% service charge
+
+// Order status update event handler
+orderEmitter.setMaxListeners(0); // Remove listener limit if needed
 
 const getOrderDetails = catchAsyncErrors(async (req, res, next) => {
   const order = await Order.findById(req.params.id)
@@ -99,18 +102,15 @@ const updateOrderStatus = catchAsyncErrors(async (req, res, next) => {
     const { orderId } = req.params;
     const { status } = req.body;
 
-    // Validate status
     if (!Object.values(ORDER_STATUSES).includes(status)) {
       return next(new ErrorHandler("Invalid order status", 400));
     }
 
-    // Find order and validate
     const order = await Order.findById(orderId);
     if (!order) {
       return next(new ErrorHandler("Order not found", 404));
     }
 
-    // Update status with history
     order.status = status;
     order.statusHistory.push({
       status,
@@ -119,15 +119,14 @@ const updateOrderStatus = catchAsyncErrors(async (req, res, next) => {
       timestamp: new Date()
     });
 
-    // Handle status-specific logic
     if (status === ORDER_STATUSES.DELIVERED) {
       order.deliveredAt = new Date();
     }
 
     await order.save();
 
-    // Emit SSE event
-    const sseData = {
+    // Emit event instead of SSE
+    orderEmitter.emit('orderStatusUpdate', {
       type: 'ORDER_STATUS_UPDATE',
       data: {
         orderId: order._id,
@@ -135,9 +134,7 @@ const updateOrderStatus = catchAsyncErrors(async (req, res, next) => {
         updatedAt: new Date(),
         statusHistory: order.statusHistory
       }
-    };
-
-    req.app.emit('orderUpdate', sseData);
+    });
 
     res.status(200).json({
       success: true,
@@ -149,7 +146,6 @@ const updateOrderStatus = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler(error.message, 500));
   }
 });
-
 // controller/order.js
 const getOrdersWithFilters = catchAsyncErrors(async (req, res, next) => {
   try {
@@ -513,8 +509,8 @@ router.put("/update-order-status/:orderId", isAuthenticated, isAdmin, async (req
     order.status = status;
     await order.save();
 
-    // Emit SSE event
-    sse.send({
+    // Emit event instead of SSE
+    orderEmitter.emit('orderStatusUpdate', {
       type: 'ORDER_STATUS_UPDATE',
       data: {
         orderId,
@@ -564,7 +560,20 @@ router.put("/set-delivery/:orderId",
   })
 );
 router.get('/status-updates', (req, res) => {
-  sse.init(req, res);
+  const timeout = 30000; // 30 seconds timeout
+  const listener = (data) => {
+    res.json(data);
+  };
+
+  orderEmitter.once('orderStatusUpdate', listener);
+
+  // Remove listener after timeout
+  setTimeout(() => {
+    orderEmitter.removeListener('orderStatusUpdate', listener);
+    if (!res.headersSent) {
+      res.json({ type: 'TIMEOUT', data: null });
+    }
+  }, timeout);
 });
 
 // Admin: Get all orders
