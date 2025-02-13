@@ -39,31 +39,35 @@ export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
   try {
     dispatch({ type: "getAllOrdersShopRequest" });
 
+    const sellerToken = localStorage.getItem('seller_token');
+    if (!sellerToken) {
+      throw new Error('No seller authentication token found');
+    }
+
     const { data } = await axios.get(
       `${server}/order/get-seller-orders/${shopId}`,
       {
         withCredentials: true,
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Seller-Authorization': `Bearer ${localStorage.getItem('seller_token')}`
+          'Seller-Authorization': `Bearer ${sellerToken}`
         }
       }
     );
-
-    if (!data.success) {
-      throw new Error(data.message || 'Failed to fetch orders');
-    }
 
     dispatch({
       type: "getAllOrdersShopSuccess",
       payload: data.orders
     });
+
+    return data.orders;
   } catch (error) {
     console.error('Shop orders fetch error:', error);
     dispatch({
       type: "getAllOrdersShopFailed",
-      payload: error.response?.data?.message || error.message || "Failed to fetch orders"
+      payload: error.response?.data?.message || error.message
     });
+    throw error;
   }
 };
 export const ORDER_ACTIONS = {

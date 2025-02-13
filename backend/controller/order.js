@@ -230,71 +230,54 @@ router.use((req, res, next) => {
   next();
 });
 
-router.get('/download-specs/:orderId', isAdmin, async (req, res) => {
+router.get('/download-specs/:orderId', isAdmin, async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.orderId);
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return next(new ErrorHandler('Order not found', 404));
     }
 
     const zip = new JSZip();
-
-    for (const item of order.cart) {
-      // Add specs JSON
-      const specs = {
+    const specs = {
+      orderInfo: {
+        orderId: order._id,
+        createdAt: order.createdAt,
+        status: order.status
+      },
+      items: order.cart.map(item => ({
         productType: item.ProductType,
         productColor: item.ProductColor,
         designSpecs: item.designSpecs,
         quantity: item.qty,
-        size:item.size,
-        color:item.ProductColor,
-        designImage:item.designImage
-      };
-      zip.file(`${item._id}-specs.json`, JSON.stringify(specs, null, 2));
+        size: item.size
+      }))
+    };
 
-      // Add design image
-      const designImage = await cloudinary.api.resource(item.designImage.public_id);
-      const designImageBuffer = await (await fetch(designImage.secure_url)).buffer();
-      zip.file(`${item._id}-design.png`, designImageBuffer);
+    // Add specs JSON
+    zip.file('specs.json', JSON.stringify(specs, null, 2));
 
-      // Create composite image
-      const productImage = await sharp(`./assets/${item.ProductType}-${item.ProductColor}.png`);
-      const compositeImage = await productImage
-        .composite([{
-          input: designImageBuffer,
-          top: Math.round(item.designSpecs.positionY * productImage.height / 100),
-          left: Math.round(item.designSpecs.positionX * productImage.width / 100),
-          blend: item.ProductColor === 'white' ? 'multiply' : 'screen'
-        }])
-        .toBuffer();
-      zip.file(`${item._id}-composite.png`, compositeImage);
+    // Add design images
+    for (const item of order.cart) {
+      if (item.designImage?.url) {
+        try {
+          const imageResponse = await axios.get(item.designImage.url, {
+            responseType: 'arraybuffer'
+          });
+          zip.file(`designs/${item._id}.png`, imageResponse.data);
+        } catch (error) {
+          console.error(`Failed to download design for item ${item._id}:`, error);
+        }
+      }
     }
-    exports.getOrderDetails = catchAsync(async (req, res) => {
-      const order = await Order.findById(req.params.id).lean();
-      
-      if (!order) return next(new ErrorHandler("Order not found", 404));
+
+    const content = await zip.generateAsync({ type: 'nodebuffer' });
     
-      // Fix image URLs
-      order.cart = order.cart.map(item => ({
-        ...item,
-        designImage: item.designImage?.url 
-          ? `https://res.cloudinary.com/dkot9tyjm/image/upload/${item.designImage.public_id}` 
-          : null
-      }));
-    
-      res.status(200).json({
-        success: true,
-        order
-      });
-    });
-    const zipBuffer = await zip.generateAsync({type: "nodebuffer"});
-    res.set('Content-Type', 'application/zip');
-    res.set('Content-Disposition', `attachment; filename="order-${order._id}-specs.zip"`);
-    res.send(zipBuffer);
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename=order_${order._id}_specs.zip`);
+    res.send(content);
 
   } catch (error) {
-    console.error("Error generating specs zip:", error);
-    res.status(500).json({ message: "Error generating specs zip" });
+    next(new ErrorHandler(error.message, 500));
   }
 });
 const updateSellerBalance = async (sellerId, amount) => {

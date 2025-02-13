@@ -37,35 +37,22 @@ app.use(express.json({ limit: '50mb' }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-// Add this to your CORS configuration
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (ALLOWED_ORIGINS.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'Seller-Authorization',
-    'X-Requested-With',
-    'Content-Disposition',
-    'Origin',
-    'Accept',
-    'Cache-Control',
-    'Last-Event-ID'
-  ],
-  exposedHeaders: [
-    'Authorization',
-    'Seller-Authorization',
-    'Content-Disposition'
-  ]
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['*'],
+  exposedHeaders: ['Content-Disposition', 'Authorization', 'Seller-Authorization']
 }));
-
 // Middleware
 
 // Routes
