@@ -12,19 +12,7 @@ const app = express();
 
 // Security Configurations
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https:", "data:", "blob:"],
-      connectSrc: ["'self'", "https://testpodokan.store", "https://*.cloudinary.com", "http://localhost:8000", "ws:", "wss:"],
-      imgSrc: ["'self'", "data:", "https:", "https://*.cloudinary.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-      mediaSrc: ["'self'", "https://*.cloudinary.com"],
-      frameAncestors: ["'self'"],
-      upgradeInsecureRequests: []
-    }
-  },
+  contentSecurityPolicy: false, // Temporarily disable CSP for debugging
   crossOriginEmbedderPolicy: false,
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
@@ -32,44 +20,29 @@ app.use(helmet({
 // Enable compression
 app.use(compression());
 
-// Logging in development mode
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-} else {
-  app.use(morgan('combined'));
-}
+// Logging
+app.use(morgan('combined'));
 
-// CORS Configuration - Simplified and more permissive for troubleshooting
+// CORS Configuration - More permissive for debugging
 app.use(cors({
-  origin: true, // Allow all origins temporarily
+  origin: '*',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['*'],
-  exposedHeaders: ['Authorization', 'Seller-Authorization']
+  allowedHeaders: ['*']
 }));
 
-// Remove the additional CORS middleware since we're using the cors package
 // Body Parser Configuration
 app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
-
-// Combine similar middleware
 app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ 
-  extended: true, 
-  limit: '50mb',
-  parameterLimit: 100000 
-}));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-// API Routes with error catching
-const routeHandler = (route) => {
-  return async (req, res, next) => {
-    try {
-      await route(req, res, next);
-    } catch (error) {
-      next(error);
-    }
-  };
+// Static files
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+// API Routes with error handling wrapper
+const asyncHandler = fn => (req, res, next) => {
+  return Promise.resolve(fn(req, res, next)).catch(next);
 };
 
 // Import all routes
@@ -86,11 +59,23 @@ const routes = {
   withdraw: require("./controller/withdraw")
 };
 
-// Mount routes with proper error handling
+// Mount API routes
 Object.entries(routes).forEach(([name, router]) => {
-  app.use(`/api/v2/${name}`, (req, res, next) => {
-    console.log(`${req.method} ${req.originalUrl}`); // Log incoming requests
-    router(req, res, next);
+  app.use(`/api/v2/${name}`, asyncHandler(async (req, res, next) => {
+    console.log(`${req.method} ${req.originalUrl}`);
+    await Promise.resolve(router(req, res, next));
+  }));
+});
+
+// API Documentation
+app.get('/api/v2', (req, res) => {
+  res.json({
+    status: 'active',
+    version: '2.0',
+    endpoints: Object.keys(routes).map(route => ({
+      path: `/api/v2/${route}`,
+      methods: ['GET', 'POST', 'PUT', 'DELETE']
+    }))
   });
 });
 
@@ -99,31 +84,16 @@ app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV
+    uptime: process.uptime()
   });
 });
 
-// API Documentation endpoint
-app.get('/api/v2', (req, res) => {
-  res.json({
-    message: 'API is running',
-    version: '2.0',
-    endpoints: Object.keys(routes).map(route => `/api/v2/${route}`)
-  });
+// Serve React app for all other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
 });
 
-// 404 Handler - Keep before error handler
-app.use((req, res, next) => {
-  if (!res.headersSent) {
-    res.status(404).json({
-      success: false,
-      message: 'API endpoint not found',
-      path: req.originalUrl
-    });
-  }
-});
-
-// Error Handling Middleware
+// Error Handling
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   
@@ -131,39 +101,28 @@ app.use((err, req, res, next) => {
     return next(err);
   }
 
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
-  
-  res.status(statusCode).json({
+  res.status(err.status || 500).json({
     success: false,
-    error: {
-      message,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    }
+    message: err.message || 'Internal Server Error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 });
 
-// Custom Error Handler
-app.use(ErrorHandler);
+// Handle Uncaught Exceptions
+process.on("uncaughtException", (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
 
-// Global error handlers
-const handleFatalError = (error, type) => {
-  console.error(`Fatal ${type}:`, error);
-  console.error('Stack:', error.stack);
-  
-  // Give time for logs to be written
-  setTimeout(() => {
-    process.exit(1);
-  }, 1000);
-};
-
-process.on("uncaughtException", (err) => handleFatalError(err, 'Uncaught Exception'));
-process.on("unhandledRejection", (err) => handleFatalError(err, 'Unhandled Rejection'));
+// Handle Unhandled Promise Rejections
+process.on("unhandledRejection", (err) => {
+  console.error('Unhandled Rejection:', err);
+  process.exit(1);
+});
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('Received SIGTERM. Performing graceful shutdown...');
-  // Close server, DB connections, etc.
   process.exit(0);
 });
 
