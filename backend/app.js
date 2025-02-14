@@ -28,97 +28,143 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
+
 // Enable compression
 app.use(compression());
 
-// Logging
-app.use(morgan('combined'));
+// Logging in development mode
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+} else {
+  app.use(morgan('combined'));
+}
 
-// CORS Configuration
+// CORS Configuration - Simplified and more permissive for troubleshooting
 app.use(cors({
-  origin: ['https://testpodokan.store', 'http://localhost:3000'],
+  origin: true, // Allow all origins temporarily
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'Seller-Authorization',
-    'X-Requested-With',
-    'Accept',
-    'Origin',
-    'Cache-Control'
-  ],
+  allowedHeaders: ['*'],
   exposedHeaders: ['Authorization', 'Seller-Authorization']
 }));
 
-// Add this before your routes
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://testpodokan.store');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Seller-Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  next();
-});
+// Remove the additional CORS middleware since we're using the cors package
 // Body Parser Configuration
 app.use(express.json({ limit: '50mb' }));
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
+// Combine similar middleware
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ 
+  extended: true, 
+  limit: '50mb',
+  parameterLimit: 100000 
+}));
+
+// API Routes with error catching
+const routeHandler = (route) => {
+  return async (req, res, next) => {
+    try {
+      await route(req, res, next);
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
 // Import all routes
-const user = require("./controller/user");
-const shop = require("./controller/shop");
-const product = require("./controller/product");
-const event = require("./controller/event");
-const coupon = require("./controller/coupounCode");
-const payment = require("./controller/payment");
-const order = require("./controller/order");
-const conversation = require("./controller/conversation");
-const message = require("./controller/message");
-const withdraw = require("./controller/withdraw");
+const routes = {
+  user: require("./controller/user"),
+  shop: require("./controller/shop"),
+  product: require("./controller/product"),
+  event: require("./controller/event"),
+  coupon: require("./controller/coupounCode"),
+  payment: require("./controller/payment"),
+  order: require("./controller/order"),
+  conversation: require("./controller/conversation"),
+  message: require("./controller/message"),
+  withdraw: require("./controller/withdraw")
+};
 
-// API Routes
-app.use("/api/v2/user", user);
-app.use("/api/v2/shop", shop);
-app.use("/api/v2/product", product);
-app.use("/api/v2/event", event);
-app.use("/api/v2/coupon", coupon);
-app.use("/api/v2/payment", payment);
-app.use("/api/v2/order", order);
-app.use("/api/v2/conversation", conversation);
-app.use("/api/v2/message", message);
-app.use("/api/v2/withdraw", withdraw);
-
-// Error Handling
-app.use(ErrorHandler);
-
-// Handle Uncaught Exception
-process.on("uncaughtException", (err) => {
-  console.log(`Error: ${err.message}`);
-  console.log("Shutting down server for handling uncaught exception");
-});
-
-// Unhandled Promise Rejection
-process.on("unhandledRejection", (err) => {
-  console.log(`Error: ${err.message}`);
-  console.log("Shutting down server for unhandled promise rejection");
+// Mount routes with proper error handling
+Object.entries(routes).forEach(([name, router]) => {
+  app.use(`/api/v2/${name}`, (req, res, next) => {
+    console.log(`${req.method} ${req.originalUrl}`); // Log incoming requests
+    router(req, res, next);
+  });
 });
 
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV
   });
 });
 
-// 404 Handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'API endpoint not found',
-    path: req.originalUrl
+// API Documentation endpoint
+app.get('/api/v2', (req, res) => {
+  res.json({
+    message: 'API is running',
+    version: '2.0',
+    endpoints: Object.keys(routes).map(route => `/api/v2/${route}`)
   });
+});
+
+// 404 Handler - Keep before error handler
+app.use((req, res, next) => {
+  if (!res.headersSent) {
+    res.status(404).json({
+      success: false,
+      message: 'API endpoint not found',
+      path: req.originalUrl
+    });
+  }
+});
+
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'Internal Server Error';
+  
+  res.status(statusCode).json({
+    success: false,
+    error: {
+      message,
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    }
+  });
+});
+
+// Custom Error Handler
+app.use(ErrorHandler);
+
+// Global error handlers
+const handleFatalError = (error, type) => {
+  console.error(`Fatal ${type}:`, error);
+  console.error('Stack:', error.stack);
+  
+  // Give time for logs to be written
+  setTimeout(() => {
+    process.exit(1);
+  }, 1000);
+};
+
+process.on("uncaughtException", (err) => handleFatalError(err, 'Uncaught Exception'));
+process.on("unhandledRejection", (err) => handleFatalError(err, 'Unhandled Rejection'));
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('Received SIGTERM. Performing graceful shutdown...');
+  // Close server, DB connections, etc.
+  process.exit(0);
 });
 
 module.exports = app;
