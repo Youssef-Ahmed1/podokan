@@ -1,39 +1,59 @@
-import { motion } from 'framer-motion';
+// components/Order/Timeline.jsx
+import React from 'react';
+import { Check, Clock } from 'lucide-react';
 
 export const Timeline = ({ status, deliveryDate }) => {
-  const stages = [
-    { name: 'Processing', color: 'bg-blue-500' },
-    { name: 'Shipped', color: 'bg-purple-500' },
-    { name: 'Delivered', color: 'bg-green-500' }
+  const steps = [
+    'Processing',
+    'Transferred to delivery partner',
+    'Out for delivery',
+    'Delivered'
   ];
 
+  const getCurrentStep = () => {
+    return steps.indexOf(status) + 1;
+  };
+
   return (
-    <div className="relative h-16 mx-4 my-8">
-      <div className="absolute top-1/2 h-1 bg-gray-200 w-full -translate-y-1/2"></div>
-      
-      {stages.map((stage, index) => (
-        <motion.div
-          key={stage.name}
-          className={`absolute top-1/2 -translate-y-1/2 w-8 h-8 rounded-full ${stage.color} ${
-            status === stage.name ? 'scale-125' : 'scale-100'
-          }`}
-          style={{
-            left: `${(index / (stages.length - 1)) * 100}%`,
-            marginLeft: '-16px'
-          }}
-          initial={{ scale: 0 }}
-          animate={{ scale: status === stage.name ? 1.2 : 1 }}
-          transition={{ type: 'spring', stiffness: 200 }}
-        >
-          <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 text-sm">
-            {stage.name}
-          </div>
-        </motion.div>
-      ))}
-      
-      <div className="text-center mt-12">
-        Estimated Delivery: {new Date(deliveryDate).toLocaleDateString()}
+    <div className="w-full py-6 mb-8">
+      <div className="flex items-center">
+        {steps.map((step, index) => (
+          <React.Fragment key={step}>
+            {/* Step Circle */}
+            <div className="relative">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                index < getCurrentStep() 
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200'
+              }`}>
+                {index < getCurrentStep() ? (
+                  <Check size={20} />
+                ) : (
+                  <Clock size={20} className="text-gray-500" />
+                )}
+              </div>
+              <div className="mt-2 text-xs text-center w-20 -ml-5">
+                {step}
+              </div>
+            </div>
+            
+            {/* Connector Line */}
+            {index < steps.length - 1 && (
+              <div className={`flex-1 h-1 ${
+                index < getCurrentStep() - 1 
+                  ? 'bg-blue-600'
+                  : 'bg-gray-200'
+              }`} />
+            )}
+          </React.Fragment>
+        ))}
       </div>
+      
+      {deliveryDate && (
+        <div className="text-center mt-4 text-sm text-gray-600">
+          Estimated Delivery: {new Date(deliveryDate).toLocaleDateString()}
+        </div>
+      )}
     </div>
   );
 };

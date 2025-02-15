@@ -1,252 +1,166 @@
+// backend/redux/actions/order.js
+
 import axios from "axios";
 import { server } from "../../server";
 
-// get all orders of user
+// Constants for action types
+export const ORDER_ACTIONS = {
+  // Create Order
+  CREATE_REQUEST: "orderCreateRequest",
+  CREATE_SUCCESS: "orderCreateSuccess",
+  CREATE_FAIL: "orderCreateFail",
+
+  // Get User Orders
+  GET_USER_REQUEST: "getAllOrdersUserRequest",
+  GET_USER_SUCCESS: "getAllOrdersUserSuccess",
+  GET_USER_FAIL: "getAllOrdersUserFailed",
+
+  // Get Shop Orders
+  GET_SHOP_REQUEST: "getAllOrdersShopRequest",
+  GET_SHOP_SUCCESS: "getAllOrdersShopSuccess",
+  GET_SHOP_FAIL: "getAllOrdersShopFailed",
+
+  // Get Admin Orders
+  GET_ADMIN_REQUEST: "adminAllOrdersRequest",
+  GET_ADMIN_SUCCESS: "adminAllOrdersSuccess",
+  GET_ADMIN_FAIL: "adminAllOrdersFail",
+
+  // Update Order Status
+  UPDATE_STATUS_REQUEST: "updateOrderStatusRequest",
+  UPDATE_STATUS_SUCCESS: "updateOrderStatusSuccess",
+  UPDATE_STATUS_FAIL: "updateOrderStatusFail",
+
+  // Download Actions
+  DOWNLOAD_SPECS_REQUEST: "downloadSpecsRequest",
+  DOWNLOAD_SPECS_SUCCESS: "downloadSpecsSuccess",
+  DOWNLOAD_SPECS_FAIL: "downloadSpecsFail",
+
+  DOWNLOAD_DESIGN_REQUEST: "downloadDesignRequest",
+  DOWNLOAD_DESIGN_SUCCESS: "downloadDesignSuccess",
+  DOWNLOAD_DESIGN_FAIL: "downloadDesignFail",
+
+  // Delivery Actions
+  ASSIGN_DELIVERY_REQUEST: "assignDeliveryRequest",
+  ASSIGN_DELIVERY_SUCCESS: "assignDeliverySuccess",
+  ASSIGN_DELIVERY_FAIL: "assignDeliveryFail",
+
+  UPDATE_DELIVERY_REQUEST: "updateDeliveryRequest",
+  UPDATE_DELIVERY_SUCCESS: "updateDeliverySuccess",
+  UPDATE_DELIVERY_FAIL: "updateDeliveryFail",
+
+  // Refund Actions
+  REFUND_REQUEST: "refundRequest",
+  REFUND_SUCCESS: "refundSuccess",
+  REFUND_FAIL: "refundFail",
+
+  // Clear Errors
+  CLEAR_ERRORS: "clearErrors"
+};
+
+// Create Order
+export const createOrder = (orderData) => async (dispatch) => {
+  try {
+    dispatch({ type: ORDER_ACTIONS.CREATE_REQUEST });
+
+    const config = { headers: { "Content-Type": "application/json" }, withCredentials: true };
+    const { data } = await axios.post(`${server}/order/create-order`, orderData, config);
+
+    dispatch({ 
+      type: ORDER_ACTIONS.CREATE_SUCCESS,
+      payload: data.orders
+    });
+  } catch (error) {
+    dispatch({
+      type: ORDER_ACTIONS.CREATE_FAIL,
+      payload: error.response?.data?.message || "Order creation failed"
+    });
+  }
+};
+
+// Get all orders for user
 export const getAllOrdersOfUser = (userId) => async (dispatch) => {
   try {
-    dispatch({
-      type: "getAllOrdersUserRequest",
-    });
+    dispatch({ type: ORDER_ACTIONS.GET_USER_REQUEST });
 
     const { data } = await axios.get(
-      `${server}/order/get-all-orders/${userId}`,
-      { 
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      }
+      `${server}/order/get-user-orders`, // Remove userId from URL since it's in token
+      { withCredentials: true }
     );
 
     dispatch({
-      type: "getAllOrdersUserSuccess",
+      type: ORDER_ACTIONS.GET_USER_SUCCESS,
       payload: data.orders,
     });
-
-    return data.orders;
   } catch (error) {
     dispatch({
-      type: "getAllOrdersUserFailed",
-      payload: error.response?.data?.message || "Error fetching orders",
+      type: ORDER_ACTIONS.GET_USER_FAIL,
+      payload: error.response?.data?.message || "Failed to fetch orders",
     });
-    throw error;
   }
 };
 
-// get all orders of seller  if it disappeared it will cause an error
-// that the seller won't be able to see the order that are is 
+// Get all seller orders
+export const getShopOrders = (shopId) => async (dispatch) => {
+  try {
+    dispatch({ type: ORDER_ACTIONS.GET_SHOP_REQUEST });
+
+    const { data } = await axios.get(`${server}/order/get-seller-orders/${shopId}`, {
+      withCredentials: true,
+    });
+
+    dispatch({
+      type: ORDER_ACTIONS.GET_SHOP_SUCCESS,
+      payload: data.orders
+    });
+  } catch (error) {
+    dispatch({
+      type: ORDER_ACTIONS.GET_SHOP_FAIL,
+      payload: error.response?.data?.message
+    });
+  }
+};
+
+// Get all orders for admin
 export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
   try {
-    dispatch({ type: "getAllOrdersShopRequest" });
-
-    const sellerToken = localStorage.getItem('seller_token');
-    if (!sellerToken) {
-      throw new Error('No seller authentication token found');
-    }
+    dispatch({ type: ORDER_ACTIONS.GET_SHOP_REQUEST });
 
     const { data } = await axios.get(
-      `${server}/order/get-seller-orders/${shopId}`,
-      {
-        withCredentials: true,
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Seller-Authorization': `Bearer ${sellerToken}`
-        }
-      }
+      `${server}/order/get-seller-orders`, 
+      { withCredentials: true }
     );
 
     dispatch({
-      type: "getAllOrdersShopSuccess",
-      payload: data.orders
+      type: ORDER_ACTIONS.GET_SHOP_SUCCESS,
+      payload: data.orders,
     });
-
-    return data.orders;
   } catch (error) {
-    console.error('Shop orders fetch error:', error);
     dispatch({
-      type: "getAllOrdersShopFailed",
-      payload: error.response?.data?.message || error.message
+      type: ORDER_ACTIONS.GET_SHOP_FAIL,
+      payload: error.response?.data?.message || "Failed to fetch orders",
     });
-    throw error;
   }
 };
-export const ORDER_ACTIONS = {
-  // Admin Orders
-  ADMIN_ORDERS_REQUEST: 'ADMIN_ORDERS_REQUEST',
-  ADMIN_ORDERS_SUCCESS: 'ADMIN_ORDERS_SUCCESS',
-  ADMIN_ORDERS_FAIL: 'ADMIN_ORDERS_FAIL',
-  
-  // Status Updates
-  UPDATE_STATUS_REQUEST: 'UPDATE_STATUS_REQUEST',
-  UPDATE_STATUS_SUCCESS: 'UPDATE_STATUS_SUCCESS',
-  UPDATE_STATUS_FAIL: 'UPDATE_STATUS_FAIL',
-  
-  // Design Downloads
-  DESIGN_DOWNLOAD_REQUEST: 'DESIGN_DOWNLOAD_REQUEST',
-  DESIGN_DOWNLOAD_SUCCESS: 'DESIGN_DOWNLOAD_SUCCESS',
-  DESIGN_DOWNLOAD_FAIL: 'DESIGN_DOWNLOAD_FAIL',
-    ADMIN_FILTER_UPDATE: 'ADMIN_FILTER_UPDATE',
-  ADMIN_RESET_FILTERS: 'ADMIN_RESET_FILTERS',
-  ADMIN_BULK_ACTION_REQUEST: 'ADMIN_BULK_ACTION_REQUEST',
-  ADMIN_BULK_ACTION_SUCCESS: 'ADMIN_BULK_ACTION_SUCCESS',
-  ADMIN_BULK_ACTION_FAIL: 'ADMIN_BULK_ACTION_FAIL',
-  ADMIN_EXPORT_REQUEST: 'ADMIN_EXPORT_REQUEST',
-  ADMIN_EXPORT_SUCCESS: 'ADMIN_EXPORT_SUCCESS',
-  ADMIN_EXPORT_FAIL: 'ADMIN_EXPORT_FAIL',
-  CLEAR_SUCCESS: 'CLEAR_SUCCESS',
-  CLEAR_ERRORS: 'CLEAR_ERRORS'
-};
-// Get admin orders
-export const getAllOrdersOfAdmin = (filters = {}) => async (dispatch) => {
+
+// Get Admin Orders
+export const getAllOrdersOfAdmin = () => async (dispatch) => {
   try {
-    dispatch({ type: ORDER_ACTIONS.ADMIN_ORDERS_REQUEST });
-
-    // Add token validation check
-    const token = localStorage.getItem("token");
-    if (!token) {
-      throw new Error("No authentication token found");
-    }
-
-    // Add debug logging
-    console.log("Fetching admin orders with token:", token);
-
-    const queryParams = new URLSearchParams({
-      page: filters.page || 1,
-      limit: filters.limit || 10,
-      status: filters.status || '',
-      startDate: filters.startDate || '',
-      endDate: filters.endDate || '',
-      sort: filters.sort || '-createdAt'
-    }).toString();
+    dispatch({ type: ORDER_ACTIONS.GET_ADMIN_REQUEST });
 
     const { data } = await axios.get(
-      `${server}/order/admin-all-orders?${queryParams}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        withCredentials: true
-      }
-    );
-
-    // Debug logging
-    console.log("Admin orders received:", data);
-
-    if (!data.orders) {
-      throw new Error("No orders data received from server");
-    }
-
-    if (!data.success) {
-      throw new Error(data.message || 'Failed to fetch orders');
-    }
-
-    dispatch({
-      type: ORDER_ACTIONS.ADMIN_ORDERS_SUCCESS,
-      payload: {
-        orders: data.orders,
-        totalAmount: data.totalAmount,
-        ordersCount: data.ordersCount,
-        totalPages: data.totalPages,
-        currentPage: data.currentPage
-      }
-    });
-
-    return data;
-  } catch (error) {
-    console.error("Admin orders fetch error:", error);
-    dispatch({
-      type: ORDER_ACTIONS.ADMIN_ORDERS_FAIL,
-      payload: error.response?.data?.message || error.message || "Error fetching admin orders"
-    });
-    throw error;
-  }
-};
-export const clearOrderSuccess = () => ({
-  type: ORDER_ACTIONS.CLEAR_SUCCESS
-});
-
-export const updateAdminFilters = (filters) => ({
-  type: ORDER_ACTIONS.ADMIN_FILTER_UPDATE,
-  payload: filters
-});
-
-export const resetAdminFilters = () => ({
-  type: ORDER_ACTIONS.ADMIN_RESET_FILTERS
-});
-
-export const bulkUpdateOrders = (orderIds, action) => async (dispatch) => {
-  try {
-    dispatch({ type: ORDER_ACTIONS.ADMIN_BULK_ACTION_REQUEST });
-
-    const { data } = await axios.post(
-      `${server}/order/admin-bulk-action`,
-      { orderIds, action },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        },
-        withCredentials: true
-      }
+      `${server}/order/admin-all-orders`,
+      { withCredentials: true }
     );
 
     dispatch({
-      type: ORDER_ACTIONS.ADMIN_BULK_ACTION_SUCCESS,
-      payload: data.orders
+      type: ORDER_ACTIONS.GET_ADMIN_SUCCESS,
+      payload: data.orders,
     });
-
-    return data.orders;
   } catch (error) {
     dispatch({
-      type: ORDER_ACTIONS.ADMIN_BULK_ACTION_FAIL,
-      payload: error.response?.data?.message || "Bulk action failed"
+      type: ORDER_ACTIONS.GET_ADMIN_FAIL,
+      payload: error.response?.data?.message || "Failed to fetch orders",
     });
-    throw error;
-  }
-};
-export const exportOrders = (filters = {}) => async (dispatch) => {
-  try {
-    dispatch({ type: ORDER_ACTIONS.ADMIN_EXPORT_REQUEST });
-
-    const queryParams = new URLSearchParams({
-      status: filters.status || '',
-      startDate: filters.startDate || '',
-      endDate: filters.endDate || '',
-      format: filters.format || 'csv'
-    }).toString();
-
-    const response = await axios.get(
-      `${server}/order/admin-export-orders?${queryParams}`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        },
-        responseType: 'blob',
-        withCredentials: true
-      }
-    );
-
-    // Create and trigger download
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    const filename = `orders_export_${new Date().toISOString().split('T')[0]}.${filters.format || 'csv'}`;
-    link.setAttribute('download', filename);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
-
-    dispatch({
-      type: ORDER_ACTIONS.ADMIN_EXPORT_SUCCESS
-    });
-
-    return true;
-  } catch (error) {
-    dispatch({
-      type: ORDER_ACTIONS.ADMIN_EXPORT_FAIL,
-      payload: error.response?.data?.message || "Export failed"
-    });
-    throw error;
   }
 };
 // Update order status
@@ -254,185 +168,157 @@ export const updateOrderStatus = (orderId, status) => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.UPDATE_STATUS_REQUEST });
 
+    const config = { headers: { "Content-Type": "application/json" }, withCredentials: true };
     const { data } = await axios.put(
       `${server}/order/update-order-status/${orderId}`,
       { status },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        },
-        withCredentials: true
-      }
+      config
     );
 
     dispatch({
       type: ORDER_ACTIONS.UPDATE_STATUS_SUCCESS,
       payload: data.order
     });
-
-    // Set up SSE connection for real-time updates
-    const eventSource = new EventSource(`${server}/order/status-updates`);
-    
-    eventSource.onmessage = (event) => {
-      const updateData = JSON.parse(event.data);
-      if (updateData.orderId === orderId) {
-        dispatch({
-          type: ORDER_ACTIONS.UPDATE_STATUS_SUCCESS,
-          payload: updateData
-        });
-      }
-    };
-
-    eventSource.onerror = () => {
-      eventSource.close();
-    };
-
-    return data.order;
   } catch (error) {
     dispatch({
       type: ORDER_ACTIONS.UPDATE_STATUS_FAIL,
-      payload: error.response?.data?.message || "Error updating order status"
+      payload: error.response?.data?.message
     });
-    throw error;
   }
 };
-export const downloadOrderDesign = (orderId, itemId, type = 'single') => async (dispatch) => {
+
+// Download specifications
+export const downloadOrderSpecs = (orderId) => async (dispatch) => {
   try {
-    dispatch({ type: ORDER_ACTIONS.DESIGN_DOWNLOAD_REQUEST });
+    dispatch({ type: ORDER_ACTIONS.DOWNLOAD_SPECS_REQUEST });
 
-    const response = await axios.get(
-      `${server}/order/download-design/${orderId}/${itemId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        },
-        responseType: 'blob',
-        withCredentials: true
-      }
-    );
+    const { data } = await axios.get(`${server}/order/download-specs/${orderId}`, {
+      withCredentials: true,
+      responseType: 'blob'
+    });
 
-    // Create download link
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    // Create blob link to download
+    const url = window.URL.createObjectURL(new Blob([data]));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `design_${orderId}_${itemId}.zip`);
+    link.setAttribute('download', `specs-${orderId}.csv`);
     document.body.appendChild(link);
     link.click();
     link.remove();
-    window.URL.revokeObjectURL(url);
 
     dispatch({
-      type: ORDER_ACTIONS.DESIGN_DOWNLOAD_SUCCESS
+      type: ORDER_ACTIONS.DOWNLOAD_SPECS_SUCCESS
     });
-
-    return true;
   } catch (error) {
     dispatch({
-      type: ORDER_ACTIONS.DESIGN_DOWNLOAD_FAIL,
-      payload: error.response?.data?.message || "Error downloading design"
+      type: ORDER_ACTIONS.DOWNLOAD_SPECS_FAIL,
+      payload: error.response?.data?.message
     });
-    throw error;
   }
 };
 
-// Bulk download designs
-export const bulkDownloadDesigns = (orderId) => async (dispatch) => {
+// Download design
+export const downloadDesign = (orderId, itemId) => async (dispatch) => {
   try {
-    dispatch({ type: ORDER_ACTIONS.DESIGN_DOWNLOAD_REQUEST });
+    dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_REQUEST });
 
-    const response = await axios.get(
-      `${server}/order/bulk-download-designs/${orderId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        },
-        responseType: 'blob',
-        withCredentials: true
-      }
-    );
+    const { data } = await axios.get(`${server}/order/download-design/${orderId}/${itemId}`, {
+      withCredentials: true,
+      responseType: 'blob'
+    });
 
-    // Create download link for bulk zip
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const url = window.URL.createObjectURL(new Blob([data]));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `order_${orderId}_designs.zip`);
+    link.setAttribute('download', `design-${orderId}-${itemId}.png`);
     document.body.appendChild(link);
     link.click();
     link.remove();
-    window.URL.revokeObjectURL(url);
 
     dispatch({
-      type: ORDER_ACTIONS.DESIGN_DOWNLOAD_SUCCESS
+      type: ORDER_ACTIONS.DOWNLOAD_DESIGN_SUCCESS
     });
-
-    return true;
   } catch (error) {
     dispatch({
-      type: ORDER_ACTIONS.DESIGN_DOWNLOAD_FAIL,
-      payload: error.response?.data?.message || "Error downloading designs"
+      type: ORDER_ACTIONS.DOWNLOAD_DESIGN_FAIL,
+      payload: error.response?.data?.message
     });
-    throw error;
   }
 };
 
-// Get order details with designs
-export const getOrderDetails = (orderId) => async (dispatch) => {
+// Assign delivery partner
+export const assignDeliveryPartner = (orderId, deliveryData) => async (dispatch) => {
   try {
-    dispatch({ type: ORDER_ACTIONS.ADMIN_ORDERS_REQUEST });
+    dispatch({ type: ORDER_ACTIONS.ASSIGN_DELIVERY_REQUEST });
 
-    const { data } = await axios.get(
-      `${server}/order/admin-order/${orderId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        },
-        withCredentials: true
-      }
+    const config = { headers: { "Content-Type": "application/json" }, withCredentials: true };
+    const { data } = await axios.post(
+      `${server}/order/assign-delivery/${orderId}`,
+      deliveryData,
+      config
     );
 
     dispatch({
-      type: ORDER_ACTIONS.ADMIN_ORDERS_SUCCESS,
-      payload: {
-        orders: [data.order],
-        totalAmount: data.order.totalPrice,
-        ordersCount: 1,
-        currentPage: 1,
-        totalPages: 1
-      }
+      type: ORDER_ACTIONS.ASSIGN_DELIVERY_SUCCESS,
+      payload: data.order
     });
-
-    return data.order;
   } catch (error) {
     dispatch({
-      type: ORDER_ACTIONS.ADMIN_ORDERS_FAIL,
-      payload: error.response?.data?.message || "Error fetching order details"
+      type: ORDER_ACTIONS.ASSIGN_DELIVERY_FAIL,
+      payload: error.response?.data?.message
     });
-    throw error;
   }
 };
 
-// Clear errors
-export const clearOrderErrors = () => ({
-  type: ORDER_ACTIONS.CLEAR_ERRORS
-});
+// Update delivery status
+export const updateDeliveryStatus = (orderId, statusData) => async (dispatch) => {
+  try {
+    dispatch({ type: ORDER_ACTIONS.UPDATE_DELIVERY_REQUEST });
 
-// Setup SSE listener for real-time updates
-export const setupSSEListener = () => (dispatch) => {
-  const eventSource = new EventSource(`${server}/order/status-updates`);
+    const config = { headers: { "Content-Type": "application/json" }, withCredentials: true };
+    const { data } = await axios.put(
+      `${server}/order/update-delivery/${orderId}`,
+      statusData,
+      config
+    );
 
-  eventSource.onmessage = (event) => {
-    const updateData = JSON.parse(event.data);
     dispatch({
-      type: ORDER_ACTIONS.UPDATE_STATUS_SUCCESS,
-      payload: updateData
+      type: ORDER_ACTIONS.UPDATE_DELIVERY_SUCCESS,
+      payload: data.order
     });
-  };
+  } catch (error) {
+    dispatch({
+      type: ORDER_ACTIONS.UPDATE_DELIVERY_FAIL,
+      payload: error.response?.data?.message
+    });
+  }
+};
 
-  eventSource.onerror = () => {
-    eventSource.close();
-  };
+// Request refund
+export const requestRefund = (orderId, refundData) => async (dispatch) => {
+  try {
+    dispatch({ type: ORDER_ACTIONS.REFUND_REQUEST });
 
-  return () => {
-    eventSource.close();
-  };
+    const config = { headers: { "Content-Type": "application/json" }, withCredentials: true };
+    const { data } = await axios.post(
+      `${server}/order/refund-request/${orderId}`,
+      refundData,
+      config
+    );
+
+    dispatch({
+      type: ORDER_ACTIONS.REFUND_SUCCESS,
+      payload: data
+    });
+  } catch (error) {
+    dispatch({
+      type: ORDER_ACTIONS.REFUND_FAIL,
+      payload: error.response?.data?.message
+    });
+  }
+};
+
+// Clear Errors
+export const clearErrors = () => async (dispatch) => {
+  dispatch({ type: ORDER_ACTIONS.CLEAR_ERRORS });
 };

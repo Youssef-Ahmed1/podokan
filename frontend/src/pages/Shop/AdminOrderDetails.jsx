@@ -1,331 +1,121 @@
+// AdminOrderDetails.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllOrdersOfAdmin,updateOrderStatus } from "../../redux/actions/order";
-import axios from "axios";
-import { server } from "../../server";
+import { getAllOrdersOfAdmin, updateOrderStatus } from "../../redux/actions/order";
+import { Download, Package, Truck, CreditCard } from "lucide-react";
 import { toast } from "react-toastify";
 import { Timeline } from '../../components/Order/Timeline';
-import { DesignScalingManager, DESIGN_CONFIG } from '../../utils/designScaling';
-import { Download, Package } from "lucide-react";
-import JSZip from 'jszip';
-import { saveAs } from 'file-saver';
-import { motion } from 'framer-motion';
-import { DesignDownloader } from '../../utils/designDownload.jsx';
-
-//.
-
-
-const DesignPreview = ({ item }) => {
-  // Add default values for undefined properties
-  const position = item.DesignPosition || { x: 50, y: 40 };
-  const scale = item.DesignScale || 0.8;
-  
-  const designStyles = DesignScalingManager.getDesignStyles(
-    position,
-    scale,
-    item.ProductColor || 'white',
-    item.ProductView || 'front'
-  );
-
-  return (
-    <div className="relative w-full h-64">
-      <img
-        src={`/images/${item.ProductType}-${item.ProductColor || 'white'}.png`}
-        alt={item.ProductType}
-        className="w-full h-full object-contain"
-      />
-      {item.designImage?.url && (
-        <div style={designStyles.container}>
-          <img
-            src={item.designImage.url}
-            alt="Design"
-            style={designStyles.image}
-          />
-        </div>
-      )}
-    </div>
-  );
-};
 
 const AdminOrderDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  
+  const { adminOrders, isLoading } = useSelector((state) => state.order);
   const [order, setOrder] = useState(null);
   const [status, setStatus] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const { adminOrders, adminOrderLoading } = useSelector((state) => state.order);
+  const [isUpdating, setIsUpdating] = useState(false);
 
+  // Fetch orders when component mounts
   useEffect(() => {
-    dispatch(getAllOrdersOfAdmin());
-  }, [dispatch]);
+    const fetchOrders = async () => {
+      try {
+        await dispatch(getAllOrdersOfAdmin());
+      } catch (error) {
+        toast.error("Failed to fetch orders");
+        navigate("/admin-dashboard");
+      }
+    };
+    fetchOrders();
+  }, [dispatch, navigate]);
 
-
+  // Set order and status when adminOrders changes
   useEffect(() => {
     if (adminOrders) {
       const foundOrder = adminOrders.find(o => o._id === id);
       if (foundOrder) {
         setOrder(foundOrder);
-        setStatus(foundOrder.status || "Processing"); // Set default status
+        setStatus(foundOrder.status);
       }
     }
   }, [adminOrders, id]);
 
-  const canDownloadDesign = (item) => {
-    const hasDesignImage = 
-      item?.designImage?.url ||
-      item?.cart?.[0]?.designImage?.url ||
-      item?.design?.url ||
-      item?.products?.[0]?.designImage?.url ||
-      (Array.isArray(item?.cart) && item.cart[0]?.design?.url);
-    
-    return Boolean(hasDesignImage);
-  };
   const handleStatusUpdate = async () => {
-    setIsLoading(true);
     try {
+      setIsUpdating(true);
       await dispatch(updateOrderStatus(id, status));
-      toast.success("Order status updated");
+      toast.success("Order status updated successfully");
+      // Refresh orders to get updated data
+      dispatch(getAllOrdersOfAdmin());
     } catch (error) {
-      toast.error("Failed to update order status");
+      toast.error(error.response?.data?.message || "Failed to update status");
     } finally {
-      setIsLoading(false);
+      setIsUpdating(false);
     }
   };
- // For design downloads, let's add detailed logging
- const handleDownload = async (item) => {
-  try {
-    console.log("Downloading item:", item);
-    console.log("Design image path:", item?.designImage);
-    console.log("Item full structure:", JSON.stringify(item, null, 2));
 
-    // Check if we have the correct data structure
-    if (!item?.designImage?.url) {
-      throw new Error("Design image not found in the correct format");
-    }
-
-    const zip = new JSZip();
-
-    // Download the design image
-    const imageResponse = await fetch(item.designImage.url);
-    if (!imageResponse.ok) {
-      throw new Error(`Failed to fetch image: ${imageResponse.statusText}`);
-    }
-
-    const imageBlob = await imageResponse.blob();
-    zip.file(`design_${item._id}.png`, imageBlob);
-
-    // Add design specifications
-    const specs = {
-      orderInfo: {
-        orderId: order._id,
-        orderDate: order.createdAt,
-        status: order.status
-      },
-      productInfo: {
-        title: item.title || "Unknown Product",
-        type: item.ProductType || "Unknown Type",
-        color: item.ProductColor || "Unknown Color",
-        size: item.size || "Unknown Size"
-      },
-      designInfo: {
-        image: item.designImage?.url,
-        position: item.DesignPosition || { x: 50, y: 50 },
-        scale: item.DesignScale || 1
-      }
-    };
-
-    zip.file(`specs_${item._id}.json`, JSON.stringify(specs, null, 2));
-
-    // Generate and download zip
-    const content = await zip.generateAsync({ type: "blob" });
-    saveAs(content, `design_${item._id}.zip`);
-
-    toast.success("Design package downloaded successfully");
-  } catch (error) {
-    console.error("Download error:", error);
-    toast.error(error.message || "Failed to download design");
-  }
-};
-
-
-  const handleBulkDownload = async () => {
+  const handleDownloadDesign = async (item) => {
     try {
-      setIsLoading(true);
-      const results = await DesignDownloader.downloadOrderDesigns(order);
+      if (!item.designImage?.url) {
+        throw new Error("No design available for download");
+      }
       
-      // Show summary toast
-      if (results.success.length > 0) {
-        toast.success(`Successfully downloaded ${results.success.length} designs`);
-      }
-      if (results.failed.length > 0) {
-        toast.warning(`Failed to download ${results.failed.length} designs`);
-      }
+      // Create a link element and trigger download
+      const link = document.createElement('a');
+      link.href = item.designImage.url;
+      link.download = `design-${item._id}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("Design downloaded successfully");
     } catch (error) {
-      console.error('Bulk download error:', error);
-      toast.error(error.message || 'Failed to download designs');
-    } finally {
-      setIsLoading(false);
+      toast.error(error.message || "Failed to download design");
     }
   };
-const handleDownloadSpecs = async () => {
-  try {
-    setIsLoading(true);
-    await DesignDownloader.downloadOrderDesigns(order);
-    toast.success('Designs package downloaded successfully!');
-  } catch (error) {
-    toast.error('Failed to download designs package');
-  } finally {
-    setIsLoading(false);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600"></div>
+      </div>
+    );
   }
-};
-  if (adminOrderLoading) return <div>Loading...</div>;
-  if (!order) return <div>Order not found</div>;
+
+  if (!order) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 text-center">
+        <h2 className="text-2xl font-bold text-gray-900">Order not found</h2>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6"
-    >
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">Order #{order._id}</h1>
-        
-        <Timeline status={order.status} deliveryDate={order.estimatedDelivery} />
-        
+      <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6">
+        {/* Order Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">
-            Order #{order?._id?.slice(0, 8)}
+            Order #{order._id.slice(0, 8)}
           </h1>
           <p className="text-gray-600">
-            {order?.createdAt && new Date(order.createdAt).toLocaleString()}
+            {new Date(order.createdAt).toLocaleString()}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h2 className="text-xl font-semibold mb-2">Customer Details</h2>
-            <p><span className="font-medium">Name:</span> {order.user.name}</p>
-            <p><span className="font-medium">Email:</span> {order.user.email}</p>
-            <p><span className="font-medium">Phone:</span> {order.shippingAddress.phoneNumber}</p>
-            <p><span className="font-medium">Address:</span> {order.shippingAddress.address1}, {order.shippingAddress.city}</p>
-          </div>
-          
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h2 className="text-xl font-semibold mb-2">Order Summary</h2>
-            <p><span className="font-medium">Total Items:</span> {order.cart.length}</p>
-            <p><span className="font-medium">Total Price:</span> ${order.totalPrice.toFixed(2)}</p>
-            <p><span className="font-medium">Payment Status:</span> {order.paymentInfo.status}</p>
-            <p><span className="font-medium">Order Status:</span> {order.status}</p>
-          </div>
-        </div>
+        {/* Order Timeline */}
+        <Timeline status={order.status} deliveryDate={order.estimatedDelivery} />
 
-        <div className="mt-6">
-          <h2 className="text-xl font-semibold mb-4">Order Items</h2>
-          {order.cart.map((item, index) => (
-  <div key={index} className="bg-gray-50 p-4 rounded-lg mb-4">
-        <h3 className="text-lg font-medium">{item.DesignTitle}</h3>
-    {/* Only render design preview if design data exists */}
-    {item.designImage?.url && (
-      <div className="relative w-full h-64">
-        <img
-          src={`/images/${item.ProductType}-${item.ProductColor || 'white'}.png`}
-          alt={item.ProductType}
-          className="w-full h-full object-contain"
-        />
-        <div
-          style={DesignScalingManager.getDesignStyles(
-            item.DesignPosition || { x: 50, y: 40 },
-            item.DesignScale || 0.8,
-            item.ProductColor || 'white',
-            item.ProductView || 'front'
-          ).container}
-        >
-          <img
-            src={item.designImage.url}
-            alt="Design"
-            style={DesignScalingManager.getDesignStyles(
-              item.DesignPosition || { x: 50, y: 40 },
-              item.DesignScale || 0.8,
-              item.ProductColor || 'white',
-              item.ProductView || 'front'
-            ).image}
-          />
-        </div>
-      </div>
-    )}
-     {canDownloadDesign(item) ? (
-      <button 
-        onClick={() => handleDownload(item)}
-        className="mt-4 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-      >
-        <Download size={16} />
-        Download Design
-      </button>
-    ) : (
-      <p className="mt-4 text-gray-500 text-sm">Design not available for download</p>
-    )}
-    <p>Type: {item.ProductType}</p>
-    <p>Color: {item.ProductColor}</p>
-    <p>Size: {item.size}</p>
-    <p>Quantity: {item.qty}</p>
-  </div>
-))}
-
-        </div>
-        <button 
-      onClick={async (item) => {
-        try {
-          await DesignDownloader.downloadSingleDesign(item);
-          toast.success('Design downloaded successfully!');
-        } catch (error) {
-          toast.error('Failed to download design');
-        }
-      }}
-      className="mt-4 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-    >
-      <Download size={16} />
-      Download This Design
-    </button>
-    
-        <div className="mt-6 flex justify-between items-center">
-          <div>
-            <select 
-              value={status} 
-              onChange={(e) => setStatus(e.target.value)}
-              className="mr-4 p-2 border rounded"
-            >
-              <option value="Processing">Processing</option>
-              <option value="Shipped">Shipped</option>
-              <option value="Delivered">Delivered</option>
-            </select>
-            <button 
-              onClick={handleStatusUpdate}
-              disabled={isLoading}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
-            >
-              {isLoading ? 'Updating...' : 'Update Status'}
-            </button>
-          </div>
-          <button 
-            onClick={handleDownloadSpecs}
-            disabled={isLoading}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center disabled:opacity-50"
-          >
-            <Package className="mr-2" />
-            {isLoading ? 'Downloading...' : 'Download All Specs (ZIP)'}
-          </button>
-        </div>
-   {/* Status Update Section */}
-   <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+        {/* Status Update Section */}
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
           <h2 className="text-lg font-semibold mb-4">Update Order Status</h2>
           <div className="flex items-center gap-4">
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
               className="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              disabled={isLoading}
+              disabled={isUpdating}
             >
               <option value="Processing">Processing</option>
               <option value="Transferred to delivery partner">Transferred to delivery partner</option>
@@ -334,44 +124,120 @@ const handleDownloadSpecs = async () => {
             </select>
             <button
               onClick={handleStatusUpdate}
-              disabled={isLoading}
-              className={`px-4 py-2 rounded-lg ${
-                isLoading 
-                  ? "bg-gray-400 cursor-not-allowed" 
-                  : "bg-blue-600 hover:bg-blue-700"
-              } text-white`}
+              disabled={isUpdating}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              {isLoading ? "Updating..." : "Update Status"}
+              {isUpdating ? "Updating..." : "Update Status"}
             </button>
           </div>
         </div>
 
+        {/* Customer Details */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h2 className="text-lg font-semibold mb-2">Customer Details</h2>
+            <p><span className="font-medium">Name:</span> {order.user?.name}</p>
+            <p><span className="font-medium">Email:</span> {order.user?.email}</p>
+            <p><span className="font-medium">Phone:</span> {order.shippingAddress?.phoneNumber}</p>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h2 className="text-lg font-semibold mb-2">Shipping Address</h2>
+            <p>{order.shippingAddress?.address1}</p>
+            {order.shippingAddress?.address2 && <p>{order.shippingAddress.address2}</p>}
+            <p>{order.shippingAddress?.city}, {order.shippingAddress?.zipCode}</p>
+          </div>
+        </div>
+
         {/* Order Items */}
-        <div className="mt-6">
+        <div className="mb-6">
           <h2 className="text-xl font-semibold mb-4">Order Items</h2>
-          {order?.cart?.map((item, index) => (
-            <div key={index} className="mb-4 p-4 border rounded-lg">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-medium">{item.title || "Product"}</h3>
-                  <p className="text-gray-600">Quantity: {item.qty}</p>
-                  <p className="text-gray-600">Size: {item.size}</p>
-                  <p className="text-gray-600">Color: {item.ProductColor}</p>
+          {order.cart?.map((item, index) => (
+            <div key={index} className="bg-gray-50 p-4 rounded-lg mb-4">
+              <div className="flex flex-col md:flex-row justify-between">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">{item.DesignTitle}</h3>
+                  <div className="grid grid-cols-2 gap-4 mt-2">
+                    <div>
+                      <p className="text-gray-600">Product Type:</p>
+                      <p className="font-medium">{item.ProductType}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Size:</p>
+                      <p className="font-medium">{item.size}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Color:</p>
+                      <p className="font-medium">{item.ProductColor}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Quantity:</p>
+                      <p className="font-medium">{item.qty}</p>
+                    </div>
+                  </div>
+                  <p className="mt-2">
+                    <span className="text-gray-600">Price:</span>
+                    <span className="font-medium"> EGP {item.price?.toFixed(2)}</span>
+                  </p>
                 </div>
+
                 {item.designImage?.url && (
-                  <button
-                    onClick={() => handleDownload(item)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    <Download size={16} />
-                    Download Design
-                  </button>
+                  <div className="mt-4 md:mt-0 md:ml-6 flex flex-col items-center">
+                    <img
+                      src={item.designImage.url}
+                      alt="Design Preview"
+                      className="w-32 h-32 object-contain bg-white rounded-lg"
+                    />
+                    <button
+                      onClick={() => handleDownloadDesign(item)}
+                      className="mt-2 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                      <Download size={16} />
+                      Download Design
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
           ))}
         </div>
-      </motion.div>
+
+        {/* Payment Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-4">
+              <CreditCard className="text-blue-600" />
+              <h2 className="text-lg font-semibold">Payment Details</h2>
+            </div>
+            <p><span className="font-medium">Method:</span> {order.paymentInfo?.type}</p>
+            <p><span className="font-medium">Status:</span> {order.paymentInfo?.status}</p>
+            <p className="mt-2 text-xl font-bold">
+              Total: EGP {order.totalPrice?.toFixed(2)}
+            </p>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-4">
+              <Truck className="text-blue-600" />
+              <h2 className="text-lg font-semibold">Delivery Information</h2>
+            </div>
+            <p>
+              <span className="font-medium">Status:</span>{" "}
+              <span className={`px-2 py-1 rounded-full text-sm ${
+                order.status === "Delivered" ? "bg-green-100 text-green-800" :
+                "bg-yellow-100 text-yellow-800"
+              }`}>
+                {order.status}
+              </span>
+            </p>
+            {order.estimatedDelivery && (
+              <p><span className="font-medium">Estimated Delivery:</span> {
+                new Date(order.estimatedDelivery).toLocaleDateString()
+              }</p>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

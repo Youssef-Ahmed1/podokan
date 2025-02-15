@@ -1,36 +1,39 @@
-import React, { useEffect } from "react";
+// UserOrderDetails.jsx
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 import { Package, Truck, CreditCard } from "lucide-react";
 import { getAllOrdersOfUser } from "../redux/actions/order";
-import { useParams } from "react-router-dom";
-
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600"></div>
-  </div>
-);
 
 const UserOrderDetails = () => {
   const { orders, isLoading } = useSelector((state) => state.order);
   const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const { id } = useParams();
+  const [currentOrder, setCurrentOrder] = useState(null);
 
   useEffect(() => {
-    if (user?._id) {
-      dispatch(getAllOrdersOfUser(user._id));
+    if (user) {
+      dispatch(getAllOrdersOfUser());
     }
-  }, [dispatch, user?._id]);
+  }, [dispatch, user]);
 
-  // Handle loading state
-  if (isLoading || !orders) {
-    return <LoadingSpinner />;
+  useEffect(() => {
+    if (orders && id) {
+      const foundOrder = orders.find((order) => order._id === id);
+      setCurrentOrder(foundOrder);
+    }
+  }, [orders, id]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600"></div>
+      </div>
+    );
   }
 
-  const order = orders.find((item) => item._id === id);
-  
-  // Handle case where order is not found
-  if (!order) {
+  if (!currentOrder) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8 text-center">
         <h2 className="text-2xl font-bold text-gray-900">Order not found</h2>
@@ -38,92 +41,99 @@ const UserOrderDetails = () => {
     );
   }
 
-  const cartItem = order.cart[0];
-
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Order Header */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
         <h1 className="text-2xl font-bold">
-          Order #{order._id.slice(0, 8)}
+          Order #{currentOrder._id.slice(0, 8)}
         </h1>
         <div className="flex items-center gap-4 mt-2">
           <span className={`px-3 py-1 rounded-full text-sm ${
-            order.status === "Processing" ? "bg-blue-100 text-blue-800" :
-            order.status === "Delivered" ? "bg-green-100 text-green-800" :
+            currentOrder.status === "Processing" ? "bg-blue-100 text-blue-800" :
+            currentOrder.status === "Delivered" ? "bg-green-100 text-green-800" :
             "bg-gray-100 text-gray-800"
           }`}>
-            {order.status}
+            {currentOrder.status}
           </span>
           <span className="text-gray-500">
-            {new Date(order.createdAt).toLocaleDateString()}
+            {new Date(currentOrder.createdAt).toLocaleDateString()}
           </span>
         </div>
       </div>
 
       {/* Product Details */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Product Image with Design */}
-          <div className="relative aspect-square rounded-lg bg-gray-50 overflow-hidden">
-            {cartItem.designImage && (
-              <div className="absolute inset-0 flex items-center justify-center">
+      {currentOrder.cart.map((item) => (
+        <div key={item._id} className="bg-white rounded-xl shadow-sm p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Product Image with Design */}
+            <div className="relative aspect-square rounded-lg bg-gray-50 overflow-hidden">
+              {item.designImage?.url && (
                 <img
-                  src={cartItem.designImage}
-                  className="w-4/5 h-4/5 object-contain"
-                  style={{
-                    mixBlendMode: 'multiply'
-                  }}
-                  alt={cartItem.DesignTitle}
-                  onError={(e) => {
-                    console.error("Error loading design image");
-                    e.target.src = ""; // Clear broken image
-                  }}
+                  src={item.designImage.url}
+                  alt={item.DesignTitle}
+                  className="w-full h-full object-contain"
                 />
+              )}
+            </div>
+
+            {/* Product Info */}
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {item.DesignTitle}
+                </h2>
               </div>
-            )}
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-gray-600">Product Type:</p>
+                    <p className="font-medium capitalize">{item.ProductType}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Size:</p>
+                    <p className="font-medium">{item.size}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Color:</p>
+                    <p className="font-medium">{item.ProductColor}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Quantity:</p>
+                    <p className="font-medium">{item.qty}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-gray-600">Price per item:</p>
+                <p className="text-xl font-bold text-purple-600">
+                  EGP {item.price?.toFixed(2)}
+                </p>
+              </div>
+            </div>
           </div>
+        </div>
+      ))}
 
-          {/* Product Info */}
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                {cartItem.DesignTitle}
-              </h2>
-            </div>
-
-            {/* Product Specifications */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-gray-600">Product Type:</p>
-                  <p className="font-medium capitalize">{cartItem.ProductType}</p>
-                </div>
-                
-                <div>
-                  <p className="text-gray-600">Quantity:</p>
-                  <p className="font-medium">{cartItem.qty}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Price Information */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-gray-600">Item Price:</p>
-                  <p className="text-xl font-bold text-purple-600">
-                    EGP {cartItem.price?.toFixed(2)}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-gray-600">Total Price:</p>
-                  <p className="text-2xl font-bold text-purple-600">
-                    EGP {order.totalPrice?.toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            </div>
+      {/* Order Summary */}
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+        <h3 className="text-xl font-bold mb-4">Order Summary</h3>
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <span className="text-gray-600">Subtotal</span>
+            <span>EGP {currentOrder.totalPrice?.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Shipping</span>
+            <span>Free</span>
+          </div>
+          <div className="flex justify-between pt-2 border-t">
+            <span className="font-bold">Total</span>
+            <span className="font-bold">
+              EGP {currentOrder.totalPrice?.toFixed(2)}
+            </span>
           </div>
         </div>
       </div>
@@ -137,12 +147,12 @@ const UserOrderDetails = () => {
           </div>
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="font-medium">{order.shippingAddress?.address1}</p>
-              {order.shippingAddress?.address2 && (
-                <p className="text-gray-600">{order.shippingAddress.address2}</p>
+              <p className="font-medium">{currentOrder.shippingAddress?.address1}</p>
+              {currentOrder.shippingAddress?.address2 && (
+                <p className="text-gray-600">{currentOrder.shippingAddress.address2}</p>
               )}
               <p className="text-gray-600 mt-2">
-                Phone: {order.shippingAddress?.phoneNumber}
+                Phone: {currentOrder.shippingAddress?.phoneNumber}
               </p>
             </div>
           </div>
@@ -156,30 +166,18 @@ const UserOrderDetails = () => {
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-gray-600">Payment Method:</p>
-              <p className="font-medium mt-1">{order.paymentInfo?.type}</p>
+              <p className="font-medium mt-1">{currentOrder.paymentInfo?.type}</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-gray-600">Payment Status:</p>
               <span className={`inline-block px-2 py-1 rounded-full text-sm mt-1 ${
-                order.paymentInfo?.status === "succeeded" 
+                currentOrder.paymentInfo?.status === "succeeded" 
                   ? "bg-green-100 text-green-800"
                   : "bg-yellow-100 text-yellow-800"
               }`}>
-                {order.paymentInfo?.status}
+                {currentOrder.paymentInfo?.status}
               </span>
             </div>
-            {order.deliveryStatus && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-600">Delivery Status:</p>
-                <span className={`inline-block px-2 py-1 rounded-full text-sm mt-1 ${
-                  order.deliveryStatus.isDelivered 
-                    ? "bg-green-100 text-green-800"
-                    : "bg-yellow-100 text-yellow-800"
-                }`}>
-                  {order.deliveryStatus.isDelivered ? "Delivered" : "Pending"}
-                </span>
-              </div>
-            )}
           </div>
         </div>
       </div>

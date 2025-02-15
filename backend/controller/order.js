@@ -1,757 +1,458 @@
-const express = require("express");
-const router = express.Router();
-const ErrorHandler = require("../utils/ErrorHandler");
-const catchAsyncErrors = require("../middleware/catchAsyncErrors");
-const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
+// backend/controller/order.js
 const Order = require("../model/order");
 const Shop = require("../model/shop");
 const Product = require("../model/product");
+const ErrorHandler = require("../utils/ErrorHandler");
+const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const { ORDER_STATUSES } = require('../constants/orderStatuses');
-const { body, validationResult } = require('express-validator');
-const mongoose = require('mongoose');
-const sharp = require('sharp');
-const JSZip = require('jszip');
-const cloudinary = require('cloudinary').v2;
-const EventEmitter = require('events');
-const orderEmitter = new EventEmitter();
+const NodeCache = require('node-cache');
 
-// Constants
-const SERVICE_CHARGE_PERCENTAGE = 0.10; // 10% service charge
+const orderCache = new NodeCache({ stdTTL: 600 });
 
-// Order status update event handler
-orderEmitter.setMaxListeners(0); // Remove listener limit if needed
-
-const getOrderDetails = catchAsyncErrors(async (req, res, next) => {
-  const order = await Order.findById(req.params.id)
-    .populate('cart.product')
-    .populate('cart.shop')
-    .lean();
-  
-  if (!order) return next(new ErrorHandler("Order not found", 404));
-
-  // Fix image URLs
-  order.cart = order.cart.map(item => ({
-    ...item,
-    designImage: {
-      ...item.designImage,
-      url: item.designImage?.public_id 
-        ? `https://res.cloudinary.com/dkot9tyjm/image/upload/${item.designImage.public_id}` 
-        : null
-    }
-  }));
-
-  res.status(200).json({
-    success: true,
-    order
-  });
-});
-
-
-// Validation middleware
-const validateOrderData = [
-  body('cart')
-    .isArray()
-    .notEmpty()
-    .withMessage('Cart is required and must be a non-empty array')
-    .custom((cart) => {
-      return cart.every(item => 
-        item._id && 
-        item.qty && 
-        item.shopId
-      );
-    })
-    .withMessage('Invalid cart item format'),
-  body('shippingAddress')
-    .notEmpty()
-    .withMessage('Shipping address is required')
-    .isObject()
-    .withMessage('Shipping address must be an object'),
-  body('user')
-    .notEmpty()
-    .withMessage('User information is required'),
-  body('totalPrice')
-    .notEmpty()
-    .withMessage('Total price is required')
-    .custom((value) => {
-      const number = Number(value);
-      return !isNaN(number) && number >= 0;
-    })
-    .withMessage('Total price must be a valid positive number'),
-  body('paymentInfo')
-    .optional()
-    .isObject()
-    .withMessage('Payment info must be an object'),
-  body('paymentInfo.type')
-    .optional()
-    .isString()
-    .withMessage('Payment type must be a string'),
-  body('paymentInfo.status')
-    .optional()
-    .isString()
-    .withMessage('Payment status must be a string')
-];
-// Utility Functions
-const validateMongoId = (id) => {
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new Error('Invalid ID format');
-  }
-  return true;
-};
-const updateOrderStatus = catchAsyncErrors(async (req, res, next) => {
+// create new order
+exports.createOrder = catchAsyncErrors(async (req, res, next) => {
   try {
-    const { orderId } = req.params;
-    const { status } = req.body;
+    const { cart, shippingAddress, user, totalPrice, paymentInfo } = req.body;
 
-    if (!Object.values(ORDER_STATUSES).includes(status)) {
-      return next(new ErrorHandler("Invalid order status", 400));
-    }
+    // Group cart items by shop
+    const shopItemsMap = new Map();
 
-    const order = await Order.findById(orderId);
-    if (!order) {
-      return next(new ErrorHandler("Order not found", 404));
-    }
-
-    order.status = status;
-    order.statusHistory.push({
-      status,
-      changedBy: req.user._id,
-      userType: 'Admin',
-      timestamp: new Date()
-    });
-
-    if (status === ORDER_STATUSES.DELIVERED) {
-      order.deliveredAt = new Date();
-    }
-
-    await order.save();
-
-    // Emit event instead of SSE
-    orderEmitter.emit('orderStatusUpdate', {
-      type: 'ORDER_STATUS_UPDATE',
-      data: {
-        orderId: order._id,
-        status: order.status,
-        updatedAt: new Date(),
-        statusHistory: order.statusHistory
+    cart.forEach((item) => {
+      const shopId = item.shopId;
+      if (!shopItemsMap.has(shopId)) {
+        shopItemsMap.set(shopId, []);
       }
+      shopItemsMap.get(shopId).push(item);
     });
 
-    res.status(200).json({
+    // Create an order for each shop
+    const orders = [];
+
+    for (const [shopId, items] of shopItemsMap) {
+      const order = await Order.create({
+        cart: items,
+        shippingAddress,
+        user,
+        totalPrice: items.reduce((total, item) => total + item.price * item.qty, 0),
+        paymentInfo,
+        status: ORDER_STATUSES.PROCESSING,
+        statusHistory: [{
+          status: ORDER_STATUSES.PROCESSING,
+          updatedBy: user._id,
+          timestamp: new Date()
+        }]
+      });
+      orders.push(order);
+    }
+
+    res.status(201).json({
       success: true,
-      order
+      orders,
     });
-
   } catch (error) {
-    console.error("Order status update error:", error);
     return next(new ErrorHandler(error.message, 500));
   }
 });
-// controller/order.js
-const getOrdersWithFilters = catchAsyncErrors(async (req, res, next) => {
+
+// get all orders of user
+exports.getUserOrders = catchAsyncErrors(async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    const query = {};
-    
-    // Add status filter if provided
-    if (req.query.status) {
-      query.status = req.query.status;
-    }
-
-    // Add date range filter if provided
-    if (req.query.startDate && req.query.endDate) {
-      query.createdAt = {
-        $gte: new Date(req.query.startDate),
-        $lte: new Date(req.query.endDate)
-      };
-    }
-
-    // Add shop filter for sellers
-    if (req.seller) {
-      query['cart.shop'] = req.seller._id;
-    }
-
-    const orders = await Order.find(query)
-      .select('cart status totalPrice createdAt deliveredAt statusHistory paymentInfo shippingAddress')
-      .populate('user', 'name email')
-      .populate('cart.shop', 'name email')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    const totalOrders = await Order.countDocuments(query);
+    const orders = await Order.find({ "user._id": req.user._id })
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
       orders,
-      currentPage: page,
-      totalPages: Math.ceil(totalOrders / limit),
-      totalOrders
     });
-
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
 });
-const updateProductStock = async (productId, quantity, action = 'decrease') => {
+
+// get all seller orders
+exports.getSellerOrders = catchAsyncErrors(async (req, res, next) => {
   try {
-    const product = await Product.findById(productId);
-    if (!product) {
-      throw new Error(`Product not found with id: ${productId}`);
-    }
-
-    if (action === 'decrease') {
-      if (product.stock < quantity) {
-        throw new Error(`Insufficient stock for product: ${product.DesignTitle}`);
-      }
-      product.stock -= quantity;
-      product.sold_out += quantity;
-    } else {
-      product.stock += quantity;
-      product.sold_out = Math.max(0, product.sold_out - quantity);
-    }
-
-    await product.save();
-    return true;
-  } catch (error) {
-    console.error('Error updating product stock:', error);
-    throw error;
-  }
-};
-router.use((req, res, next) => {
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  next();
-});
-
-router.get('/download-specs/:orderId', isAdmin, async (req, res, next) => {
-  try {
-    const order = await Order.findById(req.params.orderId);
-    if (!order) {
-      return next(new ErrorHandler('Order not found', 404));
-    }
-
-    const zip = new JSZip();
-    const specs = {
-      orderInfo: {
-        orderId: order._id,
-        createdAt: order.createdAt,
-        status: order.status
-      },
-      items: order.cart.map(item => ({
-        productType: item.ProductType,
-        productColor: item.ProductColor,
-        designSpecs: item.designSpecs,
-        quantity: item.qty,
-        size: item.size
-      }))
-    };
-
-    // Add specs JSON
-    zip.file('specs.json', JSON.stringify(specs, null, 2));
-
-    // Add design images
-    for (const item of order.cart) {
-      if (item.designImage?.url) {
-        try {
-          const imageResponse = await axios.get(item.designImage.url, {
-            responseType: 'arraybuffer'
-          });
-          zip.file(`designs/${item._id}.png`, imageResponse.data);
-        } catch (error) {
-          console.error(`Failed to download design for item ${item._id}:`, error);
-        }
-      }
-    }
-
-    const content = await zip.generateAsync({ type: 'nodebuffer' });
-    
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename=order_${order._id}_specs.zip`);
-    res.send(content);
-
-  } catch (error) {
-    next(new ErrorHandler(error.message, 500));
-  }
-});
-const updateSellerBalance = async (sellerId, amount) => {
-  try {
-    const seller = await Shop.findById(sellerId);
-    if (!seller) {
-      throw new Error(`Seller not found with id: ${sellerId}`);
-    }
-
-    seller.availableBalance += amount;
-    await seller.save();
-    return true;
-  } catch (error) {
-    console.error('Error updating seller balance:', error);
-    throw error;
-  }
-};// Create order
-router.post(
-  "/create-order",
-  isAuthenticated,
-  validateOrderData,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ 
-          success: false,
-          errors: errors.array() 
-        });
-      }
-
-      const { cart, shippingAddress, user, totalPrice, paymentInfo } = req.body;
-
-      // Format the cart data
-      const formattedCart = cart.map(item => ({
-        _id: item._id,
-        qty: Number(item.qty),
-        shopId: item.shopId,
-        price: Number(item.price),
-        designImage: item.designImage,
-        DesignTitle: item.DesignTitle,
-        ProductType: item.ProductType,
-        ProductColor: item.ProductColor
-      }));
-
-      // Create the order
-      const orderData = {
-        productSnapshot: {
-          title: Product.name,
-          description: Product.description,
-          color: Product.color,
-          size: req.body.selectedSize,
-          designTags: Product.tags,
-          originalProductId: Product._id
-        },
-        cart: formattedCart,
-        shippingAddress,
-        user,
-        totalPrice: Number(totalPrice),
-        paymentInfo: {
-          id: paymentInfo?.id || null,
-          status: paymentInfo?.status || "Processing",
-          type: paymentInfo?.type || "Cash On Delivery"
-        },
-        status: "Processing"
-      };
-
-      const order = await Order.create(orderData);
-      res.status(201).json({
-        success: true,
-        order,
-      });
-    } catch (error) {
-      console.error("Order creation error:", error);
-      return next(new ErrorHandler(error.message, error.statusCode || 500));
-    }
-  })
-);
-
-// Get all orders of a user
-router.get(
-  "/get-all-orders/:userId",
-  isAuthenticated,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      validateMongoId(req.params.userId);
-
-      // Ensure user can only access their own orders
-      if (req.user._id.toString() !== req.params.userId && !req.user.isAdmin) {
-        return next(new ErrorHandler("Unauthorized access to orders", 403));
-      }
-
-      const orders = await Order.find({ "user._id": req.params.userId })
-        .sort({ createdAt: -1 })
-        .select('-paymentInfo.cardDetails'); // Exclude sensitive payment info
-
-      res.status(200).json({
-        success: true,
-        count: orders.length,
-        orders,
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, error.statusCode || 500));
-    }
-  })
-);
-
-// Get all orders of a seller
-router.get(
-  "/get-seller-orders/:shopId",
-  isSeller,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      validateMongoId(req.params.shopId);
-
-      // Ensure seller can only access their own shop's orders
-      if (req.seller._id.toString() !== req.params.shopId) {
-        return next(new ErrorHandler("Unauthorized access to shop orders", 403));
-      }
-
-      const orders = await Order.find({ 
-        "cart.shopId": req.params.shopId 
-      })
-      .sort({ createdAt: -1 })
-      .lean();
-
-      res.status(200).json({
-        success: true,
-        orders
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, error.statusCode || 500));
-    }
-  })
-);
-
-
-// Update order status (seller)
-router.put(
-  "/update-order-status/:id",
-  isSeller,
-  [
-    body('status')
-      .isIn(Object.values(ORDER_STATUSES))
-      .withMessage('Invalid order status'),
-  ],
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      validateMongoId(req.params.id);
-
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ 
-          success: false,
-          errors: errors.array() 
-        });
-      }
-
-      const order = await Order.findById(req.params.id);
-
-      if (!order) {
-        return next(new ErrorHandler("Order not found", 404));
-      }
-
-      // Verify seller owns this order
-      const hasAccess = order.cart.some(item => 
-        item.shopId.toString() === req.seller._id.toString()
-      );
-      
-      if (!hasAccess) {
-        return next(new ErrorHandler("Unauthorized access to this order", 403));
-      }
-
-      // Prevent status updates for cancelled or refunded orders
-      if ([ORDER_STATUSES.REFUND_SUCCESS, ORDER_STATUSES.CANCELLED].includes(order.status)) {
-        return next(new ErrorHandler("Cannot update status of cancelled or refunded order", 400));
-      }
-
-      const previousStatus = order.status;
-      order.status = req.body.status;
-
-      // Handle status-specific logic
-      if (req.body.status === ORDER_STATUSES.TRANSFERRED) {
-        try {
-          await Promise.all(order.cart.map(item => 
-            updateProductStock(item._id, item.qty)
-          ));
-        } catch (error) {
-          return next(new ErrorHandler(`Error updating product stock: ${error.message}`, 500));
-        }
-      }
-
-      if (req.body.status === ORDER_STATUSES.DELIVERED) {
-        order.deliveredAt = Date.now();
-        order.paymentInfo.status = "Succeeded";
-        
-        // Calculate and update seller balance
-        const serviceCharge = order.totalPrice * SERVICE_CHARGE_PERCENTAGE;
-        const sellerAmount = order.totalPrice - serviceCharge;
-        
-        try {
-          await updateSellerBalance(req.seller._id, sellerAmount);
-        } catch (error) {
-          return next(new ErrorHandler(`Error updating seller balance: ${error.message}`, 500));
-        }
-      }
-
-      await order.save();
-
-      res.status(200).json({
-        success: true,
-        message: `Order status updated to ${req.body.status}`,
-        order,
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, error.statusCode || 500));
-    }
-  })
-);
-router.put("/update-order-status/:orderId", isAuthenticated, isAdmin, async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const { status } = req.body;
-
-    const order = await Order.findById(orderId);
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found"
-      });
-    }
-
-    order.status = status;
-    await order.save();
-
-    // Emit event instead of SSE
-    orderEmitter.emit('orderStatusUpdate', {
-      type: 'ORDER_STATUS_UPDATE',
-      data: {
-        orderId,
-        status,
-        timestamp: new Date()
-      }
+    const orders = await Order.find({
+      "cart.shopId": req.seller._id,
+    }).sort({
+      createdAt: -1,
     });
 
     res.status(200).json({
       success: true,
+      orders,
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+// update order status for seller
+exports.updateOrderStatus = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return next(new ErrorHandler("Order not found", 400));
+    }
+
+    if (req.body.status === "Transferred to delivery partner") {
+      order.cart.forEach(async (o) => {
+        await updateOrder(o._id, o.qty);
+      });
+    }
+
+    order.status = req.body.status;
+    order.statusHistory.push({
+      status: req.body.status,
+      updatedBy: req.seller ? req.seller._id : req.user._id,
+      timestamp: new Date()
+    });
+
+    if (req.body.status === "Delivered") {
+      order.deliveredAt = Date.now();
+      order.paymentInfo.status = "Succeeded";
+    }
+
+    await order.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      order,
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+// give a refund ----- user
+exports.orderRefund = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return next(new ErrorHandler("Order not found", 400));
+    }
+
+    order.status = req.body.status;
+    order.statusHistory.push({
+      status: req.body.status,
+      updatedBy: req.user._id,
+      timestamp: new Date()
+    });
+
+    await order.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      order,
+      message: "Order Refund Request successfully!",
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+// accept the refund ---- seller
+exports.acceptRefund = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return next(new ErrorHandler("Order not found", 400));
+    }
+
+    order.status = req.body.status;
+    order.statusHistory.push({
+      status: req.body.status,
+      updatedBy: req.seller._id,
+      timestamp: new Date()
+    });
+
+    await order.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      message: "Order Refund successfully!",
+    });
+
+    if (req.body.status === "Refund Success") {
+      order.cart.forEach(async (o) => {
+        await updateOrder(o._id, o.qty);
+      });
+    }
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+// admin get all orders
+exports.adminGetAllOrders = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const orders = await Order.find().sort({
+      createdAt: -1,
+    });
+    res.status(201).json({
+      success: true,
+      orders,
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+// get single order
+exports.getSingleOrder = catchAsyncErrors(async (req, res, next) => {
+  const cacheKey = `order_${req.params.id}`;
+  const cachedOrder = orderCache.get(cacheKey);
+
+  if (cachedOrder) {
+    return res.status(200).json({
+      success: true,
+      order: cachedOrder,
+    });
+  }
+
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    return next(new ErrorHandler("Order not found", 400));
+  }
+
+  orderCache.set(cacheKey, order);
+
+  res.status(200).json({
+    success: true,
+    order,
+  });
+});
+
+async function updateOrder(id, qty) {
+  const product = await Product.findById(id);
+
+  if (product) {
+    product.stock -= qty;
+    product.sold_out += qty;
+    await product.save({ validateBeforeSave: false });
+  }
+}
+
+// delete order ---- admin
+exports.adminDeleteOrder = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return next(new ErrorHandler("Order not found", 400));
+    }
+
+    await order.deleteOne();
+
+    res.status(201).json({
+      success: true,
+      message: "Order deleted successfully!",
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+// Add these functions in the same order.js controller file
+
+// Download design specifications
+exports.downloadSpecs = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    
+    if (!order) {
+      return next(new ErrorHandler("Order not found", 404));
+    }
+
+    // Create specs data
+    const specsData = order.cart.map(item => ({
+      orderID: order._id,
+      productTitle: item.DesignTitle,
+      productType: item.ProductType,
+      color: item.ProductColor,
+      size: item.size,
+      designSpecs: {
+        positionX: item.designSpecs.positionX,
+        positionY: item.designSpecs.positionY,
+        scale: item.designSpecs.scale
+      },
+      quantity: item.qty,
+      customerName: order.user.name,
+      orderDate: order.createdAt
+    }));
+
+    // Convert to CSV or required format
+    const fields = ['orderID', 'productTitle', 'productType', 'color', 'size', 'quantity', 'customerName', 'orderDate'];
+    const opts = { fields };
+    
+    const parser = new Parser(opts);
+    const csv = parser.parse(specsData);
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=specs-${order._id}.csv`);
+    
+    res.status(200).send(csv);
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+// Download design files
+exports.downloadDesign = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    
+    if (!order) {
+      return next(new ErrorHandler("Order not found", 404));
+    }
+
+    const cartItem = order.cart.find(item => item._id.toString() === req.params.itemId);
+    
+    if (!cartItem) {
+      return next(new ErrorHandler("Design not found in order", 404));
+    }
+
+    if (!cartItem.designImage || !cartItem.designImage.url) {
+      return next(new ErrorHandler("Design image not available", 404));
+    }
+
+    // If using cloud storage (like Cloudinary)
+    const response = await axios({
+      url: cartItem.designImage.url,
+      method: 'GET',
+      responseType: 'stream'
+    });
+
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Content-Disposition', `attachment; filename=design-${order._id}-${cartItem._id}.png`);
+
+    response.data.pipe(res);
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+// Assign delivery partner
+exports.assignDeliveryPartner = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const { orderId, deliveryPartnerId, trackingNumber } = req.body;
+
+    const order = await Order.findById(orderId);
+    
+    if (!order) {
+      return next(new ErrorHandler("Order not found", 404));
+    }
+
+    order.deliveryInfo = {
+      partnerId: deliveryPartnerId,
+      trackingNumber: trackingNumber,
+      assignedAt: new Date()
+    };
+
+    order.status = ORDER_STATUSES.TRANSFERRED;
+    order.statusHistory.push({
+      status: ORDER_STATUSES.TRANSFERRED,
+      updatedBy: req.seller._id,
+      timestamp: new Date(),
+      details: `Assigned to delivery partner: ${deliveryPartnerId}`
+    });
+
+    await order.save();
+
+    // Send notification to user about tracking
+    // Implement your notification logic here
+
+    res.status(200).json({
+      success: true,
+      message: "Delivery partner assigned successfully",
       order
     });
   } catch (error) {
-    console.error("Status update error:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    return next(new ErrorHandler(error.message, 500));
   }
 });
-router.put("/set-delivery/:orderId",
-  isAdmin,
-  catchAsyncErrors(async (req, res) => {
-    const { deliveryDate } = req.body;
-    const order = await Order.findById(req.params.orderId);
 
-    order.adminUpdates.push({
-      userId: req.admin._id,
-      previousDate: order.estimatedDelivery,
-      newDate: deliveryDate,
-      updatedAt: Date.now()
-    });
+// Update delivery status
+exports.updateDeliveryStatus = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const { orderId, status, location, notes } = req.body;
 
-    order.estimatedDelivery = deliveryDate;
+    const order = await Order.findById(orderId);
+    
+    if (!order) {
+      return next(new ErrorHandler("Order not found", 404));
+    }
+
+    if (!order.deliveryInfo) {
+      return next(new ErrorHandler("Delivery info not found", 400));
+    }
+
+    order.deliveryInfo.status = status;
+    order.deliveryInfo.currentLocation = location;
+    order.deliveryInfo.lastUpdate = new Date();
+
+    if (notes) {
+      order.deliveryInfo.notes = [...(order.deliveryInfo.notes || []), {
+        message: notes,
+        timestamp: new Date()
+      }];
+    }
+
+    if (status === 'delivered') {
+      order.status = ORDER_STATUSES.DELIVERED;
+      order.deliveredAt = new Date();
+      order.statusHistory.push({
+        status: ORDER_STATUSES.DELIVERED,
+        updatedBy: 'delivery_partner',
+        timestamp: new Date()
+      });
+    }
+
     await order.save();
 
-    // Add real-time update logic here
-    io.emit('delivery-update', { 
-      orderId: order._id, 
-      newDate: deliveryDate 
-    });
-
-    res.status(200).json({ 
+    res.status(200).json({
       success: true,
-      newDeliveryDate: deliveryDate 
+      message: "Delivery status updated successfully",
+      order
     });
-  })
-);
-router.get('/status-updates', (req, res) => {
-  const timeout = 30000; // 30 seconds timeout
-  const listener = (data) => {
-    res.json(data);
-  };
-
-  orderEmitter.once('orderStatusUpdate', listener);
-
-  // Remove listener after timeout
-  setTimeout(() => {
-    orderEmitter.removeListener('orderStatusUpdate', listener);
-    if (!res.headersSent) {
-      res.json({ type: 'TIMEOUT', data: null });
-    }
-  }, timeout);
-});
-
-// Admin: Get all orders
-router.get("/admin-all-orders", isAuthenticated, isAdmin, async (req, res) => {
-  try {
-    console.log("Starting admin orders fetch...");
-    
-    const { 
-      page = 1, 
-      limit = 10, 
-      status, 
-      startDate, 
-      endDate, 
-      sort = '-createdAt' 
-    } = req.query;
-
-    const filterOptions = {};
-    if (status) filterOptions.status = status;
-    if (startDate && endDate) {
-      filterOptions.createdAt = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
-      };
-    }
-
-    console.log("Fetching orders with filters:", filterOptions);
-
-    // Changed cart.shop to cart.shopId in populate
-    const [orders, totalOrders] = await Promise.all([
-      Order.find(filterOptions)
-        .populate('user', 'name email')
-        .populate('cart.shopId', 'name email') // Changed from cart.shop to cart.shopId
-        .sort(sort)
-        .skip((parseInt(page) - 1) * parseInt(limit))
-        .limit(parseInt(limit))
-        .lean()
-        .exec(),
-      Order.countDocuments(filterOptions)
-    ]);
-
-    if (!orders) {
-      throw new Error("Failed to fetch orders");
-    }
-
-    // Format the response data
-    const formattedOrders = orders.map(order => ({
-      ...order,
-      cart: order.cart.map(item => ({
-        ...item,
-        shop: item.shopId, // Map shopId to shop for frontend compatibility
-        shopId: item.shopId?._id // Keep the original shopId
-      }))
-    }));
-
-    const totalAmount = formattedOrders.reduce((acc, order) => acc + (order.totalPrice || 0), 0);
-
-    const response = {
-      success: true,
-      orders: formattedOrders,
-      totalAmount,
-      totalOrders,
-      currentPage: parseInt(page),
-      totalPages: Math.ceil(totalOrders / parseInt(limit)),
-      ordersCount: formattedOrders.length
-    };
-
-    console.log("Sending response with total orders:", totalOrders);
-    res.status(200).json(response);
-
   } catch (error) {
-    console.error("Admin orders error:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message || "Error fetching admin orders",
-      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    return next(new ErrorHandler(error.message, 500));
   }
 });
-router.get('/download-design/:orderId/:itemId',
-  isAdmin,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const { orderId, itemId } = req.params;
-      const order = await Order.findById(orderId);
-      
-      if (!order) {
-        return next(new ErrorHandler("Order not found", 404));
-      }
 
-      const orderItem = order.cart.find(item => item._id.toString() === itemId);
-      if (!orderItem) {
-        return next(new ErrorHandler("Order item not found", 404));
-      }
+// Get delivery tracking info
+exports.getDeliveryTracking = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
 
-      // Download design from Cloudinary
-      const designResponse = await axios.get(orderItem.designImage.url, {
-        responseType: 'arraybuffer'
-      });
-
-      // Get product template
-      const productTemplate = `${orderItem.ProductType}-${orderItem.ProductColor}.png`;
-      const templatePath = `./assets/templates/${productTemplate}`;
-
-      // Create composite image
-      const composite = await sharp(templatePath)
-        .composite([{
-          input: Buffer.from(designResponse.data),
-          top: Math.round(orderItem.designSpecs.positionY * orderItem.designSpecs.scale),
-          left: Math.round(orderItem.designSpecs.positionX * orderItem.designSpecs.scale),
-          blend: orderItem.ProductColor === 'white' ? 'multiply' : 'screen'
-        }])
-        .png()
-        .toBuffer();
-
-      res.set('Content-Type', 'image/png');
-      res.set('Content-Disposition', `attachment; filename=design_${orderId}_${itemId}.png`);
-      res.send(composite);
-
-    } catch (error) {
-      console.error('Design download error:', error);
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
-
-router.get('/download-specs/:orderId',
-  isAdmin,
-  catchAsyncErrors(async (req, res) => {
-    const order = await Order.findById(req.params.orderId);
-    const pdfDefinition = {
-      content: [
-        `Design: ${order.cart[0].DesignTitle}`,
-        `Size: ${order.designSpecs.size}`,
-        `Position: X${order.designSpecs.positionX}%, Y${order.designSpecs.positionY}%`,
-        `Scale: ${order.designSpecs.scale}x`
-      ]
-    };
+    const order = await Order.findById(orderId);
     
-    const pdf = await pdfMake.createPdf(pdfDefinition).getBuffer();
-    res.contentType('application/pdf')
-       .send(pdf);
-  })
-);
-// Refund order
-router.put(
-  "/refund-order/:id",
-  isAuthenticated,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      validateMongoId(req.params.id);
-
-      const order = await Order.findById(req.params.id);
-
-      if (!order) {
-        return next(new ErrorHandler("Order not found", 404));
-      }
-
-      // Verify user owns this order
-      if (order.user._id.toString() !== req.user._id.toString()) {
-        return next(new ErrorHandler("Unauthorized access to this order", 403));
-      }
-
-      if (order.status !== ORDER_STATUSES.DELIVERED) {
-        return next(new ErrorHandler("Order must be delivered before requesting refund", 400));
-      }
-
-      order.status = ORDER_STATUSES.REFUND_PROCESSING;
-      await order.save();
-
-      res.status(200).json({
-        success: true,
-        message: "Refund request submitted successfully",
-        order,
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, error.statusCode || 500));
+    if (!order) {
+      return next(new ErrorHandler("Order not found", 404));
     }
-  })
-);
 
-module.exports = router;
+    if (!order.deliveryInfo) {
+      return next(new ErrorHandler("Delivery tracking not available", 404));
+    }
+
+    res.status(200).json({
+      success: true,
+      tracking: {
+        orderId: order._id,
+        status: order.deliveryInfo.status,
+        trackingNumber: order.deliveryInfo.trackingNumber,
+        currentLocation: order.deliveryInfo.currentLocation,
+        lastUpdate: order.deliveryInfo.lastUpdate,
+        notes: order.deliveryInfo.notes,
+        deliveryPartner: order.deliveryInfo.partnerId,
+        assignedAt: order.deliveryInfo.assignedAt
+      }
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+module.exports = exports;
