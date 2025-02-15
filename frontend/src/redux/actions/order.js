@@ -78,48 +78,52 @@ export const createOrder = (orderData) => async (dispatch) => {
 };
 
 // Get all orders for user
-export const getAllOrdersOfUser = (userId) => async (dispatch) => {
+export const getAllOrdersOfUser = () => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.GET_USER_REQUEST });
 
-    const { data } = await axios.get(
-      `${server}/order/get-user-orders`, // Remove userId from URL since it's in token
-      { withCredentials: true }
-    );
+    const { data } = await axios.get(`${server}/order/get-user-orders`, {
+      withCredentials: true
+    });
+
+    console.log("User orders response:", data); // Debug log
 
     dispatch({
       type: ORDER_ACTIONS.GET_USER_SUCCESS,
-      payload: data.orders,
+      payload: data.orders || [] // Ensure we always have an array
     });
   } catch (error) {
+    console.error("Error fetching user orders:", error); // Debug log
     dispatch({
       type: ORDER_ACTIONS.GET_USER_FAIL,
-      payload: error.response?.data?.message || "Failed to fetch orders",
+      payload: error.response?.data?.message || "Failed to fetch user orders"
     });
   }
 };
 
 // Get all seller orders
-export const getShopOrders = (shopId) => async (dispatch) => {
+export const getShopOrders = () => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.GET_SHOP_REQUEST });
 
-    const { data } = await axios.get(`${server}/order/get-seller-orders/${shopId}`, {
+    const { data } = await axios.get(`${server}/order/get-seller-orders`, {
       withCredentials: true,
     });
 
+    console.log("Shop orders response:", data); // Debug log
+
     dispatch({
       type: ORDER_ACTIONS.GET_SHOP_SUCCESS,
-      payload: data.orders
+      payload: data.orders || [] // Ensure we always have an array
     });
   } catch (error) {
+    console.error("Error fetching shop orders:", error); // Debug log
     dispatch({
       type: ORDER_ACTIONS.GET_SHOP_FAIL,
-      payload: error.response?.data?.message
+      payload: error.response?.data?.message || "Failed to fetch shop orders"
     });
   }
 };
-
 // Get all orders for admin
 export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
   try {
@@ -147,22 +151,25 @@ export const getAllOrdersOfAdmin = () => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.GET_ADMIN_REQUEST });
 
-    const { data } = await axios.get(
-      `${server}/order/admin-all-orders`,
-      { withCredentials: true }
-    );
+    const { data } = await axios.get(`${server}/order/admin/all-orders`, {
+      withCredentials: true
+    });
+
+    console.log("Admin orders response:", data); // Debug log
 
     dispatch({
       type: ORDER_ACTIONS.GET_ADMIN_SUCCESS,
-      payload: data.orders,
+      payload: data.orders || [] // Ensure we always have an array
     });
   } catch (error) {
+    console.error("Error fetching admin orders:", error); // Debug log
     dispatch({
       type: ORDER_ACTIONS.GET_ADMIN_FAIL,
-      payload: error.response?.data?.message || "Failed to fetch orders",
+      payload: error.response?.data?.message || "Failed to fetch admin orders"
     });
   }
 };
+
 // Update order status
 export const updateOrderStatus = (orderId, status) => async (dispatch) => {
   try {
