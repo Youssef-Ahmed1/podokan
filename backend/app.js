@@ -12,7 +12,7 @@ const app = express();
 
 // Security Configurations
 app.use(helmet({
-  contentSecurityPolicy: false, // Temporarily disable CSP for debugging
+  contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
@@ -23,7 +23,7 @@ app.use(compression());
 // Logging
 app.use(morgan('combined'));
 
-// CORS Configuration - More permissive for debugging
+// CORS Configuration
 app.use(cors({
   origin: '*',
   credentials: true,
@@ -40,11 +40,6 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 // Static files
 app.use(express.static(path.join(__dirname, '../frontend/build')));
 
-// API Routes with error handling wrapper
-const asyncHandler = fn => (req, res, next) => {
-  return Promise.resolve(fn(req, res, next)).catch(next);
-};
-
 // Import all routes
 const routes = {
   user: require("./controller/user"),
@@ -59,14 +54,10 @@ const routes = {
   withdraw: require("./controller/withdraw")
 };
 
-// Mount API routes
 Object.entries(routes).forEach(([name, router]) => {
-  app.use(`/api/v2/${name}`, asyncHandler(async (req, res, next) => {
-    console.log(`${req.method} ${req.originalUrl}`);
-    await Promise.resolve(router(req, res, next));
-  }));
+  // Mount the router directly as middleware
+  app.use(`/api/v2/${name}`, router);
 });
-
 // API Documentation
 app.get('/api/v2', (req, res) => {
   res.json({
