@@ -21,7 +21,6 @@ cd ../backend
 # PM2 restart
 pm2 delete all
 pm2 flush
-pm2 reload podokan
 pm2 start ecosystem.config.js
 pm2 save
 
