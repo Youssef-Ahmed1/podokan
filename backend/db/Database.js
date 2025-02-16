@@ -1,10 +1,14 @@
-// db/Database.js
 const mongoose = require("mongoose");
 const MAX_RETRIES = 5;
 const RETRY_INTERVAL = 5000; // 5 seconds
 
 const connectDatabase = async (retryCount = 0) => {
   try {
+    // Check if DB_URL is defined
+    if (!process.env.DB_URL) {
+      throw new Error('DB_URL is not defined in environment variables');
+    }
+
     console.log('Attempting database connection...', {
       attempt: retryCount + 1,
       maxRetries: MAX_RETRIES
@@ -21,6 +25,9 @@ const connectDatabase = async (retryCount = 0) => {
       maxIdleTimeMS: 60000,
       compressors: 'zlib'
     };
+
+    // Remove any existing listeners to prevent duplicates
+    mongoose.connection.removeAllListeners();
 
     mongoose.connection.on('connecting', () => {
       console.log('MongoDB: Connecting...');
@@ -47,6 +54,11 @@ const connectDatabase = async (retryCount = 0) => {
         }, RETRY_INTERVAL);
       }
     });
+
+    // Close any existing connections before attempting to connect
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.connection.close();
+    }
 
     await mongoose.connect(process.env.DB_URL, connectionParams);
     return mongoose.connection;

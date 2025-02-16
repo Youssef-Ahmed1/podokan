@@ -13,8 +13,8 @@ const orderCache = new NodeCache({ stdTTL: 600 });
 
 // create new order
 router.post(
-  '/create-order', 
-  isAuthenticated, 
+  '/create-order',
+  isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { cart, shippingAddress, user, totalPrice, paymentInfo } = req.body;
@@ -38,12 +38,8 @@ router.post(
           user,
           totalPrice: items.reduce((total, item) => total + item.price * item.qty, 0),
           paymentInfo,
-          status: ORDER_STATUSES.PROCESSING,
-          statusHistory: [{
-            status: ORDER_STATUSES.PROCESSING,
-            updatedBy: user._id,
-            timestamp: new Date()
-          }]
+          status: "Processing",
+          createdAt: Date.now(),
         });
         orders.push(order);
       }
@@ -58,10 +54,11 @@ router.post(
   })
 );
 
+
 // get all orders of user
 router.get(
-  '/get-user-orders', 
-  isAuthenticated, 
+  '/get-user-orders',
+  isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const orders = await Order.find({ "user._id": req.user._id })
@@ -79,8 +76,8 @@ router.get(
 
 // get all seller orders
 router.get(
-  '/get-seller-orders', 
-  isSeller, 
+  '/get-seller-orders',
+  isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const orders = await Order.find({
@@ -212,14 +209,16 @@ router.put(
 
 // get all orders -- admin
 router.get(
-  '/admin/all-orders', 
-  isAdmin, 
+  '/admin/all-orders',
+  isAuthenticated,
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const orders = await Order.find().sort({
         createdAt: -1,
       });
-      res.status(201).json({
+      
+      res.status(200).json({
         success: true,
         orders,
       });
@@ -229,32 +228,25 @@ router.get(
   })
 );
 
+
 // get single order
 router.get(
-  '/get-order/:id', 
+  '/get-order/:id',
   catchAsyncErrors(async (req, res, next) => {
-    const cacheKey = `order_${req.params.id}`;
-    const cachedOrder = orderCache.get(cacheKey);
+    try {
+      const order = await Order.findById(req.params.id);
 
-    if (cachedOrder) {
-      return res.status(200).json({
+      if (!order) {
+        return next(new ErrorHandler("Order not found", 400));
+      }
+
+      res.status(200).json({
         success: true,
-        order: cachedOrder,
+        order,
       });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
     }
-
-    const order = await Order.findById(req.params.id);
-
-    if (!order) {
-      return next(new ErrorHandler("Order not found", 400));
-    }
-
-    orderCache.set(cacheKey, order);
-
-    res.status(200).json({
-      success: true,
-      order,
-    });
   })
 );
 
