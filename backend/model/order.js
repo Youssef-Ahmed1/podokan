@@ -1,8 +1,10 @@
 // backend/model/order.js
 
 const mongoose = require("mongoose");
+const { Schema } = mongoose;  
 
-const orderSchema = new mongoose.Schema({
+
+const orderSchema = new mongoose.Schema({  
   cart: [{
     _id: String,
     qty: {
@@ -10,7 +12,7 @@ const orderSchema = new mongoose.Schema({
       required: true,
     },
     shopId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,  
       ref: "Shop",
       required: true,
     },
@@ -19,7 +21,7 @@ const orderSchema = new mongoose.Schema({
       required: true,
     },
     designImage: {
-      type: Schema.Types.Mixed, // This allows both string and object
+      type: Schema.Types.Mixed,
       required: true,
       get: function(val) {
         if (typeof val === 'string') return val;

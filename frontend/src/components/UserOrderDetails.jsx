@@ -5,24 +5,53 @@ import { useParams } from "react-router-dom";
 import { Package, Truck, CreditCard } from "lucide-react";
 import { getAllOrdersOfUser } from "../redux/actions/order";
 import { toast } from 'react-toastify';
+
+
+
 const UserOrderDetails = () => {
-  const { orders, isLoading } = useSelector((state) => state.order);
+  const { orders, isLoading, error: orderError } = useSelector((state) => state.order);
   const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const { id } = useParams();
   const [currentOrder, setCurrentOrder] = useState(null);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [error, setError] = useState(null);
-  useEffect(() => {
-    if (user) {
-      dispatch(getAllOrdersOfUser());
-    }
-  }, [dispatch, user]);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    if (orders && id) {
+    const fetchOrders = async () => {
+      try {
+        if (!user) {
+          toast.error("Please login to view order details");
+          return;
+        }
+        
+        const result = await dispatch(getAllOrdersOfUser());
+        if (!result?.success) {
+          throw new Error(result?.message || "Failed to fetch orders");
+        }
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+        if (retryCount < 3) {
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+          }, 1000 * Math.pow(2, retryCount)); // Exponential backoff
+        } else {
+          toast.error(err.message || "Failed to load order details");
+        }
+      }
+    };
+
+    fetchOrders();
+  }, [dispatch, user, retryCount]);
+
+
+  useEffect(() => {
+    if (orders?.length && id) {
       const foundOrder = orders.find((order) => order._id === id);
-      setCurrentOrder(foundOrder);
+      if (foundOrder) {
+        setCurrentOrder(foundOrder);
+      } else {
+        toast.error("Order not found");
+      }
     }
   }, [orders, id]);
 
@@ -53,6 +82,24 @@ const UserOrderDetails = () => {
     );
   }
 
+  // Show error state
+  if (orderError && !currentOrder) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+          <p className="text-red-600">{orderError}</p>
+          <button 
+            onClick={() => setRetryCount(0)} 
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show not found state
   if (!currentOrder) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8 text-center">
@@ -61,6 +108,7 @@ const UserOrderDetails = () => {
     );
   }
 
+  // Render order details
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Order Header */}
@@ -82,58 +130,56 @@ const UserOrderDetails = () => {
         </div>
       </div>
 
-      {/* Product Details */}
-      {currentOrder.cart.map((item) => (
+      {/* Cart Items */}
+      {currentOrder.cart?.map((item) => (
         <div key={item._id} className="bg-white rounded-xl shadow-sm p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Product Image with Design */}
             <div className="relative aspect-square rounded-lg bg-gray-50 overflow-hidden">
-  {item.designImage ? (
-    <img
-      src={typeof item.designImage === 'string' ? item.designImage : item.designImage.url}
-      alt={item.DesignTitle}
-      className="w-full h-full object-contain"
-    />
-  ) : (
-    <div className="flex items-center justify-center h-full">
-      <span className="text-gray-400">No design preview available</span>
-    </div>
-  )}
-</div>
-
-
+              {item.designImage ? (
+                <img
+                  src={typeof item.designImage === 'string' ? item.designImage : item.designImage.url}
+                  alt={item.DesignTitle}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <span className="text-gray-400">No design preview available</span>
+                </div>
+              )}
+            </div>
 
             {/* Product Info */}
             <div className="space-y-6">
-  <div>
-    <h2 className="text-2xl font-bold text-gray-900">
-      {item.DesignTitle}
-    </h2>
-  </div>
-
-  <div className="bg-gray-50 p-4 rounded-lg">
-    <div className="grid grid-cols-2 gap-4">
-      <div>
-        <p className="text-gray-600">Product Type:</p>
-        <p className="font-medium capitalize">{item.ProductType}</p>
-      </div>
-      <div>
-        <p className="text-gray-600">Size:</p>
-        <p className="font-medium">{item.size || 'N/A'}</p>
-      </div>
-      <div>
-        <p className="text-gray-600">Color:</p>
-        <p className="font-medium">{item.ProductColor || 'N/A'}</p>
-      </div>
-      <div>
-        <p className="text-gray-600">Quantity:</p>
-        <p className="font-medium">{item.qty}</p>
-      </div>
-    </div>
-  </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {item.DesignTitle}
+                </h2>
+              </div>
 
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-600">Price per item:</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-gray-600">Product Type:</p>
+                    <p className="font-medium capitalize">{item.ProductType}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Size:</p>
+                    <p className="font-medium">{item.size || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Color:</p>
+                    <p className="font-medium">{item.ProductColor || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Quantity:</p>
+                    <p className="font-medium">{item.qty}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-gray-600">Price:</p>
                 <p className="text-xl font-bold text-purple-600">
                   EGP {item.price?.toFixed(2)}
                 </p>
@@ -142,28 +188,6 @@ const UserOrderDetails = () => {
           </div>
         </div>
       ))}
-
-      {/* Order Summary */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-  <h3 className="text-xl font-bold mb-4">Order Summary</h3>
-  <div className="space-y-2">
-    <div className="flex justify-between">
-      <span className="text-gray-600">Subtotal</span>
-      <span>EGP {(currentOrder.totalPrice - 50).toFixed(2)}</span>
-    </div>
-    <div className="flex justify-between">
-      <span className="text-gray-600">Shipping</span>
-      <span>EGP 50.00</span>
-    </div>
-    <div className="flex justify-between pt-2 border-t">
-      <span className="font-bold">Total</span>
-      <span className="font-bold">
-        EGP {currentOrder.totalPrice.toFixed(2)}
-      </span>
-    </div>
-  </div>
-</div>
-
       {/* Shipping & Payment Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-white rounded-xl shadow-sm p-6">
