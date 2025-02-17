@@ -80,9 +80,9 @@ export const createOrder = (orderData) => async (dispatch) => {
 // Get all orders for user
 export const getAllOrdersOfUser = () => async (dispatch) => {
   try {
-    dispatch({ type: "getAllOrdersUserRequest" });
+    dispatch({ type: ORDER_ACTIONS.GET_USER_REQUEST });
 
-    const { data } = await axios.get("/api/v2/order/get-user-orders", {
+    const { data } = await axios.get(`${server}/order/get-user-orders`, {
       withCredentials: true,
       headers: {
         "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -90,16 +90,19 @@ export const getAllOrdersOfUser = () => async (dispatch) => {
     });
 
     dispatch({
-      type: "getAllOrdersUserSuccess",
+      type: ORDER_ACTIONS.GET_USER_SUCCESS,
       payload: data.orders,
     });
+    return data;
   } catch (error) {
     dispatch({
-      type: "getAllOrdersUserFailed",
-      payload: error.response?.data?.message,
+      type: ORDER_ACTIONS.GET_USER_FAIL,
+      payload: error.response?.data?.message || "Failed to fetch orders",
     });
+    throw error;
   }
 };
+
 
 
 
@@ -131,27 +134,24 @@ export const getAllOrdersOfShop = () => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.GET_SHOP_REQUEST });
 
-    const config = {
+    const { data } = await axios.get(`${server}/order/get-seller-orders`, {
       withCredentials: true,
       headers: {
-        'seller-authorization': `Bearer ${localStorage.getItem('seller_token')}`
+        "Authorization": `Bearer ${localStorage.getItem("seller_token")}`
       }
-    };
-
-    const { data } = await axios.get(`${server}/order/get-seller-orders`, config);
-
-    console.log("Shop orders fetch response:", data);
+    });
 
     dispatch({
       type: ORDER_ACTIONS.GET_SHOP_SUCCESS,
       payload: data.orders
     });
+    return data;
   } catch (error) {
-    console.error("Error fetching shop orders:", error.response?.data || error);
     dispatch({
       type: ORDER_ACTIONS.GET_SHOP_FAIL,
-      payload: error.response?.data?.message || "Failed to fetch orders"
+      payload: error.response?.data?.message || "Failed to fetch shop orders"
     });
+    throw error;
   }
 };
 
@@ -314,29 +314,38 @@ export const downloadDesign = (orderId, itemId) => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_REQUEST });
 
-    const { data } = await axios.get(`${server}/order/download-design/${orderId}/${itemId}`, {
-      withCredentials: true,
-      responseType: 'blob'
+    const { data } = await axios.get(
+      `${server}/order/download-design/${orderId}/${itemId}`,
+      {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }
+    );
+
+    if (!data.success || !data.designData) {
+      throw new Error('Failed to get design data');
+    }
+
+    // Use DesignDownloader utility to handle the download
+    await DesignDownloader.downloadSingleDesign({
+      ...data.designData,
+      _id: itemId,
+      orderId: orderId
     });
 
-    const url = window.URL.createObjectURL(new Blob([data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `design-${orderId}-${itemId}.png`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    dispatch({
-      type: ORDER_ACTIONS.DOWNLOAD_DESIGN_SUCCESS
-    });
+    dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_SUCCESS });
+    return true;
   } catch (error) {
     dispatch({
       type: ORDER_ACTIONS.DOWNLOAD_DESIGN_FAIL,
-      payload: error.response?.data?.message
+      payload: error.response?.data?.message || "Download failed"
     });
+    throw error;
   }
 };
+
 
 // Assign delivery partner
 export const assignDeliveryPartner = (orderId, deliveryData) => async (dispatch) => {

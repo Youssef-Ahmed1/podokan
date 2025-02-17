@@ -102,7 +102,7 @@ router.get(
   })
 );
 router.get(
-  '/admin/download-design/:orderId/:itemId',
+  '/download-design/:orderId/:itemId',
   isAuthenticated,
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
@@ -125,22 +125,23 @@ router.get(
       res.status(200).json({
         success: true,
         designData: {
-          imageUrl: orderItem.designImage?.url,
+          imageUrl: orderItem.designImage?.url || orderItem.designImage,
           specs: {
             product: {
-              type: orderItem.ProductType,
-              color: orderItem.ProductColor,
-              size: orderItem.size
+              type: orderItem.ProductType || 'N/A',
+              color: orderItem.ProductColor || 'N/A',
+              size: orderItem.size || 'N/A'
             },
             design: {
               title: orderItem.DesignTitle,
-              position: orderItem.designSpecs,
-              scale: orderItem.designSpecs?.scale || 1
+              position: orderItem.DesignPosition || { x: 50, y: 40 },
+              scale: orderItem.DesignScale || 1
             },
             order: {
               quantity: orderItem.qty,
               orderId: order._id,
-              orderDate: order.createdAt
+              orderDate: order.createdAt,
+              price: orderItem.discountPrice || orderItem.originalPrice
             }
           }
         }
@@ -150,7 +151,6 @@ router.get(
     }
   })
 );
-
 router.put(
   '/admin/update-status/:id',
   isAuthenticated,
@@ -187,17 +187,30 @@ router.get(
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      console.log('Seller ID:', req.seller._id);
+      // First check if seller exists
+      if (!req.seller?._id) {
+        return next(new ErrorHandler("Seller not authenticated", 401));
+      }
 
+      console.log('Fetching orders for seller:', req.seller._id);
+
+      // Update the query to properly match seller orders
       const orders = await Order.find({
-        'cart.shopId': req.seller._id
-      }).populate('user').sort({ createdAt: -1 });
+        "cart": {
+          $elemMatch: {
+            "shopId": req.seller._id.toString()
+          }
+        }
+      }).sort({ createdAt: -1 });
 
       console.log('Found seller orders:', orders.length);
 
+      // Add detailed response
       res.status(200).json({
         success: true,
-        orders
+        orders,
+        count: orders.length,
+        message: `Successfully retrieved ${orders.length} orders for seller`
       });
     } catch (error) {
       console.error('Error in get-seller-orders:', error);
@@ -205,7 +218,33 @@ router.get(
     }
   })
 );
+router.get(
+  '/get-seller-order/:id',
+  isSeller,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const order = await Order.findOne({
+        _id: req.params.id,
+        "cart": {
+          $elemMatch: {
+            "shopId": req.seller._id.toString()
+          }
+        }
+      });
 
+      if (!order) {
+        return next(new ErrorHandler("Order not found or not authorized", 404));
+      }
+
+      res.status(200).json({
+        success: true,
+        order
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
 // update order status for seller
 router.put(
   '/update-status/:id', 
