@@ -61,12 +61,89 @@ router.get(
   isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const orders = await Order.find({ "user._id": req.user._id })
-        .sort({ createdAt: -1 });
+      // Add logging to debug
+      console.log('Fetching orders for user:', req.user._id);
+
+      const orders = await Order.find({ 
+        "user._id": req.user._id.toString() 
+      }).sort({ createdAt: -1 });
+
+      console.log('Found orders:', orders.length);
 
       res.status(200).json({
         success: true,
         orders,
+      });
+    } catch (error) {
+      console.error('Error in get-user-orders:', error);
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+router.get(
+  '/admin/order/:id',
+  isAuthenticated,
+  isAdmin,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const order = await Order.findById(req.params.id);
+      
+      if (!order) {
+        return next(new ErrorHandler("Order not found", 404));
+      }
+
+      res.status(200).json({
+        success: true,
+        order
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+router.get(
+  '/admin/download-design/:orderId/:itemId',
+  isAuthenticated,
+  isAdmin,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const order = await Order.findById(req.params.orderId);
+      
+      if (!order) {
+        return next(new ErrorHandler("Order not found", 404));
+      }
+
+      const orderItem = order.cart.find(item => 
+        item._id.toString() === req.params.itemId
+      );
+
+      if (!orderItem) {
+        return next(new ErrorHandler("Order item not found", 404));
+      }
+
+      // Send design data for frontend processing
+      res.status(200).json({
+        success: true,
+        designData: {
+          imageUrl: orderItem.designImage?.url,
+          specs: {
+            product: {
+              type: orderItem.ProductType,
+              color: orderItem.ProductColor,
+              size: orderItem.size
+            },
+            design: {
+              title: orderItem.DesignTitle,
+              position: orderItem.designSpecs,
+              scale: orderItem.designSpecs?.scale || 1
+            },
+            order: {
+              quantity: orderItem.qty,
+              orderId: order._id,
+              orderDate: order.createdAt
+            }
+          }
+        }
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -74,23 +151,59 @@ router.get(
   })
 );
 
+router.put(
+  '/admin/update-status/:id',
+  isAuthenticated,
+  isAdmin,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const order = await Order.findById(req.params.id);
+      
+      if (!order) {
+        return next(new ErrorHandler("Order not found", 404));
+      }
+
+      order.status = req.body.status;
+      
+      if (req.body.status === "Delivered") {
+        order.deliveredAt = Date.now();
+        order.paymentInfo.status = "Succeeded";
+      }
+
+      await order.save();
+
+      res.status(200).json({
+        success: true,
+        order
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
 // get all seller orders
 router.get(
   '/get-seller-orders',
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
+      // Add logging to debug
+      console.log('Fetching orders for seller:', req.seller._id);
+
       const orders = await Order.find({
-        "cart.shopId": req.seller._id,
+        "cart.shopId": req.seller._id.toString(),
       }).sort({
         createdAt: -1,
       });
+
+      console.log('Found seller orders:', orders.length);
 
       res.status(200).json({
         success: true,
         orders,
       });
     } catch (error) {
+      console.error('Error in get-seller-orders:', error);
       return next(new ErrorHandler(error.message, 500));
     }
   })

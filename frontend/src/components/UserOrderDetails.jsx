@@ -25,6 +25,23 @@ const UserOrderDetails = () => {
     }
   }, [orders, id]);
 
+  
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        await dispatch(getAllOrdersOfUser());
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+        toast.error("Failed to fetch orders");
+      }
+    };
+  
+    if (user && user._id) {
+      fetchOrders();
+    }
+  }, [dispatch, user]);
+  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">

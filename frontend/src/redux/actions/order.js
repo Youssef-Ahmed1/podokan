@@ -82,24 +82,30 @@ export const getAllOrdersOfUser = () => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.GET_USER_REQUEST });
 
-    const { data } = await axios.get(`${server}/order/get-user-orders`, {
-      withCredentials: true
-    });
+    const config = {
+      withCredentials: true,
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    };
 
-    console.log("User orders response:", data); // Debug log
+    const { data } = await axios.get(`${server}/order/get-user-orders`, config);
+
+    console.log("User orders fetch response:", data);
 
     dispatch({
       type: ORDER_ACTIONS.GET_USER_SUCCESS,
-      payload: data.orders || [] // Ensure we always have an array
+      payload: data.orders
     });
   } catch (error) {
-    console.error("Error fetching user orders:", error); // Debug log
+    console.error("Error fetching user orders:", error.response?.data || error);
     dispatch({
       type: ORDER_ACTIONS.GET_USER_FAIL,
-      payload: error.response?.data?.message || "Failed to fetch user orders"
+      payload: error.response?.data?.message || "Failed to fetch orders"
     });
   }
 };
+
 
 // Get all seller orders
 export const getShopOrders = () => async (dispatch) => {
@@ -125,23 +131,30 @@ export const getShopOrders = () => async (dispatch) => {
   }
 };
 // Get all orders for admin
-export const getAllOrdersOfShop = (shopId) => async (dispatch) => {
+export const getAllOrdersOfShop = () => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.GET_SHOP_REQUEST });
 
-    const { data } = await axios.get(
-      `${server}/order/get-seller-orders`, 
-      { withCredentials: true }
-    );
+    const config = {
+      withCredentials: true,
+      headers: {
+        'seller-authorization': `Bearer ${localStorage.getItem('seller_token')}`
+      }
+    };
+
+    const { data } = await axios.get(`${server}/order/get-seller-orders`, config);
+
+    console.log("Shop orders fetch response:", data);
 
     dispatch({
       type: ORDER_ACTIONS.GET_SHOP_SUCCESS,
-      payload: data.orders,
+      payload: data.orders
     });
   } catch (error) {
+    console.error("Error fetching shop orders:", error.response?.data || error);
     dispatch({
       type: ORDER_ACTIONS.GET_SHOP_FAIL,
-      payload: error.response?.data?.message || "Failed to fetch orders",
+      payload: error.response?.data?.message || "Failed to fetch orders"
     });
   }
 };
@@ -169,7 +182,71 @@ export const getAllOrdersOfAdmin = () => async (dispatch) => {
     });
   }
 };
+export const adminDownloadDesign = (orderId, itemId) => async (dispatch) => {
+  try {
+    dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_REQUEST });
 
+    const { data } = await axios.get(
+      `${server}/order/admin/download-design/${orderId}/${itemId}`,
+      {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }
+    );
+
+    // Process the download using DesignDownloader
+    await DesignDownloader.downloadSingleDesign({
+      ...data.designData,
+      _id: itemId,
+      orderId: orderId
+    });
+
+    dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_SUCCESS });
+    return true;
+  } catch (error) {
+    dispatch({
+      type: ORDER_ACTIONS.DOWNLOAD_DESIGN_FAIL,
+      payload: error.response?.data?.message || "Download failed"
+    });
+    throw error;
+  }
+};
+
+// Update order status as admin
+export const adminUpdateOrderStatus = (orderId, status) => async (dispatch) => {
+  try {
+    dispatch({ type: ORDER_ACTIONS.UPDATE_STATUS_REQUEST });
+
+    const { data } = await axios.put(
+      `${server}/order/admin/update-status/${orderId}`,
+      { status },
+      {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    dispatch({
+      type: ORDER_ACTIONS.UPDATE_STATUS_SUCCESS,
+      payload: data.order
+    });
+
+    // Refresh admin orders
+    dispatch(getAllOrdersOfAdmin());
+    return true;
+  } catch (error) {
+    dispatch({
+      type: ORDER_ACTIONS.UPDATE_STATUS_FAIL,
+      payload: error.response?.data?.message || "Update failed"
+    });
+    throw error;
+  }
+};
 // Update order status
 export const updateOrderStatus = (orderId, status) => async (dispatch) => {
   try {
