@@ -15,6 +15,8 @@ const UserOrderDetails = () => {
   const { id } = useParams();
   const [currentOrder, setCurrentOrder] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [error, setError] = useState(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   useEffect(() => {
     const fetchOrders = async () => {
