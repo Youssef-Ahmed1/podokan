@@ -19,8 +19,12 @@ const orderSchema = new mongoose.Schema({
       required: true,
     },
     designImage: {
-      url: String,
-      public_id: String,
+      type: Schema.Types.Mixed, // This allows both string and object
+      required: true,
+      get: function(val) {
+        if (typeof val === 'string') return val;
+        return val?.url || null;
+      }
     },
     DesignTitle: {
       type: String,

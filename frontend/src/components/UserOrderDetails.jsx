@@ -11,7 +11,8 @@ const UserOrderDetails = () => {
   const dispatch = useDispatch();
   const { id } = useParams();
   const [currentOrder, setCurrentOrder] = useState(null);
-
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [error, setError] = useState(null);
   useEffect(() => {
     if (user) {
       dispatch(getAllOrdersOfUser());
@@ -27,20 +28,22 @@ const UserOrderDetails = () => {
 
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchOrder = async () => {
       try {
+        setError(null);
         await dispatch(getAllOrdersOfUser());
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-        toast.error("Failed to fetch orders");
+      } catch (err) {
+        setError(err.message || 'Failed to fetch order details');
+        toast.error('Failed to fetch order details');
+      } finally {
+        setIsInitialLoading(false);
       }
     };
   
-    if (user && user._id) {
-      fetchOrders();
+    if (user?._id) {
+      fetchOrder();
     }
   }, [dispatch, user]);
-  
 
   if (isLoading) {
     return (
@@ -85,9 +88,9 @@ const UserOrderDetails = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Product Image with Design */}
             <div className="relative aspect-square rounded-lg bg-gray-50 overflow-hidden">
-  {item.designImage?.url ? (
+  {item.designImage ? (
     <img
-      src={item.designImage.url}
+      src={typeof item.designImage === 'string' ? item.designImage : item.designImage.url}
       alt={item.DesignTitle}
       className="w-full h-full object-contain"
     />
@@ -99,34 +102,35 @@ const UserOrderDetails = () => {
 </div>
 
 
+
             {/* Product Info */}
             <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {item.DesignTitle}
-                </h2>
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-gray-600">Product Type:</p>
-                    <p className="font-medium capitalize">{item.ProductType}</p>
-                  </div>
-                  <div>
-                  <p className="text-gray-600">Size:</p>
-    <p className="font-medium">{item.size || 'N/A'}</p>
-  </div>
   <div>
-    <p className="text-gray-600">Color:</p>
-    <p className="font-medium">{item.ProductColor || 'N/A'}</p>
+    <h2 className="text-2xl font-bold text-gray-900">
+      {item.DesignTitle}
+    </h2>
   </div>
-                  <div>
-                    <p className="text-gray-600">Quantity:</p>
-                    <p className="font-medium">{item.qty}</p>
-                  </div>
-                </div>
-              </div>
+
+  <div className="bg-gray-50 p-4 rounded-lg">
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <p className="text-gray-600">Product Type:</p>
+        <p className="font-medium capitalize">{item.ProductType}</p>
+      </div>
+      <div>
+        <p className="text-gray-600">Size:</p>
+        <p className="font-medium">{item.size || 'N/A'}</p>
+      </div>
+      <div>
+        <p className="text-gray-600">Color:</p>
+        <p className="font-medium">{item.ProductColor || 'N/A'}</p>
+      </div>
+      <div>
+        <p className="text-gray-600">Quantity:</p>
+        <p className="font-medium">{item.qty}</p>
+      </div>
+    </div>
+  </div>
 
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-gray-600">Price per item:</p>
@@ -141,24 +145,24 @@ const UserOrderDetails = () => {
 
       {/* Order Summary */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-        <h3 className="text-xl font-bold mb-4">Order Summary</h3>
-        <div className="space-y-2">
-  <div className="flex justify-between">
-    <span className="text-gray-600">Subtotal</span>
-    <span>EGP {currentOrder.totalPrice?.toFixed(2)}</span>
-  </div>
-  <div className="flex justify-between">
-    <span className="text-gray-600">Shipping</span>
-    <span>EGP {currentOrder.shippingPrice || 50}.00</span>
-  </div>
-  <div className="flex justify-between pt-2 border-t">
-    <span className="font-bold">Total</span>
-    <span className="font-bold">
-      EGP {(currentOrder.totalPrice + (currentOrder.shippingPrice || 50)).toFixed(2)}
-    </span>
+  <h3 className="text-xl font-bold mb-4">Order Summary</h3>
+  <div className="space-y-2">
+    <div className="flex justify-between">
+      <span className="text-gray-600">Subtotal</span>
+      <span>EGP {(currentOrder.totalPrice - 50).toFixed(2)}</span>
+    </div>
+    <div className="flex justify-between">
+      <span className="text-gray-600">Shipping</span>
+      <span>EGP 50.00</span>
+    </div>
+    <div className="flex justify-between pt-2 border-t">
+      <span className="font-bold">Total</span>
+      <span className="font-bold">
+        EGP {currentOrder.totalPrice.toFixed(2)}
+      </span>
+    </div>
   </div>
 </div>
-      </div>
 
       {/* Shipping & Payment Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

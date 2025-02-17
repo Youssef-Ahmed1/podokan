@@ -80,31 +80,27 @@ export const createOrder = (orderData) => async (dispatch) => {
 // Get all orders for user
 export const getAllOrdersOfUser = () => async (dispatch) => {
   try {
-    dispatch({ type: ORDER_ACTIONS.GET_USER_REQUEST });
+    dispatch({ type: "getAllOrdersUserRequest" });
 
-    const config = {
+    const { data } = await axios.get("/api/v2/order/get-user-orders", {
       withCredentials: true,
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
       }
-    };
-
-    const { data } = await axios.get(`${server}/order/get-user-orders`, config);
-
-    console.log("User orders fetch response:", data);
+    });
 
     dispatch({
-      type: ORDER_ACTIONS.GET_USER_SUCCESS,
-      payload: data.orders
+      type: "getAllOrdersUserSuccess",
+      payload: data.orders,
     });
   } catch (error) {
-    console.error("Error fetching user orders:", error.response?.data || error);
     dispatch({
-      type: ORDER_ACTIONS.GET_USER_FAIL,
-      payload: error.response?.data?.message || "Failed to fetch orders"
+      type: "getAllOrdersUserFailed",
+      payload: error.response?.data?.message,
     });
   }
 };
+
 
 
 // Get all seller orders
