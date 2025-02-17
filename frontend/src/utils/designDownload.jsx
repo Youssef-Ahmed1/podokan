@@ -12,14 +12,12 @@ export class DesignDownloader {
 
       console.log('Processing item for download:', item);
 
-      // Enhanced design image path checking
+      // Enhanced design image path checking with string/object handling
       const designImage = 
-        item.designImage?.url || 
-        item.cart?.[0]?.designImage?.url || 
-        item.design?.url || 
-        item.products?.[0]?.designImage?.url || 
-        (Array.isArray(item.cart) && item.cart[0]?.design?.url) ||
-        item.cart?.[0]?.designImage;
+        (typeof item.designImage === 'string' ? item.designImage : item.designImage?.url) || 
+        (typeof item.cart?.[0]?.designImage === 'string' ? item.cart[0].designImage : item.cart?.[0]?.designImage?.url) ||
+        (typeof item.design === 'string' ? item.design : item.design?.url) ||
+        (typeof item.products?.[0]?.designImage === 'string' ? item.products[0].designImage : item.products?.[0]?.designImage?.url);
 
       if (!designImage) {
         throw new Error('Design image URL not found in order data');
@@ -34,18 +32,20 @@ export class DesignDownloader {
 
       while (retryCount < maxRetries) {
         try {
-          // Use axios instead of fetch for better error handling
           const imageResponse = await axios.get(designImage, {
-            responseType: 'blob'
+            responseType: 'blob',
+            timeout: 10000 // 10 second timeout
           });
           imageBlob = imageResponse.data;
           break;
         } catch (imageError) {
           retryCount++;
+          console.log(`Download attempt ${retryCount} failed:`, imageError.message);
           if (retryCount === maxRetries) {
             throw new Error(`Failed to download design image after ${maxRetries} attempts`);
           }
-          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+          // Exponential backoff
+          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
         }
       }
 
@@ -63,7 +63,7 @@ export class DesignDownloader {
           size: productDetails.size || 'default',
           view: productDetails.ProductView || productDetails.view || 'front',
           sku: productDetails.sku || 'unknown',
-          basePrice: productDetails.basePrice || 0
+          basePrice: productDetails.basePrice || productDetails.price || 0
         },
         design: {
           title: productDetails.DesignTitle || productDetails.title || `Design_${item._id || 'unknown'}`,
@@ -77,11 +77,12 @@ export class DesignDownloader {
           originalHeight: designSpecs.originalHeight
         },
         order: {
+          id: item._id || 'unknown',
           quantity: productDetails.qty || productDetails.quantity || 1,
-          itemId: item._id || 'unknown',
           orderDate: item.createdAt || new Date().toISOString(),
           customizations: productDetails.customizations || {},
-          notes: productDetails.notes || ''
+          notes: productDetails.notes || '',
+          status: item.status || 'unknown'
         },
         printingSpecs: {
           technique: productDetails.printingTechnique || 'default',
@@ -128,19 +129,24 @@ export class DesignDownloader {
         success: [],
         failed: [],
         metadata: {
+          orderId: order._id,
+          orderDate: order.createdAt,
           totalItems: cartItems.length,
           processedAt: new Date().toISOString(),
-          orderTotal: order.totalPrice || 0
+          orderTotal: order.totalPrice || 0,
+          customerInfo: {
+            name: order.user?.name || 'Unknown',
+            email: order.user?.email || 'Unknown'
+          }
         }
       };
 
       for (const item of cartItems) {
         try {
           const designImage = 
-            item.designImage?.url ||
-            item.design?.url ||
-            (item.products?.[0]?.designImage?.url) ||
-            item.cart?.[0]?.designImage;
+            (typeof item.designImage === 'string' ? item.designImage : item.designImage?.url) ||
+            (typeof item.design === 'string' ? item.design : item.design?.url) ||
+            (typeof item.products?.[0]?.designImage === 'string' ? item.products[0].designImage : item.products?.[0]?.designImage?.url);
 
           if (!designImage) {
             results.failed.push({
@@ -154,12 +160,30 @@ export class DesignDownloader {
             continue;
           }
 
-          // Use axios for image download
-          const imageResponse = await axios.get(designImage, {
-            responseType: 'blob'
-          });
-          const imageBlob = imageResponse.data;
-          designsFolder.file(`${item._id}/design.png`, imageBlob);
+          // Download image with retry logic
+          let imageBlob;
+          let retryCount = 0;
+          const maxRetries = 3;
+
+          while (retryCount < maxRetries) {
+            try {
+              const imageResponse = await axios.get(designImage, {
+                responseType: 'blob',
+                timeout: 10000
+              });
+              imageBlob = imageResponse.data;
+              break;
+            } catch (imageError) {
+              retryCount++;
+              if (retryCount === maxRetries) {
+                throw new Error(`Failed to download image after ${maxRetries} attempts`);
+              }
+              await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+            }
+          }
+
+          const itemFolder = designsFolder.folder(item._id);
+          itemFolder.file('design.png', imageBlob);
 
           const designSpecs = item.designSpecs || {};
           
@@ -174,25 +198,28 @@ export class DesignDownloader {
             design: {
               title: item.DesignTitle || item.title || `Design_${item._id}`,
               position: {
-                x: designSpecs.positionX || 50,
-                y: designSpecs.positionY || 40
+                x: designSpecs.positionX || item.DesignPosition?.x || 50,
+                y: designSpecs.positionY || item.DesignPosition?.y || 40
               },
-              scale: designSpecs.scale || 0.8,
+              scale: designSpecs.scale || item.DesignScale || 0.8,
               rotation: designSpecs.rotation || 0
             },
             order: {
               quantity: item.qty || item.quantity || 1,
               itemId: item._id,
               orderDate: order.createdAt || new Date().toISOString(),
-              price: item.price || 0
+              price: item.price || 0,
+              status: item.status || 'unknown'
             },
             printingSpecs: {
               technique: item.printingTechnique || 'default',
-              area: item.printingArea || 'front'
+              area: item.printingArea || 'front',
+              dimensions: item.printDimensions || { width: 0, height: 0 }
             }
           };
 
-          designsFolder.file(`${item._id}/specs.json`, JSON.stringify(specs, null, 2));
+          itemFolder.file('specs.json', JSON.stringify(specs, null, 2));
+          
           results.success.push({
             id: item._id,
             productType: item.ProductType || 'unknown',
@@ -207,6 +234,7 @@ export class DesignDownloader {
         }
       }
 
+      // Add summary information
       const summary = {
         orderId: order._id,
         downloadDate: new Date().toISOString(),
@@ -236,6 +264,7 @@ export class DesignDownloader {
             level: 6
           }
         });
+        
         saveAs(content, `order_${order._id || 'unknown'}_designs.zip`);
       } else {
         throw new Error('No designs were available for download');

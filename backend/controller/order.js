@@ -187,20 +187,17 @@ router.get(
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      // Add logging to debug
-      console.log('Fetching orders for seller:', req.seller._id);
+      console.log('Seller ID:', req.seller._id);
 
       const orders = await Order.find({
-        "cart.shopId": req.seller._id.toString(),
-      }).sort({
-        createdAt: -1,
-      });
+        'cart.shopId': req.seller._id
+      }).populate('user').sort({ createdAt: -1 });
 
       console.log('Found seller orders:', orders.length);
 
       res.status(200).json({
         success: true,
-        orders,
+        orders
       });
     } catch (error) {
       console.error('Error in get-seller-orders:', error);

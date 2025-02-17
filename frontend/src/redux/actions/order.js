@@ -252,24 +252,36 @@ export const updateOrderStatus = (orderId, status) => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.UPDATE_STATUS_REQUEST });
 
-    const config = { headers: { "Content-Type": "application/json" }, withCredentials: true };
     const { data } = await axios.put(
-      `${server}/order/update-order-status/${orderId}`,
+      `${server}/order/admin/update-status/${orderId}`,
       { status },
-      config
+      {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }
     );
 
     dispatch({
       type: ORDER_ACTIONS.UPDATE_STATUS_SUCCESS,
       payload: data.order
     });
+
+    // Refresh orders
+    dispatch(getAllOrdersOfAdmin());
+    
+    return data.success;
   } catch (error) {
     dispatch({
       type: ORDER_ACTIONS.UPDATE_STATUS_FAIL,
-      payload: error.response?.data?.message
+      payload: error.response?.data?.message || "Failed to update status"
     });
+    throw error;
   }
 };
+
 
 // Download specifications
 export const downloadOrderSpecs = (orderId) => async (dispatch) => {

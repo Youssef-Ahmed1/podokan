@@ -85,14 +85,19 @@ const UserOrderDetails = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Product Image with Design */}
             <div className="relative aspect-square rounded-lg bg-gray-50 overflow-hidden">
-              {item.designImage?.url && (
-                <img
-                  src={item.designImage.url}
-                  alt={item.DesignTitle}
-                  className="w-full h-full object-contain"
-                />
-              )}
-            </div>
+  {item.designImage?.url ? (
+    <img
+      src={item.designImage.url}
+      alt={item.DesignTitle}
+      className="w-full h-full object-contain"
+    />
+  ) : (
+    <div className="flex items-center justify-center h-full">
+      <span className="text-gray-400">No design preview available</span>
+    </div>
+  )}
+</div>
+
 
             {/* Product Info */}
             <div className="space-y-6">
@@ -109,13 +114,13 @@ const UserOrderDetails = () => {
                     <p className="font-medium capitalize">{item.ProductType}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Size:</p>
-                    <p className="font-medium">{item.size}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Color:</p>
-                    <p className="font-medium">{item.ProductColor}</p>
-                  </div>
+                  <p className="text-gray-600">Size:</p>
+    <p className="font-medium">{item.size || 'N/A'}</p>
+  </div>
+  <div>
+    <p className="text-gray-600">Color:</p>
+    <p className="font-medium">{item.ProductColor || 'N/A'}</p>
+  </div>
                   <div>
                     <p className="text-gray-600">Quantity:</p>
                     <p className="font-medium">{item.qty}</p>
@@ -138,21 +143,21 @@ const UserOrderDetails = () => {
       <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
         <h3 className="text-xl font-bold mb-4">Order Summary</h3>
         <div className="space-y-2">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Subtotal</span>
-            <span>EGP {currentOrder.totalPrice?.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Shipping</span>
-            <span>Free</span>
-          </div>
-          <div className="flex justify-between pt-2 border-t">
-            <span className="font-bold">Total</span>
-            <span className="font-bold">
-              EGP {currentOrder.totalPrice?.toFixed(2)}
-            </span>
-          </div>
-        </div>
+  <div className="flex justify-between">
+    <span className="text-gray-600">Subtotal</span>
+    <span>EGP {currentOrder.totalPrice?.toFixed(2)}</span>
+  </div>
+  <div className="flex justify-between">
+    <span className="text-gray-600">Shipping</span>
+    <span>EGP {currentOrder.shippingPrice || 50}.00</span>
+  </div>
+  <div className="flex justify-between pt-2 border-t">
+    <span className="font-bold">Total</span>
+    <span className="font-bold">
+      EGP {(currentOrder.totalPrice + (currentOrder.shippingPrice || 50)).toFixed(2)}
+    </span>
+  </div>
+</div>
       </div>
 
       {/* Shipping & Payment Details */}
