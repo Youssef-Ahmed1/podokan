@@ -1,9 +1,10 @@
 // utils/designDownload.jsx
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import axios from 'axios';
 
-export const DesignDownloader = {
-  async downloadSingleDesign(item) {
+export class DesignDownloader {
+  static async downloadSingleDesign(item) {
     try {
       if (!item) {
         throw new Error('No item data available');
@@ -33,11 +34,11 @@ export const DesignDownloader = {
 
       while (retryCount < maxRetries) {
         try {
-          const imageResponse = await fetch(designImage);
-          if (!imageResponse.ok) {
-            throw new Error(`Failed to fetch design image: ${imageResponse.statusText}`);
-          }
-          imageBlob = await imageResponse.blob();
+          // Use axios instead of fetch for better error handling
+          const imageResponse = await axios.get(designImage, {
+            responseType: 'blob'
+          });
+          imageBlob = imageResponse.data;
           break;
         } catch (imageError) {
           retryCount++;
@@ -106,9 +107,9 @@ export const DesignDownloader = {
       console.error('Download error:', error);
       throw error;
     }
-  },
+  }
 
-  async downloadOrderDesigns(order) {
+  static async downloadOrderDesigns(order) {
     try {
       if (!order) {
         throw new Error('No order data available');
@@ -153,11 +154,11 @@ export const DesignDownloader = {
             continue;
           }
 
-          const imageResponse = await fetch(designImage);
-          if (!imageResponse.ok) {
-            throw new Error(`Failed to fetch image: ${imageResponse.statusText}`);
-          }
-          const imageBlob = await imageResponse.blob();
+          // Use axios for image download
+          const imageResponse = await axios.get(designImage, {
+            responseType: 'blob'
+          });
+          const imageBlob = imageResponse.data;
           designsFolder.file(`${item._id}/design.png`, imageBlob);
 
           const designSpecs = item.designSpecs || {};
@@ -246,7 +247,6 @@ export const DesignDownloader = {
       throw error;
     }
   }
-};
-
+}
 
 export default DesignDownloader;

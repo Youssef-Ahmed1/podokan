@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { Package, Truck, CreditCard } from "lucide-react";
 import { getAllOrdersOfUser } from "../redux/actions/order";
-
+import { toast } from 'react-toastify';
 const UserOrderDetails = () => {
   const { orders, isLoading } = useSelector((state) => state.order);
   const { user } = useSelector((state) => state.user);
@@ -25,7 +25,7 @@ const UserOrderDetails = () => {
     }
   }, [orders, id]);
 
-  
+
   useEffect(() => {
     const fetchOrders = async () => {
       try {
