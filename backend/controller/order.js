@@ -107,7 +107,9 @@ router.get(
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const order = await Order.findById(req.params.orderId);
+      const order = await Order.findById(req.params.orderId)
+        .populate('shop', 'name email')
+        .populate('user', 'name email');
       
       if (!order) {
         return next(new ErrorHandler("Order not found", 404));
@@ -121,27 +123,42 @@ router.get(
         return next(new ErrorHandler("Order item not found", 404));
       }
 
-      // Send design data for frontend processing
+      // Get design image URL
+      const designImageUrl = orderItem.designImage?.url || orderItem.designImage;
+      if (!designImageUrl) {
+        return next(new ErrorHandler("Design image not found", 404));
+      }
+
       res.status(200).json({
         success: true,
         designData: {
-          imageUrl: orderItem.designImage?.url,
+          imageUrl: designImageUrl,
+          orderId: order._id,
+          itemId: orderItem._id,
           specs: {
             order: {
               orderId: order._id,
               orderDate: order.createdAt,
-              quantity: orderItem.qty,
-              price: orderItem.discountPrice || orderItem.originalPrice
+              quantity: orderItem.qty || 1,
+              price: orderItem.discountPrice || orderItem.price
             },
             product: {
+              title: orderItem.DesignTitle || 'Untitled',
               type: orderItem.ProductType || 'N/A',
               color: orderItem.ProductColor || 'N/A',
               size: orderItem.size || 'N/A'
             },
             design: {
-              title: orderItem.DesignTitle,
               position: orderItem.DesignPosition || { x: 50, y: 40 },
               scale: orderItem.DesignScale || 1
+            },
+            seller: {
+              name: order.shop?.name || 'Unknown',
+              email: order.shop?.email || 'N/A'
+            },
+            customer: {
+              name: order.user?.name || 'Anonymous',
+              email: order.user?.email || 'N/A'
             }
           }
         }
