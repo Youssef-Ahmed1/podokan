@@ -178,12 +178,13 @@ export const getAllOrdersOfAdmin = () => async (dispatch) => {
     });
   }
 };
+
 export const adminDownloadDesign = (orderId, itemId) => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_REQUEST });
 
     const { data } = await axios.get(
-      `${server}/order/admin/download-design/${orderId}/${itemId}`,
+      `${server}/order/download-design/${orderId}/${itemId}`,
       {
         withCredentials: true,
         headers: {
@@ -192,12 +193,12 @@ export const adminDownloadDesign = (orderId, itemId) => async (dispatch) => {
       }
     );
 
-    // Process the download using DesignDownloader
-    await DesignDownloader.downloadSingleDesign({
-      ...data.designData,
-      _id: itemId,
-      orderId: orderId
-    });
+    if (!data.success || !data.designData) {
+      throw new Error('Failed to get design data');
+    }
+
+    // Process the download
+    await DesignDownloader.downloadSingleDesign(data.designData);
 
     dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_SUCCESS });
     return true;
@@ -249,7 +250,7 @@ export const updateOrderStatus = (orderId, status) => async (dispatch) => {
     dispatch({ type: ORDER_ACTIONS.UPDATE_STATUS_REQUEST });
 
     const { data } = await axios.put(
-      `${server}/order/admin/update-status/${orderId}`,
+      `${server}/order/update-status/${orderId}`,
       { status },
       {
         withCredentials: true,
@@ -265,10 +266,9 @@ export const updateOrderStatus = (orderId, status) => async (dispatch) => {
       payload: data.order
     });
 
-    // Refresh orders
+    // Refresh orders list
     dispatch(getAllOrdersOfAdmin());
-    
-    return data.success;
+    return true;
   } catch (error) {
     dispatch({
       type: ORDER_ACTIONS.UPDATE_STATUS_FAIL,
@@ -277,7 +277,6 @@ export const updateOrderStatus = (orderId, status) => async (dispatch) => {
     throw error;
   }
 };
-
 
 // Download specifications
 export const downloadOrderSpecs = (orderId) => async (dispatch) => {

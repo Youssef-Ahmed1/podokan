@@ -125,8 +125,14 @@ router.get(
       res.status(200).json({
         success: true,
         designData: {
-          imageUrl: orderItem.designImage?.url || orderItem.designImage,
+          imageUrl: orderItem.designImage?.url,
           specs: {
+            order: {
+              orderId: order._id,
+              orderDate: order.createdAt,
+              quantity: orderItem.qty,
+              price: orderItem.discountPrice || orderItem.originalPrice
+            },
             product: {
               type: orderItem.ProductType || 'N/A',
               color: orderItem.ProductColor || 'N/A',
@@ -136,12 +142,6 @@ router.get(
               title: orderItem.DesignTitle,
               position: orderItem.DesignPosition || { x: 50, y: 40 },
               scale: orderItem.DesignScale || 1
-            },
-            order: {
-              quantity: orderItem.qty,
-              orderId: order._id,
-              orderDate: order.createdAt,
-              price: orderItem.discountPrice || orderItem.originalPrice
             }
           }
         }
@@ -248,44 +248,41 @@ router.get(
 // update order status for seller
 router.put(
   '/update-status/:id', 
-  isSeller, 
+  isAuthenticated,
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const order = await Order.findById(req.params.id);
-
+      
       if (!order) {
-        return next(new ErrorHandler("Order not found", 400));
-      }
-
-      if (req.body.status === "Transferred to delivery partner") {
-        order.cart.forEach(async (o) => {
-          await updateOrder(o._id, o.qty);
-        });
+        return next(new ErrorHandler("Order not found", 404));
       }
 
       order.status = req.body.status;
-      order.statusHistory.push({
-        status: req.body.status,
-        updatedBy: req.seller ? req.seller._id : req.user._id,
-        timestamp: new Date()
-      });
-
+      
       if (req.body.status === "Delivered") {
         order.deliveredAt = Date.now();
         order.paymentInfo.status = "Succeeded";
       }
 
+      order.statusHistory.push({
+        status: req.body.status,
+        updatedBy: req.user._id,
+        timestamp: new Date()
+      });
+
       await order.save({ validateBeforeSave: false });
 
       res.status(200).json({
         success: true,
-        order,
+        order
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
+
 
 // request refund -- user
 router.put(
