@@ -101,6 +101,7 @@ router.get(
     }
   })
 );
+// routes/order.js - Update the download-design endpoint
 router.get(
   '/download-design/:orderId/:itemId',
   isAuthenticated,
@@ -123,12 +124,12 @@ router.get(
         return next(new ErrorHandler("Order item not found", 404));
       }
 
-      // Get design image URL
       const designImageUrl = orderItem.designImage?.url || orderItem.designImage;
       if (!designImageUrl) {
         return next(new ErrorHandler("Design image not found", 404));
       }
 
+      // Return the properly structured design data
       res.status(200).json({
         success: true,
         designData: {
@@ -140,25 +141,17 @@ router.get(
               orderId: order._id,
               orderDate: order.createdAt,
               quantity: orderItem.qty || 1,
-              price: orderItem.discountPrice || orderItem.price
+              price: orderItem.price
             },
             product: {
               title: orderItem.DesignTitle || 'Untitled',
-              type: orderItem.ProductType || 'N/A',
+              type: orderItem.ProductType,
               color: orderItem.ProductColor || 'N/A',
               size: orderItem.size || 'N/A'
             },
             design: {
-              position: orderItem.DesignPosition || { x: 50, y: 40 },
-              scale: orderItem.DesignScale || 1
-            },
-            seller: {
-              name: order.shop?.name || 'Unknown',
-              email: order.shop?.email || 'N/A'
-            },
-            customer: {
-              name: order.user?.name || 'Anonymous',
-              email: order.user?.email || 'N/A'
+              position: orderItem.designSpecs || { positionX: 50, positionY: 40 },
+              scale: orderItem.designSpecs?.scale || 1
             }
           }
         }

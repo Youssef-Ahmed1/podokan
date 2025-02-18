@@ -309,16 +309,23 @@ export const downloadOrderSpecs = (orderId) => async (dispatch) => {
 };
 
 // Download design
+// redux/actions/order.js - Update the downloadDesign action
 export const downloadDesign = (orderId, itemId) => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_REQUEST });
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
 
     const { data } = await axios.get(
       `${server}/order/download-design/${orderId}/${itemId}`,
       {
         withCredentials: true,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
         }
       }
     );
@@ -327,19 +334,26 @@ export const downloadDesign = (orderId, itemId) => async (dispatch) => {
       throw new Error('Failed to get design data');
     }
 
+    // Process the download
     await DesignDownloader.downloadSingleDesign(data.designData);
 
     dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_SUCCESS });
     return true;
   } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message;
     dispatch({
       type: ORDER_ACTIONS.DOWNLOAD_DESIGN_FAIL,
-      payload: error.response?.data?.message || error.message
+      payload: errorMessage
     });
+    
+    if (errorMessage.includes('token') || errorMessage.includes('login')) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    
     throw error;
   }
 };
-
 
 // Assign delivery partner
 export const assignDeliveryPartner = (orderId, deliveryData) => async (dispatch) => {

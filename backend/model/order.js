@@ -37,11 +37,11 @@ const orderSchema = new mongoose.Schema({
     },
     ProductColor: {
       type: String,
-      required: true,
+      default: 'N/A'  
     },
     size: {
       type: String,
-      required: true,
+      default: 'N/A'  
     },
     designSpecs: {
       positionX: { 
