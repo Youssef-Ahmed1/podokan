@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 import { server } from "./server";
 import Store from "./redux/store";
@@ -60,9 +60,14 @@ import { getAllEvents } from "./redux/actions/event";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 import AdminOrderDetails from "./pages/Shop/AdminOrderDetails.jsx"
+
+
+
+
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [stylesLoaded, setStylesLoaded] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     // Check if styles are loaded
@@ -70,46 +75,86 @@ const App = () => {
     if (styleSheets.length > 0) {
       setStylesLoaded(true);
     }
-    
+
+    // Configure axios defaults
     axios.defaults.withCredentials = true;
     
-    const token = localStorage.getItem('token');
-    const sellerToken = localStorage.getItem('seller_token');
+    // Configure axios interceptors
+    axios.interceptors.request.use((config) => {
+      const token = localStorage.getItem('token');
+      const sellerToken = localStorage.getItem('seller_token');
 
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    }
-    if (sellerToken) {
-      axios.defaults.headers.common['Seller-Authorization'] = `Bearer ${sellerToken}`;
-    }
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      if (sellerToken) {
+        config.headers['Seller-Authorization'] = `Bearer ${sellerToken}`;
+      }
+      return config;
+    });
 
+    axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          // Handle unauthorized access
+          localStorage.removeItem('token');
+          localStorage.removeItem('seller_token');
+          toast.error("Session expired. Please login again.");
+          return Promise.reject(error);
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    // Load initial data
     const loadInitialData = async () => {
       try {
         setIsLoading(true);
-        await Promise.allSettled([
+        const results = await Promise.allSettled([
           Store.dispatch(loadUser()),
           Store.dispatch(loadSeller()),
           Store.dispatch(getAllProducts()),
           Store.dispatch(getAllEvents())
         ]);
+
+        // Handle any errors from the initial data load
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            console.error(`Failed to load data ${index}:`, result.reason);
+            // Don't show error for failed auth checks
+            if (index > 1) {
+              toast.error("Failed to load some data. Please refresh.");
+            }
+          }
+        });
+
       } catch (error) {
         console.error("Error loading initial data:", error);
       } finally {
         setIsLoading(false);
+        setAuthChecked(true);
       }
     };
 
     loadInitialData();
+
+    // Cleanup function
+    return () => {
+      // Clear any pending requests or subscriptions if needed
+    };
   }, []);
 
-  if (isLoading || !stylesLoaded) {
+
+  if (isLoading || !stylesLoaded || !authChecked) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500">
+          <div className="sr-only">Loading...</div>
+        </div>
       </div>
     );
   }
-
 
   return (
     <BrowserRouter>

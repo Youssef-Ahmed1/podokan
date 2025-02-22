@@ -1,22 +1,23 @@
+// middleware/auth.js
+const ErrorHandler = require("../utils/ErrorHandler");
+const jwt = require("jsonwebtoken");
 const User = require("../model/user");
 const Shop = require("../model/shop");
-const ErrorHandler = require("../utils/ErrorHandler");
-const AuthUtils = require("../utils/authUtils");
+const catchAsyncErrors = require("./catchAsyncErrors");
 
-exports.isAuthenticated = async (req, res, next) => {
+exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   try {
-    const token = AuthUtils.getTokenFromRequest(req);
-    
+    const token = req.cookies?.token || 
+                 (req.headers.authorization?.startsWith("Bearer") && 
+                  req.headers.authorization.split(" ")[1]);
+
     if (!token) {
       return next(new ErrorHandler("Please login to access this resource", 401));
     }
 
-    const decoded = AuthUtils.verifyToken(token);
-    if (!decoded) {
-      return next(new ErrorHandler("Invalid token", 401));
-    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const user = await User.findById(decoded.id).select("-password");
 
-    const user = await User.findById(decoded.id).select('-password');
     if (!user) {
       return next(new ErrorHandler("User not found", 401));
     }
@@ -24,54 +25,65 @@ exports.isAuthenticated = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    console.error("Auth error:", error);
-    return next(new ErrorHandler("Authentication failed", 500));
+    if (error.name === "JsonWebTokenError") {
+      return next(new ErrorHandler("Invalid token", 401));
+    }
+    if (error.name === "TokenExpiredError") {
+      return next(new ErrorHandler("Token expired", 401));
+    }
+    return next(error);
   }
-};
+});
 
-exports.isSeller = async (req, res, next) => {
+exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
-    const token = AuthUtils.getTokenFromRequest(req, 'seller');
-    
+    const token = req.cookies?.seller_token || 
+                 (req.headers["seller-authorization"]?.startsWith("Bearer") && 
+                  req.headers["seller-authorization"].split(" ")[1]);
+
     if (!token) {
       return next(new ErrorHandler("Please login as seller to continue", 401));
     }
 
-    const decoded = AuthUtils.verifyToken(token);
-    if (!decoded) {
-      return next(new ErrorHandler("Invalid seller token", 401));
-    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const seller = await Shop.findById(decoded.id)
+      .select("-password")
+      .select("-addresses")
+      .select("-phoneNumber");
 
-    const seller = await Shop.findById(decoded.id).select('-password');
     if (!seller) {
       return next(new ErrorHandler("Seller not found", 401));
     }
 
-    if (!seller.isVerified) {
-      return next(new ErrorHandler("Seller account is not verified", 403));
+    if (seller.status !== "Active") {
+      return next(new ErrorHandler("Seller account is not active", 403));
     }
 
     req.seller = seller;
     next();
   } catch (error) {
-    console.error("Seller auth error:", error);
-    return next(new ErrorHandler("Seller authentication failed", 500));
+    if (error.name === "JsonWebTokenError") {
+      return next(new ErrorHandler("Invalid seller token", 401));
+    }
+    if (error.name === "TokenExpiredError") {
+      return next(new ErrorHandler("Seller token expired", 401));
+    }
+    return next(error);
   }
-};
+});
 
-exports.isAdmin = async (req, res, next) => {
+exports.isAdmin = catchAsyncErrors(async (req, res, next) => {
   try {
     if (!req.user) {
       return next(new ErrorHandler("Please login first", 401));
     }
 
-    if (req.user.role?.toLowerCase() !== 'admin') {
+    if (req.user.role !== "Admin") {
       return next(new ErrorHandler("Access denied: Admin only", 403));
     }
 
     next();
   } catch (error) {
-    console.error("Admin auth error:", error);
-    return next(new ErrorHandler("Admin authorization failed", 500));
+    return next(error);
   }
-};
+});
