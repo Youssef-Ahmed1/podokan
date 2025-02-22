@@ -11,24 +11,30 @@ const morgan = require('morgan');
 const app = express();
 
 // Security Configurations
-app.use(helmet({
-  contentSecurityPolicy: false, // Temporarily disable CSP for debugging
-  crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: { policy: "cross-origin" }
-}));
-
-// Enable compression
-app.use(compression());
-
-// Logging
-app.use(morgan('combined'));
-
-// CORS Configuration - More permissive for debugging
-app.use(cors({
-  origin: '*',
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'PRODUCTION' 
+    ? ['https://testpodokan.store']
+    : ['http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['*']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Seller-Authorization'],
+  exposedHeaders: ['Authorization', 'Seller-Authorization']
+};
+
+app.use(cors(corsOptions));
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: ["'self'", 'https://testpodokan.store', 'https://res.cloudinary.com'],
+      imgSrc: ["'self'", 'https:', 'data:', 'blob:'],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+    }
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
 // Body Parser Configuration
