@@ -5,34 +5,43 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
-import { useSelector, useDispatch } from "react-redux";
-import { loginSeller } from "../../redux/actions/sellers";
 
 const ShopLogin = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { isLoading, isSeller, error } = useSelector((state) => state.seller);
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Check if already logged in
-    if (isSeller) {
-      navigate('/dashboard');
+    const sellerToken = localStorage.getItem('seller_token');
+    if (sellerToken) {
+      // Verify token validity before navigating
+      const verifySeller = async () => {
+        try {
+          const { data } = await axios.get(`${server}/shop/getSeller`, {
+            headers: {
+              "Seller-Authorization": `Bearer ${sellerToken}`
+            }
+          });
+          if (data.success) {
+            navigate('/dashboard');
+          }
+        } catch (error) {
+          localStorage.removeItem('seller_token');
+        }
+      };
+      verifySeller();
     }
-  }, [isSeller, navigate]);
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; // Prevent multiple submissions
     
-    if (!email || !password) {
-      toast.error("Please fill in all fields");
-      return;
-    }
-
     try {
+      setLoading(true);
+
       const { data } = await axios.post(
         `${server}/shop/login-shop`,
         { email, password },
@@ -40,23 +49,31 @@ const ShopLogin = () => {
       );
 
       if (data.success) {
+        // First store token
         localStorage.setItem('seller_token', data.token);
         
-        // First set the token
-        axios.defaults.headers.common['Seller-Authorization'] = `Bearer ${data.token}`;
+        // Then set headers
+        axios.defaults.headers.common["Seller-Authorization"] = `Bearer ${data.token}`;
         
-        // Then show success message
+        // Show success message
         toast.success("Login successful!");
         
-        // Finally navigate
+        // Clear form
+        setEmail("");
+        setPassword("");
+        
+        // Finally navigate after a short delay
         setTimeout(() => {
           navigate("/dashboard");
-        }, 100);
+        }, 500);
       }
     } catch (error) {
-      localStorage.removeItem('seller_token');
-      delete axios.defaults.headers.common['Seller-Authorization'];
       toast.error(error.response?.data?.message || "Login failed");
+      // Clean up on error
+      localStorage.removeItem('seller_token');
+      delete axios.defaults.headers.common["Seller-Authorization"];
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -85,6 +102,7 @@ const ShopLogin = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
@@ -104,6 +122,7 @@ const ShopLogin = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
                 {visible ? (
@@ -148,14 +167,14 @@ const ShopLogin = () => {
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={loading}
                 className={`group relative w-full h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                  loading ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
-                {isLoading ? (
+                {loading ? (
                   <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <div className="h-5 w-5 border-t-2 border-b-2 border-white rounded-full animate-spin" />
                   </div>
                 ) : (
                   'Submit'
