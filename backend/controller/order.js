@@ -105,13 +105,12 @@ router.get(
 router.get(
   '/download-design/:orderId/:itemId',
   isAuthenticated,
-  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const order = await Order.findById(req.params.orderId)
-        .populate('shop', 'name email')
-        .populate('user', 'name email');
-      
+        .populate('user', 'name email')
+        .populate('cart.shopId', 'name email');
+
       if (!order) {
         return next(new ErrorHandler("Order not found", 404));
       }
@@ -124,43 +123,52 @@ router.get(
         return next(new ErrorHandler("Order item not found", 404));
       }
 
-      const designImageUrl = orderItem.designImage?.url || orderItem.designImage;
-      if (!designImageUrl) {
-        return next(new ErrorHandler("Design image not found", 404));
-      }
+      // Get seller info
+      const seller = await Shop.findById(orderItem.shopId).select('name email');
 
-      // Return the properly structured design data
-      res.status(200).json({
-        success: true,
-        designData: {
-          imageUrl: designImageUrl,
-          orderId: order._id,
-          itemId: orderItem._id,
-          specs: {
-            order: {
-              orderId: order._id,
-              orderDate: order.createdAt,
-              quantity: orderItem.qty || 1,
-              price: orderItem.price
-            },
-            product: {
-              title: orderItem.DesignTitle || 'Untitled',
-              type: orderItem.ProductType,
-              color: orderItem.ProductColor || 'N/A',
-              size: orderItem.size || 'N/A'
-            },
-            design: {
-              position: orderItem.designSpecs || { positionX: 50, positionY: 40 },
-              scale: orderItem.designSpecs?.scale || 1
-            }
+      const designData = {
+        imageUrl: orderItem.designImage?.url || orderItem.designImage,
+        orderId: order._id,
+        itemId: orderItem._id,
+        specs: {
+          order: {
+            orderId: order._id,
+            orderDate: order.createdAt,
+            quantity: orderItem.qty || 1,
+            price: orderItem.price
+          },
+          product: {
+            title: orderItem.DesignTitle || 'Untitled',
+            type: orderItem.ProductType || 'Hoodie',
+            color: orderItem.ProductColor || 'N/A',
+            size: orderItem.size || 'N/A'
+          },
+          design: {
+            position: orderItem.designSpecs || { x: 50, y: 40 },
+            scale: orderItem.designSpecs?.scale || 1
+          },
+          seller: {
+            name: seller?.name || 'Unknown',
+            email: seller?.email || 'N/A'
+          },
+          customer: {
+            name: order.user?.name || 'Anonymous',
+            email: order.user?.email || 'N/A'
           }
         }
+      };
+
+      res.status(200).json({
+        success: true,
+        designData
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
+
+
 router.put(
   '/admin/update-status/:id',
   isAuthenticated,

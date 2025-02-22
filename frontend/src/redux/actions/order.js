@@ -197,15 +197,15 @@ export const adminDownloadDesign = (orderId, itemId) => async (dispatch) => {
       throw new Error('Failed to get design data');
     }
 
-    // Process the download
     await DesignDownloader.downloadSingleDesign(data.designData);
 
     dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_SUCCESS });
     return true;
   } catch (error) {
+    console.error('Download error:', error);
     dispatch({
       type: ORDER_ACTIONS.DOWNLOAD_DESIGN_FAIL,
-      payload: error.response?.data?.message || "Download failed"
+      payload: error.response?.data?.message || error.message
     });
     throw error;
   }

@@ -26,13 +26,38 @@ const AdminOrderDetails = () => {
 
   const handleDownloadDesign = async (item) => {
     try {
-      await DesignDownloader.downloadSingleDesign(item);
+      const designData = {
+        imageUrl: item.designImage?.url || item.designImage,
+        orderId: order._id,
+        itemId: item._id,
+        specs: {
+          order: {
+            orderId: order._id,
+            orderDate: order.createdAt,
+            quantity: item.qty || 1,
+            price: item.price
+          },
+          product: {
+            title: item.DesignTitle || 'Untitled',
+            type: item.ProductType || 'Hoodie',
+            color: item.ProductColor || 'N/A',
+            size: item.size || 'N/A'
+          },
+          design: {
+            position: item.designSpecs || { x: 50, y: 40 },
+            scale: item.designSpecs?.scale || 1
+          }
+        }
+      };
+  
+      await DesignDownloader.downloadSingleDesign(designData);
       toast.success("Design downloaded successfully");
     } catch (error) {
       console.error("Download error:", error);
-      toast.error("Failed to download design");
+      toast.error(error.message || "Failed to download design");
     }
   };
+  
 
   const handleDownloadAllDesigns = async () => {
     try {
@@ -41,10 +66,9 @@ const AdminOrderDetails = () => {
       toast.success("All designs downloaded successfully");
     } catch (error) {
       console.error("Download error:", error);
-      toast.error("Failed to download designs");
+      toast.error(error.message || "Failed to download designs");
     }
   };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
