@@ -1,21 +1,19 @@
+// redux/actions/seller.js
 import axios from "axios";
-import { server  } from "../../server";
+import { server } from "../../server";
 import { toast } from "react-toastify";
+
+// Get all sellers (admin)
 export const getAllSellers = () => async (dispatch) => {
   try {
     dispatch({ type: "getAllSellersRequest" });
 
-    const config = {
+    const { data } = await axios.get(`${server}/shop/admin-all-sellers`, {
+      withCredentials: true,
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-      withCredentials: true,
-    };
-
-    const { data } = await axios.get(
-      `${server}/shop/admin-all-sellers`,
-      config
-    );
+      }
+    });
 
     dispatch({
       type: "getAllSellersSuccess",
@@ -32,54 +30,93 @@ export const getAllSellers = () => async (dispatch) => {
   }
 };
 
-
-export const loginSeller = (email, password) => async (dispatch) => {
+// Load seller
+export const loadSeller = () => async (dispatch) => {
   try {
-    dispatch({ type: "SellerLoginRequest" });
+    dispatch({ type: "LoadSellerRequest" });
 
-    const { data } = await axios.post(`${server}/shop/login-shop`, {
-      email,
-      password
-    }, {
+    const seller_token = localStorage.getItem("seller_token");
+    if (!seller_token) {
+      throw new Error("No seller token found");
+    }
+
+    const { data } = await axios.get(`${server}/shop/getSeller`, {
       withCredentials: true,
       headers: {
-        'Content-Type': 'application/json'
+        "Seller-Authorization": `Bearer ${seller_token}`
       }
     });
 
-    if (data.success && data.token) {
-      localStorage.setItem('seller_token', data.token);
-      
-      // Set the token in headers for future requests
-      axios.defaults.headers.common['Seller-Authorization'] = `Bearer ${data.token}`;
-    }
-
-    dispatch({ 
-      type: "SellerLoginSuccess",
-      payload: data.seller
+    dispatch({
+      type: "LoadSellerSuccess",
+      payload: data.seller,
     });
   } catch (error) {
-    console.error('Seller login error:', error);
     dispatch({
-      type: "SellerLoginFail",
-      payload: error.response?.data?.message || "Login failed"
+      type: "LoadSellerFail",
+      payload: error.response?.data?.message || "Failed to load seller",
     });
   }
 };
 
+// Seller login
+export const loginSeller = (email, password) => async (dispatch) => {
+  try {
+    dispatch({ type: "SellerLoginRequest" });
 
+    const { data } = await axios.post(
+      `${server}/shop/login-shop`,
+      { email, password },
+      {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (data.success && data.token) {
+      localStorage.setItem("seller_token", data.token);
+      axios.defaults.headers.common["Seller-Authorization"] = `Bearer ${data.token}`;
+      
+      toast.success("Login successful!");
+      
+      dispatch({
+        type: "SellerLoginSuccess",
+        payload: data.seller,
+      });
+    } else {
+      throw new Error("Invalid response from server");
+    }
+  } catch (error) {
+    toast.error(error.response?.data?.message || "Login failed");
+    dispatch({
+      type: "SellerLoginFail",
+      payload: error.response?.data?.message || "Login failed",
+    });
+  }
+};
+
+// Seller logout
 export const logoutSeller = () => async (dispatch) => {
   try {
-    localStorage.removeItem('seller_token');
-    delete axios.defaults.headers['Seller-Authorization'];
+    dispatch({ type: "SellerLogoutRequest" });
     
-    await axios.get(`${server}/shop/logout`);
+    await axios.get(`${server}/shop/logout`, {
+      withCredentials: true
+    });
+
+    localStorage.removeItem("seller_token");
+    delete axios.defaults.headers.common["Seller-Authorization"];
+    
+    toast.success("Logout successful!");
     
     dispatch({ type: "SellerLogoutSuccess" });
   } catch (error) {
+    toast.error(error.response?.data?.message || "Logout failed");
     dispatch({
       type: "SellerLogoutFail",
-      payload: error.response?.data?.message || "Logout failed"
+      payload: error.response?.data?.message || "Logout failed",
     });
   }
 };
