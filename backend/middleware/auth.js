@@ -37,30 +37,34 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
   try {
-    const token = req.cookies?.seller_token || 
-                 (req.headers["seller-authorization"]?.startsWith("Bearer") && 
-                  req.headers["seller-authorization"].split(" ")[1]);
+    // Check for seller token in cookies or header
+    const seller_token = req.cookies?.seller_token || 
+                        (req.headers["seller-authorization"]?.startsWith("Bearer") && 
+                         req.headers["seller-authorization"].split(" ")[1]);
 
-    if (!token) {
-      return next(new ErrorHandler("Please login as seller to continue", 401));
+    if (!seller_token) {
+      return next(new ErrorHandler("Please login as seller", 401));
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const seller = await Shop.findById(decoded.id)
-      .select("-password")
-      .select("-addresses")
-      .select("-phoneNumber");
+    // Verify token
+    const decoded = jwt.verify(seller_token, process.env.JWT_SECRET_KEY);
+
+    // Find seller
+    const seller = await Shop.findById(decoded.id);
 
     if (!seller) {
       return next(new ErrorHandler("Seller not found", 401));
     }
 
+    // Check if seller is active
     if (seller.status !== "Active") {
       return next(new ErrorHandler("Seller account is not active", 403));
     }
 
+    // Attach seller to request
     req.seller = seller;
     next();
+
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
       return next(new ErrorHandler("Invalid seller token", 401));
