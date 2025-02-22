@@ -3,45 +3,63 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import styles from "../../styles/styles";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { server , backend_url } from "../../server";
+import { server } from "../../server";
 import { toast } from "react-toastify";
+import { useSelector, useDispatch } from "react-redux";
+import { loginSeller } from "../../redux/actions/seller";
 
 const ShopLogin = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { isLoading, isSeller, error } = useSelector((state) => state.seller);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Check if already logged in
-    const sellerToken = localStorage.getItem('seller_token');
-    if (sellerToken) {
+    if (isSeller) {
       navigate('/dashboard');
     }
-  }, [navigate]);
+  }, [isSeller, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (!email || !password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
     try {
       const { data } = await axios.post(
         `${server}/shop/login-shop`,
         { email, password },
         { withCredentials: true }
       );
-  
+
       if (data.success) {
         localStorage.setItem('seller_token', data.token);
+        
+        // First set the token
         axios.defaults.headers.common['Seller-Authorization'] = `Bearer ${data.token}`;
-        toast.success("Seller login successful!");
-        navigate("/dashboard");
-        window.location.reload();
+        
+        // Then show success message
+        toast.success("Login successful!");
+        
+        // Finally navigate
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 100);
       }
     } catch (error) {
+      localStorage.removeItem('seller_token');
+      delete axios.defaults.headers.common['Seller-Authorization'];
       toast.error(error.response?.data?.message || "Login failed");
     }
   };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -130,12 +148,18 @@ const ShopLogin = () => {
             <div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isLoading}
                 className={`group relative w-full h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 ${
-                  loading ? 'opacity-50 cursor-not-allowed' : ''
+                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
-                {loading ? 'Logging in...' : 'Submit'}
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  </div>
+                ) : (
+                  'Submit'
+                )}
               </button>
             </div>
             <div className={`${styles.noramlFlex} w-full`}>

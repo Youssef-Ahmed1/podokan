@@ -37,7 +37,8 @@ export const loadSeller = () => async (dispatch) => {
 
     const seller_token = localStorage.getItem("seller_token");
     if (!seller_token) {
-      throw new Error("No seller token found");
+      dispatch({ type: "LoadSellerFail", payload: "No seller token found" });
+      return;
     }
 
     const { data } = await axios.get(`${server}/shop/getSeller`, {
@@ -47,20 +48,28 @@ export const loadSeller = () => async (dispatch) => {
       }
     });
 
-    dispatch({
-      type: "LoadSellerSuccess",
-      payload: data.seller,
-    });
+    if (data.success) {
+      dispatch({
+        type: "LoadSellerSuccess",
+        payload: data.seller,
+      });
+    } else {
+      throw new Error(data.message || "Failed to load seller");
+    }
   } catch (error) {
+    localStorage.removeItem("seller_token");
+    delete axios.defaults.headers.common["Seller-Authorization"];
+    
     dispatch({
       type: "LoadSellerFail",
-      payload: error.response?.data?.message || "Failed to load seller",
+      payload: error.response?.data?.message || error.message || "Failed to load seller",
     });
   }
 };
 
+
 // Seller login
-export const loginSeller = (email, password) => async (dispatch) => {
+export const loginSeller = (email, password, navigate) => async (dispatch) => {
   try {
     dispatch({ type: "SellerLoginRequest" });
 
@@ -77,18 +86,27 @@ export const loginSeller = (email, password) => async (dispatch) => {
 
     if (data.success && data.token) {
       localStorage.setItem("seller_token", data.token);
-      axios.defaults.headers.common["Seller-Authorization"] = `Bearer ${data.token}`;
       
-      toast.success("Login successful!");
-      
+      // First dispatch success
       dispatch({
         type: "SellerLoginSuccess",
         payload: data.seller,
       });
-    } else {
-      throw new Error("Invalid response from server");
+
+      // Then set headers
+      axios.defaults.headers.common["Seller-Authorization"] = `Bearer ${data.token}`;
+      
+      toast.success("Login successful!");
+
+      // Use setTimeout to prevent rapid navigation
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 100);
     }
   } catch (error) {
+    localStorage.removeItem("seller_token");
+    delete axios.defaults.headers.common["Seller-Authorization"];
+    
     toast.error(error.response?.data?.message || "Login failed");
     dispatch({
       type: "SellerLoginFail",
@@ -96,8 +114,6 @@ export const loginSeller = (email, password) => async (dispatch) => {
     });
   }
 };
-
-// Seller logout
 export const logoutSeller = () => async (dispatch) => {
   try {
     dispatch({ type: "SellerLogoutRequest" });
