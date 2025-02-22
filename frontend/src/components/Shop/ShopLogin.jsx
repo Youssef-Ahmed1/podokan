@@ -6,7 +6,7 @@ import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
 import { useSelector, useDispatch } from "react-redux";
-import { loginSeller } from "../../redux/actions/seller";
+import { loginSeller } from "../../redux/actions/sellers";
 
 const ShopLogin = () => {
   const navigate = useNavigate();
