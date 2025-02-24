@@ -1,5 +1,5 @@
 // routes/SellerProtectedRoute.js
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import React, { useEffect} from "react";
 // routes/SellerProtectedRoute.js
