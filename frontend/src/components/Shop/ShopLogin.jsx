@@ -1,4 +1,4 @@
-import { React, useEffect, useState } from "react";
+import { React, useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import styles from "../../styles/styles";
 import { Link, useNavigate } from "react-router-dom";
@@ -21,56 +21,45 @@ const ShopLogin = () => {
       setLoading(true);
 
       // First, attempt to login
-      const loginResponse = await axios.post(
+      const { data } = await axios.post(
         `${server}/shop/login-shop`,
         { email, password },
-        { withCredentials: true }
-      );
-
-      if (loginResponse.data.success) {
-        const token = loginResponse.data.token;
-        
-        // Store token
-        localStorage.setItem('seller_token', token);
-        
-        // Set authorization header
-        axios.defaults.headers.common["Seller-Authorization"] = `Bearer ${token}`;
-        
-        // Then verify seller status
-        try {
-          const sellerResponse = await axios.get(`${server}/shop/getSeller`, {
-            headers: {
-              "Seller-Authorization": `Bearer ${token}`
-            }
-          });
-
-          if (sellerResponse.data.success) {
-            const seller = sellerResponse.data.seller;
-            
-            if (seller.status !== "Active") {
-              throw new Error("Your seller account is not active. Please contact support.");
-            }
-
-            toast.success("Login successful!");
-            navigate("/dashboard");
-          }
-        } catch (error) {
-          // Clean up if seller verification fails
-          localStorage.removeItem('seller_token');
-          delete axios.defaults.headers.common["Seller-Authorization"];
-          
-          if (error.response?.status === 403) {
-            toast.error("Your seller account is not active. Please contact support.");
-          } else {
-            toast.error(error.response?.data?.message || "Failed to verify seller status");
+        { 
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json"
           }
         }
+      );
+
+      if (data.success) {
+        // Store token
+        localStorage.setItem('seller_token', data.token);
+        
+        // Show success message
+        toast.success("Login successful!");
+
+        // Clear form
+        setEmail("");
+        setPassword("");
+        
+        // Navigate after a short delay
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 1000);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Login failed");
-      // Clean up on login error
+      // Clean up on error
       localStorage.removeItem('seller_token');
       delete axios.defaults.headers.common["Seller-Authorization"];
+      
+      if (error.response?.status === 403) {
+        toast.error("Your seller account is not active. Please contact support.");
+      } else if (error.response?.status === 401) {
+        toast.error("Invalid credentials");
+      } else {
+        toast.error(error.response?.data?.message || "Login failed");
+      }
     } finally {
       setLoading(false);
     }
