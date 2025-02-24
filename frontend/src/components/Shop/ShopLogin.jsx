@@ -13,63 +13,62 @@ const ShopLogin = () => {
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const sellerToken = localStorage.getItem('seller_token');
-    if (sellerToken) {
-      // Verify token validity before navigating
-      const verifySeller = async () => {
-        try {
-          const { data } = await axios.get(`${server}/shop/getSeller`, {
-            headers: {
-              "Seller-Authorization": `Bearer ${sellerToken}`
-            }
-          });
-          if (data.success) {
-            navigate('/dashboard');
-          }
-        } catch (error) {
-          localStorage.removeItem('seller_token');
-        }
-      };
-      verifySeller();
-    }
-  }, [navigate]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (loading) return; // Prevent multiple submissions
+    if (loading) return;
     
     try {
       setLoading(true);
 
-      const { data } = await axios.post(
+      // First, attempt to login
+      const loginResponse = await axios.post(
         `${server}/shop/login-shop`,
         { email, password },
         { withCredentials: true }
       );
 
-      if (data.success) {
-        // First store token
-        localStorage.setItem('seller_token', data.token);
+      if (loginResponse.data.success) {
+        const token = loginResponse.data.token;
         
-        // Then set headers
-        axios.defaults.headers.common["Seller-Authorization"] = `Bearer ${data.token}`;
+        // Store token
+        localStorage.setItem('seller_token', token);
         
-        // Show success message
-        toast.success("Login successful!");
+        // Set authorization header
+        axios.defaults.headers.common["Seller-Authorization"] = `Bearer ${token}`;
         
-        // Clear form
-        setEmail("");
-        setPassword("");
-        
-        // Finally navigate after a short delay
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 500);
+        // Then verify seller status
+        try {
+          const sellerResponse = await axios.get(`${server}/shop/getSeller`, {
+            headers: {
+              "Seller-Authorization": `Bearer ${token}`
+            }
+          });
+
+          if (sellerResponse.data.success) {
+            const seller = sellerResponse.data.seller;
+            
+            if (seller.status !== "Active") {
+              throw new Error("Your seller account is not active. Please contact support.");
+            }
+
+            toast.success("Login successful!");
+            navigate("/dashboard");
+          }
+        } catch (error) {
+          // Clean up if seller verification fails
+          localStorage.removeItem('seller_token');
+          delete axios.defaults.headers.common["Seller-Authorization"];
+          
+          if (error.response?.status === 403) {
+            toast.error("Your seller account is not active. Please contact support.");
+          } else {
+            toast.error(error.response?.data?.message || "Failed to verify seller status");
+          }
+        }
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Login failed");
-      // Clean up on error
+      // Clean up on login error
       localStorage.removeItem('seller_token');
       delete axios.defaults.headers.common["Seller-Authorization"];
     } finally {
