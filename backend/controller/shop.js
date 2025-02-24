@@ -110,36 +110,43 @@ router.post("/login-shop", catchAsyncErrors(async (req, res, next) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide email and password"
-      });
+      return next(new ErrorHandler("Please provide email and password", 400));
     }
 
     const shop = await Shop.findOne({ email }).select("+password");
 
-    if (!shop || !(await shop.comparePassword(password))) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials"
-      });
+    if (!shop) {
+      return next(new ErrorHandler("Invalid credentials", 401));
+    }
+
+    const isPasswordValid = await shop.comparePassword(password);
+    if (!isPasswordValid) {
+      return next(new ErrorHandler("Invalid credentials", 401));
+    }
+
+    if (shop.status !== "Active") {
+      return next(new ErrorHandler("Your seller account is not active", 403));
     }
 
     // Generate token
     const token = shop.getJwtToken();
 
-    // Define cookieOptions here before using it
+    // Clear any existing cookies
+    res.clearCookie('seller_token');
+
+    // Set cookie options
     const cookieOptions = {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       httpOnly: true,
       sameSite: 'none',
       secure: true,
-      domain: process.env.NODE_ENV === 'PRODUCTION' ? '.testpodokan.store' : undefined
     };
 
+    // Remove password from response
     const shopData = shop.toObject();
     delete shopData.password;
 
+    // Set cookie and send response
     res
       .status(200)
       .cookie("seller_token", token, cookieOptions)
@@ -149,15 +156,12 @@ router.post("/login-shop", catchAsyncErrors(async (req, res, next) => {
         seller: shopData,
         token
       });
+
   } catch (error) {
     console.error("Shop login error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Login failed"
-    });
+    return next(new ErrorHandler(error.message, 500));
   }
 }));
-
 
 
 router.get("/getSeller", isSeller, async (req, res) => {

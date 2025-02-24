@@ -49,8 +49,8 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(seller_token, process.env.JWT_SECRET_KEY);
 
-    // Find seller
-    const seller = await Shop.findById(decoded.id);
+    // Find seller and exclude password
+    const seller = await Shop.findById(decoded.id).select('-password');
 
     if (!seller) {
       return next(new ErrorHandler("Seller not found", 401));
@@ -66,6 +66,7 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
     next();
 
   } catch (error) {
+    console.error("Seller auth error:", error);
     if (error.name === "JsonWebTokenError") {
       return next(new ErrorHandler("Invalid seller token", 401));
     }

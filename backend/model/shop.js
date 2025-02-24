@@ -11,6 +11,11 @@ const shopSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please enter your shop email address"],
   },
+  status: {
+    type: String,
+    enum: ['Pending', 'Active', 'Inactive'],
+    default: 'Active'
+  },
   password: {
     type: String,
     required: [true, "Please enter your password"],

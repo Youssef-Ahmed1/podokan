@@ -13,58 +13,53 @@ const ShopLogin = () => {
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (loading) return;
+  // components/Shop/ShopLogin.jsx
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (loading) return;
     
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      // First, attempt to login
-      const { data } = await axios.post(
-        `${server}/shop/login-shop`,
-        { email, password },
-        { 
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json"
-          }
+    const { data } = await axios.post(
+      `${server}/shop/login-shop`,
+      { email, password },
+      { 
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
         }
-      );
-
-      if (data.success) {
-        // Store token
-        localStorage.setItem('seller_token', data.token);
-        
-        // Show success message
-        toast.success("Login successful!");
-
-        // Clear form
-        setEmail("");
-        setPassword("");
-        
-        // Navigate after a short delay
-        setTimeout(() => {
-          window.location.href = "/dashboard";
-        }, 1000);
       }
-    } catch (error) {
-      // Clean up on error
-      localStorage.removeItem('seller_token');
-      delete axios.defaults.headers.common["Seller-Authorization"];
+    );
+
+    if (data.success) {
+      // Store token
+      localStorage.setItem('seller_token', data.token);
       
-      if (error.response?.status === 403) {
-        toast.error("Your seller account is not active. Please contact support.");
-      } else if (error.response?.status === 401) {
-        toast.error("Invalid credentials");
-      } else {
-        toast.error(error.response?.data?.message || "Login failed");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+      // Set axios default header
+      axios.defaults.headers.common['Seller-Authorization'] = `Bearer ${data.token}`;
+      
+      // Show success message
+      toast.success("Login successful!");
 
+      // Navigate after a delay
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 500);
+    }
+  } catch (error) {
+    const message = error.response?.data?.message || 
+                   (error.response?.status === 403 ? "Your seller account is not active" : "Login failed");
+    toast.error(message);
+    
+    // Clean up on error
+    localStorage.removeItem('seller_token');
+    delete axios.defaults.headers.common['Seller-Authorization'];
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">

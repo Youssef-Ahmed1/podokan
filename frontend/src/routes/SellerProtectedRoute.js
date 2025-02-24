@@ -1,10 +1,19 @@
 // routes/SellerProtectedRoute.js
 import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-
+import React, { useEffect} from "react";
+// routes/SellerProtectedRoute.js
 const SellerProtectedRoute = ({ children }) => {
-  const { isSeller, isLoading } = useSelector((state) => state.seller);
-  const { seller } = useSelector((state) => state.seller);
+  const { isSeller, isLoading, seller } = useSelector((state) => state.seller);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check token on mount
+    const token = localStorage.getItem('seller_token');
+    if (!token && !isLoading) {
+      navigate('/shop-login');
+    }
+  }, [isLoading, navigate]);
 
   if (isLoading) {
     return (
@@ -18,8 +27,7 @@ const SellerProtectedRoute = ({ children }) => {
     return <Navigate to="/shop-login" replace />;
   }
 
-  // Additional check for seller status
-  if (seller && seller.status !== "Active") {
+  if (seller?.status !== "Active") {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
