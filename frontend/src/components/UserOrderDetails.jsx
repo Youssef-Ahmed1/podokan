@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { Package, Truck, CreditCard } from "lucide-react";
 import { getAllOrdersOfUser } from "../redux/actions/order";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 
 const UserOrderDetails = () => {
   const {
@@ -110,13 +110,18 @@ const UserOrderDetails = () => {
     );
   }
 
-  // Calculate order totals
+  // Calculate order totals with explicit shipping cost
   const subtotal = currentOrder.cart.reduce(
     (total, item) => total + item.price * (item.qty || 1),
     0
   );
 
-  const shippingCost = currentOrder.shippingAddress?.shippingPrice || 0;
+  // Use stored shipping cost or default to 50
+  const shippingCost =
+    currentOrder.shippingCost ||
+    currentOrder.shippingAddress?.shippingPrice ||
+    50;
+
   const total = currentOrder.totalPrice || subtotal + shippingCost;
 
   // Render order details
@@ -198,11 +203,21 @@ const UserOrderDetails = () => {
                   </div>
                   <div>
                     <p className="text-gray-600">Size:</p>
-                    <p className="font-medium">{item.size || "N/A"}</p>
+                    <p className="font-medium">
+                      {item.size &&
+                      item.size !== "One Size" &&
+                      item.size !== "Default"
+                        ? item.size
+                        : "N/A"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-gray-600">Color:</p>
-                    <p className="font-medium">{item.ProductColor || "N/A"}</p>
+                    <p className="font-medium">
+                      {item.ProductColor && item.ProductColor !== "Default"
+                        ? item.ProductColor
+                        : "N/A"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-gray-600">Quantity:</p>

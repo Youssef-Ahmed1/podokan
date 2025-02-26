@@ -13,11 +13,14 @@ const orderCache = new NodeCache({ stdTTL: 600 });
 
 // create new order
 router.post(
-  '/create-order',
+  "/create-order",
   isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { cart, shippingAddress, user, totalPrice, paymentInfo } = req.body;
+
+      // Ensure shipping price is captured explicitly
+      const shippingCost = shippingAddress.shippingPrice || 50; // Default to 50 if not provided
 
       const shopItemsMap = new Map();
 
@@ -32,11 +35,21 @@ router.post(
       const orders = [];
 
       for (const [shopId, items] of shopItemsMap) {
+        const subtotal = items.reduce(
+          (total, item) => total + item.price * item.qty,
+          0
+        );
+
         const order = await Order.create({
           cart: items,
-          shippingAddress,
+          shippingAddress: {
+            ...shippingAddress,
+            shippingPrice: shippingCost,
+          },
           user,
-          totalPrice: items.reduce((total, item) => total + item.price * item.qty, 0),
+          subtotal: subtotal,
+          shippingCost: shippingCost,
+          totalPrice: subtotal + shippingCost,
           paymentInfo,
           status: "Processing",
           createdAt: Date.now(),
@@ -54,47 +67,46 @@ router.post(
   })
 );
 
-
 // get all orders of user
 router.get(
-  '/get-user-orders',
+  "/get-user-orders",
   isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
       // Add logging to debug
-      console.log('Fetching orders for user:', req.user._id);
+      console.log("Fetching orders for user:", req.user._id);
 
-      const orders = await Order.find({ 
-        "user._id": req.user._id.toString() 
+      const orders = await Order.find({
+        "user._id": req.user._id.toString(),
       }).sort({ createdAt: -1 });
 
-      console.log('Found orders:', orders.length);
+      console.log("Found orders:", orders.length);
 
       res.status(200).json({
         success: true,
         orders,
       });
     } catch (error) {
-      console.error('Error in get-user-orders:', error);
+      console.error("Error in get-user-orders:", error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
 router.get(
-  '/admin/order/:id',
+  "/admin/order/:id",
   isAuthenticated,
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const order = await Order.findById(req.params.id);
-      
+
       if (!order) {
         return next(new ErrorHandler("Order not found", 404));
       }
 
       res.status(200).json({
         success: true,
-        order
+        order,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -123,6 +135,10 @@ router.get(
         return next(new ErrorHandler("Order item not found", 404));
       }
 
+      // Explicitly define shipping cost - ensure a default of 50 if not stored
+      const shippingCost =
+        order.shippingCost || order.shippingAddress?.shippingPrice || 50;
+
       // Get seller info with better error handling
       let sellerInfo = { name: "Unknown", email: "N/A" };
       try {
@@ -137,14 +153,18 @@ router.get(
         console.error("Error fetching seller info:", sellerError);
       }
 
-      // Calculate shipping cost and detailed pricing
+      // Calculate item price and totals
       const itemPrice = orderItem.price || 0;
       const itemQty = orderItem.qty || 1;
       const subtotal = itemPrice * itemQty;
-
-      // Extract shipping cost from total if available
-      const shippingCost = order.shippingAddress?.shippingPrice || 0;
       const totalWithShipping = subtotal + shippingCost;
+
+      // Use actual product details, not default values
+      const productColor =
+        orderItem.ProductColor !== "Default" ? orderItem.ProductColor : "N/A";
+
+      const productSize =
+        orderItem.size !== "One Size" ? orderItem.size : "N/A";
 
       const designData = {
         imageUrl: orderItem.designImage?.url || orderItem.designImage,
@@ -168,8 +188,8 @@ router.get(
           product: {
             title: orderItem.DesignTitle || "Untitled",
             type: orderItem.ProductType || "N/A",
-            color: orderItem.ProductColor || "N/A",
-            size: orderItem.size || "N/A",
+            color: productColor,
+            size: productSize,
           },
           design: {
             position: {
@@ -198,6 +218,19 @@ router.get(
         },
       };
 
+      // Check if user has permission to download (admin or customer only)
+      const isAdmin = req.user.role === "Admin";
+      const isCustomer = order.user._id.toString() === req.user._id.toString();
+
+      if (!isAdmin && !isCustomer) {
+        return next(
+          new ErrorHandler(
+            "You don't have permission to download this design",
+            403
+          )
+        );
+      }
+
       res.status(200).json({
         success: true,
         designData,
@@ -208,19 +241,19 @@ router.get(
   })
 );
 router.put(
-  '/admin/update-status/:id',
+  "/admin/update-status/:id",
   isAuthenticated,
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const order = await Order.findById(req.params.id);
-      
+
       if (!order) {
         return next(new ErrorHandler("Order not found", 404));
       }
 
       order.status = req.body.status;
-      
+
       if (req.body.status === "Delivered") {
         order.deliveredAt = Date.now();
         order.paymentInfo.status = "Succeeded";
@@ -230,7 +263,7 @@ router.put(
 
       res.status(200).json({
         success: true,
-        order
+        order,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -239,37 +272,60 @@ router.put(
 );
 // get all seller orders
 router.get(
-  '/get-seller-orders',
+  "/get-seller-orders",
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      // First check if seller exists
-      if (!req.seller?._id) {
-        return next(new ErrorHandler("Seller not authenticated", 401));
+      // Ensure seller is authenticated
+      if (!req.seller || !req.seller._id) {
+        return next(new ErrorHandler("Seller authentication required", 401));
       }
 
-      console.log('Fetching orders for seller:', req.seller._id);
+      const sellerId = req.seller._id.toString();
+      console.log("Fetching orders for seller:", sellerId);
 
-      // Update the query to properly match seller orders
-      const orders = await Order.find({
-        "cart": {
-          $elemMatch: {
-            "shopId": req.seller._id.toString()
-          }
-        }
+      // First, try to find orders with direct shopId matches
+      let orders = await Order.find({
+        "cart.shopId": sellerId,
       }).sort({ createdAt: -1 });
 
-      console.log('Found seller orders:', orders.length);
+      // If no orders found, try with string comparison (in case of ObjectID vs string issues)
+      if (!orders || orders.length === 0) {
+        console.log("No direct matches, trying string comparison");
+        const allOrders = await Order.find().sort({ createdAt: -1 });
 
-      // Add detailed response
+        // Filter orders that have items from this seller
+        orders = allOrders.filter((order) => {
+          return order.cart.some((item) => {
+            const itemShopId = item.shopId?.toString?.() || item.shopId;
+            return itemShopId === sellerId;
+          });
+        });
+      }
+
+      // Process orders to include only items from this seller
+      const processedOrders = orders.map((order) => {
+        // Create a safe copy of the order
+        const orderObj = order.toObject();
+
+        // Filter cart items to only include this seller's items
+        orderObj.cart = orderObj.cart.filter((item) => {
+          const itemShopId = item.shopId?.toString?.() || item.shopId;
+          return itemShopId === sellerId;
+        });
+
+        return orderObj;
+      });
+
+      console.log(`Found ${processedOrders.length} orders for seller`);
+
       res.status(200).json({
         success: true,
-        orders,
-        count: orders.length,
-        message: `Successfully retrieved ${orders.length} orders for seller`
+        orders: processedOrders,
+        count: processedOrders.length,
       });
     } catch (error) {
-      console.error('Error in get-seller-orders:', error);
+      console.error("Error in get-seller-orders:", error);
       return next(new ErrorHandler(error.message, 500));
     }
   })

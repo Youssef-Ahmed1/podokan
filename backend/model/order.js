@@ -39,13 +39,11 @@ const orderSchema = new mongoose.Schema({
       },
       ProductColor: {
         type: String,
-        required: true,
-        default: "Default",
+        default: null, // Changed from 'Default' to null
       },
       size: {
         type: String,
-        required: true,
-        default: "One Size",
+        default: null, // Changed from 'One Size' to null
       },
       designSpecs: {
         positionX: {
@@ -78,33 +76,25 @@ const orderSchema = new mongoose.Schema({
   shippingAddress: {
     type: Object,
     required: true,
-    default: {},
-    shippingPrice: {
-      type: Number,
-      default: 0,
-    },
+  },
+  // Add explicit shipping price field to store this separately
+  shippingCost: {
+    type: Number,
+    default: 50, // Default shipping cost is 50
   },
   user: {
     type: Object,
     required: true,
   },
-  totalPrice: {
+  // Subtotal (just the items, no shipping)
+  subtotal: {
     type: Number,
     required: true,
   },
-  // Add a separate field for subtotal (excluding shipping)
-  subtotal: {
+  // Total price (includes shipping)
+  totalPrice: {
     type: Number,
-    default: function () {
-      return this.cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-    },
-  },
-  // Add a separate field for shipping cost
-  shippingCost: {
-    type: Number,
-    default: function () {
-      return this.shippingAddress?.shippingPrice || 0;
-    },
+    required: true,
   },
   status: {
     type: String,
@@ -229,20 +219,50 @@ orderSchema.index({ status: 1 });
 orderSchema.index({ "deliveryInfo.trackingNumber": 1 });
 
 // Methods
-orderSchema.methods.updateStatus = function(newStatus, updatedBy, details = '') {
+orderSchema.methods.updateStatus = function (
+  newStatus,
+  updatedBy,
+  details = ""
+) {
   this.status = newStatus;
   this.statusHistory.push({
     status: newStatus,
     updatedBy,
     timestamp: new Date(),
-    details
+    details,
   });
 
   if (newStatus === "Delivered") {
     this.deliveredAt = new Date();
   }
 };
+orderSchema.methods.getFormattedDetails = function () {
+  // Calculate subtotal from items
+  const subtotal = this.cart.reduce((total, item) => {
+    return total + item.price * (item.qty || 1);
+  }, 0);
 
+  // Use stored shipping cost or default to 50
+  const shippingCost = this.shippingCost || 50;
+
+  return {
+    subtotal: subtotal,
+    shippingCost: shippingCost,
+    total: subtotal + shippingCost,
+    items: this.cart.map((item) => ({
+      id: item._id,
+      title: item.DesignTitle || "Untitled Design",
+      type: item.ProductType || "N/A",
+      color: item.ProductColor || "N/A",
+      size: item.size || "N/A",
+      quantity: item.qty || 1,
+      price: item.price || 0,
+      total: (item.price || 0) * (item.qty || 1),
+      designImage: item.designImage?.url || item.designImage || null,
+      mockupImage: item.mockupImage?.url || item.mockupImage || null,
+    })),
+  };
+};
 orderSchema.methods.updateDeliveryStatus = function(status, location, notes) {
   this.deliveryInfo = {
     ...this.deliveryInfo,

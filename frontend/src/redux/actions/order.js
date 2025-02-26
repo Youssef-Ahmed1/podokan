@@ -111,46 +111,87 @@ export const getShopOrders = () => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.GET_SHOP_REQUEST });
 
+    // Get seller token from localStorage
+    const token = localStorage.getItem("seller_token");
+
+    if (!token) {
+      throw new Error("Seller authentication required");
+    }
+
     const { data } = await axios.get(`${server}/order/get-seller-orders`, {
       withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     console.log("Shop orders response:", data); // Debug log
 
+    if (!data.success) {
+      throw new Error(data.message || "Failed to fetch shop orders");
+    }
+
     dispatch({
       type: ORDER_ACTIONS.GET_SHOP_SUCCESS,
-      payload: data.orders || [] // Ensure we always have an array
+      payload: data.orders || [], // Ensure we always have an array
     });
+
+    return data;
   } catch (error) {
     console.error("Error fetching shop orders:", error); // Debug log
     dispatch({
       type: ORDER_ACTIONS.GET_SHOP_FAIL,
-      payload: error.response?.data?.message || "Failed to fetch shop orders"
+      payload:
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch shop orders",
     });
+
+    throw error;
   }
 };
+
 // Get all orders for admin
 export const getAllOrdersOfShop = () => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.GET_SHOP_REQUEST });
 
+    // Get seller token from localStorage
+    const token = localStorage.getItem("seller_token");
+
+    if (!token) {
+      throw new Error("Seller authentication required");
+    }
+
     const { data } = await axios.get(`${server}/order/get-seller-orders`, {
       withCredentials: true,
       headers: {
-        "Authorization": `Bearer ${localStorage.getItem("seller_token")}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
+
+    console.log("getAllOrdersOfShop response:", data); // Debug log
+
+    if (!data.success) {
+      throw new Error(data.message || "Failed to fetch shop orders");
+    }
 
     dispatch({
       type: ORDER_ACTIONS.GET_SHOP_SUCCESS,
-      payload: data.orders
+      payload: data.orders || [], // Ensure we always have an array
     });
+
     return data;
   } catch (error) {
+    console.error("Error in getAllOrdersOfShop:", error); // Debug log
     dispatch({
       type: ORDER_ACTIONS.GET_SHOP_FAIL,
-      payload: error.response?.data?.message || "Failed to fetch shop orders"
+      payload:
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch shop orders",
     });
+
     throw error;
   }
 };
