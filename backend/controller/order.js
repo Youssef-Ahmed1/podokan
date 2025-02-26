@@ -8,7 +8,8 @@ const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const { ORDER_STATUSES } = require('../constants/orderStatuses');
 const NodeCache = require('node-cache');
 const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
-
+const DesignProcessor = require("../utils/designProcessor");
+const fs = require("fs");
 const orderCache = new NodeCache({ stdTTL: 600 });
 
 // create new order
@@ -217,6 +218,49 @@ router.get(
           },
         },
       };
+      router.get(
+        "/generate-mockup/:orderId/:itemId",
+        isAuthenticated,
+        catchAsyncErrors(async (req, res, next) => {
+          try {
+            const order = await Order.findById(req.params.orderId);
+
+            if (!order) {
+              return next(new ErrorHandler("Order not found", 404));
+            }
+
+            const orderItem = order.cart.find(
+              (item) => item._id.toString() === req.params.itemId
+            );
+
+            if (!orderItem) {
+              return next(new ErrorHandler("Order item not found", 404));
+            }
+
+            // Create mockup using server-side processing
+            const mockupPath = await DesignProcessor.processOrderItem(
+              orderItem
+            );
+
+            // Stream the file to the client
+            res.setHeader("Content-Type", "image/png");
+            res.setHeader(
+              "Content-Disposition",
+              `attachment; filename="mockup_${req.params.itemId}.png"`
+            );
+
+            const fileStream = fs.createReadStream(mockupPath);
+            fileStream.pipe(res);
+
+            // Cleanup file after streaming
+            fileStream.on("end", () => {
+              fs.unlinkSync(mockupPath);
+            });
+          } catch (error) {
+            return next(new ErrorHandler(error.message, 500));
+          }
+        })
+      );
 
       // Check if user has permission to download (admin or customer only)
       const isAdmin = req.user.role === "Admin";
@@ -331,17 +375,17 @@ router.get(
   })
 );
 router.get(
-  '/get-seller-order/:id',
+  "/get-seller-order/:id",
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const order = await Order.findOne({
         _id: req.params.id,
-        "cart": {
+        cart: {
           $elemMatch: {
-            "shopId": req.seller._id.toString()
-          }
-        }
+            shopId: req.seller._id.toString(),
+          },
+        },
       });
 
       if (!order) {
@@ -350,7 +394,7 @@ router.get(
 
       res.status(200).json({
         success: true,
-        order
+        order,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -359,19 +403,19 @@ router.get(
 );
 // update order status for seller
 router.put(
-  '/update-status/:id', 
+  "/update-status/:id",
   isAuthenticated,
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const order = await Order.findById(req.params.id);
-      
+
       if (!order) {
         return next(new ErrorHandler("Order not found", 404));
       }
 
       order.status = req.body.status;
-      
+
       if (req.body.status === "Delivered") {
         order.deliveredAt = Date.now();
         order.paymentInfo.status = "Succeeded";
@@ -380,14 +424,14 @@ router.put(
       order.statusHistory.push({
         status: req.body.status,
         updatedBy: req.user._id,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
 
       await order.save({ validateBeforeSave: false });
 
       res.status(200).json({
         success: true,
-        order
+        order,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -395,11 +439,10 @@ router.put(
   })
 );
 
-
 // request refund -- user
 router.put(
-  '/request-refund/:id', 
-  isAuthenticated, 
+  "/request-refund/:id",
+  isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const order = await Order.findById(req.params.id);
@@ -412,7 +455,7 @@ router.put(
       order.statusHistory.push({
         status: req.body.status,
         updatedBy: req.user._id,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
 
       await order.save({ validateBeforeSave: false });
@@ -430,8 +473,8 @@ router.put(
 
 // accept refund -- seller
 router.put(
-  '/accept-refund/:id', 
-  isSeller, 
+  "/accept-refund/:id",
+  isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const order = await Order.findById(req.params.id);
@@ -444,7 +487,7 @@ router.put(
       order.statusHistory.push({
         status: req.body.status,
         updatedBy: req.seller._id,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
 
       await order.save({ validateBeforeSave: false });
@@ -467,7 +510,7 @@ router.put(
 
 // get all orders -- admin
 router.get(
-  '/admin/all-orders',
+  "/admin/all-orders",
   isAuthenticated,
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
@@ -475,7 +518,7 @@ router.get(
       const orders = await Order.find().sort({
         createdAt: -1,
       });
-      
+
       res.status(200).json({
         success: true,
         orders,
@@ -486,10 +529,9 @@ router.get(
   })
 );
 
-
 // get single order
 router.get(
-  '/get-order/:id',
+  "/get-order/:id",
   catchAsyncErrors(async (req, res, next) => {
     try {
       const order = await Order.findById(req.params.id);
@@ -520,8 +562,8 @@ async function updateOrder(id, qty) {
 
 // delete order -- admin
 router.delete(
-  '/admin/delete/:id', 
-  isAdmin, 
+  "/admin/delete/:id",
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const order = await Order.findById(req.params.id);
@@ -641,42 +683,171 @@ router.get(
 );
 // download design files
 router.get(
-  '/download-design/:id/:itemId', 
-  isSeller, 
+  "/download-design/:orderId/:itemId",
+  isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const order = await Order.findById(req.params.id);
-      
+      const order = await Order.findById(req.params.orderId)
+        .populate("user", "name email")
+        .populate("cart.shopId", "name email");
+
       if (!order) {
         return next(new ErrorHandler("Order not found", 404));
       }
 
-      const cartItem = order.cart.find(item => item._id.toString() === req.params.itemId);
-      
-      if (!cartItem) {
-        return next(new ErrorHandler("Design not found in order", 404));
+      // Find the specific item in the order
+      const orderItem = order.cart.find(
+        (item) => item._id.toString() === req.params.itemId
+      );
+
+      if (!orderItem) {
+        return next(new ErrorHandler("Order item not found", 404));
       }
 
-      if (!cartItem.designImage || !cartItem.designImage.url) {
-        return next(new ErrorHandler("Design image not available", 404));
+      // Extract exact shipping cost from the order
+      const shippingCost = order.totalPrice - order.subtotal || 0;
+
+      // Get seller info
+      let sellerInfo = { name: "Unknown", email: "N/A" };
+      try {
+        if (orderItem.shopId) {
+          const shopId =
+            typeof orderItem.shopId === "object"
+              ? orderItem.shopId._id
+              : orderItem.shopId;
+
+          const seller = await Shop.findById(shopId);
+          if (seller) {
+            sellerInfo = {
+              name: seller.name || "Unknown",
+              email: seller.email || "N/A",
+            };
+          }
+        }
+      } catch (sellerError) {
+        console.error("Error fetching seller info:", sellerError);
       }
 
-      const response = await axios({
-        url: cartItem.designImage.url,
-        method: 'GET',
-        responseType: 'stream'
+      // Extract exact item details
+      const itemPrice = orderItem.price || 0;
+      const itemQty = orderItem.qty || 1;
+      const subtotal = itemPrice * itemQty;
+
+      // Get exact design specs
+      const designSpecs = {
+        positionX: orderItem.designSpecs?.positionX || 50,
+        positionY: orderItem.designSpecs?.positionY || 50,
+        scale: orderItem.designSpecs?.scale || 1,
+        rotation: orderItem.designSpecs?.rotation || 0,
+      };
+
+      // Get exact product details
+      const productColor = orderItem.ProductColor || "N/A";
+      const productSize = orderItem.size || "N/A";
+      const productType = orderItem.ProductType || "Hoodie";
+
+      const designData = {
+        imageUrl: orderItem.designImage?.url || orderItem.designImage,
+        mockupUrl: orderItem.mockupImage?.url || null,
+        orderId: order._id,
+        itemId: orderItem._id,
+        specs: {
+          order: {
+            orderId: order._id,
+            orderDate: order.createdAt,
+            quantity: itemQty,
+            price: {
+              itemPrice: itemPrice,
+              subtotal: subtotal,
+              shippingCost: shippingCost,
+              total: order.totalPrice || subtotal + shippingCost,
+            },
+            paymentMethod: order.paymentInfo?.type || "N/A",
+            paymentStatus: order.paymentInfo?.status || "N/A",
+          },
+          product: {
+            title: orderItem.DesignTitle || "Untitled",
+            type: productType,
+            color: productColor,
+            size: productSize,
+          },
+          design: {
+            position: designSpecs,
+          },
+          seller: sellerInfo,
+          customer: {
+            name: order.user?.name || "Anonymous",
+            email: order.user?.email || "N/A",
+            address: order.shippingAddress?.address1 || "N/A",
+            city: order.shippingAddress?.city || "N/A",
+            country: order.shippingAddress?.country || "N/A",
+          },
+          shipping: {
+            address: order.shippingAddress?.address1 || "N/A",
+            city: order.shippingAddress?.city || "N/A",
+            country: order.shippingAddress?.country || "N/A",
+            postalCode: order.shippingAddress?.postalCode || "N/A",
+            shippingPrice: shippingCost,
+          },
+        },
+      };
+
+      res.status(200).json({
+        success: true,
+        designData,
       });
-
-      res.setHeader('Content-Type', 'image/png');
-      res.setHeader('Content-Disposition', `attachment; filename=design-${order._id}-${cartItem._id}.png`);
-
-      response.data.pipe(res);
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
 
+router.put(
+  "/update-item-details/:orderId/:itemId",
+  isAuthenticated,
+  isAdmin,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { orderId, itemId } = req.params;
+      const { ProductColor, size } = req.body;
+
+      const order = await Order.findById(orderId);
+
+      if (!order) {
+        return next(new ErrorHandler("Order not found", 404));
+      }
+
+      // Find the item in the cart
+      const itemIndex = order.cart.findIndex(
+        (item) => item._id.toString() === itemId
+      );
+
+      if (itemIndex === -1) {
+        return next(new ErrorHandler("Order item not found", 404));
+      }
+
+      // Update the item details
+      if (ProductColor !== undefined) {
+        order.cart[itemIndex].ProductColor = ProductColor;
+      }
+
+      if (size !== undefined) {
+        order.cart[itemIndex].size = size;
+      }
+
+      // Save the order
+      await order.save();
+
+      res.status(200).json({
+        success: true,
+        message: "Item details updated successfully",
+        order,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
 // assign delivery partner
 router.post(
   '/assign-delivery', 

@@ -1,14 +1,16 @@
-// AdminOrderDetails.jsx
+// AdminOrderDetails.jsx - Add function to update product details
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Download, Package, Truck, CreditCard } from "lucide-react";
+import { Download, Package, Truck, CreditCard, Edit, Save } from "lucide-react";
 import { toast } from "react-toastify";
+import axios from "axios";
 import {
   getAllOrdersOfAdmin,
   updateOrderStatus,
 } from "../../redux/actions/order";
 import { DesignDownloader } from "../../utils/designDownload";
+import { server } from "../../server";
 
 const AdminOrderDetails = () => {
   const { id } = useParams();
@@ -16,6 +18,11 @@ const AdminOrderDetails = () => {
   const { adminOrders, isLoading } = useSelector((state) => state.order);
   const [order, setOrder] = useState(null);
   const [statusUpdate, setStatusUpdate] = useState("");
+  const [editingItem, setEditingItem] = useState(null);
+  const [editValues, setEditValues] = useState({
+    color: "",
+    size: "",
+  });
 
   useEffect(() => {
     dispatch(getAllOrdersOfAdmin());
@@ -35,8 +42,9 @@ const AdminOrderDetails = () => {
     try {
       // Calculate shipping and totals for accurate download data
       const subtotal = item.price * (item.qty || 1);
-      const shippingCost = order.shippingAddress?.shippingPrice || 0;
+      const shippingCost = order.totalPrice - order.subtotal || 0;
 
+      // Create design data with exact positioning from item
       const designData = {
         imageUrl: item.designImage?.url || item.designImage,
         mockupUrl: item.mockupImage?.url || null,
@@ -51,7 +59,7 @@ const AdminOrderDetails = () => {
               itemPrice: item.price,
               subtotal: subtotal,
               shippingCost: shippingCost,
-              total: subtotal + shippingCost,
+              total: order.totalPrice,
             },
           },
           product: {
@@ -106,6 +114,64 @@ const AdminOrderDetails = () => {
     }
   };
 
+  const startEditingItem = (item) => {
+    setEditingItem(item._id);
+    setEditValues({
+      color: item.ProductColor || "",
+      size: item.size || "",
+    });
+  };
+
+  const saveItemDetails = async () => {
+    if (!editingItem) return;
+
+    try {
+      const response = await axios.put(
+        `${server}/order/update-item-details/${order._id}/${editingItem}`,
+        {
+          ProductColor: editValues.color,
+          size: editValues.size,
+        },
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Product details updated");
+
+        // Update local order state
+        setOrder((prevOrder) => {
+          const updatedCart = prevOrder.cart.map((item) => {
+            if (item._id === editingItem) {
+              return {
+                ...item,
+                ProductColor: editValues.color,
+                size: editValues.size,
+              };
+            }
+            return item;
+          });
+
+          return {
+            ...prevOrder,
+            cart: updatedCart,
+          };
+        });
+
+        setEditingItem(null);
+      } else {
+        throw new Error(response.data.message || "Failed to update details");
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to update product details");
+    }
+  };
+
   const handleDownloadAllDesigns = async () => {
     try {
       if (!order) throw new Error("Order not found");
@@ -134,12 +200,10 @@ const AdminOrderDetails = () => {
   }
 
   // Calculate order totals
-  const subtotal = order.cart.reduce(
-    (total, item) => total + item.price * (item.qty || 1),
-    0
-  );
-  const shippingCost = order.shippingAddress?.shippingPrice || 0;
-  const orderTotal = subtotal + shippingCost;
+  const subtotal =
+    order.subtotal ||
+    order.cart.reduce((total, item) => total + item.price * (item.qty || 1), 0);
+  const shippingCost = order.totalPrice - subtotal;
 
   return (
     <div className="p-6">
@@ -149,7 +213,7 @@ const AdminOrderDetails = () => {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-gray-800">
-                Order #{order._id}
+                Order #{order._id.slice(0, 8)}
               </h1>
               <p className="text-gray-600">
                 {new Date(order.createdAt).toLocaleString()}
@@ -208,40 +272,140 @@ const AdminOrderDetails = () => {
           <h2 className="text-xl font-semibold mb-4">Order Items</h2>
           <div className="space-y-4">
             {order.cart.map((item) => (
-              <div
-                key={item._id}
-                className="border rounded-lg p-4 flex justify-between items-center"
-              >
-                <div className="flex gap-4">
-                  {(item.designImage?.url || item.designImage) && (
-                    <img
-                      src={item.designImage?.url || item.designImage}
-                      alt="Design"
-                      className="w-24 h-24 object-cover rounded-lg"
-                    />
-                  )}
-                  <div>
-                    <h3 className="font-semibold">
-                      {item.DesignTitle || "Untitled Design"}
-                    </h3>
-                    <p className="text-gray-600">
-                      {item.ProductType || "N/A"}
-                      {item.size ? ` - ${item.size}` : ""}
-                      {item.ProductColor ? ` - ${item.ProductColor}` : ""}
-                    </p>
-                    <p className="text-gray-600">Quantity: {item.qty || 1}</p>
-                    <p className="font-medium">
-                      Price: EGP {(item.price || 0).toFixed(2)}
-                    </p>
+              <div key={item._id} className="border rounded-lg p-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="flex gap-4">
+                    {(item.designImage?.url || item.designImage) && (
+                      <img
+                        src={item.designImage?.url || item.designImage}
+                        alt="Design"
+                        className="w-24 h-24 object-cover rounded-lg"
+                      />
+                    )}
+                    <div>
+                      <h3 className="font-semibold">
+                        {item.DesignTitle || "Untitled Design"}
+                      </h3>
+
+                      {editingItem === item._id ? (
+                        <div className="mt-2 space-y-2">
+                          <div>
+                            <label className="block text-sm text-gray-600">
+                              Product Type
+                            </label>
+                            <p className="font-medium">
+                              {item.ProductType || "N/A"}
+                            </p>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm text-gray-600">
+                              Color
+                            </label>
+                            <input
+                              type="text"
+                              value={editValues.color}
+                              onChange={(e) =>
+                                setEditValues({
+                                  ...editValues,
+                                  color: e.target.value,
+                                })
+                              }
+                              className="p-1 border rounded w-full"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm text-gray-600">
+                              Size
+                            </label>
+                            <input
+                              type="text"
+                              value={editValues.size}
+                              onChange={(e) =>
+                                setEditValues({
+                                  ...editValues,
+                                  size: e.target.value,
+                                })
+                              }
+                              className="p-1 border rounded w-full"
+                            />
+                          </div>
+
+                          <div className="flex gap-2">
+                            <button
+                              onClick={saveItemDetails}
+                              className="px-3 py-1 bg-green-500 text-white rounded-lg flex items-center"
+                            >
+                              <Save size={16} className="mr-1" />
+                              Save
+                            </button>
+                            <button
+                              onClick={() => setEditingItem(null)}
+                              className="px-3 py-1 bg-gray-300 rounded-lg"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-gray-600">
+                            {item.ProductType || "N/A"}
+                            {item.size ? ` - ${item.size}` : " - N/A"}
+                            {item.ProductColor
+                              ? ` - ${item.ProductColor}`
+                              : " - N/A"}
+                          </p>
+                          <p className="text-gray-600">
+                            Quantity: {item.qty || 1}
+                          </p>
+                          <p className="font-medium">
+                            Price: EGP {(item.price || 0).toFixed(2)}
+                          </p>
+
+                          <button
+                            onClick={() => startEditingItem(item)}
+                            className="mt-2 flex items-center text-blue-500 text-sm"
+                          >
+                            <Edit size={14} className="mr-1" />
+                            Edit Details
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDownloadDesign(item)}
+                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap"
+                  >
+                    <Download size={16} />
+                    Download Design
+                  </button>
+                </div>
+
+                {/* Display design specs */}
+                <div className="mt-4 pt-4 border-t">
+                  <p className="text-sm text-gray-600 mb-2">Design Position:</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm bg-gray-50 p-2 rounded">
+                    <div>
+                      <span className="text-gray-500">X Position:</span>{" "}
+                      {item.designSpecs?.positionX || 50}%
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Y Position:</span>{" "}
+                      {item.designSpecs?.positionY || 50}%
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Scale:</span>{" "}
+                      {item.designSpecs?.scale || 1}x
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Rotation:</span>{" "}
+                      {item.designSpecs?.rotation || 0}°
+                    </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDownloadDesign(item)}
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
-                >
-                  <Download size={16} />
-                  Download Design
-                </button>
               </div>
             ))}
           </div>
@@ -335,7 +499,7 @@ const AdminOrderDetails = () => {
             </div>
             <div className="flex justify-between font-bold pt-2 border-t">
               <span>Total</span>
-              <span>EGP {orderTotal.toFixed(2)}</span>
+              <span>EGP {order.totalPrice.toFixed(2)}</span>
             </div>
           </div>
         </div>

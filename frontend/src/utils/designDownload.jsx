@@ -1,7 +1,7 @@
-// utils/designDownload.js
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import axios from "axios";
+import { server } from "../server";
 
 export class DesignDownloader {
   static async fetchImageAsBlob(imageUrl) {
@@ -39,6 +39,130 @@ export class DesignDownloader {
     return `${prefix}_${safeOrderId}_${safeItemId}`;
   }
 
+  static async generateProductMockup(
+    designImage,
+    productType,
+    productColor,
+    designPosition
+  ) {
+    try {
+      // Fetch design image first
+      const designBlob = await this.fetchImageAsBlob(designImage);
+      const imageUrl = URL.createObjectURL(designBlob);
+
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = async () => {
+          // Get the base product template based on product type and color
+          const baseProduct = await this.getProductTemplate(
+            productType,
+            productColor
+          );
+
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          // Set canvas size to match the base product
+          canvas.width = baseProduct.width;
+          canvas.height = baseProduct.height;
+
+          // Draw the base product
+          ctx.drawImage(baseProduct, 0, 0, canvas.width, canvas.height);
+
+          // Extract exact positioning details from the designPosition object
+          const positionX = designPosition?.positionX ?? 50; // percentage (0-100)
+          const positionY = designPosition?.positionY ?? 50; // percentage (0-100)
+          const scale = designPosition?.scale ?? 1; // multiplier
+          const rotation = designPosition?.rotation ?? 0; // degrees
+
+          // Calculate the actual position in pixels
+          const designWidth = img.width * scale;
+          const designHeight = img.height * scale;
+
+          // Convert percentage positions to actual pixel positions
+          const actualX = (canvas.width * positionX) / 100 - designWidth / 2;
+          const actualY = (canvas.height * positionY) / 100 - designHeight / 2;
+
+          // Save context before rotation
+          ctx.save();
+
+          // Move to the center of where the design should be placed
+          ctx.translate(actualX + designWidth / 2, actualY + designHeight / 2);
+
+          // Rotate if needed
+          if (rotation !== 0) {
+            ctx.rotate((rotation * Math.PI) / 180);
+          }
+
+          // Draw the design (centered at origin after translation)
+          ctx.drawImage(
+            img,
+            -designWidth / 2,
+            -designHeight / 2,
+            designWidth,
+            designHeight
+          );
+
+          // Restore context
+          ctx.restore();
+
+          // Convert canvas to blob
+          canvas.toBlob((blob) => {
+            resolve(blob);
+            URL.revokeObjectURL(imageUrl);
+          }, "image/png");
+        };
+
+        img.onerror = () => {
+          URL.revokeObjectURL(imageUrl);
+          resolve(null);
+        };
+
+        img.src = imageUrl;
+      });
+    } catch (error) {
+      console.error("Error generating product mockup:", error);
+      return null;
+    }
+  }
+
+  static async getProductTemplate(productType, productColor) {
+    return new Promise((resolve) => {
+      const img = new Image();
+
+      // Normalize product type and color for template selection
+      const normalizedType = productType?.toLowerCase() || "hoodie";
+      const normalizedColor = productColor?.toLowerCase() || "white";
+
+      // Determine template path based on product type and color
+      let templatePath;
+
+      // Try to get exact product type
+      if (normalizedType.includes("hoodie")) {
+        templatePath = `/static/templates/hoodie_${normalizedColor}.png`;
+      } else if (
+        normalizedType.includes("t-shirt") ||
+        normalizedType.includes("tshirt")
+      ) {
+        templatePath = `/static/templates/tshirt_${normalizedColor}.png`;
+      } else if (normalizedType.includes("long")) {
+        templatePath = `/static/templates/longsleeve_${normalizedColor}.png`;
+      } else {
+        // Default to hoodie if type is unknown
+        templatePath = `/static/templates/hoodie_${normalizedColor}.png`;
+      }
+
+      // Fallback to default color if specific one fails
+      img.onerror = () => {
+        const defaultPath = `/static/templates/hoodie_white.png`;
+        img.src = defaultPath;
+      };
+
+      img.onload = () => resolve(img);
+      img.src = templatePath;
+    });
+  }
+
   static async downloadSingleDesign(designData) {
     try {
       // Validate design data
@@ -48,114 +172,94 @@ export class DesignDownloader {
 
       const zip = new JSZip();
 
+      // Extract all needed data from the designData
+      const productType = designData.specs.product?.type || "Hoodie";
+      const productColor = designData.specs.product?.color || "White";
+      const productSize = designData.specs.product?.size || "M";
+
+      // Extract exact position data
+      const designPosition = designData.specs.design?.position || {
+        positionX: 50,
+        positionY: 50,
+        scale: 1,
+        rotation: 0,
+      };
+
       // Fetch and validate design image
       const imageBlob = await this.fetchImageAsBlob(designData.imageUrl);
       zip.file("design.png", imageBlob);
 
-      // Fetch mockup image if available
+      // Generate product mockup with design using exact positioning
+      const mockupBlob = await this.generateProductMockup(
+        designData.imageUrl,
+        productType,
+        productColor,
+        designPosition
+      );
+
+      if (mockupBlob) {
+        zip.file("product_mockup.png", mockupBlob);
+      }
+
+      // If a mockup URL is provided, fetch it as well
       if (designData.mockupUrl) {
         try {
-          const mockupBlob = await this.fetchImageAsBlob(designData.mockupUrl);
-          zip.file("mockup.png", mockupBlob);
+          const existingMockupBlob = await this.fetchImageAsBlob(
+            designData.mockupUrl
+          );
+          zip.file("original_mockup.png", existingMockupBlob);
         } catch (mockupErr) {
-          console.warn("Could not fetch mockup image:", mockupErr);
+          console.warn("Could not fetch provided mockup image");
         }
       }
 
-      // Prepare specifications with enhanced pricing info
-      const specifications = {
-        orderInfo: {
-          orderId: designData.orderId || "Unknown",
-          orderDate:
-            designData.specs.order?.orderDate || new Date().toISOString(),
-          quantity: designData.specs.order?.quantity || 1,
-          price: designData.specs.order?.price || {
-            itemPrice: 0,
-            subtotal: 0,
-            shippingCost: 0,
-            total: 0,
-          },
-        },
-        productInfo: {
-          title: designData.specs.product?.title || "Untitled",
-          type: designData.specs.product?.type || "N/A",
-          color: designData.specs.product?.color || "N/A",
-          size: designData.specs.product?.size || "N/A",
-        },
-        designInfo: {
-          position: designData.specs.design?.position || {
-            positionX: 50,
-            positionY: 50,
-            scale: 1,
-            rotation: 0,
-          },
-        },
-        seller: {
-          name: designData.specs.seller?.name || "Unknown",
-          email: designData.specs.seller?.email || "N/A",
-        },
-        customer: {
-          name: designData.specs.customer?.name || "Anonymous",
-          email: designData.specs.customer?.email || "N/A",
-          address: designData.specs.customer?.address || "N/A",
-        },
-        shipping: designData.specs.shipping || {
-          address: "N/A",
-          city: "N/A",
-          country: "N/A",
-          shippingPrice: 0,
-        },
-      };
+      // Add specifications JSON (using the exact data as provided)
+      zip.file(
+        "specifications.json",
+        JSON.stringify(designData.specs, null, 2)
+      );
 
-      // Add specifications JSON
-      zip.file("specifications.json", JSON.stringify(specifications, null, 2));
-
-      // Generate human-readable summary with price breakdown
+      // Generate human-readable summary
       const summary = `
 Order Summary
 ------------
-Order ID: ${specifications.orderInfo.orderId}
-Date: ${new Date(specifications.orderInfo.orderDate).toLocaleString()}
+Order ID: ${designData.specs.order?.orderId || "Unknown"}
+Date: ${new Date(
+        designData.specs.order?.orderDate || new Date()
+      ).toLocaleString()}
 
 Product Details
 --------------
-Title: ${specifications.productInfo.title}
-Type: ${specifications.productInfo.type}
-Color: ${specifications.productInfo.color}
-Size: ${specifications.productInfo.size}
-Quantity: ${specifications.orderInfo.quantity}
+Title: ${designData.specs.product?.title || "Untitled"}
+Type: ${productType}
+Color: ${productColor}
+Size: ${productSize}
+Quantity: ${designData.specs.order?.quantity || 1}
 
 Price Breakdown
 --------------
-Item Price: ${specifications.orderInfo.price.itemPrice || 0}
-Subtotal: ${specifications.orderInfo.price.subtotal || 0}
-Shipping: ${specifications.orderInfo.price.shippingCost || 0}
-Total: ${specifications.orderInfo.price.total || 0}
+Item Price: ${designData.specs.order?.price?.itemPrice || 0}
+Subtotal: ${designData.specs.order?.price?.subtotal || 0}
+Shipping: ${designData.specs.order?.price?.shippingCost || 0}
+Total: ${designData.specs.order?.price?.total || 0}
 
 Design Details
 -------------
-Position X: ${specifications.designInfo.position.positionX || 50}
-Position Y: ${specifications.designInfo.position.positionY || 50}
-Scale: ${specifications.designInfo.position.scale || 1}
-Rotation: ${specifications.designInfo.position.rotation || 0}
+Position X: ${designPosition.positionX}%
+Position Y: ${designPosition.positionY}%
+Scale: ${designPosition.scale}
+Rotation: ${designPosition.rotation}°
 
 Seller Information
 -----------------
-Name: ${specifications.seller.name}
-Email: ${specifications.seller.email}
+Name: ${designData.specs.seller?.name || "Unknown"}
+Email: ${designData.specs.seller?.email || "N/A"}
 
 Customer Information
 ------------------
-Name: ${specifications.customer.name}
-Email: ${specifications.customer.email}
-Address: ${specifications.customer.address}
-
-Shipping Information
--------------------
-Address: ${specifications.shipping.address}
-City: ${specifications.shipping.city}
-Country: ${specifications.shipping.country}
-Shipping Cost: ${specifications.shipping.shippingPrice || 0}
+Name: ${designData.specs.customer?.name || "Anonymous"}
+Email: ${designData.specs.customer?.email || "N/A"}
+Address: ${designData.specs.customer?.address || "N/A"}
       `.trim();
 
       // Add summary text file
