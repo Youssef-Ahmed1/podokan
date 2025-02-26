@@ -11,7 +11,7 @@ const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
 const DesignProcessor = require("../utils/designProcessor");
 const fs = require("fs");
 const orderCache = new NodeCache({ stdTTL: 600 });
-
+//
 // create new order
 router.post(
   "/create-order",
