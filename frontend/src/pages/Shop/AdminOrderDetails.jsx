@@ -2,9 +2,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Download, Package } from "lucide-react";
+import { Download, Package, Truck, CreditCard } from "lucide-react";
 import { toast } from "react-toastify";
-import { getAllOrdersOfAdmin } from "../../redux/actions/order";
+import {
+  getAllOrdersOfAdmin,
+  updateOrderStatus,
+} from "../../redux/actions/order";
 import { DesignDownloader } from "../../utils/designDownload";
 
 const AdminOrderDetails = () => {
@@ -12,6 +15,7 @@ const AdminOrderDetails = () => {
   const dispatch = useDispatch();
   const { adminOrders, isLoading } = useSelector((state) => state.order);
   const [order, setOrder] = useState(null);
+  const [statusUpdate, setStatusUpdate] = useState("");
 
   useEffect(() => {
     dispatch(getAllOrdersOfAdmin());
@@ -19,15 +23,23 @@ const AdminOrderDetails = () => {
 
   useEffect(() => {
     if (adminOrders) {
-      const foundOrder = adminOrders.find(o => o._id === id);
-      setOrder(foundOrder);
+      const foundOrder = adminOrders.find((o) => o._id === id);
+      if (foundOrder) {
+        setOrder(foundOrder);
+        setStatusUpdate(foundOrder.status);
+      }
     }
   }, [adminOrders, id]);
 
   const handleDownloadDesign = async (item) => {
     try {
+      // Calculate shipping and totals for accurate download data
+      const subtotal = item.price * (item.qty || 1);
+      const shippingCost = order.shippingAddress?.shippingPrice || 0;
+
       const designData = {
         imageUrl: item.designImage?.url || item.designImage,
+        mockupUrl: item.mockupImage?.url || null,
         orderId: order._id,
         itemId: item._id,
         specs: {
@@ -35,21 +47,45 @@ const AdminOrderDetails = () => {
             orderId: order._id,
             orderDate: order.createdAt,
             quantity: item.qty || 1,
-            price: item.price
+            price: {
+              itemPrice: item.price,
+              subtotal: subtotal,
+              shippingCost: shippingCost,
+              total: subtotal + shippingCost,
+            },
           },
           product: {
-            title: item.DesignTitle || 'Untitled',
-            type: item.ProductType || 'Hoodie',
-            color: item.ProductColor || 'N/A',
-            size: item.size || 'N/A'
+            title: item.DesignTitle || "Untitled",
+            type: item.ProductType || "Hoodie",
+            color: item.ProductColor || "N/A",
+            size: item.size || "N/A",
           },
           design: {
-            position: item.designSpecs || { x: 50, y: 40 },
-            scale: item.designSpecs?.scale || 1
-          }
-        }
+            position: {
+              positionX: item.designSpecs?.positionX || 50,
+              positionY: item.designSpecs?.positionY || 50,
+              scale: item.designSpecs?.scale || 1,
+              rotation: item.designSpecs?.rotation || 0,
+            },
+          },
+          seller: {
+            name: item.shopName || "Unknown",
+            email: item.shopEmail || "N/A",
+          },
+          customer: {
+            name: order.user?.name || "Anonymous",
+            email: order.user?.email || "N/A",
+            address: order.shippingAddress?.address1 || "N/A",
+          },
+          shipping: {
+            address: order.shippingAddress?.address1 || "N/A",
+            city: order.shippingAddress?.city || "N/A",
+            country: order.shippingAddress?.country || "N/A",
+            shippingPrice: shippingCost,
+          },
+        },
       };
-  
+
       await DesignDownloader.downloadSingleDesign(designData);
       toast.success("Design downloaded successfully");
     } catch (error) {
@@ -57,7 +93,18 @@ const AdminOrderDetails = () => {
       toast.error(error.message || "Failed to download design");
     }
   };
-  
+
+  const handleStatusChange = async () => {
+    if (statusUpdate && statusUpdate !== order.status) {
+      try {
+        await dispatch(updateOrderStatus(order._id, statusUpdate));
+        toast.success("Order status updated");
+        dispatch(getAllOrdersOfAdmin()); // Refresh orders
+      } catch (error) {
+        toast.error("Failed to update status");
+      }
+    }
+  };
 
   const handleDownloadAllDesigns = async () => {
     try {
@@ -69,6 +116,7 @@ const AdminOrderDetails = () => {
       toast.error(error.message || "Failed to download designs");
     }
   };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -85,6 +133,14 @@ const AdminOrderDetails = () => {
     );
   }
 
+  // Calculate order totals
+  const subtotal = order.cart.reduce(
+    (total, item) => total + item.price * (item.qty || 1),
+    0
+  );
+  const shippingCost = order.shippingAddress?.shippingPrice || 0;
+  const orderTotal = subtotal + shippingCost;
+
   return (
     <div className="p-6">
       <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-lg">
@@ -98,6 +154,44 @@ const AdminOrderDetails = () => {
               <p className="text-gray-600">
                 {new Date(order.createdAt).toLocaleString()}
               </p>
+              <div className="mt-2 flex items-center gap-2">
+                <span
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    order.status === "Processing"
+                      ? "bg-blue-100 text-blue-800"
+                      : order.status === "Delivered"
+                      ? "bg-green-100 text-green-800"
+                      : order.status === "Cancelled"
+                      ? "bg-red-100 text-red-800"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {order.status}
+                </span>
+
+                <select
+                  value={statusUpdate}
+                  onChange={(e) => setStatusUpdate(e.target.value)}
+                  className="ml-2 p-1 border rounded text-sm"
+                >
+                  <option value="Processing">Processing</option>
+                  <option value="Transferred to delivery partner">
+                    Transferred
+                  </option>
+                  <option value="Shipping">Shipping</option>
+                  <option value="Received">Received</option>
+                  <option value="On the way">On the way</option>
+                  <option value="Delivered">Delivered</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+
+                <button
+                  onClick={handleStatusChange}
+                  className="ml-2 px-2 py-1 bg-blue-500 text-white rounded text-sm"
+                >
+                  Update
+                </button>
+              </div>
             </div>
             <button
               onClick={handleDownloadAllDesigns}
@@ -119,19 +213,26 @@ const AdminOrderDetails = () => {
                 className="border rounded-lg p-4 flex justify-between items-center"
               >
                 <div className="flex gap-4">
-                  {item.designImage?.url && (
+                  {(item.designImage?.url || item.designImage) && (
                     <img
-                      src={item.designImage.url}
+                      src={item.designImage?.url || item.designImage}
                       alt="Design"
                       className="w-24 h-24 object-cover rounded-lg"
                     />
                   )}
                   <div>
-                    <h3 className="font-semibold">{item.DesignTitle}</h3>
+                    <h3 className="font-semibold">
+                      {item.DesignTitle || "Untitled Design"}
+                    </h3>
                     <p className="text-gray-600">
-                      {item.ProductType} - {item.size} - {item.ProductColor}
+                      {item.ProductType || "N/A"}
+                      {item.size ? ` - ${item.size}` : ""}
+                      {item.ProductColor ? ` - ${item.ProductColor}` : ""}
                     </p>
-                    <p className="text-gray-600">Quantity: {item.qty}</p>
+                    <p className="text-gray-600">Quantity: {item.qty || 1}</p>
+                    <p className="font-medium">
+                      Price: EGP {(item.price || 0).toFixed(2)}
+                    </p>
                   </div>
                 </div>
                 <button
@@ -146,21 +247,95 @@ const AdminOrderDetails = () => {
           </div>
         </div>
 
+        {/* Customer and Shipping Info */}
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-4">
+              <Package className="text-blue-600" size={20} />
+              <h3 className="font-semibold">Customer Information</h3>
+            </div>
+            <div className="space-y-2">
+              <p>
+                <span className="text-gray-600">Name:</span>{" "}
+                {order.user?.name || "N/A"}
+              </p>
+              <p>
+                <span className="text-gray-600">Email:</span>{" "}
+                {order.user?.email || "N/A"}
+              </p>
+              <p>
+                <span className="text-gray-600">Phone:</span>{" "}
+                {order.shippingAddress?.phoneNumber || "N/A"}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-4">
+              <Truck className="text-blue-600" size={20} />
+              <h3 className="font-semibold">Shipping Address</h3>
+            </div>
+            <div className="space-y-2">
+              <p>{order.shippingAddress?.address1 || "N/A"}</p>
+              {order.shippingAddress?.address2 && (
+                <p>{order.shippingAddress.address2}</p>
+              )}
+              <p>
+                {order.shippingAddress?.city || "N/A"},
+                {order.shippingAddress?.country || "N/A"}
+                {order.shippingAddress?.postalCode
+                  ? ` ${order.shippingAddress.postalCode}`
+                  : ""}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Payment Information */}
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <CreditCard className="text-blue-600" size={20} />
+            <h3 className="font-semibold">Payment Information</h3>
+          </div>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-gray-600">Payment Method:</p>
+                <p className="font-medium">
+                  {order.paymentInfo?.type || "Cash On Delivery"}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-600">Payment Status:</p>
+                <p
+                  className={`font-medium ${
+                    order.paymentInfo?.status === "Succeeded"
+                      ? "text-green-600"
+                      : "text-yellow-600"
+                  }`}
+                >
+                  {order.paymentInfo?.status || "Processing"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Order Summary */}
         <div className="p-6 bg-gray-50">
           <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
           <div className="space-y-2">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span>EGP {order.totalPrice.toFixed(2)}</span>
+              <span>EGP {subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>Shipping</span>
-              <span>Free</span>
+              <span>EGP {shippingCost.toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold pt-2 border-t">
               <span>Total</span>
-              <span>EGP {order.totalPrice.toFixed(2)}</span>
+              <span>EGP {orderTotal.toFixed(2)}</span>
             </div>
           </div>
         </div>

@@ -3,76 +3,86 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;  
 
-const orderSchema = new mongoose.Schema({  
-  cart: [{
-    _id: String,
-    qty: {
-      type: Number,
-      required: true,
-    },
-    shopId: {
-      type: mongoose.Schema.Types.ObjectId,  
-      ref: "Shop",
-      required: true,
-    },
-    price: {
-      type: Number,
-      required: true,
-    },
-    designImage: {
-      type: Schema.Types.Mixed,
-      required: true,
-      get: function(val) {
-        if (typeof val === 'string') return val;
-        return val?.url || null;
-      }
-    },
-    DesignTitle: {
-      type: String,
-      required: true,
-    },
-    ProductType: {
-      type: String,
-      required: true,
-    },
-    ProductColor: {
-      type: String,
-      default: 'N/A'  
-    },
-    size: {
-      type: String,
-      default: 'N/A'  
-    },
-    designSpecs: {
-      positionX: { 
+const orderSchema = new mongoose.Schema({
+  cart: [
+    {
+      _id: String,
+      qty: {
         type: Number,
-        default: 50 
+        required: true,
+        default: 1,
       },
-      positionY: { 
-        type: Number,
-        default: 50 
+      shopId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Shop",
+        required: true,
       },
-      scale: { 
+      price: {
         type: Number,
-        default: 1 
+        required: true,
       },
-      rotation: {
-        type: Number,
-        default: 0
-      }
+      designImage: {
+        type: Schema.Types.Mixed,
+        required: true,
+        get: function (val) {
+          if (typeof val === "string") return val;
+          return val?.url || null;
+        },
+      },
+      DesignTitle: {
+        type: String,
+        required: true,
+      },
+      ProductType: {
+        type: String,
+        required: true,
+      },
+      ProductColor: {
+        type: String,
+        required: true,
+        default: "Default",
+      },
+      size: {
+        type: String,
+        required: true,
+        default: "One Size",
+      },
+      designSpecs: {
+        positionX: {
+          type: Number,
+          default: 50,
+        },
+        positionY: {
+          type: Number,
+          default: 50,
+        },
+        scale: {
+          type: Number,
+          default: 1,
+        },
+        rotation: {
+          type: Number,
+          default: 0,
+        },
+      },
+      printReadyFile: {
+        url: String,
+        public_id: String,
+      },
+      mockupImage: {
+        url: String,
+        public_id: String,
+      },
     },
-    printReadyFile: {
-      url: String,
-      public_id: String,
-    },
-    mockupImage: {
-      url: String,
-      public_id: String,
-    }
-  }],
+  ],
   shippingAddress: {
     type: Object,
     required: true,
+    default: {},
+    shippingPrice: {
+      type: Number,
+      default: 0,
+    },
   },
   user: {
     type: Object,
@@ -81,6 +91,20 @@ const orderSchema = new mongoose.Schema({
   totalPrice: {
     type: Number,
     required: true,
+  },
+  // Add a separate field for subtotal (excluding shipping)
+  subtotal: {
+    type: Number,
+    default: function () {
+      return this.cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+    },
+  },
+  // Add a separate field for shipping cost
+  shippingCost: {
+    type: Number,
+    default: function () {
+      return this.shippingAddress?.shippingPrice || 0;
+    },
   },
   status: {
     type: String,
@@ -94,8 +118,8 @@ const orderSchema = new mongoose.Schema({
       "Delivered",
       "Processing refund",
       "Refund Success",
-      "Cancelled"
-    ]
+      "Cancelled",
+    ],
   },
   paymentInfo: {
     id: {
@@ -103,20 +127,20 @@ const orderSchema = new mongoose.Schema({
     },
     status: {
       type: String,
-      default: "Processing"
+      default: "Processing",
     },
     type: {
       type: String,
-      default: "Cash On Delivery"
-    }
+      default: "Cash On Delivery",
+    },
   },
   paidAt: {
     type: Date,
-    default: null
+    default: null,
   },
   deliveredAt: {
     type: Date,
-    default: null
+    default: null,
   },
   createdAt: {
     type: Date,
@@ -127,45 +151,56 @@ const orderSchema = new mongoose.Schema({
     trackingNumber: String,
     status: {
       type: String,
-      enum: ['pending', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered', 'failed'],
-      default: 'pending'
+      enum: [
+        "pending",
+        "picked_up",
+        "in_transit",
+        "out_for_delivery",
+        "delivered",
+        "failed",
+      ],
+      default: "pending",
     },
     currentLocation: String,
     lastUpdate: Date,
     assignedAt: Date,
     estimatedDelivery: Date,
-    notes: [{
-      message: String,
-      timestamp: {
-        type: Date,
-        default: Date.now
-      }
-    }],
+    notes: [
+      {
+        message: String,
+        timestamp: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
     signature: {
       url: String,
-      timestamp: Date
-    }
+      timestamp: Date,
+    },
   },
-  statusHistory: [{
-    status: {
-      type: String,
-      required: true
+  statusHistory: [
+    {
+      status: {
+        type: String,
+        required: true,
+      },
+      updatedBy: {
+        type: String,
+        required: true,
+      },
+      timestamp: {
+        type: Date,
+        default: Date.now,
+      },
+      details: String,
     },
-    updatedBy: {
-      type: String,
-      required: true
-    },
-    timestamp: {
-      type: Date,
-      default: Date.now
-    },
-    details: String
-  }],
+  ],
   printingDetails: {
     printStatus: {
       type: String,
-      enum: ['pending', 'in_queue', 'printing', 'completed', 'failed'],
-      default: 'pending'
+      enum: ["pending", "in_queue", "printing", "completed", "failed"],
+      default: "pending",
     },
     printerId: String,
     printStartTime: Date,
@@ -174,19 +209,18 @@ const orderSchema = new mongoose.Schema({
     qualityCheck: {
       checked: {
         type: Boolean,
-        default: false
+        default: false,
       },
       checkedBy: String,
       checkedAt: Date,
       notes: String,
       status: {
         type: String,
-        enum: ['pending', 'passed', 'failed']
-      }
-    }
-  }
+        enum: ["pending", "passed", "failed"],
+      },
+    },
+  },
 });
-
 // Indexes for better query performance
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ "user._id": 1 });
@@ -224,7 +258,25 @@ orderSchema.methods.updateDeliveryStatus = function(status, location, notes) {
     });
   }
 };
+orderSchema.methods.getOrderDetails = function () {
+  const subtotal = this.cart.reduce((total, item) => {
+    return total + item.price * (item.qty || 1);
+  }, 0);
 
+  const shippingCost = this.shippingAddress?.shippingPrice || 0;
+
+  return {
+    subtotal,
+    shippingCost,
+    total: subtotal + shippingCost,
+    discounts: 0, // Add discount handling if needed
+    items: this.cart.length,
+    totalQuantity: this.cart.reduce(
+      (total, item) => total + (item.qty || 1),
+      0
+    ),
+  };
+};
 orderSchema.methods.calculateTotalAmount = function() {
   return this.cart.reduce((total, item) => {
     return total + (item.price * item.qty);

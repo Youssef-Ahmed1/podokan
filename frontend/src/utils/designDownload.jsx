@@ -1,40 +1,41 @@
 // utils/designDownload.js
-
-import JSZip from 'jszip';
-import { saveAs } from 'file-saver';
-import axios from 'axios';
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+import axios from "axios";
 
 export class DesignDownloader {
   static async fetchImageAsBlob(imageUrl) {
     try {
       if (!imageUrl) {
-        throw new Error('Invalid image URL');
+        throw new Error("Invalid image URL");
       }
 
       const response = await axios.get(imageUrl, {
-        responseType: 'blob',
+        responseType: "blob",
         withCredentials: false,
         headers: {
-          'Accept': 'image/*',
-          'Cache-Control': 'no-cache'
-        }
+          Accept: "image/*",
+          "Cache-Control": "no-cache",
+        },
       });
 
       if (!response.data || !(response.data instanceof Blob)) {
-        throw new Error('Invalid image data received');
+        throw new Error("Invalid image data received");
       }
 
       return response.data;
     } catch (error) {
-      console.error('Error fetching image:', error);
+      console.error("Error fetching image:", error);
       throw new Error(`Failed to fetch image: ${error.message}`);
     }
   }
 
   static generateSafeFileName(prefix, orderId, itemId) {
     const timestamp = new Date().getTime();
-    const safeOrderId = orderId?.toString().replace(/[^a-z0-9]/gi, '_') || 'unknown';
-    const safeItemId = itemId?.toString().replace(/[^a-z0-9]/gi, '_') || timestamp;
+    const safeOrderId =
+      orderId?.toString().replace(/[^a-z0-9]/gi, "_") || "unknown";
+    const safeItemId =
+      itemId?.toString().replace(/[^a-z0-9]/gi, "_") || timestamp;
     return `${prefix}_${safeOrderId}_${safeItemId}`;
   }
 
@@ -42,47 +43,74 @@ export class DesignDownloader {
     try {
       // Validate design data
       if (!designData?.imageUrl || !designData?.specs) {
-        throw new Error('Invalid design data structure');
+        throw new Error("Invalid design data structure");
       }
 
       const zip = new JSZip();
-      
-      // Fetch and validate image
-      const imageBlob = await this.fetchImageAsBlob(designData.imageUrl);
-      zip.file('design.png', imageBlob);
 
-      // Prepare specifications
+      // Fetch and validate design image
+      const imageBlob = await this.fetchImageAsBlob(designData.imageUrl);
+      zip.file("design.png", imageBlob);
+
+      // Fetch mockup image if available
+      if (designData.mockupUrl) {
+        try {
+          const mockupBlob = await this.fetchImageAsBlob(designData.mockupUrl);
+          zip.file("mockup.png", mockupBlob);
+        } catch (mockupErr) {
+          console.warn("Could not fetch mockup image:", mockupErr);
+        }
+      }
+
+      // Prepare specifications with enhanced pricing info
       const specifications = {
         orderInfo: {
-          orderId: designData.orderId || 'Unknown',
-          orderDate: designData.specs.order?.orderDate || new Date().toISOString(),
+          orderId: designData.orderId || "Unknown",
+          orderDate:
+            designData.specs.order?.orderDate || new Date().toISOString(),
           quantity: designData.specs.order?.quantity || 1,
-          price: designData.specs.order?.price || 0
+          price: designData.specs.order?.price || {
+            itemPrice: 0,
+            subtotal: 0,
+            shippingCost: 0,
+            total: 0,
+          },
         },
         productInfo: {
-          title: designData.specs.product?.title || 'Untitled',
-          type: designData.specs.product?.type || 'N/A',
-          color: designData.specs.product?.color || 'N/A',
-          size: designData.specs.product?.size || 'N/A'
+          title: designData.specs.product?.title || "Untitled",
+          type: designData.specs.product?.type || "N/A",
+          color: designData.specs.product?.color || "N/A",
+          size: designData.specs.product?.size || "N/A",
         },
         designInfo: {
-          position: designData.specs.design?.position || { x: 50, y: 40 },
-          scale: designData.specs.design?.scale || 1
+          position: designData.specs.design?.position || {
+            positionX: 50,
+            positionY: 50,
+            scale: 1,
+            rotation: 0,
+          },
         },
         seller: {
-          name: designData.specs.seller?.name || 'Unknown',
-          email: designData.specs.seller?.email || 'N/A'
+          name: designData.specs.seller?.name || "Unknown",
+          email: designData.specs.seller?.email || "N/A",
         },
         customer: {
-          name: designData.specs.customer?.name || 'Anonymous',
-          email: designData.specs.customer?.email || 'N/A'
-        }
+          name: designData.specs.customer?.name || "Anonymous",
+          email: designData.specs.customer?.email || "N/A",
+          address: designData.specs.customer?.address || "N/A",
+        },
+        shipping: designData.specs.shipping || {
+          address: "N/A",
+          city: "N/A",
+          country: "N/A",
+          shippingPrice: 0,
+        },
       };
 
       // Add specifications JSON
-      zip.file('specifications.json', JSON.stringify(specifications, null, 2));
+      zip.file("specifications.json", JSON.stringify(specifications, null, 2));
 
-      // Generate human-readable summary
+      // Generate human-readable summary with price breakdown
       const summary = `
 Order Summary
 ------------
@@ -96,12 +124,20 @@ Type: ${specifications.productInfo.type}
 Color: ${specifications.productInfo.color}
 Size: ${specifications.productInfo.size}
 Quantity: ${specifications.orderInfo.quantity}
-Price: ${specifications.orderInfo.price}
+
+Price Breakdown
+--------------
+Item Price: ${specifications.orderInfo.price.itemPrice || 0}
+Subtotal: ${specifications.orderInfo.price.subtotal || 0}
+Shipping: ${specifications.orderInfo.price.shippingCost || 0}
+Total: ${specifications.orderInfo.price.total || 0}
 
 Design Details
 -------------
-Position: X: ${specifications.designInfo.position.x}, Y: ${specifications.designInfo.position.y}
-Scale: ${specifications.designInfo.scale}
+Position X: ${specifications.designInfo.position.positionX || 50}
+Position Y: ${specifications.designInfo.position.positionY || 50}
+Scale: ${specifications.designInfo.position.scale || 1}
+Rotation: ${specifications.designInfo.position.rotation || 0}
 
 Seller Information
 -----------------
@@ -112,31 +148,43 @@ Customer Information
 ------------------
 Name: ${specifications.customer.name}
 Email: ${specifications.customer.email}
+Address: ${specifications.customer.address}
+
+Shipping Information
+-------------------
+Address: ${specifications.shipping.address}
+City: ${specifications.shipping.city}
+Country: ${specifications.shipping.country}
+Shipping Cost: ${specifications.shipping.shippingPrice || 0}
       `.trim();
 
       // Add summary text file
-      zip.file('summary.txt', summary);
+      zip.file("summary.txt", summary);
 
       // Generate zip with compression
       const content = await zip.generateAsync({
         type: "blob",
         compression: "DEFLATE",
         compressionOptions: {
-          level: 9
-        }
+          level: 9,
+        },
       });
 
       if (!content) {
-        throw new Error('Failed to generate zip file');
+        throw new Error("Failed to generate zip file");
       }
 
       // Create safe filename and download
-      const fileName = this.generateSafeFileName('design', designData.orderId, designData.itemId);
+      const fileName = this.generateSafeFileName(
+        "design",
+        designData.orderId,
+        designData.itemId
+      );
       saveAs(content, `${fileName}.zip`);
 
       return true;
     } catch (error) {
-      console.error('Download error:', error);
+      console.error("Download error:", error);
       throw new Error(`Download failed: ${error.message}`);
     }
   }
@@ -144,23 +192,23 @@ Email: ${specifications.customer.email}
   static async downloadOrderDesigns(order) {
     try {
       if (!order?._id || !Array.isArray(order.cart)) {
-        throw new Error('Invalid order data');
+        throw new Error("Invalid order data");
       }
 
       const zip = new JSZip();
       const designsFolder = zip.folder("designs");
-      
+
       // Initialize summary data
       const summary = {
         orderId: order._id,
         orderDate: order.createdAt || new Date().toISOString(),
         customerInfo: {
-          name: order.user?.name || 'Unknown',
-          email: order.user?.email || 'N/A'
+          name: order.user?.name || "Unknown",
+          email: order.user?.email || "N/A",
         },
         items: [],
         totalItems: order.cart.length,
-        processedItems: 0
+        processedItems: 0,
       };
 
       // Process each item
@@ -176,41 +224,41 @@ Email: ${specifications.customer.email}
 
           // Create item folder
           const itemFolder = designsFolder.folder(item._id.toString());
-          
+
           // Fetch and add image
           const imageBlob = await this.fetchImageAsBlob(designImage);
-          itemFolder.file('design.png', imageBlob);
+          itemFolder.file("design.png", imageBlob);
 
           // Prepare item specifications
           const itemSpecs = {
             productInfo: {
-              title: item.DesignTitle || 'Untitled',
-              type: item.ProductType || 'N/A',
-              color: item.ProductColor || 'N/A',
-              size: item.size || 'N/A',
-              quantity: item.qty || 1
+              title: item.DesignTitle || "Untitled",
+              type: item.ProductType || "N/A",
+              color: item.ProductColor || "N/A",
+              size: item.size || "N/A",
+              quantity: item.qty || 1,
             },
             designSpecs: {
               position: item.DesignPosition || { x: 50, y: 40 },
-              scale: item.DesignScale || 1
+              scale: item.DesignScale || 1,
             },
             pricing: {
               price: item.price || 0,
               discountPrice: item.discountPrice,
-              originalPrice: item.originalPrice
-            }
+              originalPrice: item.originalPrice,
+            },
           };
 
           // Add specifications to item folder
-          itemFolder.file('specs.json', JSON.stringify(itemSpecs, null, 2));
-          
+          itemFolder.file("specs.json", JSON.stringify(itemSpecs, null, 2));
+
           // Add to summary
           summary.items.push({
             id: item._id,
-            title: item.DesignTitle || 'Untitled',
-            type: item.ProductType || 'N/A',
+            title: item.DesignTitle || "Untitled",
+            type: item.ProductType || "N/A",
             quantity: item.qty || 1,
-            price: item.price || 0
+            price: item.price || 0,
           });
 
           summary.processedItems++;
@@ -220,7 +268,7 @@ Email: ${specifications.customer.email}
       }
 
       // Add order summary
-      zip.file('order_summary.json', JSON.stringify(summary, null, 2));
+      zip.file("order_summary.json", JSON.stringify(summary, null, 2));
 
       // Generate human-readable summary
       const textSummary = `
@@ -233,36 +281,40 @@ Customer: ${summary.customerInfo.name} (${summary.customerInfo.email})
 Items Processed: ${summary.processedItems} of ${summary.totalItems}
 
 Items:
-${summary.items.map(item => `
+${summary.items
+  .map(
+    (item) => `
 - ${item.title}
   Type: ${item.type}
   Quantity: ${item.quantity}
   Price: ${item.price}
-`).join('\n')}
+`
+  )
+  .join("\n")}
       `.trim();
 
-      zip.file('summary.txt', textSummary);
+      zip.file("summary.txt", textSummary);
 
       // Generate zip
       const content = await zip.generateAsync({
         type: "blob",
         compression: "DEFLATE",
         compressionOptions: {
-          level: 9
-        }
+          level: 9,
+        },
       });
 
       if (!content) {
-        throw new Error('Failed to generate zip file');
+        throw new Error("Failed to generate zip file");
       }
 
       // Download with safe filename
-      const fileName = this.generateSafeFileName('order', order._id, 'designs');
+      const fileName = this.generateSafeFileName("order", order._id, "designs");
       saveAs(content, `${fileName}.zip`);
 
       return true;
     } catch (error) {
-      console.error('Order download error:', error);
+      console.error("Order download error:", error);
       throw new Error(`Order download failed: ${error.message}`);
     }
   }
@@ -270,24 +322,24 @@ ${summary.items.map(item => `
   static async downloadBulkDesigns(orders) {
     try {
       if (!Array.isArray(orders) || orders.length === 0) {
-        throw new Error('No orders provided for bulk download');
+        throw new Error("No orders provided for bulk download");
       }
 
       const zip = new JSZip();
       const ordersFolder = zip.folder("orders");
-      
+
       const bulkSummary = {
         totalOrders: orders.length,
         processedOrders: 0,
         totalDesigns: 0,
         processedDesigns: 0,
-        orders: []
+        orders: [],
       };
 
       for (const order of orders) {
         try {
           const orderFolder = ordersFolder.folder(order._id.toString());
-          
+
           for (const item of order.cart) {
             try {
               const designImage = item.designImage?.url || item.designImage;
@@ -304,8 +356,8 @@ ${summary.items.map(item => `
 
           bulkSummary.orders.push({
             orderId: order._id,
-            customerName: order.user?.name || 'Unknown',
-            designs: order.cart.length
+            customerName: order.user?.name || "Unknown",
+            designs: order.cart.length,
           });
 
           bulkSummary.processedOrders++;
@@ -316,18 +368,18 @@ ${summary.items.map(item => `
       }
 
       // Add bulk summary
-      zip.file('bulk_summary.json', JSON.stringify(bulkSummary, null, 2));
+      zip.file("bulk_summary.json", JSON.stringify(bulkSummary, null, 2));
 
       const content = await zip.generateAsync({
         type: "blob",
         compression: "DEFLATE",
         compressionOptions: {
-          level: 9
-        }
+          level: 9,
+        },
       });
 
       if (!content) {
-        throw new Error('Failed to generate bulk zip file');
+        throw new Error("Failed to generate bulk zip file");
       }
 
       const fileName = `bulk_designs_${new Date().getTime()}`;
@@ -335,7 +387,7 @@ ${summary.items.map(item => `
 
       return true;
     } catch (error) {
-      console.error('Bulk download error:', error);
+      console.error("Bulk download error:", error);
       throw new Error(`Bulk download failed: ${error.message}`);
     }
   }
