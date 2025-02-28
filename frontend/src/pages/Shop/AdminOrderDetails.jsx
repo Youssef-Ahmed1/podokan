@@ -15,12 +15,39 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
-import Modal from "../../components/Layout/Modal";
 import {
   adminUpdateOrderStatus,
   adminDownloadDesign,
   getAllOrdersOfAdmin,
 } from "../../redux/actions/order";
+
+// Local Modal component instead of importing
+const StatusUpdateModal = ({ open, onClose, title, children }) => {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50"
+        onClick={onClose}
+      ></div>
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className="relative w-full max-w-md bg-white rounded-lg shadow-xl">
+          <div className="flex items-center justify-between p-4 border-b">
+            <h3 className="text-lg font-medium">{title}</h3>
+            <button
+              onClick={onClose}
+              className="rounded-full p-1 hover:bg-gray-100"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <div>{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const AdminOrderDetails = () => {
   const { orders, isLoading } = useSelector((state) => state.order);
@@ -415,7 +442,7 @@ const AdminOrderDetails = () => {
       )}
 
       {/* Status Update Modal */}
-      <Modal
+      <StatusUpdateModal
         open={showStatusModal}
         onClose={() => setShowStatusModal(false)}
         title="Update Order Status"
@@ -466,7 +493,7 @@ const AdminOrderDetails = () => {
             </button>
           </div>
         </div>
-      </Modal>
+      </StatusUpdateModal>
     </div>
   );
 };
