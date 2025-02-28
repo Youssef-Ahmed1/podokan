@@ -1,27 +1,20 @@
+// utils/designDownload.js - Full implementation with proper naming
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import axios from "axios";
-import { server } from "../server";
 
 export class DesignDownloader {
-  static async fetchImageAsBlob(imageUrl) {
+  // Download image as blob
+  static async fetchImageAsBlob(url) {
     try {
-      if (!imageUrl) {
-        throw new Error("Invalid image URL");
-      }
+      if (!url) throw new Error("Invalid image URL");
 
-      const response = await axios.get(imageUrl, {
+      const response = await axios.get(url, {
         responseType: "blob",
-        withCredentials: false,
         headers: {
-          Accept: "image/*",
           "Cache-Control": "no-cache",
         },
       });
-
-      if (!response.data || !(response.data instanceof Blob)) {
-        throw new Error("Invalid image data received");
-      }
 
       return response.data;
     } catch (error) {
@@ -30,243 +23,250 @@ export class DesignDownloader {
     }
   }
 
-  static generateSafeFileName(prefix, orderId, itemId) {
+  // Load an image
+  static loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = (e) => {
+        console.error("Image load error:", e);
+        reject(new Error("Failed to load image"));
+      };
+      img.src = src;
+    });
+  }
+
+  // Generate a file name based on order and item IDs
+  static generateFileName(orderId, itemId) {
     const timestamp = new Date().getTime();
     const safeOrderId =
       orderId?.toString().replace(/[^a-z0-9]/gi, "_") || "unknown";
     const safeItemId =
       itemId?.toString().replace(/[^a-z0-9]/gi, "_") || timestamp;
-    return `${prefix}_${safeOrderId}_${safeItemId}`;
+    return `design_${safeOrderId}_${safeItemId}`;
   }
 
-  static async generateProductMockup(
-    designImage,
+  // Place design on product using exact specs from order
+  static async createProductMockup(
+    designImageUrl,
     productType,
     productColor,
-    designPosition
+    designSpecs
   ) {
-    try {
-      // Fetch design image first
-      const designBlob = await this.fetchImageAsBlob(designImage);
-      const imageUrl = URL.createObjectURL(designBlob);
+    return new Promise(async (resolve, reject) => {
+      try {
+        console.log("Creating mockup with:", {
+          designImageUrl,
+          productType,
+          productColor,
+          designSpecs,
+        });
 
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = async () => {
-          // Get the base product template based on product type and color
-          const baseProduct = await this.getProductTemplate(
-            productType,
-            productColor
-          );
+        // 1. Download design image
+        const designBlob = await this.fetchImageAsBlob(designImageUrl);
+        const designObjectUrl = URL.createObjectURL(designBlob);
 
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
+        // 2. Load design image
+        const designImg = await this.loadImage(designObjectUrl);
 
-          // Set canvas size to match the base product
-          canvas.width = baseProduct.width;
-          canvas.height = baseProduct.height;
-
-          // Draw the base product
-          ctx.drawImage(baseProduct, 0, 0, canvas.width, canvas.height);
-
-          // Extract exact positioning details from the designPosition object
-          const positionX = designPosition?.positionX ?? 50; // percentage (0-100)
-          const positionY = designPosition?.positionY ?? 50; // percentage (0-100)
-          const scale = designPosition?.scale ?? 1; // multiplier
-          const rotation = designPosition?.rotation ?? 0; // degrees
-
-          // Calculate the actual position in pixels
-          const designWidth = img.width * scale;
-          const designHeight = img.height * scale;
-
-          // Convert percentage positions to actual pixel positions
-          const actualX = (canvas.width * positionX) / 100 - designWidth / 2;
-          const actualY = (canvas.height * positionY) / 100 - designHeight / 2;
-
-          // Save context before rotation
-          ctx.save();
-
-          // Move to the center of where the design should be placed
-          ctx.translate(actualX + designWidth / 2, actualY + designHeight / 2);
-
-          // Rotate if needed
-          if (rotation !== 0) {
-            ctx.rotate((rotation * Math.PI) / 180);
+        // 3. Try to load product template
+        let productImg;
+        try {
+          // First try specific product/color template
+          const templatePath = `/static/templates/${productType.toLowerCase()}_${productColor.toLowerCase()}.png`;
+          productImg = await this.loadImage(templatePath);
+        } catch (e) {
+          try {
+            // If that fails, try generic product template
+            const genericPath = `/static/templates/${productType.toLowerCase()}_white.png`;
+            productImg = await this.loadImage(genericPath);
+          } catch (e2) {
+            // If that fails too, use default hoodie
+            productImg = await this.loadImage(
+              "/static/templates/hoodie_white.png"
+            );
           }
+        }
 
-          // Draw the design (centered at origin after translation)
-          ctx.drawImage(
-            img,
-            -designWidth / 2,
-            -designHeight / 2,
-            designWidth,
-            designHeight
-          );
+        // 4. Create canvas with product dimensions
+        const canvas = document.createElement("canvas");
+        canvas.width = productImg.width;
+        canvas.height = productImg.height;
 
-          // Restore context
-          ctx.restore();
+        const ctx = canvas.getContext("2d");
 
-          // Convert canvas to blob
-          canvas.toBlob((blob) => {
-            resolve(blob);
-            URL.revokeObjectURL(imageUrl);
-          }, "image/png");
-        };
+        // 5. Draw product image
+        ctx.drawImage(productImg, 0, 0);
 
-        img.onerror = () => {
-          URL.revokeObjectURL(imageUrl);
-          resolve(null);
-        };
+        // 6. Setup design positioning using exact specs from order
+        const posX = designSpecs.positionX;
+        const posY = designSpecs.positionY;
+        const scale = designSpecs.scale;
+        const rotation = designSpecs.rotation;
 
-        img.src = imageUrl;
-      });
-    } catch (error) {
-      console.error("Error generating product mockup:", error);
-      return null;
-    }
-  }
+        // Calculate dimensions after scaling
+        const designWidth = designImg.width * scale;
+        const designHeight = designImg.height * scale;
 
-  static async getProductTemplate(productType, productColor) {
-    return new Promise((resolve) => {
-      const img = new Image();
+        // Calculate center position (convert from percentage to pixels)
+        const centerX = canvas.width * (posX / 100);
+        const centerY = canvas.height * (posY / 100);
 
-      // Normalize product type and color for template selection
-      const normalizedType = productType?.toLowerCase() || "hoodie";
-      const normalizedColor = productColor?.toLowerCase() || "white";
+        // 7. Apply transformations and draw design
+        ctx.save();
 
-      // Determine template path based on product type and color
-      let templatePath;
+        // Move to position
+        ctx.translate(centerX, centerY);
 
-      // Try to get exact product type
-      if (normalizedType.includes("hoodie")) {
-        templatePath = `/static/templates/hoodie_${normalizedColor}.png`;
-      } else if (
-        normalizedType.includes("t-shirt") ||
-        normalizedType.includes("tshirt")
-      ) {
-        templatePath = `/static/templates/tshirt_${normalizedColor}.png`;
-      } else if (normalizedType.includes("long")) {
-        templatePath = `/static/templates/longsleeve_${normalizedColor}.png`;
-      } else {
-        // Default to hoodie if type is unknown
-        templatePath = `/static/templates/hoodie_${normalizedColor}.png`;
+        // Apply rotation if any
+        if (rotation !== 0) {
+          ctx.rotate((rotation * Math.PI) / 180);
+        }
+
+        // Draw design centered at position
+        ctx.drawImage(
+          designImg,
+          -designWidth / 2, // Center horizontally
+          -designHeight / 2, // Center vertically
+          designWidth,
+          designHeight
+        );
+
+        // Restore canvas state
+        ctx.restore();
+
+        // 8. Convert canvas to blob
+        canvas.toBlob((blob) => {
+          // Clean up
+          URL.revokeObjectURL(designObjectUrl);
+          resolve(blob);
+        }, "image/png");
+      } catch (error) {
+        console.error("Error creating product mockup:", error);
+        reject(error);
       }
-
-      // Fallback to default color if specific one fails
-      img.onerror = () => {
-        const defaultPath = `/static/templates/hoodie_white.png`;
-        img.src = defaultPath;
-      };
-
-      img.onload = () => resolve(img);
-      img.src = templatePath;
     });
   }
 
+  // Main function to download a single design with all details
   static async downloadSingleDesign(designData) {
     try {
-      // Validate design data
-      if (!designData?.imageUrl || !designData?.specs) {
-        throw new Error("Invalid design data structure");
-      }
+      console.log("Downloading design:", designData);
 
-      const zip = new JSZip();
+      if (!designData) throw new Error("No design data provided");
 
-      // Extract all needed data from the designData
-      const productType = designData.specs.product?.type || "Hoodie";
-      const productColor = designData.specs.product?.color || "White";
-      const productSize = designData.specs.product?.size || "M";
+      // Extract data from the API response format
+      const { imageUrl, mockupUrl, orderId, itemId, specs } = designData;
 
-      // Extract exact position data
-      const designPosition = designData.specs.design?.position || {
+      if (!imageUrl) throw new Error("Design image URL is missing");
+
+      // Get product info
+      const productType = specs.product.type || "Hoodie";
+      const productColor = specs.product.color || "White";
+      const productSize = specs.product.size || "One Size";
+
+      // Get design position data
+      const designPosition = specs.design.position || {
         positionX: 50,
         positionY: 50,
         scale: 1,
         rotation: 0,
       };
 
-      // Fetch and validate design image
-      const imageBlob = await this.fetchImageAsBlob(designData.imageUrl);
-      zip.file("design.png", imageBlob);
+      console.log("Using product specs:", {
+        type: productType,
+        color: productColor,
+        size: productSize,
+        designPosition,
+      });
 
-      // Generate product mockup with design using exact positioning
-      const mockupBlob = await this.generateProductMockup(
-        designData.imageUrl,
-        productType,
-        productColor,
-        designPosition
-      );
+      // Create a ZIP archive
+      const zip = new JSZip();
 
-      if (mockupBlob) {
+      // Add original design image
+      console.log("Fetching original design...");
+      const designBlob = await this.fetchImageAsBlob(imageUrl);
+      zip.file("original_design.png", designBlob);
+
+      // Create and add product mockup with design
+      console.log("Creating product mockup...");
+      try {
+        const mockupBlob = await this.createProductMockup(
+          imageUrl,
+          productType,
+          productColor,
+          designPosition
+        );
         zip.file("product_mockup.png", mockupBlob);
+      } catch (mockupError) {
+        console.error("Failed to create mockup:", mockupError);
       }
 
-      // If a mockup URL is provided, fetch it as well
-      if (designData.mockupUrl) {
+      // Add existing mockup image if available
+      if (mockupUrl) {
         try {
-          const existingMockupBlob = await this.fetchImageAsBlob(
-            designData.mockupUrl
-          );
-          zip.file("original_mockup.png", existingMockupBlob);
-        } catch (mockupErr) {
-          console.warn("Could not fetch provided mockup image");
+          console.log("Adding existing mockup...");
+          const mockupBlob = await this.fetchImageAsBlob(mockupUrl);
+          zip.file("original_mockup.png", mockupBlob);
+        } catch (e) {
+          console.log("Could not fetch original mockup");
         }
       }
 
-      // Add specifications JSON (using the exact data as provided)
-      zip.file(
-        "specifications.json",
-        JSON.stringify(designData.specs, null, 2)
-      );
+      // Add complete specifications JSON
+      zip.file("specifications.json", JSON.stringify(specs, null, 2));
 
-      // Generate human-readable summary
+      // Add human-readable summary
       const summary = `
-Order Summary
+ORDER DETAILS
 ------------
-Order ID: ${designData.specs.order?.orderId || "Unknown"}
-Date: ${new Date(
-        designData.specs.order?.orderDate || new Date()
-      ).toLocaleString()}
+Order ID: ${orderId || "N/A"}
+Date: ${new Date(specs.order.orderDate || Date.now()).toLocaleString()}
+Status: ${specs.order.status || "N/A"}
 
-Product Details
+PRODUCT DETAILS
 --------------
-Title: ${designData.specs.product?.title || "Untitled"}
-Type: ${productType}
-Color: ${productColor}
-Size: ${productSize}
-Quantity: ${designData.specs.order?.quantity || 1}
+Title: ${specs.product.title || "N/A"}
+Type: ${specs.product.type || "N/A"}
+Color: ${specs.product.color || "N/A"}
+Size: ${specs.product.size || "N/A"}
+Quantity: ${specs.order.quantity || 1}
+Price: ${specs.order.price.itemPrice || 0}
 
-Price Breakdown
---------------
-Item Price: ${designData.specs.order?.price?.itemPrice || 0}
-Subtotal: ${designData.specs.order?.price?.subtotal || 0}
-Shipping: ${designData.specs.order?.price?.shippingCost || 0}
-Total: ${designData.specs.order?.price?.total || 0}
+DESIGN PLACEMENT
+---------------
+Position X: ${designPosition.positionX || 50}%
+Position Y: ${designPosition.positionY || 50}%
+Scale: ${designPosition.scale || 1}x
+Rotation: ${designPosition.rotation || 0}°
 
-Design Details
--------------
-Position X: ${designPosition.positionX}%
-Position Y: ${designPosition.positionY}%
-Scale: ${designPosition.scale}
-Rotation: ${designPosition.rotation}°
-
-Seller Information
------------------
-Name: ${designData.specs.seller?.name || "Unknown"}
-Email: ${designData.specs.seller?.email || "N/A"}
-
-Customer Information
+CUSTOMER INFORMATION
 ------------------
-Name: ${designData.specs.customer?.name || "Anonymous"}
-Email: ${designData.specs.customer?.email || "N/A"}
-Address: ${designData.specs.customer?.address || "N/A"}
+Name: ${specs.customer?.name || "N/A"}
+Email: ${specs.customer?.email || "N/A"}
+
+SHIPPING ADDRESS
+---------------
+${specs.shipping?.address || "N/A"}
+${specs.shipping?.city || "N/A"}, ${specs.shipping?.country || "N/A"} ${
+        specs.shipping?.postalCode || ""
+      }
+
+PRICING
+-------
+Item Price: ${specs.order.price.itemPrice || 0}
+Quantity: ${specs.order.quantity || 1}
+Subtotal: ${specs.order.price.subtotal || 0}
+Shipping: ${specs.order.price.shippingCost || 0}
+Total: ${specs.order.price.total || 0}
       `.trim();
 
-      // Add summary text file
       zip.file("summary.txt", summary);
 
-      // Generate zip with compression
-      const content = await zip.generateAsync({
+      // Generate ZIP file
+      console.log("Generating ZIP file...");
+      const zipBlob = await zip.generateAsync({
         type: "blob",
         compression: "DEFLATE",
         compressionOptions: {
@@ -274,225 +274,135 @@ Address: ${designData.specs.customer?.address || "N/A"}
         },
       });
 
-      if (!content) {
-        throw new Error("Failed to generate zip file");
-      }
+      // Generate filename
+      const filename = this.generateFileName(orderId, itemId) + ".zip";
 
-      // Create safe filename and download
-      const fileName = this.generateSafeFileName(
-        "design",
-        designData.orderId,
-        designData.itemId
-      );
-      saveAs(content, `${fileName}.zip`);
+      // Save the file
+      saveAs(zipBlob, filename);
+      console.log("Download complete");
 
       return true;
     } catch (error) {
-      console.error("Download error:", error);
-      throw new Error(`Download failed: ${error.message}`);
+      console.error("Download failed:", error);
+      throw error;
     }
   }
 
-  static async downloadOrderDesigns(order) {
+  // Download all designs from an order
+  static async downloadAllDesigns(order) {
     try {
-      if (!order?._id || !Array.isArray(order.cart)) {
-        throw new Error("Invalid order data");
+      if (
+        !order ||
+        !order.cart ||
+        !Array.isArray(order.cart) ||
+        order.cart.length === 0
+      ) {
+        throw new Error("No valid order items found");
       }
 
-      const zip = new JSZip();
-      const designsFolder = zip.folder("designs");
+      // Create main ZIP file
+      const mainZip = new JSZip();
+      const designsFolder = mainZip.folder("designs");
 
-      // Initialize summary data
-      const summary = {
-        orderId: order._id,
-        orderDate: order.createdAt || new Date().toISOString(),
-        customerInfo: {
-          name: order.user?.name || "Unknown",
-          email: order.user?.email || "N/A",
-        },
-        items: [],
-        totalItems: order.cart.length,
-        processedItems: 0,
-      };
+      // Process each order item
+      for (let i = 0; i < order.cart.length; i++) {
+        const item = order.cart[i];
+        if (!item) continue;
 
-      // Process each item
-      for (const item of order.cart) {
         try {
-          if (!item) continue;
+          // Create individual ZIP for this item
+          const itemZip = new JSZip();
 
-          const designImage = item.designImage?.url || item.designImage;
-          if (!designImage) {
-            console.warn(`Skipping item ${item._id}: No design image`);
-            continue;
+          // Get design image
+          const designUrl = item.designImage?.url || item.designImage;
+          if (!designUrl) continue;
+
+          // Add original design
+          const designBlob = await this.fetchImageAsBlob(designUrl);
+          itemZip.file("original_design.png", designBlob);
+
+          // Create product mockup
+          try {
+            const mockupBlob = await this.createProductMockup(
+              designUrl,
+              item.ProductType || "Hoodie",
+              item.ProductColor || "White",
+              {
+                positionX: item.designSpecs?.positionX || 50,
+                positionY: item.designSpecs?.positionY || 50,
+                scale: item.designSpecs?.scale || 1,
+                rotation: item.designSpecs?.rotation || 0,
+              }
+            );
+            itemZip.file("product_mockup.png", mockupBlob);
+          } catch (mockupError) {
+            console.error(
+              `Failed to create mockup for item ${i}:`,
+              mockupError
+            );
           }
 
-          // Create item folder
-          const itemFolder = designsFolder.folder(item._id.toString());
-
-          // Fetch and add image
-          const imageBlob = await this.fetchImageAsBlob(designImage);
-          itemFolder.file("design.png", imageBlob);
-
-          // Prepare item specifications
+          // Add item specifications
           const itemSpecs = {
-            productInfo: {
-              title: item.DesignTitle || "Untitled",
-              type: item.ProductType || "N/A",
-              color: item.ProductColor || "N/A",
-              size: item.size || "N/A",
+            product: {
+              title: item.DesignTitle || "",
+              type: item.ProductType || "",
+              color: item.ProductColor || "",
+              size: item.size || "",
               quantity: item.qty || 1,
-            },
-            designSpecs: {
-              position: item.DesignPosition || { x: 50, y: 40 },
-              scale: item.DesignScale || 1,
-            },
-            pricing: {
               price: item.price || 0,
-              discountPrice: item.discountPrice,
-              originalPrice: item.originalPrice,
+            },
+            design: {
+              positionX: item.designSpecs?.positionX || 50,
+              positionY: item.designSpecs?.positionY || 50,
+              scale: item.designSpecs?.scale || 1,
+              rotation: item.designSpecs?.rotation || 0,
             },
           };
 
-          // Add specifications to item folder
-          itemFolder.file("specs.json", JSON.stringify(itemSpecs, null, 2));
+          itemZip.file(
+            "specifications.json",
+            JSON.stringify(itemSpecs, null, 2)
+          );
 
-          // Add to summary
-          summary.items.push({
-            id: item._id,
-            title: item.DesignTitle || "Untitled",
-            type: item.ProductType || "N/A",
-            quantity: item.qty || 1,
-            price: item.price || 0,
-          });
-
-          summary.processedItems++;
-        } catch (error) {
-          console.error(`Failed to process item ${item?._id}:`, error);
+          // Generate and add item ZIP to main folder
+          const itemZipBlob = await itemZip.generateAsync({ type: "blob" });
+          designsFolder.file(`design_${item._id || i}.zip`, itemZipBlob);
+        } catch (itemError) {
+          console.error(`Error processing item ${i}:`, itemError);
         }
       }
 
       // Add order summary
-      zip.file("order_summary.json", JSON.stringify(summary, null, 2));
-
-      // Generate human-readable summary
-      const textSummary = `
-Order Summary
-------------
-Order ID: ${summary.orderId}
-Date: ${new Date(summary.orderDate).toLocaleString()}
-Customer: ${summary.customerInfo.name} (${summary.customerInfo.email})
-
-Items Processed: ${summary.processedItems} of ${summary.totalItems}
-
-Items:
-${summary.items
-  .map(
-    (item) => `
-- ${item.title}
-  Type: ${item.type}
-  Quantity: ${item.quantity}
-  Price: ${item.price}
-`
-  )
-  .join("\n")}
-      `.trim();
-
-      zip.file("summary.txt", textSummary);
-
-      // Generate zip
-      const content = await zip.generateAsync({
-        type: "blob",
-        compression: "DEFLATE",
-        compressionOptions: {
-          level: 9,
+      const orderSummary = {
+        orderId: order._id || "",
+        date: order.createdAt || new Date().toISOString(),
+        customer: {
+          name: order.user?.name || "",
+          email: order.user?.email || "",
         },
-      });
-
-      if (!content) {
-        throw new Error("Failed to generate zip file");
-      }
-
-      // Download with safe filename
-      const fileName = this.generateSafeFileName("order", order._id, "designs");
-      saveAs(content, `${fileName}.zip`);
-
-      return true;
-    } catch (error) {
-      console.error("Order download error:", error);
-      throw new Error(`Order download failed: ${error.message}`);
-    }
-  }
-
-  static async downloadBulkDesigns(orders) {
-    try {
-      if (!Array.isArray(orders) || orders.length === 0) {
-        throw new Error("No orders provided for bulk download");
-      }
-
-      const zip = new JSZip();
-      const ordersFolder = zip.folder("orders");
-
-      const bulkSummary = {
-        totalOrders: orders.length,
-        processedOrders: 0,
-        totalDesigns: 0,
-        processedDesigns: 0,
-        orders: [],
+        status: order.status || "Processing",
+        items: order.cart.length,
+        total: order.totalPrice || 0,
       };
 
-      for (const order of orders) {
-        try {
-          const orderFolder = ordersFolder.folder(order._id.toString());
+      mainZip.file("order_summary.json", JSON.stringify(orderSummary, null, 2));
 
-          for (const item of order.cart) {
-            try {
-              const designImage = item.designImage?.url || item.designImage;
-              if (!designImage) continue;
+      // Generate final ZIP
+      const zipBlob = await mainZip.generateAsync({ type: "blob" });
 
-              const imageBlob = await this.fetchImageAsBlob(designImage);
-              orderFolder.file(`${item._id}_design.png`, imageBlob);
+      // Generate filename
+      const filename = `order_${
+        order._id?.slice(0, 8) || "unknown"
+      }_designs.zip`;
 
-              bulkSummary.processedDesigns++;
-            } catch (error) {
-              console.error(`Failed to process design ${item?._id}:`, error);
-            }
-          }
-
-          bulkSummary.orders.push({
-            orderId: order._id,
-            customerName: order.user?.name || "Unknown",
-            designs: order.cart.length,
-          });
-
-          bulkSummary.processedOrders++;
-          bulkSummary.totalDesigns += order.cart.length;
-        } catch (error) {
-          console.error(`Failed to process order ${order?._id}:`, error);
-        }
-      }
-
-      // Add bulk summary
-      zip.file("bulk_summary.json", JSON.stringify(bulkSummary, null, 2));
-
-      const content = await zip.generateAsync({
-        type: "blob",
-        compression: "DEFLATE",
-        compressionOptions: {
-          level: 9,
-        },
-      });
-
-      if (!content) {
-        throw new Error("Failed to generate bulk zip file");
-      }
-
-      const fileName = `bulk_designs_${new Date().getTime()}`;
-      saveAs(content, `${fileName}.zip`);
+      // Save the ZIP file
+      saveAs(zipBlob, filename);
 
       return true;
     } catch (error) {
-      console.error("Bulk download error:", error);
-      throw new Error(`Bulk download failed: ${error.message}`);
+      console.error("Error downloading all designs:", error);
+      throw error;
     }
   }
 }

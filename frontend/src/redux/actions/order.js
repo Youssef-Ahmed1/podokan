@@ -170,7 +170,7 @@ export const getAllOrdersOfShop = () => async (dispatch) => {
       },
     });
 
-    console.log("getAllOrdersOfShop response:", data); // Debug log
+    console.log("getAllOrdersOfShop response:", data);
 
     if (!data.success) {
       throw new Error(data.message || "Failed to fetch shop orders");
@@ -178,12 +178,12 @@ export const getAllOrdersOfShop = () => async (dispatch) => {
 
     dispatch({
       type: ORDER_ACTIONS.GET_SHOP_SUCCESS,
-      payload: data.orders || [], // Ensure we always have an array
+      payload: data.orders || [],
     });
 
     return data;
   } catch (error) {
-    console.error("Error in getAllOrdersOfShop:", error); // Debug log
+    console.error("Error in getAllOrdersOfShop:", error);
     dispatch({
       type: ORDER_ACTIONS.GET_SHOP_FAIL,
       payload:
@@ -202,20 +202,20 @@ export const getAllOrdersOfAdmin = () => async (dispatch) => {
     dispatch({ type: ORDER_ACTIONS.GET_ADMIN_REQUEST });
 
     const { data } = await axios.get(`${server}/order/admin/all-orders`, {
-      withCredentials: true
+      withCredentials: true,
     });
 
     console.log("Admin orders response:", data); // Debug log
 
     dispatch({
       type: ORDER_ACTIONS.GET_ADMIN_SUCCESS,
-      payload: data.orders || [] // Ensure we always have an array
+      payload: data.orders || [], // Ensure we always have an array
     });
   } catch (error) {
     console.error("Error fetching admin orders:", error); // Debug log
     dispatch({
       type: ORDER_ACTIONS.GET_ADMIN_FAIL,
-      payload: error.response?.data?.message || "Failed to fetch admin orders"
+      payload: error.response?.data?.message || "Failed to fetch admin orders",
     });
   }
 };
@@ -229,13 +229,13 @@ export const adminDownloadDesign = (orderId, itemId) => async (dispatch) => {
       {
         withCredentials: true,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       }
     );
 
     if (!data.success || !data.designData) {
-      throw new Error('Failed to get design data');
+      throw new Error("Failed to get design data");
     }
 
     await DesignDownloader.downloadSingleDesign(data.designData);
@@ -243,10 +243,10 @@ export const adminDownloadDesign = (orderId, itemId) => async (dispatch) => {
     dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_SUCCESS });
     return true;
   } catch (error) {
-    console.error('Download error:', error);
+    console.error("Download error:", error);
     dispatch({
       type: ORDER_ACTIONS.DOWNLOAD_DESIGN_FAIL,
-      payload: error.response?.data?.message || error.message
+      payload: error.response?.data?.message || error.message,
     });
     throw error;
   }
@@ -263,15 +263,15 @@ export const adminUpdateOrderStatus = (orderId, status) => async (dispatch) => {
       {
         withCredentials: true,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
       }
     );
 
     dispatch({
       type: ORDER_ACTIONS.UPDATE_STATUS_SUCCESS,
-      payload: data.order
+      payload: data.order,
     });
 
     // Refresh admin orders
@@ -280,7 +280,7 @@ export const adminUpdateOrderStatus = (orderId, status) => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: ORDER_ACTIONS.UPDATE_STATUS_FAIL,
-      payload: error.response?.data?.message || "Update failed"
+      payload: error.response?.data?.message || "Update failed",
     });
     throw error;
   }
@@ -296,15 +296,15 @@ export const updateOrderStatus = (orderId, status) => async (dispatch) => {
       {
         withCredentials: true,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       }
     );
 
     dispatch({
       type: ORDER_ACTIONS.UPDATE_STATUS_SUCCESS,
-      payload: data.order
+      payload: data.order,
     });
 
     // Refresh orders list
@@ -313,7 +313,7 @@ export const updateOrderStatus = (orderId, status) => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: ORDER_ACTIONS.UPDATE_STATUS_FAIL,
-      payload: error.response?.data?.message || "Failed to update status"
+      payload: error.response?.data?.message || "Failed to update status",
     });
     throw error;
   }
@@ -324,27 +324,30 @@ export const downloadOrderSpecs = (orderId) => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.DOWNLOAD_SPECS_REQUEST });
 
-    const { data } = await axios.get(`${server}/order/download-specs/${orderId}`, {
-      withCredentials: true,
-      responseType: 'blob'
-    });
+    const { data } = await axios.get(
+      `${server}/order/download-specs/${orderId}`,
+      {
+        withCredentials: true,
+        responseType: "blob",
+      }
+    );
 
     // Create blob link to download
     const url = window.URL.createObjectURL(new Blob([data]));
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.setAttribute('download', `specs-${orderId}.csv`);
+    link.setAttribute("download", `specs-${orderId}.csv`);
     document.body.appendChild(link);
     link.click();
     link.remove();
 
     dispatch({
-      type: ORDER_ACTIONS.DOWNLOAD_SPECS_SUCCESS
+      type: ORDER_ACTIONS.DOWNLOAD_SPECS_SUCCESS,
     });
   } catch (error) {
     dispatch({
       type: ORDER_ACTIONS.DOWNLOAD_SPECS_FAIL,
-      payload: error.response?.data?.message
+      payload: error.response?.data?.message,
     });
   }
 };
@@ -355,9 +358,9 @@ export const downloadDesign = (orderId, itemId) => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_REQUEST });
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('Authentication required');
+      throw new Error("Authentication required");
     }
 
     const { data } = await axios.get(
@@ -365,14 +368,14 @@ export const downloadDesign = (orderId, itemId) => async (dispatch) => {
       {
         withCredentials: true,
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
       }
     );
 
     if (!data.success || !data.designData) {
-      throw new Error('Failed to get design data');
+      throw new Error("Failed to get design data");
     }
 
     // Process the download
@@ -384,72 +387,83 @@ export const downloadDesign = (orderId, itemId) => async (dispatch) => {
     const errorMessage = error.response?.data?.message || error.message;
     dispatch({
       type: ORDER_ACTIONS.DOWNLOAD_DESIGN_FAIL,
-      payload: errorMessage
+      payload: errorMessage,
     });
-    
-    if (errorMessage.includes('token') || errorMessage.includes('login')) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+
+    if (errorMessage.includes("token") || errorMessage.includes("login")) {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
     }
-    
+
     throw error;
   }
 };
 
 // Assign delivery partner
-export const assignDeliveryPartner = (orderId, deliveryData) => async (dispatch) => {
-  try {
-    dispatch({ type: ORDER_ACTIONS.ASSIGN_DELIVERY_REQUEST });
+export const assignDeliveryPartner =
+  (orderId, deliveryData) => async (dispatch) => {
+    try {
+      dispatch({ type: ORDER_ACTIONS.ASSIGN_DELIVERY_REQUEST });
 
-    const config = { headers: { "Content-Type": "application/json" }, withCredentials: true };
-    const { data } = await axios.post(
-      `${server}/order/assign-delivery/${orderId}`,
-      deliveryData,
-      config
-    );
+      const config = {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      };
+      const { data } = await axios.post(
+        `${server}/order/assign-delivery/${orderId}`,
+        deliveryData,
+        config
+      );
 
-    dispatch({
-      type: ORDER_ACTIONS.ASSIGN_DELIVERY_SUCCESS,
-      payload: data.order
-    });
-  } catch (error) {
-    dispatch({
-      type: ORDER_ACTIONS.ASSIGN_DELIVERY_FAIL,
-      payload: error.response?.data?.message
-    });
-  }
-};
+      dispatch({
+        type: ORDER_ACTIONS.ASSIGN_DELIVERY_SUCCESS,
+        payload: data.order,
+      });
+    } catch (error) {
+      dispatch({
+        type: ORDER_ACTIONS.ASSIGN_DELIVERY_FAIL,
+        payload: error.response?.data?.message,
+      });
+    }
+  };
 
 // Update delivery status
-export const updateDeliveryStatus = (orderId, statusData) => async (dispatch) => {
-  try {
-    dispatch({ type: ORDER_ACTIONS.UPDATE_DELIVERY_REQUEST });
+export const updateDeliveryStatus =
+  (orderId, statusData) => async (dispatch) => {
+    try {
+      dispatch({ type: ORDER_ACTIONS.UPDATE_DELIVERY_REQUEST });
 
-    const config = { headers: { "Content-Type": "application/json" }, withCredentials: true };
-    const { data } = await axios.put(
-      `${server}/order/update-delivery/${orderId}`,
-      statusData,
-      config
-    );
+      const config = {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      };
+      const { data } = await axios.put(
+        `${server}/order/update-delivery/${orderId}`,
+        statusData,
+        config
+      );
 
-    dispatch({
-      type: ORDER_ACTIONS.UPDATE_DELIVERY_SUCCESS,
-      payload: data.order
-    });
-  } catch (error) {
-    dispatch({
-      type: ORDER_ACTIONS.UPDATE_DELIVERY_FAIL,
-      payload: error.response?.data?.message
-    });
-  }
-};
+      dispatch({
+        type: ORDER_ACTIONS.UPDATE_DELIVERY_SUCCESS,
+        payload: data.order,
+      });
+    } catch (error) {
+      dispatch({
+        type: ORDER_ACTIONS.UPDATE_DELIVERY_FAIL,
+        payload: error.response?.data?.message,
+      });
+    }
+  };
 
 // Request refund
 export const requestRefund = (orderId, refundData) => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.REFUND_REQUEST });
 
-    const config = { headers: { "Content-Type": "application/json" }, withCredentials: true };
+    const config = {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    };
     const { data } = await axios.post(
       `${server}/order/refund-request/${orderId}`,
       refundData,
@@ -458,12 +472,12 @@ export const requestRefund = (orderId, refundData) => async (dispatch) => {
 
     dispatch({
       type: ORDER_ACTIONS.REFUND_SUCCESS,
-      payload: data
+      payload: data,
     });
   } catch (error) {
     dispatch({
       type: ORDER_ACTIONS.REFUND_FAIL,
-      payload: error.response?.data?.message
+      payload: error.response?.data?.message,
     });
   }
 };

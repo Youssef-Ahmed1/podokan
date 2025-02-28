@@ -1,51 +1,31 @@
-// UserOrderDetails.jsx
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
-import { Package, Truck, CreditCard } from "lucide-react";
-import { getAllOrdersOfUser } from "../redux/actions/order";
+import { useParams, Link } from "react-router-dom";
+import { format } from "date-fns";
+import {
+  Download,
+  Clock,
+  Package,
+  Truck,
+  CreditCard,
+  ArrowLeft,
+  AlertTriangle,
+} from "lucide-react";
 import { toast } from "react-toastify";
+import { getAllOrdersOfUser } from "../../redux/actions/order";
 
 const UserOrderDetails = () => {
-  const {
-    orders,
-    isLoading,
-    error: orderError,
-  } = useSelector((state) => state.order);
+  const { orders, isLoading } = useSelector((state) => state.order);
   const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const { id } = useParams();
   const [currentOrder, setCurrentOrder] = useState(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const [error, setError] = useState(null);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        if (!user) {
-          toast.error("Please login to view order details");
-          return;
-        }
-
-        const result = await dispatch(getAllOrdersOfUser());
-        if (!result?.success) {
-          throw new Error(result?.message || "Failed to fetch orders");
-        }
-      } catch (err) {
-        console.error("Error fetching orders:", err);
-        if (retryCount < 3) {
-          setTimeout(() => {
-            setRetryCount((prev) => prev + 1);
-          }, 1000 * Math.pow(2, retryCount)); // Exponential backoff
-        } else {
-          toast.error(err.message || "Failed to load order details");
-        }
-      }
-    };
-
-    fetchOrders();
-  }, [dispatch, user, retryCount]);
+    if (user?._id) {
+      dispatch(getAllOrdersOfUser());
+    }
+  }, [dispatch, user]);
 
   useEffect(() => {
     if (orders?.length && id) {
@@ -58,25 +38,7 @@ const UserOrderDetails = () => {
     }
   }, [orders, id]);
 
-  useEffect(() => {
-    const fetchOrder = async () => {
-      try {
-        setError(null);
-        await dispatch(getAllOrdersOfUser());
-      } catch (err) {
-        setError(err.message || "Failed to fetch order details");
-        toast.error("Failed to fetch order details");
-      } finally {
-        setIsInitialLoading(false);
-      }
-    };
-
-    if (user?._id) {
-      fetchOrder();
-    }
-  }, [dispatch, user]);
-
-  if (isLoading || isInitialLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600"></div>
@@ -84,49 +46,51 @@ const UserOrderDetails = () => {
     );
   }
 
-  // Show error state
-  if (orderError && !currentOrder) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-          <p className="text-red-600">{orderError}</p>
-          <button
-            onClick={() => setRetryCount(0)}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Show not found state
   if (!currentOrder) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8 text-center">
         <h2 className="text-2xl font-bold text-gray-900">Order not found</h2>
+        <p className="text-gray-600 mt-2">
+          The order you're looking for could not be found.
+        </p>
+        <Link
+          to="/profile"
+          className="inline-flex items-center mt-4 text-purple-600 hover:text-purple-700"
+        >
+          <ArrowLeft size={16} className="mr-1" />
+          Back to Orders
+        </Link>
       </div>
     );
   }
 
-  // Calculate order totals with explicit shipping cost
-  const subtotal = currentOrder.cart.reduce(
-    (total, item) => total + item.price * (item.qty || 1),
-    0
-  );
+  // Calculate order totals
+  const subtotal =
+    currentOrder.subtotal ||
+    currentOrder.cart.reduce(
+      (total, item) => total + item.price * (item.qty || 1),
+      0
+    );
 
-  // Use stored shipping cost or default to 50
   const shippingCost =
     currentOrder.shippingCost ||
     currentOrder.shippingAddress?.shippingPrice ||
     50;
 
-  const total = currentOrder.totalPrice || subtotal + shippingCost;
-
-  // Render order details
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      {/* Page Header with Back Link */}
+      <div className="mb-8">
+        <Link
+          to="/profile"
+          className="inline-flex items-center text-purple-600 hover:text-purple-700 mb-4"
+        >
+          <ArrowLeft size={16} className="mr-1" />
+          Back to Orders
+        </Link>
+        <h1 className="text-2xl font-bold text-gray-900">Order Details</h1>
+      </div>
+
       {/* Order Header */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
@@ -147,16 +111,76 @@ const UserOrderDetails = () => {
                 {currentOrder.status}
               </span>
               <span className="text-gray-500">
-                {new Date(currentOrder.createdAt).toLocaleDateString()}
+                {format(new Date(currentOrder.createdAt), "PPP")}
               </span>
             </div>
           </div>
 
           <div className="mt-4 md:mt-0">
             <span className="text-lg font-bold text-purple-600">
-              Total: EGP {total.toFixed(2)}
+              Total: EGP {currentOrder.totalPrice.toFixed(2)}
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* Order Timeline */}
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+        <h2 className="text-lg font-semibold mb-4 flex items-center">
+          <Clock className="mr-2 text-purple-600" size={20} />
+          Order Timeline
+        </h2>
+        <div className="space-y-4">
+          <div className="flex">
+            <div className="flex flex-col items-center mr-4">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <div className="h-full w-0.5 bg-gray-200"></div>
+            </div>
+            <div>
+              <p className="font-medium">Order Placed</p>
+              <p className="text-gray-500 text-sm">
+                {format(new Date(currentOrder.createdAt), "PPP p")}
+              </p>
+            </div>
+          </div>
+
+          {currentOrder.statusHistory?.map((status, index) => (
+            <div key={index} className="flex">
+              <div className="flex flex-col items-center mr-4">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <div
+                  className={`h-full w-0.5 ${
+                    index === currentOrder.statusHistory.length - 1
+                      ? "bg-white"
+                      : "bg-gray-200"
+                  }`}
+                ></div>
+              </div>
+              <div>
+                <p className="font-medium">{status.status}</p>
+                <p className="text-gray-500 text-sm">
+                  {format(new Date(status.timestamp), "PPP p")}
+                </p>
+                {status.details && (
+                  <p className="text-gray-600 text-sm mt-1">{status.details}</p>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {currentOrder.deliveredAt && (
+            <div className="flex">
+              <div className="flex flex-col items-center mr-4">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              </div>
+              <div>
+                <p className="font-medium">Delivered</p>
+                <p className="text-gray-500 text-sm">
+                  {format(new Date(currentOrder.deliveredAt), "PPP p")}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -168,17 +192,14 @@ const UserOrderDetails = () => {
             <div className="relative aspect-square rounded-lg bg-gray-50 overflow-hidden">
               {item.designImage ? (
                 <img
-                  src={
-                    typeof item.designImage === "string"
-                      ? item.designImage
-                      : item.designImage.url
-                  }
+                  src={item.designImage?.url || item.designImage}
                   alt={item.DesignTitle || "Product Design"}
                   className="w-full h-full object-contain"
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">
-                  <span className="text-gray-400">
+                  <AlertTriangle size={48} className="text-gray-400" />
+                  <span className="text-gray-400 ml-2">
                     No design preview available
                   </span>
                 </div>
@@ -189,7 +210,7 @@ const UserOrderDetails = () => {
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                  {item.DesignTitle || "Untitled Design"}
+                  {item.DesignTitle || "Design"}
                 </h2>
               </div>
 
@@ -203,20 +224,12 @@ const UserOrderDetails = () => {
                   </div>
                   <div>
                     <p className="text-gray-600">Size:</p>
-                    <p className="font-medium">
-                      {item.size &&
-                      item.size !== "One Size" &&
-                      item.size !== "Default"
-                        ? item.size
-                        : "N/A"}
-                    </p>
+                    <p className="font-medium">{item.size || "Standard"}</p>
                   </div>
                   <div>
                     <p className="text-gray-600">Color:</p>
                     <p className="font-medium">
-                      {item.ProductColor && item.ProductColor !== "Default"
-                        ? item.ProductColor
-                        : "N/A"}
+                      {item.ProductColor || "Standard"}
                     </p>
                   </div>
                   <div>
@@ -245,7 +258,10 @@ const UserOrderDetails = () => {
 
       {/* Order Summary */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-        <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
+        <h3 className="text-lg font-semibold mb-4 flex items-center">
+          <Package className="mr-2 text-purple-600" size={20} />
+          Order Summary
+        </h3>
         <div className="space-y-2">
           <div className="flex justify-between">
             <span>Subtotal</span>
@@ -257,7 +273,7 @@ const UserOrderDetails = () => {
           </div>
           <div className="flex justify-between pt-2 border-t font-bold">
             <span>Total</span>
-            <span>EGP {total.toFixed(2)}</span>
+            <span>EGP {currentOrder.totalPrice.toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -282,6 +298,9 @@ const UserOrderDetails = () => {
               <p className="text-gray-600 mt-2">
                 {currentOrder.shippingAddress?.city || "N/A"},
                 {currentOrder.shippingAddress?.country || "N/A"}
+                {currentOrder.shippingAddress?.postalCode
+                  ? ` ${currentOrder.shippingAddress.postalCode}`
+                  : ""}
               </p>
               <p className="text-gray-600 mt-2">
                 Phone: {currentOrder.shippingAddress?.phoneNumber || "N/A"}
