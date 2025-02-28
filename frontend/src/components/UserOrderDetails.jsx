@@ -12,7 +12,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { getAllOrdersOfUser } from "../../redux/actions/order";
+import { getAllOrdersOfUser } from "./../redux/actions/order";
 
 const UserOrderDetails = () => {
   const { orders, isLoading } = useSelector((state) => state.order);
