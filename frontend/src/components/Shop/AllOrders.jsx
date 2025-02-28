@@ -8,7 +8,7 @@ import { getAllOrdersOfShop } from "../../redux/actions/order";
 
 const AllOrders = () => {
   const dispatch = useDispatch();
-  const { orders, isLoading } = useSelector((state) => state.order);
+  const { orders, isLoading, loading } = useSelector((state) => state.order);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
