@@ -152,6 +152,7 @@ export const getShopOrders = () => async (dispatch) => {
 };
 
 // Get all orders for admin
+// In redux/actions/order.js
 export const getAllOrdersOfShop = () => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.GET_SHOP_REQUEST });

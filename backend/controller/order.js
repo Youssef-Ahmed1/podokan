@@ -328,49 +328,58 @@ router.put(
   })
 );
 // get all seller orders
-export const getAllOrdersOfShop = () => async (dispatch) => {
-  try {
-    dispatch({ type: ORDER_ACTIONS.GET_SHOP_REQUEST });
+router.get(
+  "/get-seller-orders",
+  isSeller,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      // Ensure seller is authenticated
+      if (!req.seller || !req.seller._id) {
+        return next(new ErrorHandler("Seller authentication required", 401));
+      }
 
-    // Get seller token from localStorage
-    const token = localStorage.getItem("seller_token");
+      const sellerId = req.seller._id.toString();
+      console.log("Fetching orders for seller:", sellerId);
 
-    if (!token) {
-      throw new Error("Seller authentication required");
+      // First try direct query
+      let orders = await Order.find({
+        "cart.shopId": sellerId,
+      }).sort({ createdAt: -1 });
+
+      // If no orders, try string comparison (to handle ObjectID vs string issues)
+      if (!orders || orders.length === 0) {
+        console.log("No direct matches, trying string comparison");
+        const allOrders = await Order.find().sort({ createdAt: -1 });
+
+        orders = allOrders.filter((order) => {
+          return order.cart.some((item) => {
+            const itemShopId = item.shopId?.toString() || item.shopId;
+            return itemShopId === sellerId;
+          });
+        });
+      }
+
+      // Process orders to include only this seller's items in each order
+      const processedOrders = orders.map((order) => {
+        const orderObj = order.toObject();
+        orderObj.cart = orderObj.cart.filter((item) => {
+          const itemShopId = item.shopId?.toString() || item.shopId;
+          return itemShopId === sellerId;
+        });
+        return orderObj;
+      });
+
+      res.status(200).json({
+        success: true,
+        orders: processedOrders,
+        count: processedOrders.length,
+      });
+    } catch (error) {
+      console.error("Error in get-seller-orders:", error);
+      return next(new ErrorHandler(error.message, 500));
     }
-
-    const { data } = await axios.get(`${server}/order/get-seller-orders`, {
-      withCredentials: true,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    console.log("Shop orders response:", data);
-
-    if (!data.success) {
-      throw new Error(data.message || "Failed to fetch shop orders");
-    }
-
-    dispatch({
-      type: ORDER_ACTIONS.GET_SHOP_SUCCESS,
-      payload: data.orders || [],
-    });
-
-    return data;
-  } catch (error) {
-    console.error("Error in getAllOrdersOfShop:", error);
-    dispatch({
-      type: ORDER_ACTIONS.GET_SHOP_FAIL,
-      payload:
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to fetch shop orders",
-    });
-
-    throw error;
-  }
-};
+  })
+);
 router.get(
   "/get-seller-order/:id",
   isSeller,
