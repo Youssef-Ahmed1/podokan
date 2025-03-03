@@ -114,12 +114,15 @@ router.get(
     }
   })
 );
-// routes/order.js - Update the download-design endpoint
+
 router.get(
   "/download-design/:orderId/:itemId",
   isAuthenticated,
+  isAdmin, // Add isAdmin middleware to restrict to admins only
   catchAsyncErrors(async (req, res, next) => {
     try {
+      console.log("Admin design download requested by:", req.user._id);
+
       const order = await Order.findById(req.params.orderId)
         .populate("user", "name email")
         .populate("cart.shopId", "name email");
@@ -136,39 +139,27 @@ router.get(
         return next(new ErrorHandler("Order item not found", 404));
       }
 
-      // Get exact shipping cost
-      const shippingCost =
-        order.shippingCost || order.shippingAddress?.shippingPrice || 50;
-
-      // Get seller info with better error handling
-      let sellerInfo = { name: "Unknown", email: "N/A" };
+      // Find the original product to get accurate color/size information
+      let productDetails = null;
       try {
-        if (orderItem.shopId) {
-          const shopId =
-            typeof orderItem.shopId === "object"
-              ? orderItem.shopId._id
-              : orderItem.shopId;
-          const seller = await Shop.findById(shopId);
-          if (seller) {
-            sellerInfo = {
-              name: seller.name || "Unknown",
-              email: seller.email || "N/A",
-            };
+        if (orderItem.productId) {
+          const product = await Product.findById(orderItem.productId);
+          if (product) {
+            productDetails = product;
           }
         }
-      } catch (sellerError) {
-        console.error("Error fetching seller info:", sellerError);
+      } catch (err) {
+        console.log("Could not find original product:", err);
       }
 
-      // Calculate exact item details
-      const itemPrice = orderItem.price || 0;
-      const itemQty = orderItem.qty || 1;
-      const subtotal = itemPrice * itemQty;
+      // Use product details or fall back to order item data
+      const productColor =
+        productDetails?.ProductColor || orderItem.ProductColor || "white";
 
-      // Use actual product details, not default values
-      const productColor = orderItem.ProductColor || "N/A";
-      const productSize = orderItem.size || "N/A";
-      const productType = orderItem.ProductType || "Hoodie";
+      const productSize = productDetails?.size || orderItem.size || "One Size";
+
+      const productType =
+        productDetails?.ProductType || orderItem.ProductType || "hoodie";
 
       const designData = {
         imageUrl: orderItem.designImage?.url || orderItem.designImage,
@@ -179,24 +170,27 @@ router.get(
           type: productType,
           color: productColor,
           size: productSize,
-          designPosition: orderItem.designSpecs || {
-            positionX: 50,
-            positionY: 50,
-            scale: 1,
-            rotation: 0,
+          designPosition: {
+            positionX: orderItem.designSpecs?.positionX || 50,
+            positionY: orderItem.designSpecs?.positionY || 50,
+            scale: orderItem.designSpecs?.scale || 1,
+            rotation: orderItem.designSpecs?.rotation || 0,
           },
           order: {
             orderId: order._id,
             orderDate: order.createdAt,
-            quantity: itemQty,
+            quantity: orderItem.qty || 1,
             price: {
-              itemPrice: itemPrice,
-              subtotal: subtotal,
-              shippingCost: shippingCost,
-              total: order.totalPrice || subtotal + shippingCost,
+              itemPrice: orderItem.price || 0,
+              subtotal: (orderItem.price || 0) * (orderItem.qty || 1),
+              shippingCost:
+                order.shippingCost ||
+                order.shippingAddress?.shippingPrice ||
+                50,
+              total: order.totalPrice || 0,
             },
-            paymentMethod: order.paymentInfo?.type || "N/A",
-            paymentStatus: order.paymentInfo?.status || "N/A",
+            paymentMethod: order.paymentInfo?.type || "Cash On Delivery",
+            paymentStatus: order.paymentInfo?.status || "Processing",
           },
           product: {
             title: orderItem.DesignTitle || "Untitled",
@@ -205,14 +199,23 @@ router.get(
             size: productSize,
           },
           design: {
-            position: orderItem.designSpecs || {
-              positionX: 50,
-              positionY: 50,
-              scale: 1,
-              rotation: 0,
+            position: {
+              positionX: orderItem.designSpecs?.positionX || 50,
+              positionY: orderItem.designSpecs?.positionY || 50,
+              scale: orderItem.designSpecs?.scale || 1,
+              rotation: orderItem.designSpecs?.rotation || 0,
             },
           },
-          seller: sellerInfo,
+          seller: {
+            name:
+              typeof orderItem.shopId === "object"
+                ? orderItem.shopId.name || "Unknown"
+                : "Unknown",
+            email:
+              typeof orderItem.shopId === "object"
+                ? orderItem.shopId.email || "N/A"
+                : "N/A",
+          },
           customer: {
             name: order.user?.name || "Anonymous",
             email: order.user?.email || "N/A",
@@ -226,77 +229,72 @@ router.get(
             city: order.shippingAddress?.city || "N/A",
             country: order.shippingAddress?.country || "N/A",
             postalCode: order.shippingAddress?.postalCode || "N/A",
-            shippingPrice: shippingCost,
+            shippingPrice:
+              order.shippingCost || order.shippingAddress?.shippingPrice || 50,
           },
         },
       };
-
-      router.get(
-        "/generate-mockup/:orderId/:itemId",
-        isAuthenticated,
-        catchAsyncErrors(async (req, res, next) => {
-          try {
-            const order = await Order.findById(req.params.orderId);
-
-            if (!order) {
-              return next(new ErrorHandler("Order not found", 404));
-            }
-
-            const orderItem = order.cart.find(
-              (item) => item._id.toString() === req.params.itemId
-            );
-
-            if (!orderItem) {
-              return next(new ErrorHandler("Order item not found", 404));
-            }
-
-            // Create mockup using server-side processing
-            const mockupPath = await DesignProcessor.processOrderItem(
-              orderItem
-            );
-
-            // Stream the file to the client
-            res.setHeader("Content-Type", "image/png");
-            res.setHeader(
-              "Content-Disposition",
-              `attachment; filename="mockup_${req.params.itemId}.png"`
-            );
-
-            const fileStream = fs.createReadStream(mockupPath);
-            fileStream.pipe(res);
-
-            // Cleanup file after streaming
-            fileStream.on("end", () => {
-              fs.unlinkSync(mockupPath);
-            });
-          } catch (error) {
-            return next(new ErrorHandler(error.message, 500));
-          }
-        })
-      );
-
-      // Check if user has permission to download (admin or customer only)
-      const isAdmin = req.user.role === "Admin";
-      const isCustomer = order.user._id.toString() === req.user._id.toString();
-
-      if (!isAdmin && !isCustomer) {
-        return next(
-          new ErrorHandler(
-            "You don't have permission to download this design",
-            403
-          )
-        );
-      }
 
       res.status(200).json({
         success: true,
         designData,
       });
     } catch (error) {
+      console.error("Error in download-design:", error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
+router.get(
+  "/generate-mockup/:orderId/:itemId",
+  isAuthenticated,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const order = await Order.findById(req.params.orderId);
+
+      if (!order) {
+        return next(new ErrorHandler("Order not found", 404));
+      }
+
+      const orderItem = order.cart.find(
+        (item) => item._id.toString() === req.params.itemId
+      );
+
+      if (!orderItem) {
+        return next(new ErrorHandler("Order item not found", 404));
+      }
+
+      // Create mockup using server-side processing
+      const mockupPath = await DesignProcessor.processOrderItem(orderItem);
+
+      // Stream the file to the client
+      res.setHeader("Content-Type", "image/png");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="mockup_${req.params.itemId}.png"`
+      );
+
+      const fileStream = fs.createReadStream(mockupPath);
+      fileStream.pipe(res);
+
+      // Cleanup file after streaming
+      fileStream.on("end", () => {
+        fs.unlinkSync(mockupPath);
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+const isAdmin = req.user.role === "Admin";
+const isCustomer = Order.user._id.toString() === req.user._id.toString();
+
+if (!isAdmin && !isCustomer) {
+  return next(
+    new ErrorHandler("You don't have permission to download this design", 403)
+  );
+}
 router.put(
   "/admin/update-status/:id",
   isAuthenticated,
@@ -407,43 +405,6 @@ router.get(
     }
   })
 );
-// update order status for seller
-router.put(
-  "/update-status/:id",
-  isAuthenticated,
-  isAdmin,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const order = await Order.findById(req.params.id);
-
-      if (!order) {
-        return next(new ErrorHandler("Order not found", 404));
-      }
-
-      order.status = req.body.status;
-
-      if (req.body.status === "Delivered") {
-        order.deliveredAt = Date.now();
-        order.paymentInfo.status = "Succeeded";
-      }
-
-      order.statusHistory.push({
-        status: req.body.status,
-        updatedBy: req.user._id,
-        timestamp: new Date(),
-      });
-
-      await order.save({ validateBeforeSave: false });
-
-      res.status(200).json({
-        success: true,
-        order,
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
 
 // request refund -- user
 router.put(
@@ -521,6 +482,9 @@ router.get(
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     try {
+      // Debug logging
+      console.log("Admin role check passed for user:", req.user._id);
+
       const orders = await Order.find().sort({
         createdAt: -1,
       });
@@ -530,6 +494,7 @@ router.get(
         orders,
       });
     } catch (error) {
+      console.error("Error in admin/all-orders:", error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
@@ -681,126 +646,6 @@ router.get(
       res.status(200).json({
         success: true,
         specsData,
-      });
-    } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
-);
-// download design files
-router.get(
-  "/download-design/:orderId/:itemId",
-  isAuthenticated,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const order = await Order.findById(req.params.orderId)
-        .populate("user", "name email")
-        .populate("cart.shopId", "name email");
-
-      if (!order) {
-        return next(new ErrorHandler("Order not found", 404));
-      }
-
-      // Find the specific item in the order
-      const orderItem = order.cart.find(
-        (item) => item._id.toString() === req.params.itemId
-      );
-
-      if (!orderItem) {
-        return next(new ErrorHandler("Order item not found", 404));
-      }
-
-      // Extract exact shipping cost from the order
-      const shippingCost = order.totalPrice - order.subtotal || 0;
-
-      // Get seller info
-      let sellerInfo = { name: "Unknown", email: "N/A" };
-      try {
-        if (orderItem.shopId) {
-          const shopId =
-            typeof orderItem.shopId === "object"
-              ? orderItem.shopId._id
-              : orderItem.shopId;
-
-          const seller = await Shop.findById(shopId);
-          if (seller) {
-            sellerInfo = {
-              name: seller.name || "Unknown",
-              email: seller.email || "N/A",
-            };
-          }
-        }
-      } catch (sellerError) {
-        console.error("Error fetching seller info:", sellerError);
-      }
-
-      // Extract exact item details
-      const itemPrice = orderItem.price || 0;
-      const itemQty = orderItem.qty || 1;
-      const subtotal = itemPrice * itemQty;
-
-      // Get exact design specs
-      const designSpecs = {
-        positionX: orderItem.designSpecs?.positionX || 50,
-        positionY: orderItem.designSpecs?.positionY || 50,
-        scale: orderItem.designSpecs?.scale || 1,
-        rotation: orderItem.designSpecs?.rotation || 0,
-      };
-
-      // Get exact product details
-      const productColor = orderItem.ProductColor || "N/A";
-      const productSize = orderItem.size || "N/A";
-      const productType = orderItem.ProductType || "Hoodie";
-
-      const designData = {
-        imageUrl: orderItem.designImage?.url || orderItem.designImage,
-        mockupUrl: orderItem.mockupImage?.url || null,
-        orderId: order._id,
-        itemId: orderItem._id,
-        specs: {
-          order: {
-            orderId: order._id,
-            orderDate: order.createdAt,
-            quantity: itemQty,
-            price: {
-              itemPrice: itemPrice,
-              subtotal: subtotal,
-              shippingCost: shippingCost,
-              total: order.totalPrice || subtotal + shippingCost,
-            },
-            paymentMethod: order.paymentInfo?.type || "N/A",
-            paymentStatus: order.paymentInfo?.status || "N/A",
-          },
-          product: {
-            title: orderItem.DesignTitle || "Untitled",
-            type: productType,
-            color: productColor,
-            size: productSize,
-          },
-          design: {
-            position: designSpecs,
-          },
-          seller: sellerInfo,
-          customer: {
-            name: order.user?.name || "Anonymous",
-            email: order.user?.email || "N/A",
-            address: order.shippingAddress?.address1 || "N/A",
-            city: order.shippingAddress?.city || "N/A",
-            country: order.shippingAddress?.country || "N/A",
-          },
-          shipping: {
-            address: order.shippingAddress?.address1 || "N/A",
-            city: order.shippingAddress?.city || "N/A",
-            country: order.shippingAddress?.country || "N/A",
-            postalCode: order.shippingAddress?.postalCode || "N/A",
-            shippingPrice: shippingCost,
-          },
-        },
-      };
-
-      res.status(200).json({
-        success: true,
-        designData,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));

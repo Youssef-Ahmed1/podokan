@@ -245,49 +245,10 @@ const UserOrderDetails = () => {
                   </div>
                 </div>
               </div>
-
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-600">Item Price:</p>
-                <p className="text-xl font-bold text-purple-600">
-                  EGP {(item.price || 0).toFixed(2)}
-                </p>
-                {item.qty > 1 && (
-                  <p className="text-sm text-gray-600 mt-1">
-                    Subtotal: EGP{" "}
-                    {((item.price || 0) * (item.qty || 1)).toFixed(2)}
-                  </p>
-                )}
-                <p className="text-sm text-gray-600 mt-1">
-                  Final Price (incl. shipping): EGP{" "}
-                  {currentOrder.totalPrice.toFixed(2)}
-                </p>
-              </div>
             </div>
           </div>
         </div>
       ))}
-
-      {/* Order Summary */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-        <h3 className="text-lg font-semibold mb-4 flex items-center">
-          <Package className="mr-2 text-purple-600" size={20} />
-          Order Summary
-        </h3>
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <span>Subtotal</span>
-            <span>EGP {subtotal.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Shipping</span>
-            <span>EGP {shippingCost.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between pt-2 border-t font-bold">
-            <span>Total</span>
-            <span>EGP {currentOrder.totalPrice.toFixed(2)}</span>
-          </div>
-        </div>
-      </div>
 
       {/* Shipping & Payment Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

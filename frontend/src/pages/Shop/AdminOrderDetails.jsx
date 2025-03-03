@@ -59,7 +59,8 @@ const AdminOrderDetails = () => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-
+  const isAdmin = user && user.role && user.role.toLowerCase() === "admin";
+  const { user } = useSelector((state) => state.user);
   useEffect(() => {
     // If orders not loaded, fetch them
     if (!orders || orders.length === 0) {
@@ -377,23 +378,14 @@ const AdminOrderDetails = () => {
 
               {/* Actions */}
               <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => handleDownloadDesign(item)}
-                  disabled={isDownloading && downloadingItemId === item._id}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center hover:bg-blue-700 disabled:bg-blue-300"
-                >
-                  {isDownloading && downloadingItemId === item._id ? (
-                    <>
-                      <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                      Downloading...
-                    </>
-                  ) : (
-                    <>
-                      <Download size={18} className="mr-2" />
-                      Download Design
-                    </>
-                  )}
-                </button>
+                {isAdmin && (
+                  <button
+                    onClick={() => handleDownloadDesign(orderId, itemId)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                  >
+                    Download Design
+                  </button>
+                )}
 
                 <button className="px-4 py-2 bg-purple-600 text-white rounded-lg flex items-center hover:bg-purple-700">
                   <Printer size={18} className="mr-2" />

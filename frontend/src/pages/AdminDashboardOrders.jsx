@@ -13,32 +13,71 @@ const AdminDashboardOrders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 10;
 
+  // pages/Shop/AdminOrderDetails.jsx - Update useEffect
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchOrder = async () => {
       try {
-        await dispatch(getAllOrdersOfAdmin());
+        // If orders not loaded, fetch them
+        if (!orders || orders.length === 0) {
+          console.log("No orders loaded, fetching from API...");
+          await dispatch(getAllOrdersOfAdmin());
+        } else {
+          console.log("Using cached orders, count:", orders.length);
+        }
+
+        // Find the order from the loaded orders after re-fetch
+        const foundOrder = orders.find((order) => order._id === id);
+        if (foundOrder) {
+          console.log("Order found in cache:", foundOrder._id);
+          setOrder(foundOrder);
+        } else {
+          console.log("Order not found in cache, trying direct API fetch");
+          // Try direct fetch as fallback
+          const { data } = await axios.get(
+            `${server}/order/admin/order/${id}`,
+            {
+              withCredentials: true,
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+
+          if (data.success && data.order) {
+            setOrder(data.order);
+          }
+        }
       } catch (error) {
-        toast.error(error.response?.data?.message || "Failed to fetch orders");
+        console.error("Error fetching order details:", error);
+        toast.error("Failed to load order details");
       }
     };
-    fetchOrders();
-  }, [dispatch]);
+
+    fetchOrder();
+  }, [dispatch, orders, id]);
 
   // Filter and search logic
-  const filteredOrders = adminOrders?.filter(order => {
-    const matchesSearch = 
-      order._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.cart?.[0]?.DesignTitle?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-    const matchesFilter = filterStatus === "all" || order.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  }) || [];
+  const filteredOrders =
+    adminOrders?.filter((order) => {
+      const matchesSearch =
+        order._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.cart?.[0]?.DesignTitle?.toLowerCase().includes(
+          searchTerm.toLowerCase()
+        );
+
+      const matchesFilter =
+        filterStatus === "all" || order.status === filterStatus;
+      return matchesSearch && matchesFilter;
+    }) || [];
 
   // Pagination
   const indexOfLastOrder = currentPage * ordersPerPage;
   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const currentOrders = filteredOrders.slice(
+    indexOfFirstOrder,
+    indexOfLastOrder
+  );
   const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
 
   const handleDownload = async (orderId) => {
@@ -82,12 +121,17 @@ const AdminDashboardOrders = () => {
       <div className="max-w-[1200px] mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Orders Management</h1>
-          
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">
+            Orders Management
+          </h1>
+
           {/* Search and Filter Bar */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
+              />
               <input
                 type="text"
                 placeholder="Search orders by ID, customer name, or design..."
@@ -104,7 +148,9 @@ const AdminDashboardOrders = () => {
               >
                 <option value="all">All Status</option>
                 <option value="Processing">Processing</option>
-                <option value="Transferred to delivery partner">Transferred</option>
+                <option value="Transferred to delivery partner">
+                  Transferred
+                </option>
                 <option value="Delivered">Delivered</option>
                 <option value="Cancelled">Cancelled</option>
               </select>
@@ -115,10 +161,7 @@ const AdminDashboardOrders = () => {
         {/* Orders Grid */}
         <div className="grid gap-4">
           {currentOrders.map((order) => (
-            <div
-              key={order._id}
-              className="bg-white rounded-lg shadow-md p-6"
-            >
+            <div key={order._id} className="bg-white rounded-lg shadow-md p-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800">
@@ -128,27 +171,36 @@ const AdminDashboardOrders = () => {
                     {new Date(order.createdAt).toLocaleDateString()}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      order.status === "Processing" ? "bg-blue-100 text-blue-800" :
-                      order.status === "Delivered" ? "bg-green-100 text-green-800" :
-                      order.status === "Cancelled" ? "bg-red-100 text-red-800" :
-                      "bg-gray-100 text-gray-800"
-                    }`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        order.status === "Processing"
+                          ? "bg-blue-100 text-blue-800"
+                          : order.status === "Delivered"
+                          ? "bg-green-100 text-green-800"
+                          : order.status === "Cancelled"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
                       {order.status}
                     </span>
                     <select
-                      onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
+                      onChange={(e) =>
+                        handleStatusUpdate(order._id, e.target.value)
+                      }
                       className="px-2 py-1 border border-gray-200 rounded-lg text-sm"
                       value={order.status}
                     >
                       <option value="Processing">Processing</option>
-                      <option value="Transferred to delivery partner">Transferred</option>
+                      <option value="Transferred to delivery partner">
+                        Transferred
+                      </option>
                       <option value="Delivered">Delivered</option>
                       <option value="Cancelled">Cancelled</option>
                     </select>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-3">
                   <Link to={`/admin/order/${order._id}`}>
                     <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
@@ -156,7 +208,7 @@ const AdminDashboardOrders = () => {
                       View Details
                     </button>
                   </Link>
-                  <button 
+                  <button
                     onClick={() => handleDownload(order._id)}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
@@ -170,8 +222,12 @@ const AdminDashboardOrders = () => {
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-gray-600">Customer: {order.user?.name}</p>
-                    <p className="text-gray-600">Items: {order.cart?.length || 0}</p>
+                    <p className="text-gray-600">
+                      Customer: {order.user?.name}
+                    </p>
+                    <p className="text-gray-600">
+                      Items: {order.cart?.length || 0}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-semibold text-gray-800">

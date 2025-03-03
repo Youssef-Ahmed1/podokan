@@ -2,6 +2,15 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+userSchema.pre("save", function (next) {
+  // Capitalize first letter of role for consistency
+  if (this.role) {
+    this.role =
+      this.role.charAt(0).toUpperCase() + this.role.slice(1).toLowerCase();
+  }
+  next();
+});
+
 const userSchema = new mongoose.Schema({
   name:{
     type: String,

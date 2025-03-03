@@ -201,22 +201,41 @@ export const getAllOrdersOfAdmin = () => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.GET_ADMIN_REQUEST });
 
+    // Add auth token logging
+    const token = localStorage.getItem("token");
+    console.log(
+      "Using auth token for admin request:",
+      token ? "Token present" : "No token"
+    );
+
     const { data } = await axios.get(`${server}/order/admin/all-orders`, {
       withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
 
-    console.log("Admin orders response:", data); // Debug log
+    console.log("Admin orders response:", data);
 
     dispatch({
       type: ORDER_ACTIONS.GET_ADMIN_SUCCESS,
-      payload: data.orders || [], // Ensure we always have an array
+      payload: data.orders || [],
     });
+
+    return data.orders;
   } catch (error) {
-    console.error("Error fetching admin orders:", error); // Debug log
+    console.error("Error fetching admin orders:", error);
     dispatch({
       type: ORDER_ACTIONS.GET_ADMIN_FAIL,
       payload: error.response?.data?.message || "Failed to fetch admin orders",
     });
+
+    // Special handling for auth errors
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      toast.error("Authentication error. Please log in again as admin.");
+    }
+
+    throw error;
   }
 };
 
@@ -352,49 +371,36 @@ export const downloadOrderSpecs = (orderId) => async (dispatch) => {
   }
 };
 
-// Download design
-// redux/actions/order.js - Update the downloadDesign action
-export const downloadDesign = (orderId, itemId) => async (dispatch) => {
+// In your client-side designDownload.js or similar file
+export const downloadDesign = async (orderId, itemId) => {
   try {
-    dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_REQUEST });
-
+    // Ensure we're using the admin token
     const token = localStorage.getItem("token");
     if (!token) {
       throw new Error("Authentication required");
     }
 
-    const { data } = await axios.get(
-      `${server}/order/download-design/${orderId}/${itemId}`,
+    const response = await fetch(
+      `${API_URL}/order/download-design/${orderId}/${itemId}`,
       {
-        withCredentials: true,
+        method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
-          Accept: "application/json",
+          "Content-Type": "application/json",
         },
       }
     );
 
-    if (!data.success || !data.designData) {
-      throw new Error("Failed to get design data");
+    if (!response.ok) {
+      // Parse error response
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to download design");
     }
 
-    // Process the download
-    await DesignDownloader.downloadSingleDesign(data.designData);
-
-    dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_SUCCESS });
-    return true;
+    const data = await response.json();
+    return data.designData;
   } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message;
-    dispatch({
-      type: ORDER_ACTIONS.DOWNLOAD_DESIGN_FAIL,
-      payload: errorMessage,
-    });
-
-    if (errorMessage.includes("token") || errorMessage.includes("login")) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    }
-
+    console.error("Error downloading design:", error);
     throw error;
   }
 };

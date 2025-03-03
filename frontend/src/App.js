@@ -69,16 +69,26 @@ const App = () => {
       try {
         // Configure axios
         axios.defaults.withCredentials = true;
-        
-        // Set up auth headers from localStorage
-        const token = localStorage.getItem('token');
-        const sellerToken = localStorage.getItem('seller_token');
+
+        // Set up auth headers from localStorage with proper formatting
+        const token = localStorage.getItem("token");
+        const sellerToken = localStorage.getItem("seller_token");
 
         if (token) {
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          // Ensure token has Bearer prefix
+          const formattedToken = token.startsWith("Bearer ")
+            ? token
+            : `Bearer ${token}`;
+          axios.defaults.headers.common["Authorization"] = formattedToken;
         }
+
         if (sellerToken) {
-          axios.defaults.headers.common['Seller-Authorization'] = `Bearer ${sellerToken}`;
+          // Ensure token has Bearer prefix
+          const formattedSellerToken = sellerToken.startsWith("Bearer ")
+            ? sellerToken
+            : `Bearer ${sellerToken}`;
+          axios.defaults.headers.common["Seller-Authorization"] =
+            formattedSellerToken;
         }
 
         // Load initial data
@@ -86,9 +96,8 @@ const App = () => {
           Store.dispatch(loadUser()),
           Store.dispatch(loadSeller()),
           Store.dispatch(getAllProducts()),
-          Store.dispatch(getAllEvents())
+          Store.dispatch(getAllEvents()),
         ]);
-
       } catch (error) {
         console.error("Error initializing app:", error);
       } finally {
