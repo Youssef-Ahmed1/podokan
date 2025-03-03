@@ -224,14 +224,21 @@ const UserOrderDetails = () => {
                   </div>
                   <div>
                     <p className="text-gray-600">Size:</p>
-                    <p className="font-medium">{item.size || "Standard"}</p>
+                    <p className="font-medium">
+                      {item.size && item.size !== "One Size"
+                        ? item.size
+                        : "N/A"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-gray-600">Color:</p>
                     <p className="font-medium">
-                      {item.ProductColor || "Standard"}
+                      {item.ProductColor && item.ProductColor !== "Default"
+                        ? item.ProductColor
+                        : "N/A"}
                     </p>
                   </div>
+
                   <div>
                     <p className="text-gray-600">Quantity:</p>
                     <p className="font-medium">{item.qty || 1}</p>
@@ -246,10 +253,14 @@ const UserOrderDetails = () => {
                 </p>
                 {item.qty > 1 && (
                   <p className="text-sm text-gray-600 mt-1">
-                    Total: EGP{" "}
+                    Subtotal: EGP{" "}
                     {((item.price || 0) * (item.qty || 1)).toFixed(2)}
                   </p>
                 )}
+                <p className="text-sm text-gray-600 mt-1">
+                  Final Price (incl. shipping): EGP{" "}
+                  {currentOrder.totalPrice.toFixed(2)}
+                </p>
               </div>
             </div>
           </div>

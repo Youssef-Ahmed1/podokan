@@ -312,14 +312,22 @@ const AdminOrderDetails = () => {
                     <span className="px-2 py-1 bg-gray-100 rounded text-sm">
                       {item.ProductType || "N/A"}
                     </span>
-                    {item.ProductColor && (
+                    {item.ProductColor && item.ProductColor !== "Default" ? (
                       <span className="px-2 py-1 bg-gray-100 rounded text-sm">
-                        {item.ProductColor}
+                        Color: {item.ProductColor}
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 bg-gray-100 rounded text-sm">
+                        Color: N/A
                       </span>
                     )}
-                    {item.size && (
+                    {item.size && item.size !== "One Size" ? (
                       <span className="px-2 py-1 bg-gray-100 rounded text-sm">
                         Size: {item.size}
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 bg-gray-100 rounded text-sm">
+                        Size: N/A
                       </span>
                     )}
                   </div>

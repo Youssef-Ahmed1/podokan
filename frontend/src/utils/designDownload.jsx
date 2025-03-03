@@ -4,25 +4,25 @@ import { saveAs } from "file-saver";
 import axios from "axios";
 
 export class DesignDownloader {
-  // Download image as blob
   static async fetchImageAsBlob(url) {
     try {
       if (!url) throw new Error("Invalid image URL");
 
-      const response = await axios.get(url, {
-        responseType: "blob",
-        headers: {
-          "Cache-Control": "no-cache",
-        },
+      const response = await fetch(url, {
+        mode: "cors",
+        cache: "no-cache",
       });
 
-      return response.data;
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.statusText}`);
+      }
+
+      return await response.blob();
     } catch (error) {
       console.error("Error fetching image:", error);
       throw new Error(`Failed to fetch image: ${error.message}`);
     }
   }
-
   // Load an image
   static loadImage(src) {
     return new Promise((resolve, reject) => {

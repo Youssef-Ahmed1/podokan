@@ -170,7 +170,7 @@ export const getAllOrdersOfShop = () => async (dispatch) => {
       },
     });
 
-    console.log("getAllOrdersOfShop response:", data);
+    console.log("Shop orders response:", data);
 
     if (!data.success) {
       throw new Error(data.message || "Failed to fetch shop orders");
@@ -195,7 +195,6 @@ export const getAllOrdersOfShop = () => async (dispatch) => {
     throw error;
   }
 };
-
 // Get Admin Orders
 export const getAllOrdersOfAdmin = () => async (dispatch) => {
   try {

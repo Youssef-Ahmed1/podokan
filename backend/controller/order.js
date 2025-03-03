@@ -136,36 +136,39 @@ router.get(
         return next(new ErrorHandler("Order item not found", 404));
       }
 
-      // Explicitly define shipping cost - ensure a default of 50 if not stored
+      // Get exact shipping cost
       const shippingCost =
         order.shippingCost || order.shippingAddress?.shippingPrice || 50;
 
       // Get seller info with better error handling
       let sellerInfo = { name: "Unknown", email: "N/A" };
       try {
-        const seller = await Shop.findById(orderItem.shopId);
-        if (seller) {
-          sellerInfo = {
-            name: seller.name || "Unknown",
-            email: seller.email || "N/A",
-          };
+        if (orderItem.shopId) {
+          const shopId =
+            typeof orderItem.shopId === "object"
+              ? orderItem.shopId._id
+              : orderItem.shopId;
+          const seller = await Shop.findById(shopId);
+          if (seller) {
+            sellerInfo = {
+              name: seller.name || "Unknown",
+              email: seller.email || "N/A",
+            };
+          }
         }
       } catch (sellerError) {
         console.error("Error fetching seller info:", sellerError);
       }
 
-      // Calculate item price and totals
+      // Calculate exact item details
       const itemPrice = orderItem.price || 0;
       const itemQty = orderItem.qty || 1;
       const subtotal = itemPrice * itemQty;
-      const totalWithShipping = subtotal + shippingCost;
 
       // Use actual product details, not default values
-      const productColor =
-        orderItem.ProductColor !== "Default" ? orderItem.ProductColor : "N/A";
-
-      const productSize =
-        orderItem.size !== "One Size" ? orderItem.size : "N/A";
+      const productColor = orderItem.ProductColor || "N/A";
+      const productSize = orderItem.size || "N/A";
+      const productType = orderItem.ProductType || "Hoodie";
 
       const designData = {
         imageUrl: orderItem.designImage?.url || orderItem.designImage,
@@ -173,31 +176,40 @@ router.get(
         orderId: order._id,
         itemId: orderItem._id,
         specs: {
+          type: productType,
+          color: productColor,
+          size: productSize,
+          designPosition: orderItem.designSpecs || {
+            positionX: 50,
+            positionY: 50,
+            scale: 1,
+            rotation: 0,
+          },
           order: {
             orderId: order._id,
             orderDate: order.createdAt,
-            quantity: orderItem.qty || 1,
+            quantity: itemQty,
             price: {
               itemPrice: itemPrice,
               subtotal: subtotal,
               shippingCost: shippingCost,
-              total: totalWithShipping,
+              total: order.totalPrice || subtotal + shippingCost,
             },
             paymentMethod: order.paymentInfo?.type || "N/A",
             paymentStatus: order.paymentInfo?.status || "N/A",
           },
           product: {
             title: orderItem.DesignTitle || "Untitled",
-            type: orderItem.ProductType || "N/A",
+            type: productType,
             color: productColor,
             size: productSize,
           },
           design: {
-            position: {
-              positionX: orderItem.designSpecs?.positionX || 50,
-              positionY: orderItem.designSpecs?.positionY || 50,
-              scale: orderItem.designSpecs?.scale || 1,
-              rotation: orderItem.designSpecs?.rotation || 0,
+            position: orderItem.designSpecs || {
+              positionX: 50,
+              positionY: 50,
+              scale: 1,
+              rotation: 0,
             },
           },
           seller: sellerInfo,
@@ -218,6 +230,7 @@ router.get(
           },
         },
       };
+
       router.get(
         "/generate-mockup/:orderId/:itemId",
         isAuthenticated,
@@ -315,65 +328,49 @@ router.put(
   })
 );
 // get all seller orders
-router.get(
-  "/get-seller-orders",
-  isSeller,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      // Ensure seller is authenticated
-      if (!req.seller || !req.seller._id) {
-        return next(new ErrorHandler("Seller authentication required", 401));
-      }
+export const getAllOrdersOfShop = () => async (dispatch) => {
+  try {
+    dispatch({ type: ORDER_ACTIONS.GET_SHOP_REQUEST });
 
-      const sellerId = req.seller._id.toString();
-      console.log("Fetching orders for seller:", sellerId);
+    // Get seller token from localStorage
+    const token = localStorage.getItem("seller_token");
 
-      // First, try to find orders with direct shopId matches
-      let orders = await Order.find({
-        "cart.shopId": sellerId,
-      }).sort({ createdAt: -1 });
-
-      // If no orders found, try with string comparison (in case of ObjectID vs string issues)
-      if (!orders || orders.length === 0) {
-        console.log("No direct matches, trying string comparison");
-        const allOrders = await Order.find().sort({ createdAt: -1 });
-
-        // Filter orders that have items from this seller
-        orders = allOrders.filter((order) => {
-          return order.cart.some((item) => {
-            const itemShopId = item.shopId?.toString?.() || item.shopId;
-            return itemShopId === sellerId;
-          });
-        });
-      }
-
-      // Process orders to include only items from this seller
-      const processedOrders = orders.map((order) => {
-        // Create a safe copy of the order
-        const orderObj = order.toObject();
-
-        // Filter cart items to only include this seller's items
-        orderObj.cart = orderObj.cart.filter((item) => {
-          const itemShopId = item.shopId?.toString?.() || item.shopId;
-          return itemShopId === sellerId;
-        });
-
-        return orderObj;
-      });
-
-      console.log(`Found ${processedOrders.length} orders for seller`);
-
-      res.status(200).json({
-        success: true,
-        orders: processedOrders,
-        count: processedOrders.length,
-      });
-    } catch (error) {
-      console.error("Error in get-seller-orders:", error);
-      return next(new ErrorHandler(error.message, 500));
+    if (!token) {
+      throw new Error("Seller authentication required");
     }
-  })
-);
+
+    const { data } = await axios.get(`${server}/order/get-seller-orders`, {
+      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("Shop orders response:", data);
+
+    if (!data.success) {
+      throw new Error(data.message || "Failed to fetch shop orders");
+    }
+
+    dispatch({
+      type: ORDER_ACTIONS.GET_SHOP_SUCCESS,
+      payload: data.orders || [],
+    });
+
+    return data;
+  } catch (error) {
+    console.error("Error in getAllOrdersOfShop:", error);
+    dispatch({
+      type: ORDER_ACTIONS.GET_SHOP_FAIL,
+      payload:
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch shop orders",
+    });
+
+    throw error;
+  }
+};
 router.get(
   "/get-seller-order/:id",
   isSeller,
