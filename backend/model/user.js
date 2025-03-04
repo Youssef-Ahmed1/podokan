@@ -2,60 +2,52 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-userSchema.pre("save", function (next) {
-  // Capitalize first letter of role for consistency
-  if (this.role) {
-    this.role =
-      this.role.charAt(0).toUpperCase() + this.role.slice(1).toLowerCase();
-  }
-  next();
-});
 
 const userSchema = new mongoose.Schema({
-  name:{
+  name: {
     type: String,
     required: [true, "Please enter your name!"],
   },
-  email:{
+  email: {
     type: String,
     required: [true, "Please enter your email!"],
   },
-  password:{
+  password: {
     type: String,
     required: [true, "Please enter your password"],
     minLength: [4, "Password should be greater than 4 characters"],
     select: false,
   },
-  phoneNumber:{
+  phoneNumber: {
     type: Number,
   },
-  addresses:[
+  addresses: [
     {
       country: {
         type: String,
       },
-      city:{
+      city: {
         type: String,
       },
-      address1:{
+      address1: {
         type: String,
       },
-      address2:{
+      address2: {
         type: String,
       },
-      zipCode:{
+      zipCode: {
         type: Number,
       },
-      addressType:{
+      addressType: {
         type: String,
       },
-    }
+    },
   ],
-  role:{
+  role: {
     type: String,
     default: "user",
   },
-  avatar:{
+  avatar: {
     public_id: {
       type: String,
       required: true,
@@ -64,23 +56,23 @@ const userSchema = new mongoose.Schema({
       type: String,
       required: true,
     },
- },
- createdAt:{
-  type: Date,
-  default: Date.now(),
- },
- resetPasswordToken: String,
- resetPasswordTime: Date,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now(),
+  },
+  resetPasswordToken: String,
+  resetPasswordTime: Date,
 });
 
-
 //  Hash password
-userSchema.pre("save", async function (next){
-  if(!this.isModified("password")){
-    next();
+userSchema.pre("save", function (next) {
+  // Capitalize first letter of role for consistency
+  if (this.role) {
+    this.role =
+      this.role.charAt(0).toUpperCase() + this.role.slice(1).toLowerCase();
   }
-
-  this.password = await bcrypt.hash(this.password, 10);
+  next();
 });
 
 // jwt token
