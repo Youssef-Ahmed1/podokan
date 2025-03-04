@@ -20,8 +20,9 @@ import {
   adminDownloadDesign,
   getAllOrdersOfAdmin,
 } from "../../redux/actions/order";
+import axios from "axios";
+import { server } from "../../server";
 
-// Local Modal component instead of importing
 const StatusUpdateModal = ({ open, onClose, title, children }) => {
   if (!open) return null;
 
@@ -61,7 +62,7 @@ const AdminOrderDetails = () => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const isAdmin = user && user.role && user.role.toLowerCase() === "admin";
   const { user } = useSelector((state) => state.user);
-
+  const { orderId, itemId } = req.params;
   useEffect(() => {
     const fetchOrder = async () => {
       try {
