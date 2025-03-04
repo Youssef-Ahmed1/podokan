@@ -3,6 +3,8 @@
 import axios from "axios";
 import { server } from "../../server";
 import { DesignDownloader } from '../../utils/designDownload';
+import { toast } from "react-toastify";
+
 // Constants for action types
 export const ORDER_ACTIONS = {
   // Create Order
@@ -54,7 +56,7 @@ export const ORDER_ACTIONS = {
   REFUND_FAIL: "refundFail",
 
   // Clear Errors
-  CLEAR_ERRORS: "clearErrors"
+  CLEAR_ERRORS: "clearErrors",
 };
 
 // Create Order
@@ -62,17 +64,24 @@ export const createOrder = (orderData) => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.CREATE_REQUEST });
 
-    const config = { headers: { "Content-Type": "application/json" }, withCredentials: true };
-    const { data } = await axios.post(`${server}/order/create-order`, orderData, config);
+    const config = {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    };
+    const { data } = await axios.post(
+      `${server}/order/create-order`,
+      orderData,
+      config
+    );
 
-    dispatch({ 
+    dispatch({
       type: ORDER_ACTIONS.CREATE_SUCCESS,
-      payload: data.orders
+      payload: data.orders,
     });
   } catch (error) {
     dispatch({
       type: ORDER_ACTIONS.CREATE_FAIL,
-      payload: error.response?.data?.message || "Order creation failed"
+      payload: error.response?.data?.message || "Order creation failed",
     });
   }
 };
@@ -85,8 +94,8 @@ export const getAllOrdersOfUser = () => async (dispatch) => {
     const { data } = await axios.get(`${server}/order/get-user-orders`, {
       withCredentials: true,
       headers: {
-        "Authorization": `Bearer ${localStorage.getItem("token")}`
-      }
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
     });
 
     dispatch({
@@ -102,9 +111,6 @@ export const getAllOrdersOfUser = () => async (dispatch) => {
     throw error;
   }
 };
-
-
-
 
 // Get all seller orders
 export const getShopOrders = () => async (dispatch) => {
@@ -381,7 +387,7 @@ export const downloadDesign = async (orderId, itemId) => {
     }
 
     const response = await fetch(
-      `${API_URL}/order/download-design/${orderId}/${itemId}`,
+      `${server}/order/download-design/${orderId}/${itemId}`,
       {
         method: "GET",
         headers: {

@@ -13,48 +13,16 @@ const AdminDashboardOrders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 10;
 
-  // pages/Shop/AdminOrderDetails.jsx - Update useEffect
   useEffect(() => {
-    const fetchOrder = async () => {
+    const fetchOrders = async () => {
       try {
-        // If orders not loaded, fetch them
-        if (!orders || orders.length === 0) {
-          console.log("No orders loaded, fetching from API...");
-          await dispatch(getAllOrdersOfAdmin());
-        } else {
-          console.log("Using cached orders, count:", orders.length);
-        }
-
-        // Find the order from the loaded orders after re-fetch
-        const foundOrder = orders.find((order) => order._id === id);
-        if (foundOrder) {
-          console.log("Order found in cache:", foundOrder._id);
-          setOrder(foundOrder);
-        } else {
-          console.log("Order not found in cache, trying direct API fetch");
-          // Try direct fetch as fallback
-          const { data } = await axios.get(
-            `${server}/order/admin/order/${id}`,
-            {
-              withCredentials: true,
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-          );
-
-          if (data.success && data.order) {
-            setOrder(data.order);
-          }
-        }
+        await dispatch(getAllOrdersOfAdmin());
       } catch (error) {
-        console.error("Error fetching order details:", error);
-        toast.error("Failed to load order details");
+        toast.error(error.response?.data?.message || "Failed to fetch orders");
       }
     };
-
-    fetchOrder();
-  }, [dispatch, orders, id]);
+    fetchOrders();
+  }, [dispatch]);
 
   // Filter and search logic
   const filteredOrders =
