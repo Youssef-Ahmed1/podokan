@@ -287,7 +287,6 @@ router.get(
   })
 );
 
-const isAdmin = req.user.role === "Admin";
 const isCustomer = Order.user._id.toString() === req.user._id.toString();
 
 if (!isAdmin && !isCustomer) {
