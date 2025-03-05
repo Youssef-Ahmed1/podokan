@@ -62,7 +62,7 @@ const AdminOrderDetails = () => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const isAdmin = user && user.role && user.role.toLowerCase() === "admin";
   const { user } = useSelector((state) => state.user);
-  const { orderId, itemId } = req.params;
+  const { orderId, itemId } = useParams();
   useEffect(() => {
     const fetchOrder = async () => {
       try {
