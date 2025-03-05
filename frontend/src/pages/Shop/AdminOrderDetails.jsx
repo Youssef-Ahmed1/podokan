@@ -52,6 +52,7 @@ const StatusUpdateModal = ({ open, onClose, title, children }) => {
 
 const AdminOrderDetails = () => {
   const { orders, isLoading } = useSelector((state) => state.order);
+  const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const { id } = useParams();
   const [order, setOrder] = useState(null);
@@ -60,9 +61,10 @@ const AdminOrderDetails = () => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  // Fix: Moved user selector above where it's used
   const isAdmin = user && user.role && user.role.toLowerCase() === "admin";
-  const { user } = useSelector((state) => state.user);
-  const { orderId, itemId } = useParams();
+
   useEffect(() => {
     const fetchOrder = async () => {
       try {
@@ -105,7 +107,7 @@ const AdminOrderDetails = () => {
     fetchOrder();
   }, [dispatch, orders, id]);
 
-  // Handle design download
+  // Fix: Corrected handleDownloadDesign to use the item directly
   const handleDownloadDesign = async (item) => {
     try {
       setIsDownloading(true);
@@ -411,10 +413,21 @@ const AdminOrderDetails = () => {
               <div className="flex flex-wrap gap-3">
                 {isAdmin && (
                   <button
-                    onClick={() => handleDownloadDesign(orderId, itemId)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                    onClick={() => handleDownloadDesign(item)}
+                    disabled={isDownloading && downloadingItemId === item._id}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:bg-blue-300"
                   >
-                    Download Design
+                    {isDownloading && downloadingItemId === item._id ? (
+                      <>
+                        <span className="animate-spin inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-1"></span>
+                        Downloading...
+                      </>
+                    ) : (
+                      <>
+                        <Download size={18} className="inline-block mr-1" />
+                        Download Design
+                      </>
+                    )}
                   </button>
                 )}
 
