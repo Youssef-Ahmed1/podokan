@@ -80,7 +80,7 @@ const orderSchema = new mongoose.Schema({
   // Add explicit shipping price field to store this separately
   shippingCost: {
     type: Number,
-    default: 50, // Default shipping cost is 50
+    default: 100, // Default shipping cost is 50
   },
   user: {
     type: Object,
@@ -89,7 +89,7 @@ const orderSchema = new mongoose.Schema({
   // Subtotal (just the items, no shipping)
   subtotal: {
     type: Number,
-    required: true,
+    required: false,
   },
   // Total price (includes shipping)
   totalPrice: {

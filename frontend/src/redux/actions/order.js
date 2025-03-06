@@ -378,39 +378,68 @@ export const downloadOrderSpecs = (orderId) => async (dispatch) => {
 };
 
 // In your client-side designDownload.js or similar file
-export const downloadDesign = async (orderId, itemId) => {
+exports.downloadDesign = catchAsyncErrors(async (req, res, next) => {
   try {
-    // Ensure we're using the admin token
-    const token = localStorage.getItem("token");
-    if (!token) {
-      throw new Error("Authentication required");
+    const { orderId, productId } = req.params;
+
+    // Find the order without validation
+    let order = await Order.findById(orderId);
+
+    if (!order) {
+      return next(new ErrorHandler("Order not found", 404));
     }
 
-    const response = await fetch(
-      `${server}/order/download-design/${orderId}/${itemId}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+    // Add missing subtotal if needed
+    if (order.subtotal === undefined || order.subtotal === null) {
+      // Calculate subtotal from items
+      if (order.cart && order.cart.length > 0) {
+        order.subtotal = order.cart.reduce((total, item) => {
+          return (
+            total +
+            (item.discountPrice || item.originalPrice || 0) * (item.qty || 1)
+          );
+        }, 0);
+      } else {
+        order.subtotal = 0; // Default value
       }
+
+      // Save without validation (only update subtotal field)
+      await Order.updateOne({ _id: orderId }, { subtotal: order.subtotal });
+
+      // Refresh order object
+      order = await Order.findById(orderId);
+    }
+
+    // Product validation logic
+    const product = await Product.findById(productId);
+    if (!product) {
+      return next(new ErrorHandler("Product not found", 404));
+    }
+
+    // Check if product exists in the order
+    const productExists = order.cart.some(
+      (item) => item.productId.toString() === productId.toString()
     );
 
-    if (!response.ok) {
-      // Parse error response
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to download design");
+    if (!productExists) {
+      return next(new ErrorHandler("Product not found in this order", 404));
     }
 
-    const data = await response.json();
-    return data.designData;
-  } catch (error) {
-    console.error("Error downloading design:", error);
-    throw error;
-  }
-};
+    // Get the design URL
+    const designUrl = product.designImage.url;
 
+    // Return success response
+    return res.status(200).json({
+      success: true,
+      designUrl: designUrl,
+    });
+  } catch (error) {
+    console.error("Error in download-design:", error);
+    return next(
+      new ErrorHandler(error.message || "Failed to download design", 500)
+    );
+  }
+});
 // Assign delivery partner
 export const assignDeliveryPartner =
   (orderId, deliveryData) => async (dispatch) => {
