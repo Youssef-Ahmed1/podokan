@@ -378,12 +378,12 @@ export const downloadOrderSpecs = (orderId) => async (dispatch) => {
 };
 
 // In your client-side designDownload.js or similar file
-exports.downloadDesign = catchAsyncErrors(async (req, res, next) => {
+export const downloadDesign = catchAsyncErrors(async (req, res, next) => {
   try {
     const { orderId, productId } = req.params;
 
     // Find the order without validation
-    let order = await Order.findById(orderId);
+    let order = await order.findById(orderId);
 
     if (!order) {
       return next(new ErrorHandler("Order not found", 404));
@@ -407,11 +407,11 @@ exports.downloadDesign = catchAsyncErrors(async (req, res, next) => {
       await Order.updateOne({ _id: orderId }, { subtotal: order.subtotal });
 
       // Refresh order object
-      order = await Order.findById(orderId);
+      order = await order.findById(orderId);
     }
 
     // Product validation logic
-    const product = await Product.findById(productId);
+    const product = await product.findById(productId);
     if (!product) {
       return next(new ErrorHandler("Product not found", 404));
     }
