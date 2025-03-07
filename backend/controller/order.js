@@ -946,10 +946,8 @@ router.get(
         return next(new ErrorHandler("Invalid order or item ID format", 400));
       }
 
-      // Find the order with populated fields
-      const order = await Order.findById(req.params.orderId)
-        .populate("user", "name email")
-        .populate("cart.shopId", "name email");
+      // Find the order
+      const order = await Order.findById(req.params.orderId);
 
       if (!order) {
         return next(new ErrorHandler("Order not found", 404));
@@ -964,103 +962,24 @@ router.get(
         return next(new ErrorHandler("Order item not found", 404));
       }
 
-      // Try to find the original product for additional details
-      let productDetails = null;
-      try {
-        if (orderItem.productId && isValidObjectId(orderItem.productId)) {
-          const product = await Product.findById(orderItem.productId);
-          if (product) {
-            productDetails = product;
-          }
+      // Find the original product to get the design image
+      let designUrl = null;
+      if (orderItem.productId && isValidObjectId(orderItem.productId)) {
+        const product = await Product.findById(orderItem.productId);
+        if (product && product.designImage && product.designImage.url) {
+          designUrl = product.designImage.url;
         }
-      } catch (err) {
-        console.log("Could not find original product:", err);
-        // Continue without product details
       }
 
-      // Use product details or fall back to order item data
-      const productColor =
-        productDetails?.ProductColor || orderItem.ProductColor || "white";
+      // If we can't find from product, try from the orderItem directly
+      if (!designUrl) {
+        designUrl = orderItem.designImage?.url || orderItem.designImage;
+      }
 
-      const productSize = productDetails?.size || orderItem.size || "One Size";
-
-      const productType =
-        productDetails?.ProductType || orderItem.ProductType || "hoodie";
-
-      // Construct complete design data object
-      const designData = {
-        imageUrl: orderItem.designImage?.url || orderItem.designImage,
-        mockupUrl: orderItem.mockupImage?.url || null,
-        orderId: order._id,
-        itemId: orderItem._id,
-        specs: {
-          type: productType,
-          color: productColor,
-          size: productSize,
-          designPosition: {
-            positionX: orderItem.designSpecs?.positionX || 50,
-            positionY: orderItem.designSpecs?.positionY || 50,
-            scale: orderItem.designSpecs?.scale || 1,
-            rotation: orderItem.designSpecs?.rotation || 0,
-          },
-          order: {
-            orderId: order._id,
-            orderDate: order.createdAt,
-            quantity: orderItem.qty || 1,
-            price: {
-              itemPrice: orderItem.price || 0,
-              subtotal: (orderItem.price || 0) * (orderItem.qty || 1),
-              shippingCost:
-                order.shippingCost ||
-                order.shippingAddress?.shippingPrice ||
-                50,
-              total: order.totalPrice || 0,
-            },
-            paymentMethod: order.paymentInfo?.type || "Cash On Delivery",
-            paymentStatus: order.paymentInfo?.status || "Processing",
-          },
-          product: {
-            title: orderItem.DesignTitle || "Untitled",
-            type: productType,
-            color: productColor,
-            size: productSize,
-          },
-          design: {
-            position: {
-              positionX: orderItem.designSpecs?.positionX || 50,
-              positionY: orderItem.designSpecs?.positionY || 50,
-              scale: orderItem.designSpecs?.scale || 1,
-              rotation: orderItem.designSpecs?.rotation || 0,
-            },
-          },
-          seller: {
-            name:
-              typeof orderItem.shopId === "object"
-                ? orderItem.shopId.name || "Unknown"
-                : "Unknown",
-            email:
-              typeof orderItem.shopId === "object"
-                ? orderItem.shopId.email || "N/A"
-                : "N/A",
-          },
-          customer: {
-            name: order.user?.name || "Anonymous",
-            email: order.user?.email || "N/A",
-            address: order.shippingAddress?.address1 || "N/A",
-            city: order.shippingAddress?.city || "N/A",
-            country: order.shippingAddress?.country || "N/A",
-            phoneNumber: order.shippingAddress?.phoneNumber || "N/A",
-          },
-          shipping: {
-            address: order.shippingAddress?.address1 || "N/A",
-            city: order.shippingAddress?.city || "N/A",
-            country: order.shippingAddress?.country || "N/A",
-            postalCode: order.shippingAddress?.postalCode || "N/A",
-            shippingPrice:
-              order.shippingCost || order.shippingAddress?.shippingPrice || 50,
-          },
-        },
-      };
+      // Validate that we found a design URL
+      if (!designUrl) {
+        return next(new ErrorHandler("Design image not available", 404));
+      }
 
       // Add download to status history
       order.statusHistory = order.statusHistory || [];
@@ -1072,15 +991,36 @@ router.get(
           orderItem.DesignTitle || "Untitled"
         }`,
       });
-      await order.save();
+      await order.save({ validateBeforeSave: false });
 
-      res.status(200).json({
+      // Return success with BOTH designUrl and full designData for compatibility
+      return res.status(200).json({
         success: true,
-        designData,
+        designUrl: designUrl, // Add this for compatibility with frontend
+        designData: {
+          url: designUrl,
+          name: `${orderItem.DesignTitle || "design"}-${orderItem._id}.png`,
+          productTitle: orderItem.DesignTitle || "Untitled Design",
+          orderId: order._id,
+          orderNumber: order._id.toString().slice(0, 8),
+          specs: {
+            type: orderItem.ProductType || "hoodie",
+            color: orderItem.ProductColor || "white",
+            size: orderItem.size || "One Size",
+            position: {
+              positionX: orderItem.designSpecs?.positionX || 50,
+              positionY: orderItem.designSpecs?.positionY || 50,
+              scale: orderItem.designSpecs?.scale || 1,
+              rotation: orderItem.designSpecs?.rotation || 0,
+            },
+          },
+        },
       });
     } catch (error) {
       console.error("Error in download-design:", error);
-      return next(new ErrorHandler(error.message, 500));
+      return next(
+        new ErrorHandler(error.message || "Failed to download design", 500)
+      );
     }
   })
 );

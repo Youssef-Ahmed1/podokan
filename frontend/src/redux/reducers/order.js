@@ -87,13 +87,20 @@ export const orderReducer = (state = initialState, action) => {
       return {
         ...state,
         isLoading: true,
+        error: null,
       };
     case ORDER_ACTIONS.GET_USER_SUCCESS:
+      // Ensure payload is always an array
+      const userOrders = Array.isArray(action.payload)
+        ? action.payload
+        : action.payload
+        ? [action.payload]
+        : [];
+
       return {
         ...state,
         isLoading: false,
-        orders: action.payload,
-        lastFetched: new Date().toISOString(),
+        orders: userOrders,
         error: null,
       };
     case ORDER_ACTIONS.GET_USER_FAIL:
@@ -101,6 +108,8 @@ export const orderReducer = (state = initialState, action) => {
         ...state,
         isLoading: false,
         error: action.payload,
+        // Ensure orders is always an array
+        orders: Array.isArray(state.orders) ? state.orders : [],
       };
 
     // Get Shop Orders

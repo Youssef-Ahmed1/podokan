@@ -152,41 +152,90 @@ export class DesignDownloader {
   // Main function to download a single design with all details
   static async downloadSingleDesign(designData) {
     try {
-      console.log("Downloading design:", designData);
+      console.log("Downloading design with data:", designData);
 
       if (!designData) throw new Error("No design data provided");
 
-      // Extract data from the API response format
-      const { imageUrl, mockupUrl, orderId, itemId, specs } = designData;
+      // Extract URL with fallbacks for different formats
+      const designUrl = designData.url || designData.imageUrl || designData;
 
-      if (!imageUrl) throw new Error("Design image URL is missing");
+      if (!designUrl || typeof designUrl !== "string") {
+        throw new Error("Invalid or missing design URL");
+      }
 
-      // Get product info
-      const productType = specs.product.type || "Hoodie";
-      const productColor = specs.product.color || "White";
-      const productSize = specs.product.size || "One Size";
+      // Create a simple download if specs not available
+      if (!designData.specs) {
+        console.log("No specs available, performing direct download");
 
-      // Get design position data
-      const designPosition = specs.design.position || {
-        positionX: 50,
-        positionY: 50,
-        scale: 1,
-        rotation: 0,
+        // Fetch the design image
+        const response = await fetch(designUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch image: ${response.statusText}`);
+        }
+
+        // Get the image blob
+        const blob = await response.blob();
+
+        // Create filename
+        const filename =
+          designData.name || `design-${designData.orderId || "unknown"}.png`;
+
+        // Use saveAs from file-saver
+        saveAs(blob, filename);
+        console.log("Direct download complete");
+        return true;
+      }
+
+      // If we have full specs, use ZIP functionality for complete package
+      console.log("Creating full design package with specs");
+
+      // Prepare specs with defaults for missing values
+      const specs = designData.specs || {};
+
+      // Create unified format for internal processing
+      const processedData = {
+        imageUrl: designUrl,
+        mockupUrl: designData.mockupUrl,
+        orderId: designData.orderId,
+        itemId: designData.itemId,
+        specs: {
+          product: {
+            title: designData.productTitle || "Design",
+            type: specs.type || "hoodie",
+            color: specs.color || "white",
+            size: specs.size || "One Size",
+          },
+          design: {
+            position: specs.position || {
+              positionX: 50,
+              positionY: 40,
+              scale: 1,
+              rotation: 0,
+            },
+          },
+          order: {
+            orderId: designData.orderId,
+            orderNumber: designData.orderNumber,
+            orderDate: new Date().toISOString(),
+            quantity: 1,
+            price: {
+              itemPrice: 0,
+              subtotal: 0,
+              shippingCost: 0,
+              total: 0,
+            },
+          },
+          customer: {},
+          shipping: {},
+        },
       };
-
-      console.log("Using product specs:", {
-        type: productType,
-        color: productColor,
-        size: productSize,
-        designPosition,
-      });
 
       // Create a ZIP archive
       const zip = new JSZip();
 
       // Add original design image
       console.log("Fetching original design...");
-      const designBlob = await this.fetchImageAsBlob(imageUrl);
+      const designBlob = await this.fetchImageAsBlob(processedData.imageUrl);
       zip.file("original_design.png", designBlob);
 
       // Create and add product mockup with design
@@ -269,13 +318,11 @@ Total: ${specs.order.price.total || 0}
       const zipBlob = await zip.generateAsync({
         type: "blob",
         compression: "DEFLATE",
-        compressionOptions: {
-          level: 9,
-        },
       });
 
       // Generate filename
-      const filename = this.generateFileName(orderId, itemId) + ".zip";
+      const filename =
+        designData.name || `design-${processedData.orderId || "unknown"}.zip`;
 
       // Save the file
       saveAs(zipBlob, filename);
