@@ -259,7 +259,49 @@ export const adminDownloadDesign = (orderId, itemId) => async (dispatch) => {
     }
   );
 };
+export const getAllOrdersOfShop = () => async (dispatch) => {
+  try {
+    dispatch({ type: ORDER_ACTIONS.GET_SHOP_REQUEST });
 
+    // Get seller token from localStorage
+    const token = localStorage.getItem("seller_token");
+
+    if (!token) {
+      throw new Error("Seller authentication required");
+    }
+
+    const { data } = await axios.get(`${server}/order/get-seller-orders`, {
+      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("Shop orders response:", data);
+
+    if (!data.success) {
+      throw new Error(data.message || "Failed to fetch shop orders");
+    }
+
+    dispatch({
+      type: ORDER_ACTIONS.GET_SHOP_SUCCESS,
+      payload: data.orders || [],
+    });
+
+    return data;
+  } catch (error) {
+    console.error("Error in getAllOrdersOfShop:", error);
+    dispatch({
+      type: ORDER_ACTIONS.GET_SHOP_FAIL,
+      payload:
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch shop orders",
+    });
+
+    throw error;
+  }
+};
 // Update order status as admin
 export const adminUpdateOrderStatus = (orderId, status) => async (dispatch) => {
   return handleApiRequest(
