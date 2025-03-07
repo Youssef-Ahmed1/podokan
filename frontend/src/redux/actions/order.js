@@ -197,6 +197,36 @@ export const getAllOrdersOfUser = () => async (dispatch) => {
     return { success: false, orders: [] };
   }
 };
+export const adminDownloadDesign = (orderId, itemId) => async (dispatch) => {
+  return handleApiRequest(
+    dispatch,
+    ORDER_ACTIONS.DOWNLOAD_DESIGN_REQUEST,
+    ORDER_ACTIONS.DOWNLOAD_DESIGN_SUCCESS,
+    ORDER_ACTIONS.DOWNLOAD_DESIGN_FAIL,
+    async () => {
+      // Make API call to get design URL
+      const { data } = await axios.get(
+        `${server}/order/download-design/${orderId}/${itemId}`,
+        {
+          withCredentials: true,
+          headers: getAuthHeaders(),
+        }
+      );
+
+      if (!data.success || !data.designUrl) {
+        throw new Error("Design URL not available");
+      }
+
+      // Frontend-only: Use the utility to download design from the URL
+      await DesignDownloader.downloadSingleDesign({
+        url: data.designUrl,
+        name: `design-${itemId}.png`,
+      });
+
+      return true;
+    }
+  );
+};
 // Get all seller orders
 export const getShopOrders = () => async (dispatch) => {
   return handleApiRequest(
