@@ -255,11 +255,26 @@ export class DesignDownloader {
       console.log("Creating product mockup...");
       try {
         const mockupBlob = await this.createProductMockup(
-          imageUrl,
-          productType,
-          productColor,
-          designPosition
+          processedData.imageUrl,
+          processedData.specs.product.type,
+          processedData.specs.product.color,
+          processedData.specs.design.position
         );
+
+        // Fix mockupUrl references:
+        if (processedData.mockupUrl) {
+          // Changed from mockupUrl
+          try {
+            console.log("Adding existing mockup...");
+            const mockupBlob = await this.fetchImageAsBlob(
+              processedData.mockupUrl
+            ); // Changed
+            zip.file("original_mockup.png", mockupBlob);
+          } catch (e) {
+            console.log("Could not fetch original mockup");
+          }
+        }
+
         zip.file("product_mockup.png", mockupBlob);
       } catch (mockupError) {
         console.error("Failed to create mockup:", mockupError);
@@ -283,11 +298,15 @@ export class DesignDownloader {
 
       // Add human-readable summary
       const summary = `
-ORDER DETAILS
-------------
-Order ID: ${orderId || "N/A"}
-Date: ${new Date(specs.order.orderDate || Date.now()).toLocaleString()}
-Status: ${specs.order.status || "N/A"}
+      ORDER DETAILS
+      ------------
+      Order ID: ${processedData.orderId || "N/A"}  // Changed from orderId
+      Date: ${new Date(
+        processedData.specs.order.orderDate || Date.now()
+      ).toLocaleString()}
+      Status: ${processedData.specs.order.status || "N/A"}
+      
+      
 
 PRODUCT DETAILS
 --------------
@@ -300,10 +319,11 @@ Price: ${specs.order.price.itemPrice || 0}
 
 DESIGN PLACEMENT
 ---------------
-Position X: ${designPosition.positionX || 50}%
-Position Y: ${designPosition.positionY || 50}%
-Scale: ${designPosition.scale || 1}x
-Rotation: ${designPosition.rotation || 0}°
+Position X: ${processedData.specs.design.position.positionX || 50}%  // Changed
+Position Y: ${processedData.specs.design.position.positionY || 50}%  // Changed
+Scale: ${processedData.specs.design.position.scale || 1}x  // Changed
+Rotation: ${processedData.specs.design.position.rotation || 0}°`.trim();
+      `
 
 CUSTOMER INFORMATION
 ------------------

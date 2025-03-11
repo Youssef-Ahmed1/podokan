@@ -22,7 +22,7 @@ import {
 } from "../../redux/actions/order";
 import axios from "axios";
 import { server } from "../../server";
-
+import { DesignDownloader } from "../../utils/designDownload";
 const StatusUpdateModal = ({ open, onClose, title, children }) => {
   if (!open) return null;
 
