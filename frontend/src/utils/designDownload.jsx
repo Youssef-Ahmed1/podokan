@@ -281,10 +281,12 @@ export class DesignDownloader {
       }
 
       // Add existing mockup image if available
-      if (mockupUrl) {
+      if (processedData.mockupUrl) {
         try {
           console.log("Adding existing mockup...");
-          const mockupBlob = await this.fetchImageAsBlob(mockupUrl);
+          const mockupBlob = await this.fetchImageAsBlob(
+            processedData.mockupUrl
+          );
           zip.file("original_mockup.png", mockupBlob);
         } catch (e) {
           console.log("Could not fetch original mockup");
@@ -300,50 +302,47 @@ export class DesignDownloader {
       const summary = `
       ORDER DETAILS
       ------------
-      Order ID: ${processedData.orderId || "N/A"}  // Changed from orderId
+      Order ID: ${processedData.orderId || "N/A"}
       Date: ${new Date(
         processedData.specs.order.orderDate || Date.now()
       ).toLocaleString()}
       Status: ${processedData.specs.order.status || "N/A"}
       
+      PRODUCT DETAILS
+      --------------
+      Title: ${processedData.specs.product.title || "N/A"}
+      Type: ${processedData.specs.product.type || "N/A"}
+      Color: ${processedData.specs.product.color || "N/A"}
+      Size: ${processedData.specs.product.size || "N/A"}
+      Quantity: ${processedData.specs.order.quantity || 1}
+      Price: ${processedData.specs.order.price.itemPrice || 0}
       
-
-PRODUCT DETAILS
---------------
-Title: ${specs.product.title || "N/A"}
-Type: ${specs.product.type || "N/A"}
-Color: ${specs.product.color || "N/A"}
-Size: ${specs.product.size || "N/A"}
-Quantity: ${specs.order.quantity || 1}
-Price: ${specs.order.price.itemPrice || 0}
-
-DESIGN PLACEMENT
----------------
-Position X: ${processedData.specs.design.position.positionX || 50}%  // Changed
-Position Y: ${processedData.specs.design.position.positionY || 50}%  // Changed
-Scale: ${processedData.specs.design.position.scale || 1}x  // Changed
-Rotation: ${processedData.specs.design.position.rotation || 0}°`.trim();
-      `
-
-CUSTOMER INFORMATION
-------------------
-Name: ${specs.customer?.name || "N/A"}
-Email: ${specs.customer?.email || "N/A"}
-
-SHIPPING ADDRESS
----------------
-${specs.shipping?.address || "N/A"}
-${specs.shipping?.city || "N/A"}, ${specs.shipping?.country || "N/A"} ${
-        specs.shipping?.postalCode || ""
-      }
-
-PRICING
--------
-Item Price: ${specs.order.price.itemPrice || 0}
-Quantity: ${specs.order.quantity || 1}
-Subtotal: ${specs.order.price.subtotal || 0}
-Shipping: ${specs.order.price.shippingCost || 0}
-Total: ${specs.order.price.total || 0}
+      DESIGN PLACEMENT
+      ---------------
+      Position X: ${processedData.specs.design.position.positionX || 50}%
+      Position Y: ${processedData.specs.design.position.positionY || 50}%
+      Scale: ${processedData.specs.design.position.scale || 1}x
+      Rotation: ${processedData.specs.design.position.rotation || 0}°
+      
+      CUSTOMER INFORMATION
+      ------------------
+      Name: ${processedData.specs.customer?.name || "N/A"}
+      Email: ${processedData.specs.customer?.email || "N/A"}
+      
+      SHIPPING ADDRESS
+      ---------------
+      ${processedData.specs.shipping?.address || "N/A"}
+      ${processedData.specs.shipping?.city || "N/A"}, ${
+        processedData.specs.shipping?.country || "N/A"
+      } ${processedData.specs.shipping?.postalCode || ""}
+      
+      PRICING
+      -------
+      Item Price: ${processedData.specs.order.price.itemPrice || 0}
+      Quantity: ${processedData.specs.order.quantity || 1}
+      Subtotal: ${processedData.specs.order.price.subtotal || 0}
+      Shipping: ${processedData.specs.order.price.shippingCost || 0}
+      Total: ${processedData.specs.order.price.total || 0}
       `.trim();
 
       zip.file("summary.txt", summary);
