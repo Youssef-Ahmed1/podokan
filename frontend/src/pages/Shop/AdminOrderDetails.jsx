@@ -113,18 +113,38 @@ const AdminOrderDetails = () => {
       setIsDownloading(true);
       setDownloadingItemId(item._id);
 
-      await dispatch(adminDownloadDesign(order._id, item._id));
+      const { data } = await axios.get(
+        `${server}/order/download-design/${order._id}/${item._id}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          timeout: 30000,
+        }
+      );
 
-      toast.success("Design downloaded successfully");
+      if (!data.success) throw new Error(data.message);
+
+      await DesignDownloader.downloadSingleDesign({
+        ...data.designData,
+        imageUrl: data.designUrl,
+        specs: {
+          ...data.designData.specs,
+          product: {
+            type: item.ProductType,
+            color: item.ProductColor,
+            size: item.size,
+          },
+        },
+      });
+
+      toast.success("Design package downloaded successfully");
     } catch (error) {
       console.error("Download error:", error);
-      toast.error(error.message || "Failed to download design");
+      toast.error(`Download failed: ${error.message}`);
     } finally {
       setIsDownloading(false);
       setDownloadingItemId(null);
     }
   };
-
   // Handle status update
   const handleUpdateStatus = async () => {
     try {

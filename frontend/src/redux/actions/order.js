@@ -198,34 +198,41 @@ export const getAllOrdersOfUser = () => async (dispatch) => {
   }
 };
 export const adminDownloadDesign = (orderId, itemId) => async (dispatch) => {
-  return handleApiRequest(
-    dispatch,
-    ORDER_ACTIONS.DOWNLOAD_DESIGN_REQUEST,
-    ORDER_ACTIONS.DOWNLOAD_DESIGN_SUCCESS,
-    ORDER_ACTIONS.DOWNLOAD_DESIGN_FAIL,
-    async () => {
-      // Make API call to get design URL
-      const { data } = await axios.get(
-        `${server}/order/download-design/${orderId}/${itemId}`,
-        {
-          withCredentials: true,
-          headers: getAuthHeaders(),
-        }
-      );
+  try {
+    dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_REQUEST });
 
-      if (!data.success || !data.designUrl) {
-        throw new Error("Design URL not available");
+    const { data } = await axios.get(
+      `${server}/order/download-design/${orderId}/${itemId}`,
+      {
+        headers: getAuthHeaders(),
+        validateStatus: (status) => status < 500,
       }
+    );
 
-      // Frontend-only: Use the utility to download design from the URL
-      await DesignDownloader.downloadSingleDesign({
-        url: data.designUrl,
-        name: `design-${itemId}.png`,
-      });
+    if (!data.success) throw new Error(data.message);
 
-      return true;
-    }
-  );
+    await DesignDownloader.downloadSingleDesign({
+      ...data.designData,
+      specs: {
+        ...data.designData.specs,
+        order: {
+          price: {
+            total: data.designData.order.price.total,
+            itemPrice: data.designData.order.price.itemPrice,
+            shippingCost: data.designData.order.price.shippingCost,
+          },
+        },
+      },
+    });
+
+    dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_SUCCESS });
+  } catch (error) {
+    dispatch({
+      type: ORDER_ACTIONS.DOWNLOAD_DESIGN_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
+    throw error;
+  }
 };
 // Get all seller orders
 export const getShopOrders = () => async (dispatch) => {
@@ -283,98 +290,7 @@ export const getAllOrdersOfAdmin = () => async (dispatch) => {
   );
 };
 
-// Correctly implemented frontend-only download design action
-router.get(
-  "/download-design/:orderId/:itemId",
-  isAuthenticated,
-  isAdmin,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      console.log("Admin design download requested by:", req.user._id);
 
-      // Validate ID formats
-      if (!isValidObjectId(req.params.orderId) || !req.params.itemId) {
-        return next(new ErrorHandler("Invalid order or item ID format", 400));
-      }
-
-      // Find the order
-      const order = await Order.findById(req.params.orderId);
-
-      if (!order) {
-        return next(new ErrorHandler("Order not found", 404));
-      }
-
-      // Find the specific item in the order
-      const orderItem = order.cart.find(
-        (item) => item._id.toString() === req.params.itemId
-      );
-
-      if (!orderItem) {
-        return next(new ErrorHandler("Order item not found", 404));
-      }
-
-      // Find the original product to get the design image
-      let designUrl = null;
-      if (orderItem.productId && isValidObjectId(orderItem.productId)) {
-        const product = await Product.findById(orderItem.productId);
-        if (product && product.designImage && product.designImage.url) {
-          designUrl = product.designImage.url;
-        }
-      }
-
-      // If we can't find from product, try from the orderItem directly
-      if (!designUrl) {
-        designUrl = orderItem.designImage?.url || orderItem.designImage;
-      }
-
-      // Validate that we found a design URL
-      if (!designUrl) {
-        return next(new ErrorHandler("Design image not available", 404));
-      }
-
-      // Add download to status history
-      order.statusHistory = order.statusHistory || [];
-      order.statusHistory.push({
-        status: order.status,
-        updatedBy: req.user._id,
-        timestamp: new Date(),
-        details: `Design downloaded by admin for item: ${
-          orderItem.DesignTitle || "Untitled"
-        }`,
-      });
-      await order.save({ validateBeforeSave: false });
-
-      // Return success with BOTH designUrl and full designData for compatibility
-      return res.status(200).json({
-        success: true,
-        designUrl: designUrl, // Add this for compatibility with frontend
-        designData: {
-          url: designUrl,
-          name: `${orderItem.DesignTitle || "design"}-${orderItem._id}.png`,
-          productTitle: orderItem.DesignTitle || "Untitled Design",
-          orderId: order._id,
-          orderNumber: order._id.toString().slice(0, 8),
-          specs: {
-            type: orderItem.ProductType || "hoodie",
-            color: orderItem.ProductColor || "white",
-            size: orderItem.size || "One Size",
-            position: {
-              positionX: orderItem.designSpecs?.positionX || 50,
-              positionY: orderItem.designSpecs?.positionY || 50,
-              scale: orderItem.designSpecs?.scale || 1,
-              rotation: orderItem.designSpecs?.rotation || 0,
-            },
-          },
-        },
-      });
-    } catch (error) {
-      console.error("Error in download-design:", error);
-      return next(
-        new ErrorHandler(error.message || "Failed to download design", 500)
-      );
-    }
-  })
-);
 export const getAllOrdersOfShop = () => async (dispatch) => {
   try {
     dispatch({ type: ORDER_ACTIONS.GET_SHOP_REQUEST });

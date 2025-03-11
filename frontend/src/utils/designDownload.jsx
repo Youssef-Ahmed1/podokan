@@ -6,35 +6,49 @@ import axios from "axios";
 export class DesignDownloader {
   static async fetchImageAsBlob(url) {
     try {
-      if (!url) throw new Error("Invalid image URL");
-
-      const response = await fetch(url, {
-        mode: "cors",
-        cache: "no-cache",
+      const response = await axios({
+        url,
+        responseType: "blob",
+        headers: {
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+        // Remove credentials for Cloudinary public assets
+        withCredentials: false,
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch image: ${response.statusText}`);
+  
+      if (response.status !== 200) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      return await response.blob();
+  
+      return new Blob([response.data], {
+        type: response.headers["content-type"],
+      });
     } catch (error) {
-      console.error("Error fetching image:", error);
+      console.error('Network error:', error);
       throw new Error(`Failed to fetch image: ${error.message}`);
     }
   }
-  // Load an image
-  static loadImage(src) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = "Anonymous";
-      img.onload = () => resolve(img);
-      img.onerror = (e) => {
-        console.error("Image load error:", e);
-        reject(new Error("Failed to load image"));
-      };
-      img.src = src;
-    });
+  
+  // Updated product template URL generator
+  static getProductTemplateUrl(productType, productColor) {
+    const type = (productType || 'hoodie').toLowerCase();
+    const color = (productColor || 'white').toLowerCase().replace(/\s+/g, '-');
+    
+    const templates = {
+      hoodie: `https://res.cloudinary.com/dkot9tyjm/image/upload/v1728392918/hoodies/hoodie-${color}-front.png`,
+      tshirt: `https://res.cloudinary.com/dkot9tyjm/image/upload/v1728393898/t-shirts/t-shirt-${color}-front.png`,
+      longsleeve: `https://res.cloudinary.com/dkot9tyjm/image/upload/v1728394665/long-sleeves/longseleves-${color}-front.png`
+    };
+  
+    return templates[
+      type.includes("hoodie")
+        ? "hoodie"
+        : type.includes("long")
+        ? "longsleeve"
+        : "tshirt"
+    ];
   }
 
   // Generate a file name based on order and item IDs
@@ -225,12 +239,11 @@ export class DesignDownloader {
               total: 0,
             },
           },
+
           customer: {},
           shipping: {},
         },
       };
-
-      // Create a ZIP archive
       const zip = new JSZip();
 
       // Add original design image
@@ -262,6 +275,8 @@ export class DesignDownloader {
           console.log("Could not fetch original mockup");
         }
       }
+
+      // Create a ZIP archive
 
       // Add complete specifications JSON
       zip.file("specifications.json", JSON.stringify(specs, null, 2));

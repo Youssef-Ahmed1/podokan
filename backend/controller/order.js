@@ -324,72 +324,48 @@ router.get(
 router.get(
   "/get-seller-orders",
   isSeller,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      // Ensure seller is authenticated
-      if (!req.seller || !req.seller._id) {
-        return next(new ErrorHandler("Seller authentication required", 401));
-      }
+  catchAsyncErrors(async (req, res) => {
+    const sellerId = req.seller._id.toString();
+    const cacheKey = CACHE_KEYS.SELLER_ORDERS(sellerId);
 
-      const sellerId = req.seller._id.toString();
-      console.log("Fetching orders for seller:", sellerId);
-
-      // Check cache
-      const cacheKey = CACHE_KEYS.SELLER_ORDERS(sellerId);
-      const cachedOrders = orderCache.get(cacheKey);
-
-      if (cachedOrders) {
-        return res.status(200).json({
-          success: true,
-          orders: cachedOrders,
-          count: cachedOrders.length,
-          fromCache: true,
-        });
-      }
-
-      // First try direct query with dot notation for embedded documents
-      let orders = await Order.find({
-        "cart.shopId": sellerId,
-      }).sort({ createdAt: -1 });
-
-      // If no orders found, try with string comparison (to handle ObjectID vs string issues)
-      if (!orders || orders.length === 0) {
-        console.log("No direct matches, trying string comparison");
-        const allOrders = await Order.find().sort({ createdAt: -1 });
-
-        orders = allOrders.filter((order) => {
-          return order.cart.some((item) => {
-            const itemShopId = item.shopId?.toString() || item.shopId;
-            return itemShopId === sellerId;
-          });
-        });
-      }
-
-      // Process orders to include only this seller's items in each order
-      const processedOrders = orders.map((order) => {
-        const orderObj = order.toObject();
-        orderObj.cart = orderObj.cart.filter((item) => {
-          const itemShopId = item.shopId?.toString() || item.shopId;
-          return itemShopId === sellerId;
-        });
-        return orderObj;
-      });
-
-      // Cache processed orders
-      orderCache.set(cacheKey, processedOrders);
-
-      res.status(200).json({
-        success: true,
-        orders: processedOrders,
-        count: processedOrders.length,
-      });
-    } catch (error) {
-      console.error("Error in get-seller-orders:", error);
-      return next(new ErrorHandler(error.message, 500));
+    // Cache-first strategy with TTL validation
+    const cached = orderCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < 300000) {
+      // 5 minute cache
+      return res.json(cached.data);
     }
+
+    const orders = await Order.aggregate([
+      { $unwind: "$cart" },
+      { $match: { "cart.shopId": mongoose.Types.ObjectId(sellerId) } },
+      {
+        $group: {
+          _id: "$_id",
+          root: { $mergeObjects: "$$ROOT" },
+          cartItems: { $push: "$cart" },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: ["$root", { cart: "$cartItems" }],
+          },
+        },
+      },
+      { $sort: { createdAt: -1 } },
+    ]);
+
+    const response = {
+      success: true,
+      orders,
+      count: orders.length,
+      timestamp: Date.now(),
+    };
+
+    orderCache.set(cacheKey, response);
+    res.json(response);
   })
 );
-
 /**
  * Get a specific order for the authenticated seller
  * GET /api/v2/order/get-seller-order/:id

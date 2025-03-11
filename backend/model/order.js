@@ -39,11 +39,13 @@ const orderSchema = new mongoose.Schema({
       },
       ProductColor: {
         type: String,
-        default: null, // Changed from 'Default' to null
+        required: true, // Enforce required
+        default: "White",
       },
       size: {
         type: String,
-        default: null, // Changed from 'One Size' to null
+        required: true, // Enforce required
+        default: "One Size",
       },
       designSpecs: {
         positionX: {
@@ -86,15 +88,21 @@ const orderSchema = new mongoose.Schema({
     type: Object,
     required: true,
   },
-  // Subtotal (just the items, no shipping)
   subtotal: {
     type: Number,
-    required: false,
+    required: true,
+    min: 0,
   },
   // Total price (includes shipping)
   totalPrice: {
     type: Number,
     required: true,
+    validate: {
+      validator: function (v) {
+        return v === this.subtotal + this.shippingCost;
+      },
+      message: "Total price must equal subtotal + shipping cost",
+    },
   },
   status: {
     type: String,
