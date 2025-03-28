@@ -2,16 +2,15 @@
 
 import React, { useEffect, useState, useMemo } from "react"; // useMemo added
 import { useDispatch, useSelector } from "react-redux";
-// ** FIX: Import the CORRECT action **
 import {
   getAllOrdersOfAdmin,
   adminUpdateOrderStatus,
   clearErrors,
-} from "../../redux/actions/order"; // <--- CHANGE HERE
+} from "../redux/actions/order"; 
 import { Link } from "react-router-dom";
 import { DownloadCloud, Eye, Filter, Search, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
-import Loader from "../../components/Layout/Loader"; // Assuming Loader path
+import Loader from "../components/Layout/Loader"; // Assuming Loader path
 
 const AdminDashboardOrders = () => {
   const dispatch = useDispatch();
