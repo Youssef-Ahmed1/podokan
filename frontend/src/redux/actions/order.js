@@ -1,11 +1,6 @@
-/**
- * @file Redux order actions
- * @description Handles all order-related Redux actions for the application
- */
-
 import axios from "axios";
 import { server } from "../../server";
-import { DesignDownloader } from "../../utils/designDownload";
+import { DesignDownloader } from "../../utils/designDownload"; // Ensure correct path
 import { toast } from "react-toastify";
 
 // Constants for action types
@@ -30,10 +25,20 @@ export const ORDER_ACTIONS = {
   GET_ADMIN_SUCCESS: "adminAllOrdersSuccess",
   GET_ADMIN_FAIL: "adminAllOrdersFail",
 
-  // Update Order Status
+  // Update Order Status (generic) - Might remove if using specific roles
   UPDATE_STATUS_REQUEST: "updateOrderStatusRequest",
   UPDATE_STATUS_SUCCESS: "updateOrderStatusSuccess",
   UPDATE_STATUS_FAIL: "updateOrderStatusFail",
+
+  // Admin Update Status
+  ADMIN_UPDATE_STATUS_REQUEST: "adminUpdateOrderStatusRequest",
+  ADMIN_UPDATE_STATUS_SUCCESS: "adminUpdateOrderStatusSuccess",
+  ADMIN_UPDATE_STATUS_FAIL: "adminUpdateOrderStatusFail",
+
+  // Seller Update Status
+  SELLER_UPDATE_STATUS_REQUEST: "sellerUpdateOrderStatusRequest",
+  SELLER_UPDATE_STATUS_SUCCESS: "sellerUpdateOrderStatusSuccess",
+  SELLER_UPDATE_STATUS_FAIL: "sellerUpdateOrderStatusFail",
 
   // Download Actions
   DOWNLOAD_SPECS_REQUEST: "downloadSpecsRequest",
@@ -44,7 +49,7 @@ export const ORDER_ACTIONS = {
   DOWNLOAD_DESIGN_SUCCESS: "downloadDesignSuccess",
   DOWNLOAD_DESIGN_FAIL: "downloadDesignFail",
 
-  // Delivery Actions
+  // Delivery Actions (Keep structure, implement based on features)
   ASSIGN_DELIVERY_REQUEST: "assignDeliveryRequest",
   ASSIGN_DELIVERY_SUCCESS: "assignDeliverySuccess",
   ASSIGN_DELIVERY_FAIL: "assignDeliveryFail",
@@ -54,24 +59,42 @@ export const ORDER_ACTIONS = {
   UPDATE_DELIVERY_FAIL: "updateDeliveryFail",
 
   // Refund Actions
-  REFUND_REQUEST: "refundRequest",
-  REFUND_SUCCESS: "refundSuccess",
-  REFUND_FAIL: "refundFail",
+  REFUND_REQUEST_USER: "refundRequestUser", // User initiates
+  REFUND_REQUEST_USER_SUCCESS: "refundRequestUserSuccess",
+  REFUND_REQUEST_USER_FAIL: "refundRequestUserFail",
+
+  REFUND_PROCESS_SELLER: "refundProcessSeller", // Seller approves/rejects
+  REFUND_PROCESS_SELLER_SUCCESS: "refundProcessSellerSuccess",
+  REFUND_PROCESS_SELLER_FAIL: "refundProcessSellerFail",
 
   // Clear Errors
   CLEAR_ERRORS: "clearErrors",
 };
 
 /**
- * Helper function for API requests with proper error handling
+ * Gets the token from localStorage and formats it as a Bearer token.
+ * @param {string} tokenKey - Key for the token in localStorage ('token' or 'seller_token').
+ * @returns {string | null} - Formatted Bearer token or null if not found.
+ */
+const getFormattedBearerToken = (tokenKey = "token") => {
+  const token = localStorage.getItem(tokenKey);
+  if (!token) return null;
+  // Ensure Bearer prefix exists only once
+  return token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+};
+
+/**
+ * Helper function for API requests with standardized error handling & toast notifications.
  * @param {Function} dispatch - Redux dispatch function
  * @param {string} requestType - Action type for request start
  * @param {string} successType - Action type for success
  * @param {string} failType - Action type for failure
- * @param {Function} apiCall - Async function that makes the API call
- * @param {Function} successCallback - Optional callback on success
- * @param {boolean} throwError - Whether to rethrow the error
- * @returns {Promise} - Result of the API call
+ * @param {Function} apiCall - Async function that makes the API call and returns response data relevant to payload
+ * @param {Function} [successCallback] - Optional callback on success, receives the payload
+ * @param {boolean} [showSuccessToast=false] - Whether to show a generic success toast
+ * @param {string} [successToastMessage] - Custom success toast message
+ * @returns {Promise<any>} - The payload from the successful API call
+ * @throws {Error} - Throws an error on failure, allowing caller to catch
  */
 const handleApiRequest = async (
   dispatch,
@@ -79,25 +102,31 @@ const handleApiRequest = async (
   successType,
   failType,
   apiCall,
-  successCallback,
-  throwError = true
+  successCallback = null,
+  showSuccessToast = false,
+  successToastMessage = "Operation successful!"
 ) => {
   dispatch({ type: requestType });
 
   try {
-    const result = await apiCall();
+    const payload = await apiCall(); // Expects apiCall to return relevant data for reducer
 
     dispatch({
       type: successType,
-      payload: result.data?.payload || result.data || result,
+      payload: payload,
     });
 
-    if (successCallback) {
-      successCallback(result);
+    if (showSuccessToast) {
+      toast.success(successToastMessage);
     }
 
-    return result;
+    if (successCallback) {
+      successCallback(payload);
+    }
+
+    return payload; // Return payload for promise chaining if needed
   } catch (error) {
+    console.error(`API Request Error (${requestType}):`, error);
     const errorMessage =
       error.response?.data?.message || error.message || `Request failed`;
 
@@ -106,35 +135,32 @@ const handleApiRequest = async (
       payload: errorMessage,
     });
 
-    // Optional toast notification
+    // Specific Error Toasts
     if (error.response?.status === 401) {
-      toast.error("Authentication failed. Please login again.");
+      // Unauthorized
+      toast.error("Authentication failed. Please log in again.");
+      // Potentially dispatch a logout action here
     } else if (error.response?.status === 403) {
-      toast.error("You don't have permission to perform this action.");
+      // Forbidden
+      toast.error("Permission denied to perform this action.");
+    } else if (error.response?.status === 400) {
+      // Bad Request (Validation etc.)
+      toast.error(`Action failed: ${errorMessage}`);
     } else if (error.response?.status >= 500) {
+      // Server Error
       toast.error("Server error. Please try again later.");
+    } else if (axios.isCancel(error)) {
+      console.log("Request canceled:", error.message); // Ignore toast for cancellations
+    } else {
+      // Network or other errors
+      toast.error(errorMessage); // Generic toast for other failures
     }
 
-    if (throwError) {
-      throw error;
-    }
+    throw new Error(errorMessage); // Re-throw standardized error for component catching
   }
 };
 
-/**
- * Get authentication headers based on token type
- * @param {string} tokenType - Type of token to use ('token' or 'seller_token')
- * @returns {Object} - Headers object with authorization
- */
-const getAuthHeaders = (tokenType = "token") => {
-  const token = localStorage.getItem(tokenType);
-  return {
-    Authorization: token ? `Bearer ${token}` : "",
-    "Content-Type": "application/json",
-  };
-};
-
-// Create Order
+// Action: Create Order
 export const createOrder = (orderData) => async (dispatch) => {
   return handleApiRequest(
     dispatch,
@@ -142,129 +168,146 @@ export const createOrder = (orderData) => async (dispatch) => {
     ORDER_ACTIONS.CREATE_SUCCESS,
     ORDER_ACTIONS.CREATE_FAIL,
     async () => {
+      console.log("Dispatching createOrder with data:", orderData);
+      // Using withCredentials suggests backend expects cookies for session/CSRF, standard JWT might just use headers.
       const { data } = await axios.post(
         `${server}/order/create-order`,
         orderData,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
+        { withCredentials: true } // Assumes user token is sent via cookie managed by browser/axios default
       );
-      return data.orders;
-    }
+      if (!data.success)
+        throw new Error(data.message || "Order creation failed");
+      return data.orders; // Backend returns the created orders array
+    },
+    null, // No specific success callback needed here
+    true, // Show success toast
+    "Order placed successfully!"
   );
 };
 
-// Get all orders for user
+// Action: Get all orders for authenticated user
 export const getAllOrdersOfUser = () => async (dispatch) => {
-  dispatch({ type: ORDER_ACTIONS.GET_USER_REQUEST });
+  dispatch({ type: ORDER_ACTIONS.GET_USER_REQUEST }); // Manual dispatch start for different try/catch logic
 
   try {
+    const token = getFormattedBearerToken("token");
+    console.log(
+      "getAllOrdersOfUser using token:",
+      token ? "Present" : "MISSING"
+    );
+    if (!token) {
+      // Don't throw, just dispatch fail and return empty. Let component decide if login needed.
+      dispatch({
+        type: ORDER_ACTIONS.GET_USER_FAIL,
+        payload: "User token not found",
+      });
+      return { success: false, orders: [] };
+    }
+
     const { data } = await axios.get(`${server}/order/get-user-orders`, {
-      withCredentials: true,
+      // withCredentials: true, // Use ONLY if relying on cookies; redundant if using Bearer token
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Authorization: token, // Explicitly send Bearer token
       },
     });
 
-    // Validate and normalize response
     if (!data.success) {
-      throw new Error(data.message || "Failed to fetch orders");
+      throw new Error(data.message || "Failed to fetch user orders");
     }
 
-    // Ensure orders is always an array
-    const orders = Array.isArray(data.orders)
-      ? data.orders
-      : data.orders
-      ? [data.orders]
-      : [];
+    // Ensure orders is always an array in the payload
+    const orders = Array.isArray(data.orders) ? data.orders : [];
 
     dispatch({
       type: ORDER_ACTIONS.GET_USER_SUCCESS,
       payload: orders,
     });
 
-    return data;
+    return data; // Return full response if needed by caller
   } catch (error) {
     console.error("Error fetching user orders:", error);
-
+    const errorMessage =
+      error.response?.data?.message || "Failed to fetch orders";
     dispatch({
       type: ORDER_ACTIONS.GET_USER_FAIL,
-      payload: error.response?.data?.message || "Failed to fetch orders",
+      payload: errorMessage,
     });
-
-    // Return empty array instead of throwing to prevent component errors
+    if (error.response?.status === 401)
+      toast.error("Session expired. Please login again.");
+    // Always return shape expected by component to prevent crashes
     return { success: false, orders: [] };
   }
 };
-export const adminDownloadDesign = (orderId, itemId) => async (dispatch) => {
+
+// Action: Get all orders for authenticated seller shop
+export const getAllOrdersOfShop = () => async (dispatch) => {
+  dispatch({ type: ORDER_ACTIONS.GET_SHOP_REQUEST });
+
   try {
-    dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_REQUEST });
-
-    const { data } = await axios.get(
-      `${server}/order/download-design/${orderId}/${itemId}`,
-      {
-        headers: getAuthHeaders(),
-        validateStatus: (status) => status < 500,
-      }
+    // **FIX: Use Seller-Authorization header** based on app.js CORS config
+    //    AND ensure getFormattedBearerToken retrieves from 'seller_token' localStorage key
+    const sellerToken = getFormattedBearerToken("seller_token"); // Ensure this uses 'seller_token'
+    console.log(
+      "getAllOrdersOfShop using seller token:",
+      sellerToken ? "Present" : "MISSING"
     );
+    if (!sellerToken) {
+      dispatch({
+        type: ORDER_ACTIONS.GET_SHOP_FAIL,
+        payload: "Seller authentication token not found.",
+      });
+      toast.error("Seller login required.");
+      return { success: false, orders: [] }; // Return predictable shape
+    }
 
-    if (!data.success) throw new Error(data.message);
-
-    await DesignDownloader.downloadSingleDesign({
-      ...data.designData,
-      specs: {
-        ...data.designData.specs,
-        order: {
-          price: {
-            total: data.designData.order.price.total,
-            itemPrice: data.designData.order.price.itemPrice,
-            shippingCost: data.designData.order.price.shippingCost,
-          },
-        },
+    const { data } = await axios.get(`${server}/order/get-seller-orders`, {
+      // withCredentials: true, // Use ONLY if backend relies on session cookies IN ADDITION to token
+      headers: {
+        "Seller-Authorization": sellerToken, // Use the specific header for seller
       },
     });
 
-    dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_SUCCESS });
-  } catch (error) {
+    console.log("Shop orders response:", data);
+    if (!data.success) {
+      throw new Error(data.message || "Failed to fetch shop orders");
+    }
+
+    const orders = Array.isArray(data.orders) ? data.orders : [];
     dispatch({
-      type: ORDER_ACTIONS.DOWNLOAD_DESIGN_FAIL,
-      payload: error.response?.data?.message || error.message,
+      type: ORDER_ACTIONS.GET_SHOP_SUCCESS,
+      payload: orders,
     });
-    throw error;
+
+    return data;
+  } catch (error) {
+    console.error("Error in getAllOrdersOfShop:", error);
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch shop orders";
+
+    dispatch({
+      type: ORDER_ACTIONS.GET_SHOP_FAIL,
+      payload: errorMessage,
+    });
+
+    if (error.response?.status === 401) {
+      toast.error(
+        "Seller authentication failed or expired. Please log in again."
+      );
+      // Consider dispatching seller logout action
+    } else if (error.response?.status === 403) {
+      toast.error("You are not authorized as a seller.");
+    } else {
+      toast.error(`Failed to load shop orders: ${errorMessage}`);
+    }
+
+    // Do NOT throw here if component should handle empty state, return predictable shape
+    return { success: false, orders: [] };
   }
 };
-// Get all seller orders
-export const getShopOrders = () => async (dispatch) => {
-  return handleApiRequest(
-    dispatch,
-    ORDER_ACTIONS.GET_SHOP_REQUEST,
-    ORDER_ACTIONS.GET_SHOP_SUCCESS,
-    ORDER_ACTIONS.GET_SHOP_FAIL,
-    async () => {
-      // Validate seller token exists
-      const token = localStorage.getItem("seller_token");
-      if (!token) {
-        throw new Error("Seller authentication required");
-      }
 
-      const { data } = await axios.get(`${server}/order/get-seller-orders`, {
-        withCredentials: true,
-        headers: getAuthHeaders("seller_token"),
-      });
-
-      console.log("Shop orders response:", data);
-
-      if (!data.success) {
-        throw new Error(data.message || "Failed to fetch shop orders");
-      }
-
-      return data.orders || [];
-    }
-  );
-};
-
-// Get all orders for admin
+// Action: Get all orders for Admin
 export const getAllOrdersOfAdmin = () => async (dispatch) => {
   return handleApiRequest(
     dispatch,
@@ -272,225 +315,282 @@ export const getAllOrdersOfAdmin = () => async (dispatch) => {
     ORDER_ACTIONS.GET_ADMIN_SUCCESS,
     ORDER_ACTIONS.GET_ADMIN_FAIL,
     async () => {
-      // Add auth token logging
-      const token = localStorage.getItem("token");
+      const token = getFormattedBearerToken("token"); // Admin uses the standard user token
       console.log(
-        "Using auth token for admin request:",
-        token ? "Token present" : "No token"
+        "getAllOrdersOfAdmin using admin token:",
+        token ? "Present" : "MISSING"
       );
+      if (!token) throw new Error("Admin token not found");
 
       const { data } = await axios.get(`${server}/order/admin/all-orders`, {
-        withCredentials: true,
-        headers: getAuthHeaders(),
+        // withCredentials: true, // Usually not needed with Bearer token
+        headers: { Authorization: token },
       });
 
-      console.log("Admin orders response:", data);
-      return data.orders || [];
-    }
+      console.log("Admin orders raw response:", data);
+      if (!data.success)
+        throw new Error(data.message || "Failed to fetch admin orders");
+      // Ensure payload is always an array
+      return Array.isArray(data.orders) ? data.orders : [];
+    },
+    (payload) => {
+      console.log(`Successfully fetched ${payload.length} admin orders.`);
+    },
+    false // Don't show success toast for background fetches
   );
 };
 
-
-export const getAllOrdersOfShop = () => async (dispatch) => {
-  try {
-    dispatch({ type: ORDER_ACTIONS.GET_SHOP_REQUEST });
-
-    // Get seller token from localStorage
-    const token = localStorage.getItem("seller_token");
-
-    if (!token) {
-      throw new Error("Seller authentication required");
-    }
-
-    const { data } = await axios.get(`${server}/order/get-seller-orders`, {
-      withCredentials: true,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    console.log("Shop orders response:", data);
-
-    if (!data.success) {
-      throw new Error(data.message || "Failed to fetch shop orders");
-    }
-
-    dispatch({
-      type: ORDER_ACTIONS.GET_SHOP_SUCCESS,
-      payload: data.orders || [],
-    });
-
-    return data;
-  } catch (error) {
-    console.error("Error in getAllOrdersOfShop:", error);
-    dispatch({
-      type: ORDER_ACTIONS.GET_SHOP_FAIL,
-      payload:
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to fetch shop orders",
-    });
-
-    throw error;
-  }
-};
-// Update order status as admin
+// Action: Update order status as Admin
 export const adminUpdateOrderStatus = (orderId, status) => async (dispatch) => {
   return handleApiRequest(
     dispatch,
-    ORDER_ACTIONS.UPDATE_STATUS_REQUEST,
-    ORDER_ACTIONS.UPDATE_STATUS_SUCCESS,
-    ORDER_ACTIONS.UPDATE_STATUS_FAIL,
+    ORDER_ACTIONS.ADMIN_UPDATE_STATUS_REQUEST,
+    ORDER_ACTIONS.ADMIN_UPDATE_STATUS_SUCCESS,
+    ORDER_ACTIONS.ADMIN_UPDATE_STATUS_FAIL,
     async () => {
+      const token = getFormattedBearerToken("token");
+      if (!token) throw new Error("Admin authentication required.");
+      console.log(`Admin updating order ${orderId} to status ${status}`);
+
       const { data } = await axios.put(
         `${server}/order/admin/update-status/${orderId}`,
-        { status },
-        {
-          withCredentials: true,
-          headers: getAuthHeaders(),
-        }
+        { status }, // Send status in request body
+        { headers: { Authorization: token } }
       );
 
-      // Refresh admin orders after successful update
-      if (data.success) {
-        dispatch(getAllOrdersOfAdmin());
-      }
-
-      return data.order;
-    }
+      if (!data.success)
+        throw new Error(data.message || "Failed to update order status");
+      return data.order; // Return the updated order object
+    },
+    (updatedOrder) => {
+      // Optionally refresh all admin orders in the background after update success
+      // Debounce this if updates happen frequently
+      dispatch(getAllOrdersOfAdmin()); // Refresh list after single update
+      console.log(`Admin status update successful for ${updatedOrder._id}`);
+    },
+    true, // Show success toast
+    `Order status updated to ${status}`
   );
 };
 
-// Update order status
-export const updateOrderStatus = (orderId, status) => async (dispatch) => {
-  return handleApiRequest(
-    dispatch,
-    ORDER_ACTIONS.UPDATE_STATUS_REQUEST,
-    ORDER_ACTIONS.UPDATE_STATUS_SUCCESS,
-    ORDER_ACTIONS.UPDATE_STATUS_FAIL,
-    async () => {
-      const { data } = await axios.put(
-        `${server}/order/update-status/${orderId}`,
-        { status },
-        {
-          withCredentials: true,
-          headers: getAuthHeaders(),
-        }
+// Action: Update order status as Seller
+export const sellerUpdateOrderStatus =
+  (orderId, status) => async (dispatch) => {
+    return handleApiRequest(
+      dispatch,
+      ORDER_ACTIONS.SELLER_UPDATE_STATUS_REQUEST,
+      ORDER_ACTIONS.SELLER_UPDATE_STATUS_SUCCESS,
+      ORDER_ACTIONS.SELLER_UPDATE_STATUS_FAIL,
+      async () => {
+        const sellerToken = getFormattedBearerToken("seller_token");
+        if (!sellerToken) throw new Error("Seller authentication required.");
+        console.log(`Seller updating order ${orderId} to status ${status}`);
+
+        // Use the correct endpoint for seller status update
+        const { data } = await axios.put(
+          `${server}/order/update-order-status/${orderId}`, // Endpoint for Seller
+          { status },
+          { headers: { "Seller-Authorization": sellerToken } } // Use seller token header
+        );
+
+        if (!data.success)
+          throw new Error(data.message || "Failed to update order status");
+        return data.order;
+      },
+      (updatedOrder) => {
+        // Refresh seller's order list
+        dispatch(getAllOrdersOfShop()); // Refresh list
+        console.log(`Seller status update successful for ${updatedOrder._id}`);
+      },
+      true,
+      `Order status updated to ${status}`
+    );
+  };
+
+// Action: Download design package (Admin)
+export const adminDownloadDesign = (orderId, itemId) => async (dispatch) => {
+  // No need for Redux state change during download itself, handle loading in component
+  dispatch({
+    type: ORDER_ACTIONS.DOWNLOAD_DESIGN_REQUEST,
+    payload: { orderId, itemId },
+  });
+
+  try {
+    const token = getFormattedBearerToken("token");
+    if (!token) throw new Error("Admin authentication required.");
+    console.log(
+      `Admin requesting download for order ${orderId}, item ${itemId}`
+    );
+
+    // 1. Fetch the design data (URL, specs etc) from backend
+    const { data } = await axios.get(
+      `${server}/order/download-design/${orderId}/${itemId}`,
+      { headers: { Authorization: token } }
+    );
+
+    if (!data.success || !data.designData) {
+      throw new Error(
+        data.message || "Failed to retrieve design data from server."
       );
-
-      // Refresh orders after successful update
-      if (data.success) {
-        dispatch(getAllOrdersOfAdmin());
-      }
-
-      return data.order;
     }
-  );
+    console.log("Received design data from backend:", data.designData);
+
+    // 2. Use DesignDownloader utility on the frontend to process and initiate download
+    await DesignDownloader.downloadSingleDesign(data.designData); // Pass the whole designData object
+
+    dispatch({
+      type: ORDER_ACTIONS.DOWNLOAD_DESIGN_SUCCESS,
+      payload: { orderId, itemId },
+    });
+    toast.success("Design package download initiated!");
+  } catch (error) {
+    console.error("Admin Design Download failed:", error);
+    const errorMsg = error.message || "Failed to download design package.";
+    dispatch({ type: ORDER_ACTIONS.DOWNLOAD_DESIGN_FAIL, payload: errorMsg });
+    toast.error(errorMsg);
+    // No need to throw again, toast informs user, Redux state has error
+  }
 };
 
-// Download specifications
+// Action: Download order specifications (Admin/User/Seller)
 export const downloadOrderSpecs = (orderId) => async (dispatch) => {
+  dispatch({ type: ORDER_ACTIONS.DOWNLOAD_SPECS_REQUEST });
+
+  try {
+    // Determine token type based on who is downloading (needs logic based on current user role)
+    // For simplicity, assuming standard user/admin token for now
+    const token =
+      getFormattedBearerToken("token") ||
+      getFormattedBearerToken("seller_token"); // Try both maybe? Or pass role context.
+    if (!token) throw new Error("Authentication required to download specs.");
+
+    // Fetch specs data as JSON first
+    const { data } = await axios.get(
+      `${server}/order/download-specs/${orderId}`,
+      { headers: { Authorization: token } }
+    );
+
+    if (!data.success || !data.specsData) {
+      throw new Error(data.message || "Failed to retrieve specification data.");
+    }
+
+    // Create a JSON blob and trigger download
+    const jsonString = JSON.stringify(data.specsData, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `order_specs_${orderId}.json`);
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    dispatch({ type: ORDER_ACTIONS.DOWNLOAD_SPECS_SUCCESS });
+    toast.success("Order specifications downloaded.");
+  } catch (error) {
+    console.error("Download Order Specs failed:", error);
+    const errorMsg = error.message || "Failed to download specifications.";
+    dispatch({ type: ORDER_ACTIONS.DOWNLOAD_SPECS_FAIL, payload: errorMsg });
+    toast.error(errorMsg);
+  }
+};
+
+// Action: Request Refund (User)
+export const requestRefund = (orderId, reason) => async (dispatch) => {
   return handleApiRequest(
     dispatch,
-    ORDER_ACTIONS.DOWNLOAD_SPECS_REQUEST,
-    ORDER_ACTIONS.DOWNLOAD_SPECS_SUCCESS,
-    ORDER_ACTIONS.DOWNLOAD_SPECS_FAIL,
+    ORDER_ACTIONS.REFUND_REQUEST_USER,
+    ORDER_ACTIONS.REFUND_REQUEST_USER_SUCCESS,
+    ORDER_ACTIONS.REFUND_REQUEST_USER_FAIL,
     async () => {
-      const { data } = await axios.get(
-        `${server}/order/download-specs/${orderId}`,
-        {
-          withCredentials: true,
-          responseType: "blob",
-          headers: getAuthHeaders(),
-        }
+      const token = getFormattedBearerToken("token");
+      if (!token) throw new Error("Authentication required.");
+      const { data } = await axios.put(
+        `${server}/order/request-refund/${orderId}`,
+        { reason }, // Send reason in body
+        { headers: { Authorization: token } }
       );
-
-      // Create blob link to download - this is frontend code
-      const url = window.URL.createObjectURL(new Blob([data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `specs-${orderId}.csv`);
-      document.body.appendChild(link);
-      link.click();
-
-      // Clean up
-      window.URL.revokeObjectURL(url);
-      link.remove();
-
-      return true;
-    }
+      if (!data.success)
+        throw new Error(data.message || "Failed to request refund");
+      return data.order; // Return updated order
+    },
+    (updatedOrder) => {
+      // Maybe refresh user's order list
+      dispatch(getAllOrdersOfUser());
+    },
+    true,
+    "Refund request submitted successfully."
   );
 };
 
-// Assign delivery partner
+// Action: Process Refund (Seller: Approve/Reject)
+export const processRefundBySeller =
+  (orderId, status, refundNotes = "") =>
+  async (dispatch) => {
+    return handleApiRequest(
+      dispatch,
+      ORDER_ACTIONS.REFUND_PROCESS_SELLER,
+      ORDER_ACTIONS.REFUND_PROCESS_SELLER_SUCCESS,
+      ORDER_ACTIONS.REFUND_PROCESS_SELLER_FAIL,
+      async () => {
+        const sellerToken = getFormattedBearerToken("seller_token");
+        if (!sellerToken) throw new Error("Seller authentication required.");
+        const { data } = await axios.put(
+          `${server}/order/process-refund/${orderId}`, // Use correct endpoint
+          { status, refundNotes }, // Send status ('Refund Approved' / 'Refund Rejected') and notes
+          { headers: { "Seller-Authorization": sellerToken } }
+        );
+        if (!data.success)
+          throw new Error(data.message || "Failed to process refund request");
+        return data.order; // Return updated order
+      },
+      (updatedOrder) => {
+        // Refresh seller's order list
+        dispatch(getAllOrdersOfShop());
+      },
+      true,
+      `Refund request processing status updated to ${status}.` // Use final status from response ideally
+    );
+  };
+
+// ---- Placeholder Actions for Delivery Flow ----
+
+// Action: Assign Delivery Partner (Seller Action potentially)
 export const assignDeliveryPartner =
-  (orderId, deliveryData) => async (dispatch) => {
+  (orderId, deliveryPartnerInfo) => async (dispatch) => {
+    // Requires backend implementation calling delivery partner API
+    // This is just a structure
     return handleApiRequest(
       dispatch,
       ORDER_ACTIONS.ASSIGN_DELIVERY_REQUEST,
       ORDER_ACTIONS.ASSIGN_DELIVERY_SUCCESS,
       ORDER_ACTIONS.ASSIGN_DELIVERY_FAIL,
       async () => {
+        const sellerToken = getFormattedBearerToken("seller_token");
+        if (!sellerToken) throw new Error("Seller authentication required.");
         const { data } = await axios.post(
-          `${server}/order/assign-delivery/${orderId}`,
-          deliveryData,
-          {
-            headers: getAuthHeaders(),
-            withCredentials: true,
-          }
+          `${server}/order/assign-delivery`, // Use your endpoint
+          { orderId, deliveryPartnerInfo },
+          { headers: { "Seller-Authorization": sellerToken } }
         );
-
+        if (!data.success)
+          throw new Error(data.message || "Failed to assign delivery partner");
         return data.order;
-      }
+      },
+      (updatedOrder) => {
+        dispatch(getAllOrdersOfShop());
+      },
+      true,
+      "Delivery partner assigned."
     );
   };
 
-// Update delivery status
-export const updateDeliveryStatus =
-  (orderId, statusData) => async (dispatch) => {
-    return handleApiRequest(
-      dispatch,
-      ORDER_ACTIONS.UPDATE_DELIVERY_REQUEST,
-      ORDER_ACTIONS.UPDATE_DELIVERY_SUCCESS,
-      ORDER_ACTIONS.UPDATE_DELIVERY_FAIL,
-      async () => {
-        const { data } = await axios.put(
-          `${server}/order/update-delivery/${orderId}`,
-          statusData,
-          {
-            headers: getAuthHeaders(),
-            withCredentials: true,
-          }
-        );
+// ---- End Delivery Placeholders ----
 
-        return data.order;
-      }
-    );
-  };
-
-// Request refund
-export const requestRefund = (orderId, refundData) => async (dispatch) => {
-  return handleApiRequest(
-    dispatch,
-    ORDER_ACTIONS.REFUND_REQUEST,
-    ORDER_ACTIONS.REFUND_SUCCESS,
-    ORDER_ACTIONS.REFUND_FAIL,
-    async () => {
-      const { data } = await axios.post(
-        `${server}/order/refund-request/${orderId}`,
-        refundData,
-        {
-          headers: getAuthHeaders(),
-          withCredentials: true,
-        }
-      );
-
-      return data;
-    }
-  );
+// Action: Clear Errors
+export const clearErrors = () => (dispatch) => {
+  dispatch({ type: ORDER_ACTIONS.CLEAR_ERRORS });
 };
-
-// Clear Errors
-export const clearErrors = () => ({
-  type: ORDER_ACTIONS.CLEAR_ERRORS,
-});
