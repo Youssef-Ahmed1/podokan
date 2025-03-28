@@ -1,9 +1,13 @@
+// frontend/src/App.js
+
 import React, { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import axios from "axios";
-import { server } from "./server";
-import Store from "./redux/store";
+import { server } from "./server"; // Check/adjust path
+import Store from "./redux/store"; // Adjust path
+
+// --- Page Imports (Ensure correct paths based on structure) ---
 import {
   LoginPage,
   SignupPage,
@@ -24,7 +28,7 @@ import {
   OrderDetailsPage,
   TrackOrderPage,
   UserInbox,
-} from "./routes/Routes.js";
+} from "./routes/Routes.js"; // Adjust path
 import {
   ShopDashboardPage,
   ShopCreateProduct,
@@ -34,32 +38,41 @@ import {
   ShopAllCoupouns,
   ShopPreviewPage,
   ShopAllOrders,
-  ShopOrderDetails,
-  ShopAllRefunds,
+  /* ShopOrderDetails, */ ShopAllRefunds,
   ShopSettingsPage,
   ShopWithDrawMoneyPage,
   ShopInboxPage,
-} from "./routes/ShopRoutes";
-import {
-  AdminDashboardPage,
-  AdminDashboardUsers,
-  AdminDashboardSellers,
-  AdminDashboardOrders,
-  AdminDashboardProducts,
-  AdminDashboardEvents,
-  AdminDashboardWithdraw,
-  AdminApprovalProducts,
-} from "./routes/AdminRoutes";
-import { ShopHomePage } from "./ShopRoutes.js";
-import ProtectedRoute from "./routes/ProtectedRoute";
-import ProtectedAdminRoute from "./routes/ProtectedAdminRoute";
-import SellerProtectedRoute from "./routes/SellerProtectedRoute";
-import { loadSeller, loadUser } from "./redux/actions/user";
-import { getAllProducts } from "./redux/actions/product";
-import { getAllEvents } from "./redux/actions/event";
+} from "./routes/ShopRoutes"; // Adjust path
+
+// Corrected/Specific Page Imports based on screenshots
+import AdminDashboardPage from "./pages/AdminDashboardPage.jsx"; // Adjust if path differs
+import AdminDashboardUsers from "./pages/AdminDashboardUsers.jsx"; // Adjust path
+import AdminDashboardSellers from "./pages/AdminDashboardSellers.jsx"; // Adjust path
+import AdminDashboardOrders from "./pages/AdminDashboardOrders.jsx"; // Correct path
+import AdminDashboardProducts from "./pages/AdminDashboardProducts.jsx"; // Adjust path
+import AdminDashboardEvents from "./pages/AdminDashboardEvents.jsx"; // Adjust path
+import AdminDashboardWithdraw from "./pages/AdminDashboardWithdraw.jsx"; // Adjust path
+import AdminApprovalProducts from "./pages/AdminApprovalProducts.jsx"; // Adjust path
+import ShopHomePage from "./pages/Shop/ShopHomePage"; // Check if this specific file exists or comes from ShopRoutes.js
+import ShopOrderDetails from "./pages/Shop/ShopOrderDetails"; // Correct path for seller order detail
+import AdminOrderDetails from "./pages/Shop/AdminOrderDetails"; // Correct path for admin order detail (inside Shop folder per screenshot)
+
+// --- Route Protection ---
+import ProtectedRoute from "./routes/ProtectedRoute"; // Adjust path
+import ProtectedAdminRoute from "./routes/ProtectedAdminRoute"; // Adjust path
+import SellerProtectedRoute from "./routes/SellerProtectedRoute"; // Adjust path
+
+// --- Redux Actions ---
+import { loadSeller, loadUser } from "./redux/actions/user"; // Adjust path
+import { getAllProducts } from "./redux/actions/product"; // Adjust path
+import { getAllEvents } from "./redux/actions/event"; // Adjust path
+
+// --- CSS ---
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
-import AdminOrderDetails from "./pages/Shop/AdminOrderDetails.jsx";
+
+// --- Loading Component ---
+import Loader from "./components/Layout/Loader"; // Assuming path
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -67,63 +80,83 @@ const App = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Configure axios
-        axios.defaults.withCredentials = true;
+        // Configure axios default settings
+        axios.defaults.withCredentials = true; // Crucial for cookie-based sessions if used
 
-        // Set up auth headers from localStorage with proper formatting
+        // Set up default auth headers from localStorage
         const token = localStorage.getItem("token");
         const sellerToken = localStorage.getItem("seller_token");
 
+        // Ensure 'Authorization' header includes 'Bearer ' prefix if token exists
         if (token) {
-          // Ensure token has Bearer prefix
-          const formattedToken = token.startsWith("Bearer ")
+          axios.defaults.headers.common["Authorization"] = token.startsWith(
+            "Bearer "
+          )
             ? token
             : `Bearer ${token}`;
-          axios.defaults.headers.common["Authorization"] = formattedToken;
+        } else {
+          delete axios.defaults.headers.common["Authorization"]; // Remove header if no token
         }
 
+        // Ensure 'Seller-Authorization' header includes 'Bearer ' prefix if token exists
         if (sellerToken) {
-          // Ensure token has Bearer prefix
-          const formattedSellerToken = sellerToken.startsWith("Bearer ")
-            ? sellerToken
-            : `Bearer ${sellerToken}`;
           axios.defaults.headers.common["Seller-Authorization"] =
-            formattedSellerToken;
+            sellerToken.startsWith("Bearer ")
+              ? sellerToken
+              : `Bearer ${sellerToken}`;
+        } else {
+          delete axios.defaults.headers.common["Seller-Authorization"]; // Remove header if no token
         }
 
-        // Load initial data
-        await Promise.all([
+        // Load initial data in parallel
+        // Add error handling for individual dispatches if needed
+        await Promise.allSettled([
+          // Use allSettled to continue even if one fails
           Store.dispatch(loadUser()),
           Store.dispatch(loadSeller()),
           Store.dispatch(getAllProducts()),
           Store.dispatch(getAllEvents()),
-        ]);
+        ]).then((results) => {
+          results.forEach((result, index) => {
+            if (result.status === "rejected") {
+              console.error(
+                `Initialization failed for action ${index}:`,
+                result.reason
+              );
+              // Optionally toast non-critical errors?
+            }
+          });
+        });
       } catch (error) {
-        console.error("Error initializing app:", error);
+        console.error("Critical error initializing app:", error);
+        // Maybe show a global error boundary?
       } finally {
-        setIsLoading(false);
+        setIsLoading(false); // Set loading false even if some parts fail
       }
     };
 
     initializeApp();
-  }, []);
+  }, []); // Run only once on mount
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <Loader />; // Use your Loader component
   }
 
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/sign-up" element={<SignupPage />} />
-        <Route path="/activation/:activation_token" element={<ActivationPage />} />
-        <Route path="/seller/activation/:activation_token" element={<SellerActivationPage />} />
+        <Route
+          path="/activation/:activation_token"
+          element={<ActivationPage />}
+        />
+        <Route
+          path="/seller/activation/:activation_token"
+          element={<SellerActivationPage />}
+        />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/product/:id" element={<ProductDetailsPage />} />
         <Route path="/best-selling" element={<BestSellingPage />} />
@@ -131,8 +164,9 @@ const App = () => {
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/shop-create" element={<ShopCreatePage />} />
         <Route path="/shop-login" element={<ShopLoginPage />} />
-        <Route path="/shop/preview/:id" element={<ShopPreviewPage />} />
-
+        <Route path="/shop/preview/:id" element={<ShopPreviewPage />} />{" "}
+        {/* Public shop preview */}
+        {/* Protected User Routes */}
         <Route
           path="/checkout"
           element={
@@ -173,6 +207,7 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+        {/* Use the page that contains the UserOrderDetails component */}
         <Route
           path="/user/order/:id"
           element={
@@ -181,6 +216,7 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+        {/* Use the page that contains the TrackOrder component */}
         <Route
           path="/user/track/order/:id"
           element={
@@ -189,7 +225,7 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-
+        {/* Seller Protected Routes */}
         <Route
           path="/shop/:id"
           element={
@@ -197,7 +233,8 @@ const App = () => {
               <ShopHomePage />
             </SellerProtectedRoute>
           }
-        />
+        />{" "}
+        {/* Seller view of their shop? */}
         <Route
           path="/settings"
           element={
@@ -229,7 +266,8 @@ const App = () => {
               <ShopAllOrders />
             </SellerProtectedRoute>
           }
-        />
+        />{" "}
+        {/* Seller orders list */}
         <Route
           path="/dashboard-refunds"
           element={
@@ -238,20 +276,13 @@ const App = () => {
             </SellerProtectedRoute>
           }
         />
+        {/* Seller Order Detail Route - Use correct page component */}
         <Route
           path="/order/:id"
           element={
             <SellerProtectedRoute>
               <ShopOrderDetails />
             </SellerProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/order/:id"
-          element={
-            <ProtectedAdminRoute>
-              <AdminOrderDetails />
-            </ProtectedAdminRoute>
           }
         />
         <Route
@@ -302,7 +333,7 @@ const App = () => {
             </SellerProtectedRoute>
           }
         />
-
+        {/* Admin Protected Routes */}
         <Route
           path="/admin/dashboard"
           element={
@@ -327,11 +358,21 @@ const App = () => {
             </ProtectedAdminRoute>
           }
         />
+        {/* Admin Orders List Route - Use correct page component */}
         <Route
           path="/admin-orders"
           element={
             <ProtectedAdminRoute>
               <AdminDashboardOrders />
+            </ProtectedAdminRoute>
+          }
+        />
+        {/* Admin Order Detail Route - Use correct page component (using Shop/AdminOrderDetails per screenshot) */}
+        <Route
+          path="/admin/order/:id"
+          element={
+            <ProtectedAdminRoute>
+              <AdminOrderDetails />
             </ProtectedAdminRoute>
           }
         />
@@ -367,6 +408,8 @@ const App = () => {
             </ProtectedAdminRoute>
           }
         />
+        {/* Fallback or 404 Route */}
+        {/* <Route path="*" element={<NotFoundPage />} /> */}
       </Routes>
 
       <ToastContainer
