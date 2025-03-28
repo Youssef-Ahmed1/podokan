@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react"; // Import relevant icons
 // **FIX: Correct paths based on user structure**
-import { getAllOrdersOfUser } from "../redux/actions/order"; // Path relative to pages folder
+import { getAllOrdersOfUser } from "../../redux/actions/order"; // Path relative to pages folder
 import Loader from "../components/Layout/Loader"; // Assuming Loader path
 import AdminHeader from "../components/Layout/AdminHeader"; // If using standard layout
 import Footer from "../components/Layout/Footer"; // If using standard layout
