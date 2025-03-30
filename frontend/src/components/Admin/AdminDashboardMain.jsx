@@ -13,12 +13,11 @@ import {
   getAllOrdersOfAdmin,
   clearErrors as clearOrderErrors,
 } from "../../redux/actions/order"; // Adjust path if needed
-import {
-  getAllSellers,
-  clearErrors as clearSellerErrors,
-} from "../../redux/actions/sellers"; // Adjust path if needed
+import { getAllSellers } from "../../redux/actions/sellers"; // Adjust path if needed
+import { clearErrors as clearSellerErrors } from "../../redux/actions/order"; // Adjust path if needed
 import Loader from "../Layout/Loader"; // Assuming Loader path
 import { toast } from "react-toastify";
+
 
 const AdminDashboardMain = () => {
   const dispatch = useDispatch();
