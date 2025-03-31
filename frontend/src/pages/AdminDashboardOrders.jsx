@@ -5,7 +5,7 @@ import {
   getAllOrdersOfAdmin,
   adminUpdateOrderStatus,
   clearErrors,
-} from "../../redux/actions/order"; // Adjust path relative to this file's location
+} from "../redux/actions/order"; // Adjust path relative to this file's location
 import { Link } from "react-router-dom";
 import {
   Eye,
@@ -17,7 +17,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import Loader from "../../components/Layout/Loader"; // Corrected relative path
+import Loader from "../components/Layout/Loader"; // Corrected relative path
 import { format } from "date-fns";
 import { ORDER_STATUSES } from "../constants/orderStatuses";
 
