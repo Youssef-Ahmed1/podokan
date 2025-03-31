@@ -5,7 +5,7 @@ import {
   getAllOrdersOfAdmin,
   adminUpdateOrderStatus,
   clearErrors,
-} from "../../redux/actions/order";
+} from "../redux/actions/order";
 import { Link } from "react-router-dom";
 import {
   Eye,
@@ -17,9 +17,9 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import Loader from "../../components/Layout/Loader";
+import Loader from "../components/Layout/Loader";
 import { format } from "date-fns";
-import { ORDER_STATUSES } from "../../../../backend/constants/orderStatuses"; // Adjust path
+import { ORDER_STATUSES } from "../../../backend/constants/orderStatuses"; // Adjust path
 
 const AdminDashboardOrders = () => {
   const dispatch = useDispatch();
