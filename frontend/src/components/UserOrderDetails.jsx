@@ -15,9 +15,9 @@ import {
   Phone,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { getAllOrdersOfUser, clearErrors } from "../../redux/actions/order";
-import Loader from "../../components/Layout/Loader";
-import styles from "../../styles/styles";
+import { getAllOrdersOfUser, clearErrors } from "../redux/actions/order";
+import Loader from "../components/Layout/Loader";
+import styles from "../styles/styles";
 
 const UserOrderDetails = () => {
   const { orders, isLoading, error } = useSelector((state) => state.order);
