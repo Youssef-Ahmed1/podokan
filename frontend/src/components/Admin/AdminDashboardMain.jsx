@@ -1,246 +1,237 @@
-// frontend/src/components/Admin/AdminDashboardMain.jsx
-
-import React, { useEffect, useState, useMemo, useCallback } from "react";
-// **FIX: Correct Path based on structure image input_file_5.png**
-import styles from "../../styles/styles"; // Path assuming styles is in src/styles
-import { AiOutlineArrowRight, AiOutlineMoneyCollect } from "react-icons/ai";
-import { MdBorderClear } from "react-icons/md";
-import { AlertTriangle, RefreshCw, User, Users, Package } from "lucide-react"; // Added Package icon
+import React, { useEffect, useMemo } from "react";
+import { AiOutlineMoneyCollect } from "react-icons/ai";
+import { MdBorderClear, MdPeopleOutline } from "react-icons/md";
 import { Link } from "react-router-dom";
-import { DataGrid } from "@material-ui/data-grid"; // Ensure @material-ui/data-grid is installed
-// **FIX: Correct Paths based on structure images**
+import { DataGrid } from "@mui/x-data-grid";
+import { useDispatch, useSelector } from "react-redux";
 import {
   getAllOrdersOfAdmin,
   clearErrors as clearOrderErrors,
-} from "../../redux/actions/order"; // Adjust path if needed
-import { getAllSellers } from "../../redux/actions/sellers"; // Adjust path if needed
-import { clearErrors as clearSellerErrors } from "../../redux/actions/order"; // Adjust path if needed
-import Loader from "../Layout/Loader"; // Assuming Loader path
+} from "../../redux/actions/order";
+import {
+  getAllSellers,
+  clearErrors as clearSellerErrors,
+} from "../../redux/actions/sellers"; // Assuming exists
+import Loader from "../Layout/Loader";
+import { format } from "date-fns";
 import { toast } from "react-toastify";
-
 
 const AdminDashboardMain = () => {
   const dispatch = useDispatch();
-
   const {
     adminOrders = [],
-    isLoading: adminOrderLoading = false,
-    error: orderError = null,
-  } = useSelector((state) => state.order || {});
+    isLoading: ordersLoading,
+    error: ordersError,
+  } = useSelector((state) => state.order);
   const {
     sellers = [],
-    isLoading: sellersLoading = false,
-    error: sellerError = null,
-  } = useSelector((state) => state.seller || {});
-
-  const [dashboardData, setDashboardData] = useState({
-    adminBalance: "0.00",
-    totalSellers: 0,
-    totalOrders: 0,
-    latestOrders: [],
-  });
-  const [displayError, setDisplayError] = useState(null);
-  const isLoading = adminOrderLoading || sellersLoading;
-
-  const fetchData = useCallback(
-    async (showToast = false) => {
-      setDisplayError(null);
-      dispatch(clearOrderErrors());
-      dispatch(clearSellerErrors());
-      try {
-        await Promise.all([
-          dispatch(getAllOrdersOfAdmin()),
-          dispatch(getAllSellers()),
-        ]);
-        if (showToast) toast.success("Refreshed");
-      } catch (error) {
-        if (showToast) toast.error("Refresh failed.");
-      }
-    },
-    [dispatch]
-  );
+    isLoading: sellersLoading,
+    error: sellersError,
+  } = useSelector((state) => state.seller);
 
   useEffect(() => {
-    fetchData();
-    return () => {
+    if (ordersError) {
+      toast.error(`Orders Error: ${ordersError}`);
       dispatch(clearOrderErrors());
-      dispatch(clearSellerErrors());
-    };
-  }, [fetchData, dispatch]);
-
-  useEffect(() => {
-    if (!isLoading) {
-      try {
-        const grossTotal = adminOrders.reduce(
-          (s, o) => s + (o?.totalPrice || 0),
-          0
-        );
-        const earning = grossTotal * 0.1;
-        const latest = adminOrders.slice(0, 5).map((o) => ({
-          id: o?._id,
-          itemsQty: o?.cart?.reduce((a, i) => a + (i?.qty || 0), 0) || 0,
-          total: `EGP ${(o?.totalPrice || 0).toFixed(2)}`,
-          status: o?.status || "?",
-          createdAt: o?.createdAt
-            ? new Date(o.createdAt).toLocaleDateString()
-            : "-",
-        }));
-        setDashboardData({
-          adminBalance: earning.toFixed(2),
-          totalSellers: sellers.length,
-          totalOrders: adminOrders.length,
-          latestOrders: latest,
-        });
-        setDisplayError(null);
-      } catch (e) {
-        setDisplayError("Processing error.");
-        setDashboardData({
-          adminBalance: "0.00",
-          totalSellers: 0,
-          totalOrders: 0,
-          latestOrders: [],
-        });
-      }
     }
-  }, [adminOrders, sellers, isLoading]);
+    if (sellersError) {
+      toast.error(`Sellers Error: ${sellersError}`);
+      dispatch(clearSellerErrors());
+    }
+    dispatch(getAllOrdersOfAdmin());
+    dispatch(getAllSellers());
+  }, [dispatch, ordersError, sellersError]);
 
-  useEffect(() => {
-    if (orderError || sellerError)
-      setDisplayError(orderError || sellerError || "Error loading data.");
-  }, [orderError, sellerError]);
+  const dashboardStats = useMemo(() => {
+    if (!Array.isArray(adminOrders) || !Array.isArray(sellers))
+      return { adminBalance: "0.00", totalSellers: 0, totalOrders: 0 };
+    const totalEarning = adminOrders
+      .filter((o) => ["Delivered", "Refund Success"].includes(o.status))
+      .reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+    const adminBalance = (totalEarning * 0.1).toFixed(2); // Example 10% cut
+    return {
+      adminBalance,
+      totalSellers: sellers.length,
+      totalOrders: adminOrders.length,
+    };
+  }, [adminOrders, sellers]);
 
-  const columns = useMemo(
-    () => [
-      { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
-      {
-        field: "status",
-        headerName: "Status",
-        minWidth: 130,
-        flex: 0.7,
-        renderCell: (p) => (
-          <span className={`px-2 inline-flex ... ${/* status styles */ ""}`}>
-            {p.value || "N/A"}
-          </span>
-        ),
-      },
-      {
-        field: "itemsQty",
-        headerName: "Items",
-        type: "number",
-        minWidth: 80,
-        flex: 0.5,
-        align: "center",
-        headerAlign: "center",
-      },
-      { field: "total", headerName: "Total", minWidth: 130, flex: 0.8 },
-      { field: "createdAt", headerName: "Date", minWidth: 110, flex: 0.6 },
-      {
-        field: "actions",
-        headerName: "View",
-        minWidth: 80,
-        flex: 0.5,
-        align: "center",
-        headerAlign: "center",
-        renderCell: (p) => (
-          <Link to={`/admin/order/${p.id}`} title="View">
-            <AiOutlineArrowRight className="..." />
-          </Link>
-        ),
-      },
-    ],
-    []
-  );
+  const latestOrdersRows = useMemo(() => {
+    if (!Array.isArray(adminOrders)) return [];
+    return adminOrders
+      .slice(0, 10)
+      .map((o) => ({
+        id: o._id,
+        customer: o.user?.name || "N/A",
+        itemsQty: o.cart?.length || 0,
+        total: `EGP ${Number(o.totalPrice || 0).toFixed(2)}`,
+        status: o.status || "N/A",
+        date: o.createdAt ? format(new Date(o.createdAt), "PP") : "-",
+      }));
+  }, [adminOrders]);
 
-  const safeLatestOrders = useMemo(
-    () => dashboardData.latestOrders,
-    [dashboardData.latestOrders]
-  );
+  const columns = [
+    {
+      field: "id",
+      headerName: "ID",
+      width: 100,
+      renderCell: (p) => `#${p.value.slice(-6)}`,
+    },
+    { field: "date", headerName: "Date", width: 100 },
+    { field: "customer", headerName: "Customer", width: 150, flex: 1 },
+    {
+      field: "itemsQty",
+      headerName: "Items",
+      type: "number",
+      width: 70,
+      align: "center",
+      headerAlign: "center",
+    },
+    {
+      field: "total",
+      headerName: "Total",
+      width: 120,
+      align: "right",
+      headerAlign: "right",
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 150,
+      renderCell: (p) => (
+        <span
+          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+            p.value === "Processing"
+              ? "bg-blue-100 text-blue-800"
+              : p.value === "Delivered"
+              ? "bg-green-100 text-green-800"
+              : p.value === "Cancelled"
+              ? "bg-red-100 text-red-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {p.value}
+        </span>
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "View",
+      width: 70,
+      sortable: false,
+      renderCell: (params) => (
+        <Link
+          to={`/admin/order/${params.id}`}
+          className="text-blue-600 hover:text-blue-800"
+        >
+          Details
+        </Link>
+      ),
+    },
+  ];
 
-  if (isLoading && safeLatestOrders.length === 0) return <Loader />;
+  const isLoading = ordersLoading || sellersLoading;
 
-  if (displayError && safeLatestOrders.length === 0) {
-    return (
-      /* Error display */ <div className="...">
-        <AlertTriangle /> Error: {displayError}{" "}
-        <button onClick={() => fetchData(true)}>
-          <RefreshCw /> Refresh{" "}
-        </button>
-      </div>
-    );
-  }
+  if (isLoading && adminOrders.length === 0 && sellers.length === 0)
+    return <Loader />;
 
   return (
-    <div className="w-full p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
-      <div className="flex ... mb-6">
-        {" "}
-        {/* Header */} <h3 className="...">Dashboard</h3>{" "}
-        <button
-          onClick={() => fetchData(true)}
-          disabled={isLoading}
-          className="..."
-        >
-          {" "}
-          {isLoading ? <div /> : <RefreshCw />}{" "}
-        </button>{" "}
-      </div>
-      <div className="grid ... mb-8">
-        {" "}
-        {/* Cards */}
-        <div className="bg-white ...">
-          {" "}
-          <AiOutlineMoneyCollect /> Total Earning: EGP{" "}
-          {dashboardData.adminBalance}{" "}
+    <div className="w-full p-4 md:p-6">
+      <h3 className="text-xl md:text-2xl font-semibold text-gray-800 pb-4">
+        Overview
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
+          <div className="flex items-center">
+            <div className="p-2 bg-green-100 rounded-full mr-3">
+              <AiOutlineMoneyCollect size={24} className="text-green-600" />
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-gray-500">
+                Total Earning (Est.)
+              </h4>
+              <h5 className="text-xl font-semibold">
+                EGP {dashboardStats.adminBalance}
+              </h5>
+            </div>
+          </div>
         </div>
-        <div className="bg-white ...">
-          {" "}
-          <Users /> Total Sellers: {dashboardData.totalSellers}{" "}
-          <Link to="/admin-sellers">
-            {" "}
-            View <AiOutlineArrowRight />{" "}
+        <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
+          <div className="flex items-center">
+            <div className="p-2 bg-blue-100 rounded-full mr-3">
+              <MdPeopleOutline size={24} className="text-blue-600" />
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-gray-500">
+                Total Sellers
+              </h4>
+              <h5 className="text-xl font-semibold">
+                {dashboardStats.totalSellers}
+              </h5>
+            </div>
+          </div>
+          <Link
+            to="/admin-sellers"
+            className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+          >
+            View
           </Link>
         </div>
-        <div className="bg-white ...">
-          {" "}
-          <MdBorderClear /> Total Orders: {dashboardData.totalOrders}{" "}
-          <Link to="/admin-orders">
-            {" "}
-            View <AiOutlineArrowRight />{" "}
+        <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
+          <div className="flex items-center">
+            <div className="p-2 bg-purple-100 rounded-full mr-3">
+              <MdBorderClear size={24} className="text-purple-600" />
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-gray-500">
+                Total Orders
+              </h4>
+              <h5 className="text-xl font-semibold">
+                {dashboardStats.totalOrders}
+              </h5>
+            </div>
+          </div>
+          <Link
+            to="/admin-orders"
+            className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+          >
+            View
           </Link>
         </div>
       </div>
-      <div>
-        {" "}
-        {/* Latest Orders */} <h3 className="...">Latest Orders</h3>
-        <div className="w-full min-h-[40vh] bg-white ...">
-          {safeLatestOrders.length > 0 ? (
-            <DataGrid
-              rows={safeLatestOrders}
-              columns={columns}
-              pageSize={5}
-              rowsPerPageOptions={[5]}
-              disableSelectionOnClick
-              autoHeight
-              loading={isLoading}
-              sx={{ border: "none" }}
-              components={{
-                NoRowsOverlay: () => (
-                  <div className="...">
-                    <Package /> No recent orders.
-                  </div>
-                ),
-              }}
-            />
-          ) : (
-            !isLoading && (
-              <div className="...">
-                <Package /> No orders.
-              </div>
-            )
-          )}
+      <h3 className="text-lg font-semibold text-gray-800 mb-3">
+        Latest Orders
+      </h3>
+      <div className="w-full bg-white rounded-lg shadow border border-gray-200">
+        <div style={{ height: 450, width: "100%" }}>
+          <DataGrid
+            rows={latestOrdersRows}
+            columns={columns}
+            pageSize={10}
+            rowsPerPageOptions={[10]}
+            disableSelectionOnClick
+            autoHeight
+            loading={isLoading}
+            sx={{
+              border: "none",
+              "& .MuiDataGrid-cell": { fontSize: "0.8rem" },
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#f9fafb",
+                fontSize: "0.75rem",
+                textTransform: "uppercase",
+              },
+            }}
+            components={{
+              NoRowsOverlay: () => (
+                <div className="w-full h-full flex items-center justify-center text-gray-500">
+                  No recent orders.
+                </div>
+              ),
+            }}
+          />
         </div>
       </div>
     </div>
   );
 };
-
 export default AdminDashboardMain;

@@ -1,129 +1,68 @@
-/**
- * @file Redux order reducer
- * @description Manages order-related state in the Redux store
- */
-
+// frontend/src/redux/reducers/orderReducer.js
 import { ORDER_ACTIONS } from "../actions/order";
 
-/**
- * Initial state for the order reducer
- */
 const initialState = {
   isLoading: false,
+  isDetailLoading: false,
+  isUpdating: false,
+  isDownloading: false,
   orders: [],
   adminOrders: [],
   shopOrders: [],
   order: null,
   error: null,
   success: false,
-  downloadStatus: {
-    loading: false,
-    success: false,
-    error: null,
-  },
-  deliveryStatus: {
-    loading: false,
-    success: false,
-    error: null,
-  },
-  refundStatus: {
-    loading: false,
-    success: false,
-    error: null,
-  },
-  // For pagination and caching
-  pagination: {
-    page: 1,
-    totalPages: 1,
-    totalItems: 0,
-  },
-  lastFetched: null,
+  downloadError: null,
+  lastFetched: { user: null, admin: null, shop: null, detail: {} },
+};
+const updateOrderInList = (list, updated) => {
+  if (!Array.isArray(list) || !updated?._id) return list || [];
+  const i = list.findIndex((o) => o._id === updated._id);
+  if (i === -1) return list;
+  return [
+    ...list.slice(0, i),
+    { ...list[i], ...updated },
+    ...list.slice(i + 1),
+  ];
 };
 
-/**
- * Helper function to update an order in a list
- * @param {Array} orders - Array of orders
- * @param {Object} updatedOrder - The updated order
- * @returns {Array} - New array with the updated order
- */
-const updateOrderInList = (orders, updatedOrder) => {
-  if (!orders || !Array.isArray(orders)) return [];
-  return orders.map((order) =>
-    order._id === updatedOrder._id ? { ...order, ...updatedOrder } : order
-  );
-};
-
-/**
- * Order reducer function
- */
 export const orderReducer = (state = initialState, action) => {
   switch (action.type) {
-    // Create Order
     case ORDER_ACTIONS.CREATE_REQUEST:
-      return {
-        ...state,
-        isLoading: true,
-        success: false,
-        error: null,
-      };
+      return { ...state, isUpdating: true, success: false, error: null };
     case ORDER_ACTIONS.CREATE_SUCCESS:
-      return {
-        ...state,
-        isLoading: false,
-        success: true,
-        error: null,
-        order: action.payload,
-      };
+      return { ...state, isUpdating: false, success: true, error: null };
     case ORDER_ACTIONS.CREATE_FAIL:
       return {
         ...state,
-        isLoading: false,
+        isUpdating: false,
         success: false,
         error: action.payload,
       };
-
-    // Get All User Orders
+    case ORDER_ACTIONS.CREATE_FINALLY:
+      return { ...state, isUpdating: false };
     case ORDER_ACTIONS.GET_USER_REQUEST:
-      return {
-        ...state,
-        isLoading: true,
-        error: null,
-      };
+      return { ...state, isLoading: true, error: null };
     case ORDER_ACTIONS.GET_USER_SUCCESS:
-      // Ensure payload is always an array
-      const userOrders = Array.isArray(action.payload)
-        ? action.payload
-        : action.payload
-        ? [action.payload]
-        : [];
-
       return {
         ...state,
         isLoading: false,
-        orders: userOrders,
+        orders: Array.isArray(action.payload) ? action.payload : [],
+        lastFetched: { ...state.lastFetched, user: Date.now() },
         error: null,
       };
     case ORDER_ACTIONS.GET_USER_FAIL:
-      return {
-        ...state,
-        isLoading: false,
-        error: action.payload,
-        // Ensure orders is always an array
-        orders: Array.isArray(state.orders) ? state.orders : [],
-      };
-
-    // Get Shop Orders
+      return { ...state, isLoading: false, error: action.payload, orders: [] };
+    case ORDER_ACTIONS.GET_USER_FINALLY:
+      return { ...state, isLoading: false };
     case ORDER_ACTIONS.GET_SHOP_REQUEST:
-      return {
-        ...state,
-        isLoading: true,
-      };
+      return { ...state, isLoading: true, error: null };
     case ORDER_ACTIONS.GET_SHOP_SUCCESS:
       return {
         ...state,
         isLoading: false,
-        shopOrders: action.payload,
-        lastFetched: new Date().toISOString(),
+        shopOrders: Array.isArray(action.payload) ? action.payload : [],
+        lastFetched: { ...state.lastFetched, shop: Date.now() },
         error: null,
       };
     case ORDER_ACTIONS.GET_SHOP_FAIL:
@@ -131,20 +70,18 @@ export const orderReducer = (state = initialState, action) => {
         ...state,
         isLoading: false,
         error: action.payload,
+        shopOrders: [],
       };
-
-    // Get Admin Orders
+    case ORDER_ACTIONS.GET_SHOP_FINALLY:
+      return { ...state, isLoading: false };
     case ORDER_ACTIONS.GET_ADMIN_REQUEST:
-      return {
-        ...state,
-        isLoading: true,
-      };
+      return { ...state, isLoading: true, error: null };
     case ORDER_ACTIONS.GET_ADMIN_SUCCESS:
       return {
         ...state,
         isLoading: false,
-        adminOrders: action.payload,
-        lastFetched: new Date().toISOString(),
+        adminOrders: Array.isArray(action.payload) ? action.payload : [],
+        lastFetched: { ...state.lastFetched, admin: Date.now() },
         error: null,
       };
     case ORDER_ACTIONS.GET_ADMIN_FAIL:
@@ -152,217 +89,92 @@ export const orderReducer = (state = initialState, action) => {
         ...state,
         isLoading: false,
         error: action.payload,
+        adminOrders: [],
       };
-
-    // Update Order Status
-    case ORDER_ACTIONS.UPDATE_STATUS_REQUEST:
+    case ORDER_ACTIONS.GET_ADMIN_FINALLY:
+      return { ...state, isLoading: false };
+    case ORDER_ACTIONS.GET_DETAIL_REQUEST:
+      return { ...state, isDetailLoading: true, order: null, error: null };
+    case ORDER_ACTIONS.GET_DETAIL_SUCCESS:
+      const id = action.payload?._id;
       return {
         ...state,
-        isLoading: true,
+        isDetailLoading: false,
+        order: action.payload,
+        lastFetched: {
+          ...state.lastFetched,
+          detail: { ...state.lastFetched.detail, [id]: Date.now() },
+        },
+        error: null,
       };
-    case ORDER_ACTIONS.UPDATE_STATUS_SUCCESS:
+    case ORDER_ACTIONS.GET_DETAIL_FAIL:
       return {
         ...state,
-        isLoading: false,
+        isDetailLoading: false,
+        error: action.payload,
+        order: null,
+      };
+    case ORDER_ACTIONS.GET_DETAIL_FINALLY:
+      return { ...state, isDetailLoading: false };
+    case ORDER_ACTIONS.ADMIN_UPDATE_STATUS_REQUEST:
+      return { ...state, isUpdating: true, error: null };
+    case ORDER_ACTIONS.ADMIN_UPDATE_STATUS_SUCCESS:
+      const uA = action.payload;
+      return {
+        ...state,
+        isUpdating: false,
         success: true,
-        orders: updateOrderInList(state.orders, action.payload),
-        adminOrders: updateOrderInList(state.adminOrders, action.payload),
-        shopOrders: updateOrderInList(state.shopOrders, action.payload),
+        error: null,
+        adminOrders: updateOrderInList(state.adminOrders, uA),
+        shopOrders: updateOrderInList(state.shopOrders, uA),
+        orders: updateOrderInList(state.orders, uA),
+        order: state.order?._id === uA._id ? uA : state.order,
       };
-    case ORDER_ACTIONS.UPDATE_STATUS_FAIL:
+    case ORDER_ACTIONS.ADMIN_UPDATE_STATUS_FAIL:
       return {
         ...state,
-        isLoading: false,
+        isUpdating: false,
+        success: false,
         error: action.payload,
       };
-
-    // Download Specifications
-    case ORDER_ACTIONS.DOWNLOAD_SPECS_REQUEST:
+    case ORDER_ACTIONS.ADMIN_UPDATE_STATUS_FINALLY:
+      return { ...state, isUpdating: false };
+    case ORDER_ACTIONS.SELLER_UPDATE_REFUND_REQUEST:
+      return { ...state, isUpdating: true, error: null };
+    case ORDER_ACTIONS.SELLER_UPDATE_REFUND_SUCCESS:
+      const uR = action.payload;
       return {
         ...state,
-        downloadStatus: {
-          loading: true,
-          success: false,
-          error: null,
-        },
-      };
-    case ORDER_ACTIONS.DOWNLOAD_SPECS_SUCCESS:
-      return {
-        ...state,
-        downloadStatus: {
-          loading: false,
-          success: true,
-          error: null,
-        },
-      };
-    case ORDER_ACTIONS.DOWNLOAD_SPECS_FAIL:
-      return {
-        ...state,
-        downloadStatus: {
-          loading: false,
-          success: false,
-          error: action.payload,
-        },
-      };
-
-    // Download Design
-    case ORDER_ACTIONS.DOWNLOAD_DESIGN_REQUEST:
-      return {
-        ...state,
-        downloadStatus: {
-          loading: true,
-          success: false,
-          error: null,
-        },
-      };
-    case ORDER_ACTIONS.DOWNLOAD_DESIGN_SUCCESS:
-      return {
-        ...state,
-        downloadStatus: {
-          loading: false,
-          success: true,
-          error: null,
-        },
-      };
-    case ORDER_ACTIONS.DOWNLOAD_DESIGN_FAIL:
-      return {
-        ...state,
-        downloadStatus: {
-          loading: false,
-          success: false,
-          error: action.payload,
-        },
-      };
-
-    // Assign Delivery Partner
-    case ORDER_ACTIONS.ASSIGN_DELIVERY_REQUEST:
-      return {
-        ...state,
-        deliveryStatus: {
-          loading: true,
-          success: false,
-          error: null,
-        },
-      };
-    case ORDER_ACTIONS.ASSIGN_DELIVERY_SUCCESS:
-      return {
-        ...state,
-        deliveryStatus: {
-          loading: false,
-          success: true,
-          error: null,
-        },
-        orders: updateOrderInList(state.orders, action.payload),
-        adminOrders: updateOrderInList(state.adminOrders, action.payload),
-        shopOrders: updateOrderInList(state.shopOrders, action.payload),
-      };
-    case ORDER_ACTIONS.ASSIGN_DELIVERY_FAIL:
-      return {
-        ...state,
-        deliveryStatus: {
-          loading: false,
-          success: false,
-          error: action.payload,
-        },
-      };
-
-    // Update Delivery Status
-    case ORDER_ACTIONS.UPDATE_DELIVERY_REQUEST:
-      return {
-        ...state,
-        deliveryStatus: {
-          loading: true,
-          success: false,
-          error: null,
-        },
-      };
-    case ORDER_ACTIONS.UPDATE_DELIVERY_SUCCESS:
-      return {
-        ...state,
-        deliveryStatus: {
-          loading: false,
-          success: true,
-          error: null,
-        },
-        orders: updateOrderInList(state.orders, action.payload),
-        adminOrders: updateOrderInList(state.adminOrders, action.payload),
-        shopOrders: updateOrderInList(state.shopOrders, action.payload),
-      };
-    case ORDER_ACTIONS.UPDATE_DELIVERY_FAIL:
-      return {
-        ...state,
-        deliveryStatus: {
-          loading: false,
-          success: false,
-          error: action.payload,
-        },
-      };
-
-    // Refund Request
-    case ORDER_ACTIONS.REFUND_REQUEST:
-      return {
-        ...state,
-        refundStatus: {
-          loading: true,
-          success: false,
-          error: null,
-        },
-      };
-    case ORDER_ACTIONS.REFUND_SUCCESS:
-      return {
-        ...state,
-        refundStatus: {
-          loading: false,
-          success: true,
-          error: null,
-        },
-        order: action.payload,
-      };
-    case ORDER_ACTIONS.REFUND_FAIL:
-      return {
-        ...state,
-        refundStatus: {
-          loading: false,
-          success: false,
-          error: action.payload,
-        },
-      };
-
-    // Reset States
-    case ORDER_ACTIONS.CLEAR_ERRORS:
-      return {
-        ...state,
+        isUpdating: false,
+        success: true,
         error: null,
-        downloadStatus: {
-          ...state.downloadStatus,
-          error: null,
-        },
-        deliveryStatus: {
-          ...state.deliveryStatus,
-          error: null,
-        },
-        refundStatus: {
-          ...state.refundStatus,
-          error: null,
-        },
+        shopOrders: updateOrderInList(state.shopOrders, uR),
+        adminOrders: updateOrderInList(state.adminOrders, uR),
+        orders: updateOrderInList(state.orders, uR),
+        order: state.order?._id === uR._id ? uR : state.order,
       };
-
+    case ORDER_ACTIONS.SELLER_UPDATE_REFUND_FAIL:
+      return {
+        ...state,
+        isUpdating: false,
+        success: false,
+        error: action.payload,
+      };
+    case ORDER_ACTIONS.SELLER_UPDATE_REFUND_FINALLY:
+      return { ...state, isUpdating: false };
+    case ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_REQUEST:
+      return { ...state, isDownloading: true, downloadError: null };
+    case ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_SUCCESS:
+      return { ...state, isDownloading: false, downloadError: null };
+    case ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_FAIL:
+      return { ...state, isDownloading: false, downloadError: action.payload };
+    case ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_FINALLY:
+      return { ...state, isDownloading: false };
+    case ORDER_ACTIONS.CLEAR_ERRORS:
+      return { ...state, error: null, downloadError: null };
     default:
       return state;
   }
 };
-
-// Improved selector functions with memoization potential
-export const selectOrders = (state) => state.order.orders;
-export const selectAdminOrders = (state) => state.order.adminOrders;
-export const selectShopOrders = (state) => state.order.shopOrders;
-export const selectCurrentOrder = (state) => state.order.order;
-export const selectOrderLoading = (state) => state.order.isLoading;
-export const selectOrderError = (state) => state.order.error;
-export const selectOrderSuccess = (state) => state.order.success;
-export const selectDownloadStatus = (state) => state.order.downloadStatus;
-export const selectDeliveryStatus = (state) => state.order.deliveryStatus;
-export const selectRefundStatus = (state) => state.order.refundStatus;
-export const selectLastFetched = (state) => state.order.lastFetched;
 
 export default orderReducer;

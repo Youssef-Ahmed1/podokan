@@ -1,132 +1,202 @@
-// frontend/src/pages/TrackOrderPage.jsx
-
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, Link } from "react-router-dom";
+import { getAllOrdersOfUser, clearErrors } from "../../redux/actions/order";
+import Loader from "../../components/Layout/Loader";
 import {
   Truck,
-  Package,
-  AlertTriangle,
+  PackageCheck,
+  PackageX,
+  RefreshCcw,
+  RotateCcw,
   ArrowLeft,
+  Info,
   Clock,
-  Check,
-  X,
-} from "lucide-react"; // Import relevant icons
-// **FIX: Correct paths based on user structure**
-import { getAllOrdersOfUser } from "../../redux/actions/order"; // Path relative to pages folder
-import Loader from "../../components/Layout/Loader"; // Assuming Loader path
-import AdminHeader from "../../components/Layout/AdminHeader"; // If using standard layout
-import Footer from "../../components/Layout/Footer"; // If using standard layout
+} from "lucide-react";
+import { format } from "date-fns";
+import { toast } from "react-toastify";
 
-const TrackOrder = () => {
+const TrackOrderPage = () => {
   const { orders, isLoading, error } = useSelector((state) => state.order);
-  const { user } = useSelector((state) => state.user);
+  const { user, isAuthenticated } = useSelector((state) => state.user);
   const dispatch = useDispatch();
-  const { id: orderId } = useParams();
-
-  const [trackingStatusInfo, setTrackingStatusInfo] = useState(null);
-  const [orderNotFound, setOrderNotFound] = useState(false);
+  const { id } = useParams();
+  const [orderData, setOrderData] = useState(null);
 
   useEffect(() => {
-    if (
-      user?._id &&
-      (!orders || orders.length === 0 || !orders.find((o) => o._id === orderId))
-    ) {
-      dispatch(getAllOrdersOfUser());
+    if (error) {
+      toast.error(error);
+      dispatch(clearErrors());
     }
-  }, [dispatch, user, orderId, orders]);
+    if (isAuthenticated && user?._id) dispatch(getAllOrdersOfUser());
+  }, [dispatch, isAuthenticated, user?._id, error]);
 
   useEffect(() => {
-    setOrderNotFound(false);
-    setTrackingStatusInfo(null); // Reset on change
-    if (!isLoading && orders?.length) {
-      const data = orders.find((item) => item._id === orderId);
-      if (data) {
-        setTrackingStatusInfo(getStatusMessage(data.status));
-      } else {
-        setOrderNotFound(true);
-      }
-    } else if (!isLoading && error) {
-      /* Handled below */
-    } else if (!isLoading && !orders?.length) {
-      setOrderNotFound(true);
-    }
-  }, [orders, isLoading, orderId, error]);
+    setOrderData(orders?.find((item) => item._id === id) || null);
+  }, [orders, id]);
 
-  const getStatusMessage = (status) => {
+  const getStatusInfo = (status) => {
     switch (status) {
       case "Processing":
-        return { message: "Preparing for shipment...", icon: Package };
+        return {
+          msg: "Order is being processed.",
+          icon: <Clock />,
+          color: "blue",
+        };
       case "Transferred to delivery partner":
-        return { message: "Handed over to delivery partner.", icon: Truck };
+        return {
+          msg: "Handed over to delivery partner.",
+          icon: <RefreshCcw />,
+          color: "orange",
+        };
       case "Shipping":
-        return { message: "In transit to your location.", icon: Truck };
+        return {
+          msg: "Order is in transit.",
+          icon: <Truck />,
+          color: "purple",
+        };
       case "Received":
-        return { message: "Arrived at local delivery hub.", icon: Truck };
+        return {
+          msg: "Shipment received locally.",
+          icon: <PackageCheck />,
+          color: "indigo",
+        };
       case "On the way":
-        return { message: "Out for delivery!", icon: Truck };
+        return {
+          msg: "Out for final delivery!",
+          icon: <Truck className="animate-pulse" />,
+          color: "teal",
+        };
       case "Delivered":
-        return { message: "Delivered successfully!", icon: Package };
+        return {
+          msg: "Order delivered!",
+          icon: <PackageCheck />,
+          color: "green",
+        };
       case "Processing refund":
-        return { message: "Processing refund request...", icon: Clock };
-      case "Refund Approved":
-        return { message: "Refund approved.", icon: Check };
+        return {
+          msg: "Refund is processing.",
+          icon: <RotateCcw />,
+          color: "yellow",
+        };
       case "Refund Success":
-        return { message: "Refund complete.", icon: Check };
+        return {
+          msg: "Refund successful.",
+          icon: <PackageCheck />,
+          color: "green",
+        };
       case "Refund Rejected":
-        return { message: "Refund rejected.", icon: X };
+        return { msg: "Refund rejected.", icon: <PackageX />, color: "red" };
       case "Cancelled":
-        return { message: "Order cancelled.", icon: X };
+        return { msg: "Order cancelled.", icon: <PackageX />, color: "red" };
       default:
-        return { message: "Status unavailable.", icon: AlertTriangle };
+        return { msg: "Status unavailable.", icon: <Info />, color: "gray" };
     }
   };
 
-  return (
-    <div>
-      {/* Use your standard page layout Header/Footer */}
-      {/* <AdminHeader /> */}
+  if (isLoading && !orderData) return <Loader />;
 
-      <div className="w-full min-h-[70vh] flex flex-col justify-center items-center text-center p-4 bg-gray-50">
-        {
-          isLoading ? (
-            <Loader />
-          ) : error ? (
-            <div className="...">
-              <AlertTriangle /> Error: {error} <Link to="/profile">Back</Link>
-            </div>
-          ) : orderNotFound ? (
-            <div className="...">
-              <Package /> Order NF <Link to="/profile">Back</Link>
-            </div>
-          ) : trackingStatusInfo ? (
-            <div className="bg-white p-8 md:p-12 rounded-lg shadow-md max-w-lg">
-              {trackingStatusInfo.icon && (
-                <trackingStatusInfo.icon
-                  size={50}
-                  className="text-blue-600 mb-5 mx-auto"
-                />
-              )}
-              <h1 className="text-xl md:text-2xl font-semibold text-gray-800 mb-3">
-                Order Tracking
-              </h1>
-              <p className="text-base md:text-lg text-gray-700">
-                {trackingStatusInfo.message}
-              </p>
-              <Link to={`/user/order/${orderId}`} className="mt-6 ...">
-                {" "}
-                View Full Details{" "}
-              </Link>
-            </div>
-          ) : (
-            <Loader />
-          ) /* Show loader if status still calculating */
-        }
+  if (!orderData && !isLoading) {
+    return (
+      <div className="w-full h-[80vh] flex flex-col justify-center items-center p-4">
+        <Info size={48} className="text-gray-400 mb-4" />
+        <h1 className="text-xl font-semibold">Order Not Found</h1>
+        <p className="text-gray-500 mt-2">No tracking for this ID.</p>
+        <Link
+          to="/profile"
+          className="mt-4 text-blue-600 hover:underline flex items-center"
+        >
+          <ArrowLeft size={16} className="mr-1" /> Back
+        </Link>
       </div>
+    );
+  }
+  if (!orderData) return null; // Should not happen if loading is handled, but safety net
 
-      {/* <Footer /> */}
+  const statusInfo = getStatusInfo(orderData.status);
+  const history = orderData.statusHistory || [];
+
+  return (
+    <div className="w-full min-h-[80vh] flex justify-center items-center p-4 bg-gray-50">
+      <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg max-w-2xl w-full border border-gray-200">
+        <div className="flex justify-between items-center mb-6 pb-4 border-b">
+          <h1 className="text-xl md:text-2xl font-bold">
+            Track Order #{orderData._id.slice(-8)}
+          </h1>
+          <Link
+            to="/profile"
+            className="text-sm text-blue-600 hover:underline flex items-center"
+          >
+            <ArrowLeft size={14} className="mr-0.5" /> Orders
+          </Link>
+        </div>
+        <div
+          className={`flex items-center p-4 rounded-lg bg-${statusInfo.color}-50 border border-${statusInfo.color}-200 mb-6`}
+        >
+          <div className={`mr-3 text-${statusInfo.color}-600`}>
+            {React.cloneElement(statusInfo.icon, { size: 24 })}
+          </div>
+          <p className={`text-md font-semibold text-${statusInfo.color}-800`}>
+            {statusInfo.message}
+          </p>
+        </div>
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold mb-2">History</h2>
+          {history.length > 0 ? (
+            [...history].reverse().map((event, index) => {
+              const eventInfo = getStatusInfo(event.status);
+              return (
+                <div
+                  key={index}
+                  className="flex items-start gap-3 pl-1 relative"
+                >
+                  {index < history.length - 1 && (
+                    <div className="absolute left-[9px] top-5 bottom-0 w-0.5 bg-gray-200"></div>
+                  )}
+                  <div
+                    className={`mt-1 w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center ${
+                      index === 0 ? `bg-${eventInfo.color}-500` : "bg-gray-300"
+                    }`}
+                  >
+                    {index === 0 && (
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    )}
+                  </div>
+                  <div className="pb-3">
+                    <p
+                      className={`text-sm font-medium ${
+                        index === 0 ? "text-gray-800" : "text-gray-600"
+                      }`}
+                    >
+                      {event.status}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {format(new Date(event.timestamp), "PPp")}
+                    </p>
+                    {event.details && (
+                      <p className="text-xs text-gray-500 italic mt-0.5">
+                        "{event.details}"
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-sm text-gray-500">No history yet.</p>
+          )}
+        </div>
+        <div className="mt-6 pt-4 border-t text-center">
+          <Link
+            to={`/user/order/${orderData._id}`}
+            className="text-sm text-blue-600 hover:underline"
+          >
+            View Full Details
+          </Link>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default TrackOrder;
+export default TrackOrderPage;
