@@ -17,5 +17,5 @@ const ShopPreviewPage = () => {
     </div>
   )
 }
-//.
+
 export default ShopPreviewPage
