@@ -32,7 +32,7 @@ import axios from "axios"; // Keep for direct fetch fallback
 import { server } from "../../server";
 import { DesignDownloader } from "../../utils/designDownload";
 import Loader from "../../components/Layout/Loader";
-import { ORDER_STATUSES } from "../../../constants/orderStatuses";
+import { ORDER_STATUSES } from "../../../src/constants/orderStatuses";
 
 const StatusUpdateModal = ({ open, onClose, title, children }) => {
   if (!open) return null;
