@@ -1,4 +1,5 @@
-import React, { useEffect, useState, Suspense } from "react";
+// frontend/src/App.jsx
+import React, { useEffect, Suspense } from "react"; // Removed unused useState
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import axios from "axios";
@@ -7,95 +8,70 @@ import Store from "./redux/store";
 import { loadSeller, loadUser } from "./redux/actions/user";
 import { getAllProducts } from "./redux/actions/product";
 import { getAllEvents } from "./redux/actions/event";
+
 import ProtectedRoute from "./routes/ProtectedRoute";
 import ProtectedAdminRoute from "./routes/ProtectedAdminRoute";
 import SellerProtectedRoute from "./routes/SellerProtectedRoute";
 import Loader from "./components/Layout/Loader";
 
-// Lazy load components
-const LoginPage = React.lazy(() => import("./pages/LoginPage"));
-const SignupPage = React.lazy(() => import("./pages/SignupPage"));
-const ActivationPage = React.lazy(() => import("./pages/ActivationPage"));
-const HomePage = React.lazy(() => import("./pages/HomePage"));
-const ProductsPage = React.lazy(() => import("./pages/ProductsPage"));
-const BestSellingPage = React.lazy(() => import("./pages/BestSellingPage"));
-const EventsPage = React.lazy(() => import("./pages/EventsPage"));
-const FAQPage = React.lazy(() => import("./pages/FAQPage"));
-const CheckoutPage = React.lazy(() => import("./pages/CheckoutPage"));
-const PaymentPage = React.lazy(() => import("./pages/PaymentPage"));
-const OrderSuccessPage = React.lazy(() => import("./pages/OrderSuccessPage"));
-const ProductDetailsPage = React.lazy(() =>
-  import("./pages/ProductDetailsPage")
-);
-const ProfilePage = React.lazy(() => import("./pages/ProfilePage"));
-const ShopCreatePage = React.lazy(() => import("./pages/ShopCreatePage"));
-const SellerActivationPage = React.lazy(() =>
-  import("./pages/SellerActivationPage")
-);
-const ShopLoginPage = React.lazy(() => import("./pages/ShopLoginPage"));
-const UserOrderDetails = React.lazy(() => import("./pages/UserOrderDetails"));
-const TrackOrderPage = React.lazy(() => import("./pages/TrackOrderPage"));
-const UserInbox = React.lazy(() => import("./pages/UserInbox"));
-const ShopHomePage = React.lazy(() => import("./pages/ShopHomePage"));
-const ShopDashboardPage = React.lazy(() =>
-  import("./pages/Shop/ShopDashboardPage")
-);
-const ShopCreateProduct = React.lazy(() =>
-  import("./pages/Shop/ShopCreateProduct")
-);
-const ShopAllProducts = React.lazy(() =>
-  import("./pages/Shop/ShopAllProducts")
-);
-const ShopCreateEvents = React.lazy(() =>
-  import("./pages/Shop/ShopCreateEvents")
-);
-const ShopAllEvents = React.lazy(() => import("./pages/Shop/ShopAllEvents"));
-const ShopAllCoupouns = React.lazy(() =>
-  import("./pages/Shop/ShopAllCoupouns")
-);
-const ShopPreviewPage = React.lazy(() => import("./pages/ShopPreviewPage"));
-const ShopAllOrders = React.lazy(() => import("./pages/Shop/AllOrders"));
-const ShopOrderDetails = React.lazy(() => import("./pages/Shop/OrderDetails"));
-const ShopAllRefunds = React.lazy(() => import("./pages/Shop/ShopAllRefunds"));
-const ShopSettingsPage = React.lazy(() =>
-  import("./pages/Shop/ShopSettingsPage")
-);
-const ShopWithDrawMoneyPage = React.lazy(() =>
-  import("./pages/Shop/ShopWithDrawMoneyPage")
-);
-const ShopInboxPage = React.lazy(() => import("./pages/Shop/ShopInboxPage"));
-const AdminDashboardPage = React.lazy(() =>
-  import("./pages/Admin/AdminDashboardPage")
-);
-const AdminDashboardUsers = React.lazy(() =>
-  import("./pages/Admin/AdminDashboardUsers")
-);
-const AdminDashboardSellers = React.lazy(() =>
-  import("./pages/Admin/AdminDashboardSellers")
-);
-const AdminDashboardOrders = React.lazy(() =>
-  import("./pages/Admin/AdminDashboardOrders")
-);
-const AdminOrderDetails = React.lazy(() =>
-  import("./pages/Admin/AdminOrderDetails")
-);
-const AdminDashboardProducts = React.lazy(() =>
-  import("./pages/Admin/AdminDashboardProducts")
-);
-const AdminDashboardEvents = React.lazy(() =>
-  import("./pages/Admin/AdminDashboardEvents")
-);
-const AdminDashboardWithdraw = React.lazy(() =>
-  import("./pages/Admin/AdminDashboardWithdraw")
-);
-const AdminApprovalProducts = React.lazy(() =>
-  import("./pages/Admin/AdminApprovalProducts")
-);
+// Import Page Components via Route Exports / Direct Paths
+import {
+  LoginPage,
+  SignupPage,
+  ActivationPage,
+  HomePage,
+  ProductsPage,
+  BestSellingPage,
+  EventsPage,
+  FAQPage,
+  CheckoutPage,
+  PaymentPage,
+  OrderSuccessPage,
+  ProductDetailsPage,
+  ProfilePage,
+  ShopCreatePage,
+  SellerActivationPage,
+  ShopLoginPage,
+  OrderDetailsPage as UserOrderDetailsPage,
+  TrackOrderPage,
+  UserInbox,
+} from "./routes/Routes.js";
+
+// Assuming ShopHomePage from ShopRoutes IS the SELLER dashboard home page
+import {
+  ShopHomePage as SellerShopHomePage,
+  ShopDashboardPage,
+  ShopCreateProduct,
+  ShopAllProducts,
+  ShopCreateEvents,
+  ShopAllEvents,
+  ShopAllCoupouns,
+  ShopPreviewPage,
+  ShopAllOrders,
+  ShopOrderDetails,
+  ShopAllRefunds,
+  ShopSettingsPage,
+  ShopWithDrawMoneyPage,
+  ShopInboxPage,
+} from "./routes/ShopRoutes";
+
+// Import Admin pages directly (assuming they are NOT in AdminRoutes.js export file)
+// Adjust paths if they live elsewhere (e.g., directly in ./pages/)
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminDashboardUsers from "./pages/AdminDashboardUsers";
+import AdminDashboardSellers from "./pages/AdminDashboardSellers";
+import AdminDashboardOrders from "./pages/AdminDashboardOrders";
+// Assuming AdminOrderDetails lives in ./pages/Shop/ as per previous error log context
+import AdminOrderDetails from "./pages/Shop/AdminOrderDetails";
+import AdminDashboardProducts from "./pages/AdminDashboardProducts";
+import AdminDashboardEvents from "./pages/AdminDashboardEvents";
+import AdminDashboardWithdraw from "./pages/AdminDashboardWithdraw";
+import AdminApprovalProducts from "./pages/AdminApprovalProducts";
 
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
-// Axios Global Defaults & Interceptor
+// Axios Global Configuration
 axios.defaults.baseURL = server;
 axios.defaults.withCredentials = true;
 
@@ -103,21 +79,23 @@ axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     const sellerToken = localStorage.getItem("seller_token");
-    // Prioritize seller token for seller-specific routes
-    const sellerRoutes = [
-      "/shop/",
-      "/get-seller-orders",
-      "/get-seller-order",
-      "/accept-refund",
-    ]; // Add more patterns
-    const isSellerReq = sellerRoutes.some((route) =>
-      config.url?.includes(route)
+    const sellerApiPatterns = [
+      "/api/v2/shop",
+      "/api/v2/product/create-product",
+      "/api/v2/event",
+      "/api/v2/coupon",
+      "/api/v2/order/get-seller-orders",
+      "/api/v2/order/get-seller-order",
+      "/api/v2/order/accept-refund",
+      "/api/v2/withdraw/create-withdraw-request",
+    ];
+    const isSellerRequest = sellerApiPatterns.some((pattern) =>
+      config.url?.startsWith(pattern)
     );
 
-    if (isSellerReq && sellerToken) {
+    if (isSellerRequest && sellerToken) {
       config.headers["Seller-Authorization"] = `Bearer ${sellerToken}`;
     } else if (token) {
-      // Use user/admin token for others
       config.headers["Authorization"] = `Bearer ${token}`;
     }
     return config;
@@ -126,33 +104,25 @@ axios.interceptors.request.use(
 );
 
 const App = () => {
-  const [isInitializing, setIsInitializing] = useState(true);
-
+  // Removed isInitializing state for brevity
   useEffect(() => {
-    const init = async () => {
-      try {
-        await Promise.allSettled([
-          Store.dispatch(loadUser()),
-          Store.dispatch(loadSeller()),
-          Store.dispatch(getAllProducts()),
-          Store.dispatch(getAllEvents()),
-        ]);
-      } catch (e) {
-        console.error("Init error:", e);
-      } finally {
-        setIsInitializing(false);
-      }
+    const initializeAppData = async () => {
+      await Promise.allSettled([
+        Store.dispatch(loadUser()),
+        Store.dispatch(loadSeller()),
+        Store.dispatch(getAllProducts()),
+        Store.dispatch(getAllEvents()),
+      ]);
     };
-    init();
+    initializeAppData();
   }, []);
-
-  if (isInitializing) return <Loader />;
 
   return (
     <BrowserRouter>
+      {/* Using Suspense with Loader for potential nested async components */}
       <Suspense fallback={<Loader />}>
         <Routes>
-          {/* Public */}
+          {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/sign-up" element={<SignupPage />} />
@@ -169,10 +139,11 @@ const App = () => {
           <Route path="/best-selling" element={<BestSellingPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/faq" element={<FAQPage />} />
-          <Route path="/shop/preview/:id" element={<ShopPreviewPage />} />
+          <Route path="/shop/preview/:id" element={<ShopPreviewPage />} />{" "}
+          {/* From ShopRoutes */}
           <Route path="/shop-create" element={<ShopCreatePage />} />
           <Route path="/shop-login" element={<ShopLoginPage />} />
-          {/* User */}
+          {/* User Protected Routes */}
           <Route
             path="/checkout"
             element={
@@ -217,7 +188,7 @@ const App = () => {
             path="/user/order/:id"
             element={
               <ProtectedRoute>
-                <UserOrderDetails />
+                <UserOrderDetailsPage />
               </ProtectedRoute>
             }
           />
@@ -229,12 +200,12 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-          {/* Seller */}
+          {/* Seller Protected Routes */}
           <Route
             path="/shop/:id"
             element={
               <SellerProtectedRoute>
-                <ShopHomePage />
+                <SellerShopHomePage />
               </SellerProtectedRoute>
             }
           />
@@ -277,8 +248,7 @@ const App = () => {
                 <ShopOrderDetails />
               </SellerProtectedRoute>
             }
-          />{" "}
-          {/* Seller Order Detail */}
+          />
           <Route
             path="/dashboard-refunds"
             element={
@@ -335,7 +305,7 @@ const App = () => {
               </SellerProtectedRoute>
             }
           />
-          {/* Admin */}
+          {/* Admin Protected Routes (Using direct imports) */}
           <Route
             path="/admin/dashboard"
             element={
@@ -375,8 +345,7 @@ const App = () => {
                 <AdminOrderDetails />
               </ProtectedAdminRoute>
             }
-          />{" "}
-          {/* Admin Order Detail */}
+          />
           <Route
             path="/admin-products"
             element={
@@ -411,6 +380,7 @@ const App = () => {
           />
         </Routes>
       </Suspense>
+
       <ToastContainer
         position="bottom-center"
         autoClose={4000}
