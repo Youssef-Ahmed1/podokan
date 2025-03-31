@@ -7,11 +7,9 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   getAllOrdersOfAdmin,
   clearErrors as clearOrderErrors,
-} from "../../redux/actions/order";
-import {
-  getAllSellers,
   clearErrors as clearSellerErrors,
-} from "../../redux/actions/sellers"; // Assuming exists
+} from "../../redux/actions/order";
+import { getAllSellers } from "../../redux/actions/sellers"; // Assuming exists
 import Loader from "../Layout/Loader";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
