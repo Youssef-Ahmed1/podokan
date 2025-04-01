@@ -1,166 +1,237 @@
-import React, { useEffect, useState , useMemo } from "react";
+// frontend/src/components/Shop/DashboardHero.jsx
+import React, { useEffect, useMemo } from "react";
 import { AiOutlineArrowRight, AiOutlineMoneyCollect } from "react-icons/ai";
-import styles from "../../styles/styles";
+import styles from "../../styles/styles"; // Keep if used
 import { Link } from "react-router-dom";
-import { MdBorderClear } from "react-icons/md";
+import { MdBorderClear, MdOutlineShoppingBag } from "react-icons/md"; // Added icon
 import { useDispatch, useSelector } from "react-redux";
-import { getAllOrdersOfShop } from "../../redux/actions/order";
-import { getAllProductsShop } from "../../redux/actions/product";
-import { Button } from "@material-ui/core";
-import { DataGrid } from "@material-ui/data-grid";
-
+import {
+  getAllOrdersOfShop,
+  clearErrors as clearOrderErrors,
+} from "../../redux/actions/order";
+import {
+  getAllProductsShop,
+  clearErrors as clearProductErrors,
+} from "../../redux/actions/product";
+import { Button, IconButton } from "@mui/material"; // Changed import
+import { DataGrid } from "@mui/x-data-grid"; // Changed import
+import Loader from "../Layout/Loader"; // Assuming Loader exists
+import { format } from "date-fns";
+import { toast } from "react-toastify";
 
 const DashboardHero = () => {
   const dispatch = useDispatch();
-  const { orders, isLoading } = useSelector((state) => state.order);
+  const {
+    orders,
+    isLoading: ordersLoading,
+    error: ordersError,
+  } = useSelector((state) => state.order);
+  const {
+    products,
+    isLoading: productsLoading,
+    error: productsError,
+  } = useSelector((state) => state.products);
   const { seller } = useSelector((state) => state.seller);
-  const { products } = useSelector((state) => state.products);
 
   useEffect(() => {
-    if(seller?._id) {
-      dispatch(getAllOrdersOfShop(seller._id));
-      dispatch(getAllProductsShop(seller._id));
+    if (ordersError) {
+      toast.error(`Orders Error: ${ordersError}`);
+      dispatch(clearOrderErrors());
     }
-  }, [dispatch, seller?._id]);
+    if (productsError) {
+      toast.error(`Products Error: ${productsError}`);
+      dispatch(clearProductErrors());
+    }
 
+    if (seller?._id) {
+      dispatch(getAllOrdersOfShop(seller._id));
+      dispatch(getAllProductsShop(seller._id)); // Fetch products too
+    }
+  }, [dispatch, seller?._id, ordersError, productsError]);
+
+  const availableBalance = useMemo(
+    () => seller?.availableBalance ?? 0,
+    [seller]
+  );
+  const totalOrders = useMemo(() => orders?.length ?? 0, [orders]);
+  const totalProducts = useMemo(() => products?.length ?? 0, [products]);
 
   const columns = [
-    { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
-
+    {
+      field: "id",
+      headerName: "Order ID",
+      width: 220,
+      renderCell: (p) => `#${p.value}`,
+    },
     {
       field: "status",
       headerName: "Status",
-      minWidth: 130,
-      flex: 0.7,
-      cellClassName: (params) => {
-        return params.getValue(params.id, "status") === "Delivered"
-          ? "greenColor"
-          : "redColor";
-      },
+      width: 130,
+      renderCell: (p) => (
+        <span
+          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+            p.value === "Delivered"
+              ? "bg-green-100 text-green-800"
+              : p.value === "Processing"
+              ? "bg-blue-100 text-blue-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {p.value}
+        </span>
+      ),
     },
     {
       field: "itemsQty",
-      headerName: "Items Qty",
+      headerName: "Items",
       type: "number",
-      minWidth: 130,
-      flex: 0.7,
+      width: 80,
+      align: "center",
+      headerAlign: "center",
     },
-
     {
       field: "total",
       headerName: "Total",
       type: "number",
-      minWidth: 130,
-      flex: 0.8,
+      width: 130,
+      valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
     },
-
     {
-      field: " ",
-      flex: 1,
-      minWidth: 150,
-      headerName: "",
-      type: "number",
+      field: "orderDate",
+      headerName: "Date",
+      width: 120,
+      valueFormatter: (v) => (v ? format(new Date(v), "PP") : ""),
+    },
+    {
+      field: "actions",
+      headerName: "View",
+      width: 80,
       sortable: false,
-      renderCell: (params) => {
-        return (
-          <>
-            <Link to={`/dashboard/order/${params.id}`}>
-              <Button>
-                <AiOutlineArrowRight size={20} />
-              </Button>
-            </Link>
-          </>
-        );
-      },
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <IconButton
+          component={Link}
+          to={`/order/${params.id}`}
+          size="small"
+          title="View Order"
+        >
+          <AiOutlineArrowRight className="text-blue-600" />
+        </IconButton>
+      ),
     },
   ];
 
+  const rows = useMemo(
+    () =>
+      orders?.slice(0, 10).map((item) => ({
+        // Show latest 10
+        id: item._id,
+        itemsQty: item.cart?.length || 0,
+        total: item.totalPrice,
+        status: item.status,
+        orderDate: item.createdAt,
+      })) || [],
+    [orders]
+  );
 
-  const row = orders?.map((item) => ({
-    id: item._id,
-    itemsQty: item.cart?.length || 0,
-    total: "EGP" + (item.totalPrice || 0).toFixed(2),
-    status: item.status,
-  })) || [];
+  const isLoading = ordersLoading || productsLoading;
 
-
-  if (!seller?._id) {
+  // Render loading or error state if necessary
+  if (isLoading && !orders && !products) return <Loader />;
+  if (!seller?._id)
     return (
-      <div className="w-full p-8">
-        <div className="text-center text-gray-600">
-          Please log in as a seller to view dashboard
-        </div>
+      <div className="p-8 text-center text-gray-500">
+        Seller data not loaded. Please login.
       </div>
     );
-  }
-  
-  if (!seller?._id) {
-    return (
-      <div className="w-full p-8">
-        <div className="text-center text-gray-600">
-          Please log in as a seller to view dashboard
-        </div>
-      </div>
-    );
-  }
+
   return (
-    <div className="w-full p-8">
-      <h3 className="text-[22px] font-Poppins pb-2">Overview</h3>
-      <div className="w-full block 800px:flex items-center justify-between">
-        {/* Account Balance Card */}
-        <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
-          <div className="flex items-center">
-            <AiOutlineMoneyCollect size={30} className="mr-2" fill="#00000085" />
-            <h3 className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}>
-              Account Balance <span className="text-[16px]">(with 10% service charge)</span>
-            </h3>
+    <div className="w-full p-4 md:p-8">
+      <h3 className="text-xl md:text-2xl font-semibold text-gray-800 pb-4">
+        Overview
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* Balance */}
+        <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
+          <div className="flex items-center mb-1">
+            <div className="p-2 bg-green-100 rounded-full mr-3">
+              <AiOutlineMoneyCollect size={24} className="text-green-600" />
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-gray-500">
+                Available Balance
+              </h4>
+              <h5 className="text-xl font-semibold">
+                EGP {availableBalance.toFixed(2)}
+              </h5>
+            </div>
           </div>
-          <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">EGP{seller?.availableBalance?.toFixed(2) || "0.00"}</h5>
-          <Link to="/dashboard-withdraw-money">
-            <h5 className="pt-4 pl-2 text-[#077f9c]">Withdraw Money</h5>
+          <Link
+            to="/dashboard-withdraw-money"
+            className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+          >
+            Withdraw
           </Link>
         </div>
-
-        {/* Orders Count Card */}
-        <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
-          <div className="flex items-center">
-            <MdBorderClear size={30} className="mr-2" fill="#00000085" />
-            <h3 className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}>
-              All Orders
-            </h3>
+        {/* Orders */}
+        <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
+          <div className="flex items-center mb-1">
+            <div className="p-2 bg-purple-100 rounded-full mr-3">
+              <MdBorderClear size={24} className="text-purple-600" />
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-gray-500">
+                Total Orders
+              </h4>
+              <h5 className="text-xl font-semibold">{totalOrders}</h5>
+            </div>
           </div>
-          <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">{orders?.length || 0}</h5>
-          <Link to="/dashboard-orders">
-            <h5 className="pt-4 pl-2 text-[#077f9c]">View Orders</h5>
+          <Link
+            to="/dashboard-orders"
+            className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+          >
+            View Orders
           </Link>
         </div>
-
-        {/* Products Card */}
-        <div className="w-full mb-4 800px:w-[30%] min-h-[20vh] bg-white shadow rounded px-2 py-5">
-          <div className="flex items-center">
-            <AiOutlineMoneyCollect size={30} className="mr-2" fill="#00000085" />
-            <h3 className={`${styles.productTitle} !text-[18px] leading-5 !font-[400] text-[#00000085]`}>
-              All Products
-            </h3>
+        {/* Products */}
+        <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
+          <div className="flex items-center mb-1">
+            <div className="p-2 bg-blue-100 rounded-full mr-3">
+              <MdOutlineShoppingBag size={24} className="text-blue-600" />
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-gray-500">
+                Total Products
+              </h4>
+              <h5 className="text-xl font-semibold">{totalProducts}</h5>
+            </div>
           </div>
-          <h5 className="pt-2 pl-[36px] text-[22px] font-[500]">{products?.length || 0}</h5>
-          <Link to="/dashboard-products">
-            <h5 className="pt-4 pl-2 text-[#077f9c]">View Products</h5>
+          <Link
+            to="/dashboard-products"
+            className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+          >
+            View Products
           </Link>
         </div>
       </div>
 
-      <br />
-      <h3 className="text-[22px] font-Poppins pb-2">Latest Orders</h3>
-      <div className="w-full min-h-[45vh] bg-white rounded">
-        <DataGrid
-          rows={row}
-          columns={columns}
-          pageSize={10}
-          disableSelectionOnClick
-          autoHeight
-          loading={isLoading}
-        />
+      <h3 className="text-lg font-semibold text-gray-800 mb-3">
+        Latest Orders
+      </h3>
+      <div className="w-full bg-white rounded-lg shadow border border-gray-200">
+        <div style={{ height: 450, width: "100%" }}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+            pageSizeOptions={[10]} // Keep it simple for dashboard view
+            disableRowSelectionOnClick
+            autoHeight={false}
+            loading={isLoading}
+            sx={{ "--DataGrid-overlayHeight": "300px", border: "none" }}
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,150 +1,217 @@
+// frontend/src/components/Admin/AllWithdraw.jsx
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { server } from "../../server";
-import { Link } from "react-router-dom";
-import { DataGrid } from "@material-ui/data-grid";
+import { DataGrid } from "@mui/x-data-grid"; // Changed import
 import { BsPencil } from "react-icons/bs";
 import { RxCross1 } from "react-icons/rx";
-import styles from "../../styles/styles";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  IconButton,
+} from "@mui/material"; // Changed imports
+import styles from "../../styles/styles"; // Keep if used
 import { toast } from "react-toastify";
+import Loader from "../Layout/Loader"; // Assuming Loader exists
+import { format } from "date-fns";
 
 const AllWithdraw = () => {
   const [data, setData] = useState([]);
   const [open, setOpen] = useState(false);
-  const [withdrawData, setWithdrawData] = useState();
-  const [withdrawStatus,setWithdrawStatus] = useState('Processing');
+  const [withdrawData, setWithdrawData] = useState(null); // Store the whole row data
+  const [withdrawStatus, setWithdrawStatus] = useState("Processing"); // Default or current status
+  const [isLoading, setIsLoading] = useState(true); // Loading state
 
-  useEffect(() => {
-    axios
-      .get(`${server}/withdraw/get-all-withdraw-request`, {
-        withCredentials: true,
-      })
-      .then((res) => {
-        setData(res.data.withdraws);
-      })
-      .catch((error) => {
-        console.log(error.response.data.message);
-      });
+  const fetchWithdrawals = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { data: responseData } = await axios.get(
+        `${server}/withdraw/get-all-withdraw-request`,
+        { withCredentials: true }
+      );
+      setData(responseData.withdraws || []);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to fetch withdrawal requests"
+      );
+      setData([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    fetchWithdrawals();
+  }, [fetchWithdrawals]);
+
+  const handleOpen = (row) => {
+    setWithdrawData(row);
+    setWithdrawStatus(row.status); // Pre-fill with current status
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setWithdrawData(null);
+  };
+
+  const handleSubmit = async () => {
+    if (!withdrawData || withdrawStatus === withdrawData.status) {
+      handleClose();
+      return; // No change or no data
+    }
+    try {
+      await axios.put(
+        `${server}/withdraw/update-withdraw-request/${withdrawData.id}`,
+        { sellerId: withdrawData.shopId, status: withdrawStatus }, // Send new status
+        { withCredentials: true }
+      );
+      toast.success("Withdraw request updated successfully!");
+      fetchWithdrawals(); // Refresh data
+      handleClose();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update status");
+    }
+  };
+
   const columns = [
-    { field: "id", headerName: "Withdraw Id", minWidth: 150, flex: 0.7 },
-    {
-      field: "name",
-      headerName: "Shop Name",
-      minWidth: 180,
-      flex: 1.4,
-    },
-    {
-      field: "shopId",
-      headerName: "shop Id",
-      minWidth: 180,
-      flex: 1.4,
-    },
+    { field: "id", headerName: "Withdraw ID", width: 220 },
+    { field: "name", headerName: "Shop Name", minWidth: 150, flex: 1 },
+    { field: "shopId", headerName: "Shop ID", width: 220 },
     {
       field: "amount",
       headerName: "Amount",
-      minWidth: 100,
-      flex: 0.6,
+      width: 100,
+      type: "number",
+      valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
     },
     {
       field: "status",
-      headerName: "status",
-      type: "text",
-      minWidth: 80,
-      flex: 0.5,
+      headerName: "Status",
+      width: 100,
+      renderCell: (p) => (
+        <span
+          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+            p.value === "Processing"
+              ? "bg-yellow-100 text-yellow-800"
+              : "bg-green-100 text-green-800"
+          }`}
+        >
+          {p.value}
+        </span>
+      ),
     },
     {
       field: "createdAt",
-      headerName: "Request given at",
-      type: "number",
-      minWidth: 130,
-      flex: 0.6,
+      headerName: "Requested At",
+      width: 150,
+      valueFormatter: (v) => (v ? format(new Date(v), "PPp") : ""),
     },
     {
-      field: " ",
-      headerName: "Update Status",
-      type: "number",
-      minWidth: 130,
-      flex: 0.6,
-      renderCell: (params) => {
-
-        return (
-          <BsPencil
-            size={20}
-            className={`${params.row.status !== "Processing" ? 'hidden' : '' } mr-5 cursor-pointer`}
-            onClick={() => setOpen(true) || setWithdrawData(params.row)}
-          />
-        );
-      },
+      field: "actions",
+      headerName: "Update",
+      width: 100,
+      sortable: false,
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) =>
+        params.row.status === "Processing" ? (
+          <IconButton
+            onClick={() => handleOpen(params.row)}
+            size="small"
+            title="Update Status"
+          >
+            <BsPencil className="text-blue-600" />
+          </IconButton>
+        ) : null, // Only show update for 'Processing' status
     },
   ];
 
-  const handleSubmit = async () => {
-    await axios
-      .put(`${server}/withdraw/update-withdraw-request/${withdrawData.id}`,{
-        sellerId: withdrawData.shopId,
-      },{withCredentials: true})
-      .then((res) => {
-        toast.success("Withdraw request updated successfully!");
-        setData(res.data.withdraws);
-        setOpen(false);
-      });
-  };
+  const rows =
+    data?.map((item) => ({
+      id: item._id,
+      shopId: item.seller?._id, // Use optional chaining
+      name: item.seller?.name || "N/A",
+      amount: item.amount,
+      status: item.status,
+      createdAt: item.createdAt,
+    })) || [];
 
-  const row = [];
-
-  data &&
-    data.forEach((item) => {
-      row.push({
-        id: item._id,
-        shopId: item.seller._id,
-        name: item.seller.name,
-        amount: "EGP" + item.amount,
-        status: item.status,
-        createdAt: item.createdAt.slice(0, 10),
-      });
-    });
   return (
     <div className="w-full flex items-center pt-5 justify-center">
-      <div className="w-[95%] bg-white">
-        <DataGrid
-          rows={row}
-          columns={columns}
-          pageSize={10}
-          disableSelectionOnClick
-          autoHeight
-        />
-      </div>
-      {open && (
-        <div className="w-full fixed h-screen top-0 left-0 bg-[#00000031] z-[9999] flex items-center justify-center">
-          <div className="w-[50%] min-h-[40vh] bg-white rounded shadow p-4">
-            <div className="flex justify-end w-full">
-              <RxCross1 size={25} onClick={() => setOpen(false)} />
-            </div>
-            <h1 className="text-[25px] text-center font-Poppins">
-              Update Withdraw status
-            </h1>
-            <br />
-            <select
-              name=""
-              id=""
-              onChange={(e) => setWithdrawStatus(e.target.value)}
-              className="w-[200px] h-[35px] border rounded"
-            >
-              <option value={withdrawStatus}>{withdrawData.status}</option>
-              <option value={withdrawStatus}>Succeed</option>
-            </select>
-            <button
-              type="submit"
-              className={`block ${styles.button} text-white !h-[42px] mt-4 text-[18px]`}
-              onClick={handleSubmit}
-            >
-              Update
-            </button>
+      <div className="w-[97%]">
+        <h3 className="text-[22px] font-Poppins pb-2">
+          All Withdrawal Requests
+        </h3>
+        <div className="w-full bg-white rounded shadow">
+          <div style={{ height: 650, width: "100%" }}>
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              initialState={{
+                pagination: { paginationModel: { pageSize: 10 } },
+              }}
+              pageSizeOptions={[10, 25]}
+              disableRowSelectionOnClick
+              autoHeight={false}
+              loading={isLoading}
+              sx={{ "--DataGrid-overlayHeight": "300px", border: "none" }}
+            />
           </div>
         </div>
-      )}
+
+        {/* Update Status Dialog */}
+        <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
+          <DialogTitle>
+            Update Withdraw Status
+            <IconButton
+              aria-label="close"
+              onClick={handleClose}
+              sx={{ position: "absolute", right: 8, top: 8 }}
+            >
+              <RxCross1 />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent dividers>
+            <p className="text-sm mb-2">
+              Withdraw ID: #{withdrawData?.id?.slice(-8)}
+            </p>
+            <p className="text-sm mb-4">
+              Amount: EGP {withdrawData?.amount?.toFixed(2)}
+            </p>
+            <FormControl fullWidth size="small">
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={withdrawStatus}
+                label="Status"
+                onChange={(e) => setWithdrawStatus(e.target.value)}
+              >
+                <MenuItem value="Processing">Processing</MenuItem>
+                <MenuItem value="Succeed">Succeed</MenuItem>{" "}
+                {/* Assuming 'Succeed' is the status */}
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions sx={{ padding: "16px 24px" }}>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button
+              onClick={handleSubmit}
+              variant="contained"
+              color="primary"
+              disabled={withdrawStatus === withdrawData?.status}
+            >
+              Update
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </div>
     </div>
   );
 };

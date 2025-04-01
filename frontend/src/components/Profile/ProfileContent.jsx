@@ -1,9 +1,22 @@
-import React, { useState, useEffect } from "react";
-import { AiOutlineCamera, AiOutlineDelete } from "react-icons/ai";
+// frontend/src/components/Profile/ProfileContent.jsx
+import React, { useState, useEffect, useCallback } from "react";
+import { AiOutlineCamera, AiOutlineDelete, AiOutlineEye } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import { server } from "../../server";
-import { DataGrid } from "@material-ui/data-grid";
-import { Button } from "@material-ui/core";
+import { DataGrid } from "@mui/x-data-grid"; // Changed import
+import {
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+} from "@mui/material"; // Changed imports
 import { Link } from "react-router-dom";
 import { MdTrackChanges } from "react-icons/md";
 import { RxCross1 } from "react-icons/rx";
@@ -12,507 +25,572 @@ import {
   loadUser,
   updateUserAddress,
   updateUserInformation,
+  clearErrors as clearUserErrors,
 } from "../../redux/actions/user";
 import { Country, State } from "country-state-city";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { getAllOrdersOfUser } from "../../redux/actions/order";
-import styles from "../../styles/styles";
+import {
+  getAllOrdersOfUser,
+  clearErrors as clearOrderErrors,
+} from "../../redux/actions/order";
+import styles from "../../styles/styles"; // Keep if used for non-MUI styles
+import Loader from "../Layout/Loader"; // Assuming Loader exists
 
-const ProfileContent = ({ active }) => {
-  const { user } = useSelector((state) => state.user);
-
-  return (
-    <div className="w-full">
-      {/* Profile Section */}
-      {active === 1 && (
-        <div className="flex flex-col items-center">
-          <ProfileInfo />
-        </div>
-      )}
-
-      {/* Orders Section */}
-      {active === 2 && (
-        <div className="w-full min-h-[80vh] bg-white rounded-lg shadow">
-          <AllOrders />
-        </div>
-      )}
-
-      {/* Refunds Section */}
-      {active === 3 && (
-        <div className="w-full min-h-[80vh] bg-white rounded-lg shadow">
-          <AllRefundOrders />
-        </div>
-      )}
-
-      {/* Track Order Section */}
-      {active === 5 && (
-        <div className="w-full min-h-[80vh] bg-white rounded-lg shadow">
-          <TrackOrder />
-        </div>
-      )}
-
-      {/* Payment Methods Section */}
-      {active === 6 && (
-        <div className="w-full min-h-[80vh] bg-white rounded-lg shadow">
-          <ChangePassword />
-        </div>
-      )}
-
-      {/* Address Section */}
-      {active === 7 && (
-        <div className="w-full min-h-[80vh] bg-white rounded-lg shadow">
-          <Address />
-        </div>
-      )}
-    </div>
-  );
-};
-
+// --- Profile Info Sub-Component ---
 const ProfileInfo = () => {
-  const { user } = useSelector((state) => state.user);
+  const { user, error, successMessage } = useSelector((state) => state.user); // Add error/success selectors
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || "");
   const [password, setPassword] = useState("");
+  const [avatar, setAvatar] = useState(null); // For file upload
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    // Reset form on user change (e.g., after update)
+    if (user) {
+      setName(user.name);
+      setEmail(user.email);
+      setPhoneNumber(user.phoneNumber || "");
+    }
+    if (error) {
+      toast.error(error);
+      dispatch(clearUserErrors());
+    }
+    if (successMessage) {
+      toast.success(successMessage);
+      // Clear success message in reducer if needed: dispatch({ type: 'ClearSuccess' });
+      setPassword(""); // Clear password field after successful update
+    }
+  }, [user, error, successMessage, dispatch]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(updateUserInformation(name, email, phoneNumber, password));
   };
 
+  const handleImage = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatar(file); // Store file object
+
+    const formData = new FormData();
+    formData.append("avatar", file); // Use 'avatar' as key expected by backend
+
+    try {
+      // Assuming endpoint exists and returns updated user
+      const { data } = await axios.put(
+        `${server}/user/update-avatar`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true,
+        }
+      );
+      // Reload user data after successful avatar update
+      dispatch(loadUser());
+      toast.success("Avatar updated successfully!");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Avatar update failed");
+      setAvatar(null); // Reset avatar state on error
+    }
+  };
+
   return (
-    <div className="w-full px-5">
-      <div className="flex flex-col items-center 800px:w-[50%] w-full mx-auto">
-        <div className="relative">
+    <div className="w-full px-5 py-5">
+      <div className="flex flex-col items-center w-full">
+        <div className="relative mb-4">
           <img
-            src={user?.avatar?.url || "/default-avatar.png"}
+            src={
+              avatar
+                ? URL.createObjectURL(avatar)
+                : user?.avatar?.url || "/default-avatar.png"
+            }
             className="w-[150px] h-[150px] rounded-full object-cover border-[3px] border-[#3ad132]"
             alt="avatar"
           />
-          <div className="w-[30px] h-[30px] bg-[#E3E9EE] rounded-full flex items-center justify-center cursor-pointer absolute bottom-[5px] right-[5px]">
-            <AiOutlineCamera />
-          </div>
+          <label
+            htmlFor="avatar-input"
+            className="w-[35px] h-[35px] bg-[#E3E9EE] rounded-full flex items-center justify-center cursor-pointer absolute bottom-[5px] right-[5px] border hover:bg-gray-200"
+          >
+            <AiOutlineCamera size={20} />
+            <input
+              type="file"
+              id="avatar-input"
+              accept=".jpg,.jpeg,.png"
+              onChange={handleImage}
+              className="sr-only"
+            />
+          </label>
         </div>
 
-        <form onSubmit={handleSubmit} className="w-full mt-6">
-          <div className="w-full flex flex-col mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name
-            </label>
-            <input
-              type="text"
-              className={`${styles.input} !w-[95%] mb-1`}
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-
-          <div className="w-full flex flex-col mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
-            </label>
-            <input
-              type="email"
-              className={`${styles.input} !w-[95%] mb-1`}
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div className="w-full flex flex-col mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number
-            </label>
-            <input
-              type="number"
-              className={`${styles.input} !w-[95%] mb-1`}
-              required
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-            />
-          </div>
-
-          <div className="w-full flex flex-col mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Enter your password to update
-            </label>
-            <input
-              type="password"
-              className={`${styles.input} !w-[95%] mb-1`}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          <input
-            className={`w-[95%] h-[40px] border border-[#3a24db] text-center text-[#3a24db] rounded-[3px] mt-8 cursor-pointer`}
+        <form
+          onSubmit={handleSubmit}
+          className="w-full max-w-lg mt-4 space-y-4"
+        >
+          <TextField
+            label="Full Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             required
-            value="Update"
-            type="submit"
+            fullWidth
+            variant="outlined"
+            size="small"
           />
+          <TextField
+            label="Email Address"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            fullWidth
+            variant="outlined"
+            size="small"
+          />
+          <TextField
+            label="Phone Number"
+            type="tel"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            fullWidth
+            variant="outlined"
+            size="small"
+          />
+          <TextField
+            label="Enter Current Password to Update"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            fullWidth
+            variant="outlined"
+            size="small"
+            helperText="Required to save changes"
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mt: 2, py: 1 }}
+          >
+            Update Profile
+          </Button>
         </form>
       </div>
     </div>
   );
 };
+
+// --- All Orders Sub-Component ---
 const AllOrders = () => {
   const { user } = useSelector((state) => state.user);
-  const { orders } = useSelector((state) => state.order);
+  const { orders, isLoading, error } = useSelector((state) => state.order);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(getAllOrdersOfUser(user._id));
-  }, [dispatch, user._id]);
+    if (error) {
+      toast.error(error);
+      dispatch(clearOrderErrors());
+    }
+    if (user?._id) dispatch(getAllOrdersOfUser(user._id));
+  }, [dispatch, user?._id, error]);
 
   const columns = [
     {
       field: "id",
       headerName: "Order ID",
-      minWidth: 150,
-      flex: 0.7,
+      width: 220,
+      renderCell: (p) => `#${p.value}`,
     },
     {
       field: "status",
       headerName: "Status",
-      minWidth: 130,
-      flex: 0.7,
-      cellClassName: (params) => {
-        return params.getValue(params.id, "status") === "Delivered"
-          ? "greenColor"
-          : "redColor";
-      },
+      width: 130,
+      renderCell: (p) => (
+        <span
+          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+            p.value === "Delivered"
+              ? "bg-green-100 text-green-800"
+              : p.value === "Cancelled"
+              ? "bg-red-100 text-red-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {p.value}
+        </span>
+      ),
     },
     {
       field: "itemsQty",
-      headerName: "Items Qty",
+      headerName: "Items",
       type: "number",
-      minWidth: 130,
-      flex: 0.7,
+      width: 80,
+      align: "center",
+      headerAlign: "center",
     },
     {
       field: "total",
       headerName: "Total",
       type: "number",
-      minWidth: 130,
-      flex: 0.8,
+      width: 130,
+      valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
     },
     {
-      field: " ",
-      flex: 1,
-      minWidth: 150,
-      headerName: "",
-      type: "number",
+      field: "orderDate",
+      headerName: "Date",
+      width: 120,
+      valueFormatter: (v) => (v ? format(new Date(v), "PP") : ""),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 100,
       sortable: false,
-      renderCell: (params) => {
-        return (
-          <>
-            <Link to={`/user/order/${params.id}`}>
-              <Button>
-                <span className="text-blue-500">View Order</span>
-              </Button>
-            </Link>
-          </>
-        );
-      },
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <IconButton
+          component={Link}
+          to={`/user/order/${params.id}`}
+          size="small"
+          title="View Details"
+        >
+          <AiOutlineEye className="text-blue-600" />
+        </IconButton>
+      ),
     },
   ];
 
-  const row = [];
-
-  orders &&
-    orders.forEach((item) => {
-      row.push({
-        id: item._id,
-        itemsQty: item.cart.length,
-        total: "US$ " + item.totalPrice,
-        status: item.status,
-      });
-    });
+  const rows =
+    orders?.map((item) => ({
+      id: item._id,
+      itemsQty: item.cart?.length || 0,
+      total: item.totalPrice,
+      status: item.status,
+      orderDate: item.createdAt,
+    })) || [];
 
   return (
-    <div className="p-4 md:p-8">
-      <div className="w-full min-h-[450px] bg-white rounded">
+    <div className="p-4 md:p-6">
+      <h2 className="text-xl font-semibold mb-4">My Orders</h2>
+      <div className="w-full bg-white rounded" style={{ height: 500 }}>
         <DataGrid
-          rows={row}
+          rows={rows}
           columns={columns}
-          pageSize={10}
-          disableSelectionOnClick
-          autoHeight
+          initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+          pageSizeOptions={[10, 20]}
+          disableRowSelectionOnClick
+          autoHeight={false}
+          loading={isLoading}
+          sx={{ border: "none" }}
         />
       </div>
     </div>
   );
 };
 
+// --- All Refund Orders Sub-Component ---
 const AllRefundOrders = () => {
   const { user } = useSelector((state) => state.user);
-  const { orders } = useSelector((state) => state.order);
+  const { orders, isLoading, error } = useSelector((state) => state.order);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(getAllOrdersOfUser(user._id));
-  }, [dispatch, user._id]);
+    if (error) {
+      toast.error(error);
+      dispatch(clearOrderErrors());
+    }
+    if (user?._id) dispatch(getAllOrdersOfUser(user._id));
+  }, [dispatch, user?._id, error]);
 
-  const eligibleOrders = orders && orders.filter((item) => item.status === "Processing refund");
+  const refundOrders = useMemo(
+    () => orders?.filter((item) => item.status?.includes("Refund")) || [],
+    [orders]
+  );
 
   const columns = [
     {
       field: "id",
       headerName: "Order ID",
-      minWidth: 150,
-      flex: 0.7,
+      width: 220,
+      renderCell: (p) => `#${p.value}`,
     },
     {
       field: "status",
       headerName: "Status",
-      minWidth: 130,
-      flex: 0.7,
-      cellClassName: (params) => {
-        return params.getValue(params.id, "status") === "Delivered"
-          ? "greenColor"
-          : "redColor";
-      },
+      width: 150,
+      renderCell: (p) => (
+        <span
+          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+            p.value === "Refund Success"
+              ? "bg-green-100 text-green-800"
+              : p.value === "Refund Rejected"
+              ? "bg-red-100 text-red-800"
+              : "bg-yellow-100 text-yellow-800"
+          }`}
+        >
+          {p.value}
+        </span>
+      ),
     },
     {
       field: "itemsQty",
-      headerName: "Items Qty",
+      headerName: "Items",
       type: "number",
-      minWidth: 130,
-      flex: 0.7,
+      width: 80,
+      align: "center",
+      headerAlign: "center",
     },
     {
       field: "total",
       headerName: "Total",
       type: "number",
-      minWidth: 130,
-      flex: 0.8,
+      width: 130,
+      valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
     },
     {
-      field: " ",
-      flex: 1,
-      minWidth: 150,
-      headerName: "",
-      type: "number",
+      field: "orderDate",
+      headerName: "Date",
+      width: 120,
+      valueFormatter: (v) => (v ? format(new Date(v), "PP") : ""),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 100,
       sortable: false,
-      renderCell: (params) => {
-        return (
-          <>
-            <Link to={`/user/order/${params.id}`}>
-              <Button>
-                <span className="text-blue-500">View Order</span>
-              </Button>
-            </Link>
-          </>
-        );
-      },
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <IconButton
+          component={Link}
+          to={`/user/order/${params.id}`}
+          size="small"
+          title="View Details"
+        >
+          <AiOutlineEye className="text-blue-600" />
+        </IconButton>
+      ),
     },
   ];
 
-  const row = [];
-
-  eligibleOrders &&
-    eligibleOrders.forEach((item) => {
-      row.push({
-        id: item._id,
-        itemsQty: item.cart.length,
-        total: "US$ " + item.totalPrice,
-        status: item.status,
-      });
-    });
+  const rows = refundOrders.map((item) => ({
+    id: item._id,
+    itemsQty: item.cart?.length || 0,
+    total: item.totalPrice,
+    status: item.status,
+    orderDate: item.createdAt,
+  }));
 
   return (
-    <div className="p-4 md:p-8">
-      <div className="w-full min-h-[450px] bg-white rounded">
+    <div className="p-4 md:p-6">
+      <h2 className="text-xl font-semibold mb-4">Refund Requests</h2>
+      <div className="w-full bg-white rounded" style={{ height: 500 }}>
         <DataGrid
-          rows={row}
+          rows={rows}
           columns={columns}
-          pageSize={10}
-          disableSelectionOnClick
-          autoHeight
+          initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+          pageSizeOptions={[10, 20]}
+          disableRowSelectionOnClick
+          autoHeight={false}
+          loading={isLoading}
+          sx={{ border: "none" }}
         />
       </div>
     </div>
   );
 };
 
+// --- Track Order Sub-Component ---
 const TrackOrder = () => {
   const { user } = useSelector((state) => state.user);
-  const { orders } = useSelector((state) => state.order);
+  const { orders, isLoading, error } = useSelector((state) => state.order);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(getAllOrdersOfUser(user._id));
-  }, [dispatch, user._id]);
+    if (error) {
+      toast.error(error);
+      dispatch(clearOrderErrors());
+    }
+    if (user?._id) dispatch(getAllOrdersOfUser(user._id));
+  }, [dispatch, user?._id, error]);
 
   const columns = [
     {
       field: "id",
       headerName: "Order ID",
-      minWidth: 150,
-      flex: 0.7,
+      width: 220,
+      renderCell: (p) => `#${p.value}`,
     },
     {
       field: "status",
       headerName: "Status",
-      minWidth: 130,
-      flex: 0.7,
-      cellClassName: (params) => {
-        return params.getValue(params.id, "status") === "Delivered"
-          ? "greenColor"
-          : "redColor";
-      },
+      width: 150,
+      renderCell: (p) => (
+        <span
+          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+            p.value === "Delivered"
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {p.value}
+        </span>
+      ),
     },
     {
       field: "itemsQty",
-      headerName: "Items Qty",
+      headerName: "Items",
       type: "number",
-      minWidth: 130,
-      flex: 0.7,
+      width: 80,
+      align: "center",
+      headerAlign: "center",
     },
     {
       field: "total",
       headerName: "Total",
       type: "number",
-      minWidth: 130,
-      flex: 0.8,
+      width: 130,
+      valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
     },
     {
-      field: " ",
-      flex: 1,
-      minWidth: 150,
-      headerName: "",
-      type: "number",
+      field: "orderDate",
+      headerName: "Date",
+      width: 120,
+      valueFormatter: (v) => (v ? format(new Date(v), "PP") : ""),
+    },
+    {
+      field: "actions",
+      headerName: "Track",
+      width: 100,
       sortable: false,
-      renderCell: (params) => {
-        return (
-          <>
-            <Link to={`/user/track/order/${params.id}`}>
-              <Button>
-                <MdTrackChanges size={20} className="mr-2" />
-                <span className="text-blue-500">Track Order</span>
-              </Button>
-            </Link>
-          </>
-        );
-      },
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <IconButton
+          component={Link}
+          to={`/user/track/order/${params.id}`}
+          size="small"
+          title="Track Order"
+        >
+          <MdTrackChanges className="text-blue-600" />
+        </IconButton>
+      ),
     },
   ];
 
-  const row = [];
-
-  orders &&
-    orders.forEach((item) => {
-      row.push({
-        id: item._id,
-        itemsQty: item.cart.length,
-        total: "US$ " + item.totalPrice,
-        status: item.status,
-      });
-    });
+  const rows =
+    orders?.map((item) => ({
+      id: item._id,
+      itemsQty: item.cart?.length || 0,
+      total: item.totalPrice,
+      status: item.status,
+      orderDate: item.createdAt,
+    })) || [];
 
   return (
-    <div className="p-4 md:p-8">
-      <div className="w-full min-h-[450px] bg-white rounded">
+    <div className="p-4 md:p-6">
+      <h2 className="text-xl font-semibold mb-4">Track Your Orders</h2>
+      <div className="w-full bg-white rounded" style={{ height: 500 }}>
         <DataGrid
-          rows={row}
+          rows={rows}
           columns={columns}
-          pageSize={10}
-          disableSelectionOnClick
-          autoHeight
+          initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+          pageSizeOptions={[10, 20]}
+          disableRowSelectionOnClick
+          autoHeight={false}
+          loading={isLoading}
+          sx={{ border: "none" }}
         />
       </div>
     </div>
   );
 };
 
-
-// ... continuing from previous part
-
+// --- Change Password Sub-Component ---
 const ChangePassword = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false); // Local loading state
 
   const passwordChangeHandler = async (e) => {
     e.preventDefault();
-
-    await axios
-      .put(
+    setLoading(true);
+    try {
+      await axios.put(
         `${server}/user/update-user-password`,
         { oldPassword, newPassword, confirmPassword },
         { withCredentials: true }
-      )
-      .then((res) => {
-        toast.success("Password updated successfully!");
-        setOldPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
-      });
+      );
+      toast.success("Password updated successfully!");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update password");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="w-full px-5">
-      <div className="w-full">
-        <h1 className="block text-[25px] text-center font-[600] text-[#000000ba] pb-2">
-          Change Password
-        </h1>
-        <div className="w-full">
-          <form
-            aria-required
-            onSubmit={passwordChangeHandler}
-            className="flex flex-col items-center"
-          >
-            <div className="w-[100%] 800px:w-[50%] mt-5">
-              <label className="block pb-2">Enter your old password</label>
-              <input
-                type="password"
-                className={`${styles.input} !w-[95%] mb-4 800px:mb-0`}
-                required
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-              />
-            </div>
-            <div className="w-[100%] 800px:w-[50%] mt-2">
-              <label className="block pb-2">Enter your new password</label>
-              <input
-                type="password"
-                className={`${styles.input} !w-[95%] mb-4 800px:mb-0`}
-                required
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-            </div>
-            <div className="w-[100%] 800px:w-[50%] mt-2">
-              <label className="block pb-2">Confirm your new password</label>
-              <input
-                type="password"
-                className={`${styles.input} !w-[95%] mb-4 800px:mb-0`}
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-              <input
-                className={`w-[95%] h-[40px] border border-[#3a24db] text-center text-[#3a24db] rounded-[3px] mt-8 cursor-pointer`}
-                required
-                value="Update"
-                type="submit"
-              />
-            </div>
-          </form>
-        </div>
-      </div>
+    <div className="w-full px-5 py-5">
+      <h1 className="text-xl text-center font-semibold mb-6">
+        Change Password
+      </h1>
+      <form
+        onSubmit={passwordChangeHandler}
+        className="max-w-md mx-auto space-y-4"
+      >
+        <TextField
+          label="Old Password"
+          type="password"
+          value={oldPassword}
+          onChange={(e) => setOldPassword(e.target.value)}
+          required
+          fullWidth
+          variant="outlined"
+          size="small"
+        />
+        <TextField
+          label="New Password"
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          required
+          fullWidth
+          variant="outlined"
+          size="small"
+        />
+        <TextField
+          label="Confirm New Password"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          fullWidth
+          variant="outlined"
+          size="small"
+        />
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          fullWidth
+          disabled={loading}
+          sx={{ mt: 2, py: 1.5 }}
+        >
+          {loading ? "Updating..." : "Update Password"}
+        </Button>
+      </form>
     </div>
   );
 };
 
+// --- Address Sub-Component ---
 const Address = () => {
   const [open, setOpen] = useState(false);
   const [country, setCountry] = useState("");
@@ -521,40 +599,40 @@ const Address = () => {
   const [address1, setAddress1] = useState("");
   const [address2, setAddress2] = useState("");
   const [addressType, setAddressType] = useState("");
-  const { user } = useSelector((state) => state.user);
+  const { user, error, successMessage } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
-  const addressTypeData = [
-    {
-      name: "Default",
-    },
-    {
-      name: "Home",
-    },
-    {
-      name: "Office",
-    },
-  ];
+  const addressTypeData = ["Default", "Home", "Office"]; // Simplified
 
-  const handleSubmit = async (e) => {
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearUserErrors());
+    }
+    if (successMessage) {
+      toast.success(successMessage); /* dispatch clear success */
+    }
+  }, [error, successMessage, dispatch]);
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (addressType === "" || country === "" || city === "") {
-      toast.error("Please fill all the fields!");
+    if (!addressType || !country || !address1) {
+      toast.error("Please fill required address fields!");
       return;
     }
-
     dispatch(
-      updateUserAddress(
-        country,
-        city,
-        address1,
-        address2,
-        zipCode,
-        addressType
-      )
+      updateUserAddress(country, city, address1, address2, zipCode, addressType)
     );
     setOpen(false);
+    resetForm();
+  };
+
+  const handleDelete = (item) => {
+    if (!window.confirm("Delete this address?")) return;
+    dispatch(deleteUserAddress(item._id));
+  };
+
+  const resetForm = () => {
     setCountry("");
     setCity("");
     setAddress1("");
@@ -563,196 +641,181 @@ const Address = () => {
     setAddressType("");
   };
 
-  const handleDelete = (item) => {
-    const id = item._id;
-    dispatch(deleteUserAddress(id));
-  };
-
   return (
-    <div className="w-full px-5">
-      {open && (
-        <div className="fixed w-full h-screen bg-[#0000004b] top-0 left-0 flex items-center justify-center z-[999]">
-          <div className="w-[95%] 800px:w-[50%] h-[80vh] bg-white rounded-md shadow-sm relative overflow-y-scroll">
-            <div className="w-full flex justify-end p-3">
-              <RxCross1
-                size={30}
-                className="cursor-pointer"
-                onClick={() => setOpen(false)}
-              />
-            </div>
-            <h1 className="text-center text-[25px] font-[600] text-[#000000ba]">
-              Add New Address
-            </h1>
-            <div className="w-full">
-              <form aria-required onSubmit={handleSubmit} className="w-full">
-                <div className="w-full block p-4">
-                  <div className="w-full pb-2">
-                    <label className="block pb-2">Country</label>
-                    <select
-                      name=""
-                      id=""
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                      className="w-[95%] border h-[40px] rounded-[5px]"
-                    >
-                      <option value="" className="block border pb-2">
-                        choose your country
-                      </option>
-                      {Country &&
-                        Country.getAllCountries().map((item) => (
-                          <option
-                            className="block pb-2"
-                            key={item.isoCode}
-                            value={item.isoCode}
-                          >
-                            {item.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-
-                  <div className="w-full pb-2">
-                    <label className="block pb-2">City</label>
-                    <select
-                      name=""
-                      id=""
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      className="w-[95%] border h-[40px] rounded-[5px]"
-                    >
-                      <option value="" className="block border pb-2">
-                        choose your city
-                      </option>
-                      {State &&
-                        State.getStatesOfCountry(country).map((item) => (
-                          <option
-                            className="block pb-2"
-                            key={item.isoCode}
-                            value={item.isoCode}
-                          >
-                            {item.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-
-                  <div className="w-full pb-2">
-                    <label className="block pb-2">Address 1</label>
-                    <input
-                      type="address"
-                      className={`${styles.input}`}
-                      required
-                      value={address1}
-                      onChange={(e) => setAddress1(e.target.value)}
-                    />
-                  </div>
-                  <div className="w-full pb-2">
-                    <label className="block pb-2">Address 2</label>
-                    <input
-                      type="address"
-                      className={`${styles.input}`}
-                      required
-                      value={address2}
-                      onChange={(e) => setAddress2(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="w-full pb-2">
-                    <label className="block pb-2">Zip Code</label>
-                    <input
-                      type="number"
-                      className={`${styles.input}`}
-                      required
-                      value={zipCode}
-                      onChange={(e) => setZipCode(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="w-full pb-2">
-                    <label className="block pb-2">Address Type</label>
-                    <select
-                      name=""
-                      id=""
-                      value={addressType}
-                      onChange={(e) => setAddressType(e.target.value)}
-                      className="w-[95%] border h-[40px] rounded-[5px]"
-                    >
-                      <option value="" className="block border pb-2">
-                        Choose your address type
-                      </option>
-                      {addressTypeData &&
-                        addressTypeData.map((item) => (
-                          <option
-                            className="block pb-2"
-                            key={item.name}
-                            value={item.name}
-                          >
-                            {item.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-
-                  <div className="w-full pb-2">
-                    <input
-                      type="submit"
-                      className={`${styles.input} mt-5 cursor-pointer`}
-                      required
-                      readOnly
-                    />
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-      <div className="flex w-full items-center justify-between">
-        <h1 className="text-[25px] font-[600] text-[#000000ba] pb-2">
-          My Addresses
-        </h1>
-        <div
-          className={`${styles.button} !rounded-md`}
-          onClick={() => setOpen(true)}
+    <div className="w-full px-5 py-5">
+      <div className="flex w-full items-center justify-between mb-4">
+        <h1 className="text-xl font-semibold">My Addresses</h1>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => {
+            resetForm();
+            setOpen(true);
+          }}
         >
-          <span className="text-[#fff]">Add New</span>
-        </div>
+          Add New
+        </Button>
       </div>
-      <br />
-      {user &&
+
+      {user?.addresses?.length > 0 ? (
         user.addresses.map((item, index) => (
           <div
-            className="w-full bg-white h-min 800px:h-[70px] rounded-[4px] flex items-center px-3 shadow justify-between pr-10 mb-5"
-            key={index}
+            className="w-full bg-white rounded-md shadow-sm flex items-center justify-between p-3 pr-6 mb-3"
+            key={item._id || index}
           >
             <div className="flex items-center">
-              <h5 className="pl-5 font-[600]">{item.addressType}</h5>
+              <h5 className="font-semibold text-sm md:text-base">
+                {item.addressType}
+              </h5>
             </div>
-            <div className="pl-8 flex items-center">
-              <h6 className="text-[12px] 800px:text-[unset]">
-                {item.address1} {item.address2}
-              </h6>
+            <div className="pl-4 text-sm md:text-base text-gray-700">
+              {item.address1}, {item.address2 ? `${item.address2}, ` : ""}{" "}
+              {item.city ? `${item.city}, ` : ""} {item.country || ""}{" "}
+              {item.zipCode || ""}
             </div>
-            <div className="pl-8 flex items-center">
-              <h6 className="text-[12px] 800px:text-[unset]">
-                {user && user.phoneNumber}
-              </h6>
-            </div>
-            <div className="min-w-[10%] flex items-center justify-between pl-8">
-              <AiOutlineDelete
-                size={25}
-                className="cursor-pointer"
+            <div className="pl-4">
+              <IconButton
                 onClick={() => handleDelete(item)}
-              />
+                size="small"
+                title="Delete Address"
+              >
+                <AiOutlineDelete className="cursor-pointer text-red-500" />
+              </IconButton>
             </div>
           </div>
-        ))}
-
-      {user && user.addresses.length === 0 && (
-        <h5 className="text-center pt-8 text-[18px]">
-          You don't have any saved addresses!
+        ))
+      ) : (
+        <h5 className="text-center pt-8 text-gray-500">
+          You have no saved addresses.
         </h5>
       )}
+
+      {/* Add Address Dialog */}
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Add New Address
+          <IconButton
+            aria-label="close"
+            onClick={() => setOpen(false)}
+            sx={{ position: "absolute", right: 8, top: 8 }}
+          >
+            <RxCross1 />
+          </IconButton>
+        </DialogTitle>
+        <form onSubmit={handleSubmit}>
+          <DialogContent dividers>
+            <FormControl fullWidth margin="dense" size="small" required>
+              <InputLabel>Country</InputLabel>
+              <Select
+                value={country}
+                label="Country"
+                onChange={(e) => setCountry(e.target.value)}
+              >
+                <MenuItem value="">
+                  <em>Select Country</em>
+                </MenuItem>
+                {Country?.getAllCountries().map((c) => (
+                  <MenuItem key={c.isoCode} value={c.isoCode}>
+                    {c.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl
+              fullWidth
+              margin="dense"
+              size="small"
+              disabled={!country}
+            >
+              <InputLabel>City/State</InputLabel>
+              <Select
+                value={city}
+                label="City/State"
+                onChange={(e) => setCity(e.target.value)}
+              >
+                <MenuItem value="">
+                  <em>Select City/State</em>
+                </MenuItem>
+                {State?.getStatesOfCountry(country).map((s) => (
+                  <MenuItem key={s.isoCode} value={s.isoCode}>
+                    {s.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              label="Address Line 1"
+              value={address1}
+              onChange={(e) => setAddress1(e.target.value)}
+              required
+              fullWidth
+              margin="dense"
+              variant="outlined"
+              size="small"
+            />
+            <TextField
+              label="Address Line 2 (Optional)"
+              value={address2}
+              onChange={(e) => setAddress2(e.target.value)}
+              fullWidth
+              margin="dense"
+              variant="outlined"
+              size="small"
+            />
+            <TextField
+              label="Zip/Postal Code (Optional)"
+              value={zipCode}
+              onChange={(e) => setZipCode(e.target.value)}
+              fullWidth
+              margin="dense"
+              variant="outlined"
+              size="small"
+            />
+            <FormControl fullWidth margin="dense" size="small" required>
+              <InputLabel>Address Type</InputLabel>
+              <Select
+                value={addressType}
+                label="Address Type"
+                onChange={(e) => setAddressType(e.target.value)}
+              >
+                <MenuItem value="">
+                  <em>Select Type</em>
+                </MenuItem>
+                {addressTypeData.map((t) => (
+                  <MenuItem key={t} value={t}>
+                    {t}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions sx={{ padding: "16px 24px" }}>
+            <Button onClick={() => setOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="contained" color="primary">
+              Save Address
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+    </div>
+  );
+};
+
+// --- Main Profile Content Component ---
+const ProfileContent = ({ active }) => {
+  return (
+    <div className="w-full">
+      {active === 1 && <ProfileInfo />}
+      {active === 2 && <AllOrders />}
+      {active === 3 && <AllRefundOrders />}
+      {active === 5 && <TrackOrder />}
+      {active === 6 && <ChangePassword />}
+      {active === 7 && <Address />}
     </div>
   );
 };

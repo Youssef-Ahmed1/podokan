@@ -1,244 +1,296 @@
-import { Button } from "@material-ui/core";
-import { DataGrid } from "@material-ui/data-grid";
-import axios from "axios";
-import React, { useEffect, useState } from "react";
+// frontend/src/components/Shop/AllCoupons.jsx
+import React, { useEffect, useState, useCallback } from "react";
+import {
+  Button,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+} from "@mui/material"; // Changed imports
+import { DataGrid } from "@mui/x-data-grid"; // Changed import
 import { AiOutlineDelete } from "react-icons/ai";
 import { RxCross1 } from "react-icons/rx";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux"; // Added useDispatch
 import styles from "../../styles/styles";
 import Loader from "../Layout/Loader";
 import { server } from "../../server";
 import { toast } from "react-toastify";
+import axios from "axios";
+// Assuming you have actions for coupons, otherwise keep using axios
+// import { createCoupon, deleteCoupon, getShopCoupons } from "../../redux/actions/coupon";
 
 const AllCoupons = () => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [coupouns,setCoupouns] = useState([]);
-  const [minAmount, setMinAmout] = useState(null);
-  const [maxAmount, setMaxAmount] = useState(null);
-  const [selectedProducts, setSelectedProducts] = useState(null);
-  const [value, setValue] = useState(null);
+  const [coupons, setCoupons] = useState([]); // Changed name for clarity
+  const [minAmount, setMinAmount] = useState(""); // Use string for inputs
+  const [maxAmount, setMaxAmount] = useState(""); // Use string for inputs
+  const [selectedProducts, setSelectedProducts] = useState(""); // Use empty string for select default
+  const [value, setValue] = useState(""); // Use string for inputs
   const { seller } = useSelector((state) => state.seller);
-  const { products } = useSelector((state) => state.products);
+  const { products } = useSelector((state) => state.products); // Assuming products are loaded elsewhere
+  // const dispatch = useDispatch(); // Use if using Redux actions
 
-  const dispatch = useDispatch();
+  const fetchCoupons = useCallback(async () => {
+    if (!seller?._id) return;
+    setIsLoading(true);
+    try {
+      const { data } = await axios.get(
+        `${server}/coupon/get-coupon/${seller._id}`,
+        { withCredentials: true }
+      );
+      setCoupons(data.couponCodes || []);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to fetch coupons");
+      setCoupons([]); // Ensure it's an array on error
+    } finally {
+      setIsLoading(false);
+    }
+  }, [seller?._id]);
 
   useEffect(() => {
-    setIsLoading(true);
-    axios
-      .get(`${server}/coupon/get-coupon/${seller._id}`, {
-        withCredentials: true,
-      })
-      .then((res) => {
-        setIsLoading(false);
-        setCoupouns(res.data.couponCodes);
-      })
-      .catch((error) => {
-        setIsLoading(false);
-      });
-  }, [dispatch]);
+    fetchCoupons();
+  }, [fetchCoupons]);
 
-  const handleDelete = async (id) => {
-    axios.delete(`${server}/coupon/delete-coupon/${id}`,{withCredentials: true}).then((res) => {
-      toast.success("Coupon code deleted succesfully!")
-    })
-    window.location.reload();
-  };
+  const handleDelete = useCallback(
+    async (id) => {
+      if (!window.confirm("Delete this coupon?")) return;
+      try {
+        await axios.delete(`${server}/coupon/delete-coupon/${id}`, {
+          withCredentials: true,
+        });
+        toast.success("Coupon deleted successfully!");
+        fetchCoupons(); // Refetch after delete
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to delete coupon");
+      }
+    },
+    [fetchCoupons]
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    await axios
-      .post(
+    setIsLoading(true); // Indicate loading during submit
+    try {
+      await axios.post(
         `${server}/coupon/create-coupon-code`,
         {
           name,
-          minAmount,
-          maxAmount,
-          selectedProducts,
-          value,
+          minAmount: minAmount ? Number(minAmount) : null, // Convert to number or null
+          maxAmount: maxAmount ? Number(maxAmount) : null, // Convert to number or null
+          selectedProducts: selectedProducts || null, // Send null if empty
+          value: Number(value), // Ensure value is a number
           shopId: seller._id,
         },
         { withCredentials: true }
-      )
-      .then((res) => {
-       toast.success("Coupon code created successfully!");
-       setOpen(false);
-       window.location.reload();
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
-      });
+      );
+      toast.success("Coupon created successfully!");
+      setOpen(false);
+      fetchCoupons(); // Refetch coupons
+      // Reset form fields
+      setName("");
+      setValue("");
+      setMinAmount("");
+      setMaxAmount("");
+      setSelectedProducts("");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to create coupon");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const columns = [
-    { field: "id", headerName: "Id", minWidth: 150, flex: 0.7 },
-    {
-      field: "name",
-      headerName: "Coupon Code",
-      minWidth: 180,
-      flex: 1.4,
-    },
+    { field: "id", headerName: "Id", width: 150, flex: 0.5 },
+    { field: "name", headerName: "Coupon Code", minWidth: 180, flex: 1 },
     {
       field: "price",
-      headerName: "Value",
-      minWidth: 100,
+      headerName: "Value (%)",
+      width: 100,
       flex: 0.6,
+      type: "number",
+    },
+    {
+      field: "minAmount",
+      headerName: "Min Amount",
+      width: 120,
+      flex: 0.6,
+      type: "number",
+      valueFormatter: (value) => (value ? `EGP ${value}` : "N/A"),
+    },
+    {
+      field: "maxAmount",
+      headerName: "Max Amount",
+      width: 120,
+      flex: 0.6,
+      type: "number",
+      valueFormatter: (value) => (value ? `EGP ${value}` : "N/A"),
     },
     {
       field: "Delete",
-      flex: 0.8,
-      minWidth: 120,
-      headerName: "",
-      type: "number",
+      headerName: "Delete",
+      width: 100,
       sortable: false,
-      renderCell: (params) => {
-        return (
-          <>
-            <Button onClick={() => handleDelete(params.id)}>
-              <AiOutlineDelete size={20} />
-            </Button>
-          </>
-        );
-      },
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <IconButton
+          onClick={() => handleDelete(params.id)}
+          size="small"
+          title="Delete"
+        >
+          <AiOutlineDelete className="text-red-600" />
+        </IconButton>
+      ),
     },
   ];
 
-  const row = [];
-
-  coupouns &&
-  coupouns.forEach((item) => {
-      row.push({
-        id: item._id,
-        name: item.name,
-        price: item.value + " %",
-        sold: 10,
-      });
-    });
+  const rows =
+    coupons?.map((item) => ({
+      id: item._id,
+      name: item.name,
+      price: item.value, // Keep as number for sorting/filtering
+      minAmount: item.minAmount,
+      maxAmount: item.maxAmount,
+    })) || [];
 
   return (
     <>
-      {isLoading ? (
+      {isLoading && coupons.length === 0 ? ( // Show loader only on initial load
         <Loader />
       ) : (
-        <div className="w-full mx-8 pt-1 mt-10 bg-white">
-          <div className="w-full flex justify-end">
-            <div
-              className={`${styles.button} !w-max !h-[45px] px-3 !rounded-[5px] mr-3 mb-3`}
+        <div className="w-full mx-auto px-4 pt-1 mt-10 bg-white shadow rounded-lg">
+          <div className="w-full flex justify-end p-4">
+            <Button
+              variant="contained"
+              color="primary"
               onClick={() => setOpen(true)}
             >
-              <span className="text-white">Create Coupon Code</span>
-            </div>
+              Create Coupon Code
+            </Button>
           </div>
-          <DataGrid
-            rows={row}
-            columns={columns}
-            pageSize={10}
-            disableSelectionOnClick
-            autoHeight
-          />
-          {open && (
-            <div className="fixed top-0 left-0 w-full h-screen bg-[#00000062] z-[20000] flex items-center justify-center">
-              <div className="w-[90%] 800px:w-[40%] h-[80vh] bg-white rounded-md shadow p-4">
-                <div className="w-full flex justify-end">
-                  <RxCross1
-                    size={30}
-                    className="cursor-pointer"
-                    onClick={() => setOpen(false)}
-                  />
-                </div>
-                <h5 className="text-[30px] font-Poppins text-center">
-                  Create Coupon code
-                </h5>
-                {/* create coupoun code */}
-                <form onSubmit={handleSubmit} aria-required={true}>
-                  <br />
-                  <div>
-                    <label className="pb-2">
-                      Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      required
-                      value={name}
-                      className="mt-2 appearance-none block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Enter your coupon code name..."
-                    />
-                  </div>
-                  <br />
-                  <div>
-                    <label className="pb-2">
-                      Discount Percentenge{" "}
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="value"
-                      value={value}
-                      required
-                      className="mt-2 appearance-none block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      onChange={(e) => setValue(e.target.value)}
-                      placeholder="Enter your coupon code value..."
-                    />
-                  </div>
-                  <br />
-                  <div>
-                    <label className="pb-2">Min Amount</label>
-                    <input
-                      type="number"
-                      name="value"
-                      value={minAmount}
-                      className="mt-2 appearance-none block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      onChange={(e) => setMinAmout(e.target.value)}
-                      placeholder="Enter your coupon code min amount..."
-                    />
-                  </div>
-                  <br />
-                  <div>
-                    <label className="pb-2">Max Amount</label>
-                    <input
-                      type="number"
-                      name="value"
-                      value={maxAmount}
-                      className="mt-2 appearance-none block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      onChange={(e) => setMaxAmount(e.target.value)}
-                      placeholder="Enter your coupon code max amount..."
-                    />
-                  </div>
-                  <br />
-                  <div>
-                    <label className="pb-2">Selected Product</label>
-                    <select
-                      className="w-full mt-2 border h-[35px] rounded-[5px]"
-                      value={selectedProducts}
-                      onChange={(e) => setSelectedProducts(e.target.value)}
-                    >
-                      <option value="Choose your selected products">
-                        Choose a selected product
-                      </option>
-                      {products &&
-                        products.map((i) => (
-                          <option value={i.name} key={i.name}>
-                            {i.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                  <br />
-                  <div>
-                    <input
-                      type="submit"
-                      value="Create"
-                      className="mt-2 appearance-none block w-full px-3 h-[35px] border border-gray-300 rounded-[3px] placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    />
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
+          <div style={{ height: 600, width: "100%" }}>
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              initialState={{
+                pagination: { paginationModel: { pageSize: 10 } },
+              }}
+              pageSizeOptions={[10, 25]}
+              disableRowSelectionOnClick
+              autoHeight={false}
+              loading={isLoading}
+              sx={{ "--DataGrid-overlayHeight": "300px", border: "none" }}
+            />
+          </div>
+
+          {/* Create Coupon Dialog */}
+          <Dialog
+            open={open}
+            onClose={() => setOpen(false)}
+            maxWidth="sm"
+            fullWidth
+          >
+            <DialogTitle>
+              Create Coupon Code
+              <IconButton
+                aria-label="close"
+                onClick={() => setOpen(false)}
+                sx={{
+                  position: "absolute",
+                  right: 8,
+                  top: 8,
+                  color: (theme) => theme.palette.grey[500],
+                }}
+              >
+                <RxCross1 />
+              </IconButton>
+            </DialogTitle>
+            <form onSubmit={handleSubmit}>
+              <DialogContent dividers>
+                <TextField
+                  label="Coupon Code Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  fullWidth
+                  margin="dense"
+                  variant="outlined"
+                  size="small"
+                />
+                <TextField
+                  label="Discount Percentage (%)"
+                  type="number"
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  required
+                  fullWidth
+                  margin="dense"
+                  variant="outlined"
+                  size="small"
+                  InputProps={{ inputProps: { min: 1, max: 100 } }}
+                />
+                <TextField
+                  label="Min Amount (Optional)"
+                  type="number"
+                  value={minAmount}
+                  onChange={(e) => setMinAmount(e.target.value)}
+                  fullWidth
+                  margin="dense"
+                  variant="outlined"
+                  size="small"
+                  InputProps={{ inputProps: { min: 0 } }}
+                />
+                <TextField
+                  label="Max Amount (Optional)"
+                  type="number"
+                  value={maxAmount}
+                  onChange={(e) => setMaxAmount(e.target.value)}
+                  fullWidth
+                  margin="dense"
+                  variant="outlined"
+                  size="small"
+                  InputProps={{ inputProps: { min: 0 } }}
+                />
+                <FormControl fullWidth margin="dense" size="small">
+                  <InputLabel>Selected Product (Optional)</InputLabel>
+                  <Select
+                    value={selectedProducts}
+                    label="Selected Product (Optional)"
+                    onChange={(e) => setSelectedProducts(e.target.value)}
+                  >
+                    <MenuItem value="">
+                      <em>Apply to all products</em>
+                    </MenuItem>
+                    {products &&
+                      products.map((i) => (
+                        <MenuItem value={i._id} key={i._id}>
+                          {i.name}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+              </DialogContent>
+              <DialogActions sx={{ padding: "16px 24px" }}>
+                <Button onClick={() => setOpen(false)}>Cancel</Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Creating..." : "Create"}
+                </Button>
+              </DialogActions>
+            </form>
+          </Dialog>
         </div>
       )}
     </>

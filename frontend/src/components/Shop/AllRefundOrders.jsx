@@ -1,100 +1,130 @@
-import { Button } from "@material-ui/core";
-import { DataGrid } from "@material-ui/data-grid";
-import React, { useEffect } from "react";
+// frontend/src/components/Shop/AllRefundOrders.jsx
+import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { DataGrid } from "@mui/x-data-grid"; // Changed import
+import { Button, IconButton } from "@mui/material"; // Changed import
 import Loader from "../Layout/Loader";
-import { getAllOrdersOfShop } from "../../redux/actions/order";
+import { getAllOrdersOfShop, clearErrors } from "../../redux/actions/order"; // Added clearErrors
 import { AiOutlineArrowRight } from "react-icons/ai";
+import { toast } from "react-toastify";
+import { format } from "date-fns";
 
 const AllRefundOrders = () => {
-  const { orders, isLoading } = useSelector((state) => state.order);
+  const { orders, isLoading, error } = useSelector((state) => state.order);
   const { seller } = useSelector((state) => state.seller);
-
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(getAllOrdersOfShop(seller._id));
-  }, [dispatch]);
+    if (error) {
+      toast.error(error);
+      dispatch(clearErrors());
+    }
+    if (seller?._id) {
+      dispatch(getAllOrdersOfShop(seller._id));
+    }
+  }, [dispatch, seller?._id, error]);
 
-  const refundOrders = orders && orders.filter((item) => item.status === "Processing refund"  || item.status === "Refund Success");
+  const refundOrders = useMemo(
+    () => orders?.filter((item) => item.status?.includes("Refund")) || [],
+    [orders]
+  );
 
   const columns = [
-    { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
-
+    {
+      field: "id",
+      headerName: "Order ID",
+      width: 220,
+      renderCell: (p) => `#${p.value}`,
+    },
     {
       field: "status",
       headerName: "Status",
-      minWidth: 130,
-      flex: 0.7,
-      cellClassName: (params) => {
-        return params.getValue(params.id, "status") === "Delivered"
-          ? "greenColor"
-          : "redColor";
-      },
+      width: 150,
+      renderCell: (p) => (
+        <span
+          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+            p.value === "Refund Success"
+              ? "bg-green-100 text-green-800"
+              : p.value === "Refund Rejected"
+              ? "bg-red-100 text-red-800"
+              : "bg-yellow-100 text-yellow-800"
+          }`}
+        >
+          {p.value}
+        </span>
+      ),
     },
     {
       field: "itemsQty",
-      headerName: "Items Qty",
+      headerName: "Items",
       type: "number",
-      minWidth: 130,
-      flex: 0.7,
+      width: 80,
+      align: "center",
+      headerAlign: "center",
     },
-
     {
       field: "total",
       headerName: "Total",
       type: "number",
-      minWidth: 130,
-      flex: 0.8,
+      width: 130,
+      valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
     },
-
     {
-      field: " ",
-      flex: 1,
-      minWidth: 150,
-      headerName: "",
-      type: "number",
+      field: "orderDate",
+      headerName: "Date",
+      width: 120,
+      valueFormatter: (v) => (v ? format(new Date(v), "PP") : ""),
+    },
+    {
+      field: "actions",
+      headerName: "Details",
+      width: 100,
       sortable: false,
-      renderCell: (params) => {
-        return (
-          <>
-            <Link to={`/order/${params.id}`}>
-              <Button>
-                <AiOutlineArrowRight size={20} />
-              </Button>
-            </Link>
-          </>
-        );
-      },
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <IconButton
+          component={Link}
+          to={`/order/${params.id}`}
+          size="small"
+          title="View Order"
+        >
+          <AiOutlineArrowRight className="text-blue-600" />
+        </IconButton>
+      ),
     },
   ];
 
-  const row = [];
-
-  refundOrders &&
-  refundOrders.forEach((item) => {
-      row.push({
-        id: item._id,
-        itemsQty: item.cart.length,
-        total: "EGP " + item.totalPrice,
-        status: item.status,
-      });
-    });
+  const rows = refundOrders.map((item) => ({
+    id: item._id,
+    itemsQty: item.cart?.length || 0,
+    total: item.totalPrice,
+    status: item.status,
+    orderDate: item.createdAt,
+  }));
 
   return (
     <>
-      {isLoading ? (
+      {isLoading && refundOrders.length === 0 ? ( // Show loader only on initial load
         <Loader />
       ) : (
-        <div className="w-full mx-8 pt-1 mt-10 bg-white">
-          <DataGrid
-            rows={row}
-            columns={columns}
-            pageSize={10}
-            disableSelectionOnClick
-            autoHeight
-          />
+        <div className="w-full mx-auto px-4 pt-1 mt-10 bg-white shadow rounded-lg">
+          <h2 className="text-xl font-semibold p-4">Refund Requests</h2>
+          <div style={{ height: 600, width: "100%" }}>
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              initialState={{
+                pagination: { paginationModel: { pageSize: 10 } },
+              }}
+              pageSizeOptions={[10, 25]}
+              disableRowSelectionOnClick
+              autoHeight={false}
+              loading={isLoading}
+              sx={{ "--DataGrid-overlayHeight": "300px", border: "none" }}
+            />
+          </div>
         </div>
       )}
     </>
