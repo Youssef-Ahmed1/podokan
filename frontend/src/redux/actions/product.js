@@ -261,3 +261,17 @@ export const deleteProduct = (id) => async (dispatch) => {
     });
   }
 };
+// Clear Product Errors Action Creator
+export const clearProductErrors = () => (dispatch) => {
+  dispatch({ type: "clearProductErrors" });
+};
+
+// Clear Product Success Flag Action Creator
+export const clearProductSuccess = () => (dispatch) => {
+  dispatch({ type: "clearProductSuccess" });
+};
+
+// Update Pagination Action Creator (if needed by components)
+export const updatePagination = (paginationData) => (dispatch) => {
+  dispatch({ type: "updatePagination", payload: paginationData });
+};
