@@ -1,11 +1,10 @@
-// frontend/src/pages/Admin/AdminDashboardOrders.jsx
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getAllOrdersOfAdmin,
   adminUpdateOrderStatus,
   clearErrors,
-} from "../redux/actions/order"; // Adjust path relative to this file's location
+} from "../../redux/actions/order";
 import { Link } from "react-router-dom";
 import {
   Eye,
@@ -17,9 +16,9 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import Loader from "../components/Layout/Loader"; // Corrected relative path
+import Loader from "../../components/Layout/Loader"; // Corrected path
 import { format } from "date-fns";
-import { ORDER_STATUSES } from "../constants/orderStatuses";
+import { ORDER_STATUSES } from "../../constants/orderStatuses"; // Corrected path
 
 const AdminDashboardOrders = () => {
   const dispatch = useDispatch();
@@ -28,26 +27,30 @@ const AdminDashboardOrders = () => {
     isLoading,
     error,
     isUpdating,
-  } = useSelector((state) => state.order); // Default adminOrders to empty array
+  } = useSelector((state) => state.order);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const ordersPerPage = 15;
+  const ordersPerPage = 15; // Keep 15 for admin view
 
   useEffect(() => {
+    // Fetch data on mount
+    dispatch(getAllOrdersOfAdmin());
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Show and clear error from Redux state
     if (error) {
-      toast.error(`Error: ${error}`);
+      toast.error(`Error: ${error}`, { autoClose: 5000 });
       dispatch(clearErrors());
     }
-    // Fetch orders on initial mount and when dispatch or error changes (though error dependency triggers refetch/clear)
-    dispatch(getAllOrdersOfAdmin());
-  }, [dispatch, error]);
+  }, [error, dispatch]);
 
+  // Memoized filtering
   const filteredOrders = useMemo(() => {
-    // Ensure adminOrders is always an array before filtering
     if (!Array.isArray(adminOrders)) return [];
     return adminOrders.filter((order) => {
-      if (!order?._id) return false; // Basic validation
+      if (!order?._id) return false;
       const lowerSearch = searchTerm.toLowerCase();
       const idMatch = order._id.toLowerCase().includes(lowerSearch);
       const customerMatch =
@@ -76,25 +79,24 @@ const AdminDashboardOrders = () => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
   const handleRefresh = () => dispatch(getAllOrdersOfAdmin());
-
   const handleStatusUpdate = (orderId, newStatus, currentStatus) => {
-    // Prevent update if status is the same or already updating
-    if (newStatus === currentStatus || isUpdating) return;
-    dispatch(adminUpdateOrderStatus(orderId, newStatus));
+    if (newStatus !== currentStatus && !isUpdating) {
+      dispatch(adminUpdateOrderStatus(orderId, newStatus));
+    }
   };
 
-  // Initial loading state
-  if (isLoading && !adminOrders?.length) return <Loader />; // Show loader only if truly loading initially
+  // Initial Loading State
+  if (isLoading && !adminOrders?.length) return <Loader />;
 
-  // Conditional Rendering Logic in a separate function for clarity
-  const renderMainContent = () => {
-    // Error state when no data could be loaded
+  // Conditional Rendering Component/Function
+  const renderContent = () => {
     if (!isLoading && error && !adminOrders?.length) {
+      // Failed initial load
       return (
         <div className="p-6 text-center bg-red-50 rounded-lg border border-red-200">
           <AlertCircle size={48} className="mx-auto text-red-400 mb-4" />
           <h2 className="text-xl font-semibold text-red-700 mb-2">
-            Failed to Load Orders
+            Failed to Load
           </h2>
           <p className="text-red-600">{error}</p>
           <button
@@ -107,18 +109,15 @@ const AdminDashboardOrders = () => {
         </div>
       );
     }
-
-    // State when loading finished but no orders exist at all
     if (!isLoading && !error && !adminOrders?.length) {
+      // Load successful, but no orders
       return (
         <div className="p-6 text-center bg-blue-50 rounded-lg border border-blue-100">
           <Package size={48} className="mx-auto text-blue-400 mb-4" />
           <h2 className="text-xl font-semibold text-gray-700 mb-2">
             No Orders Found
           </h2>
-          <p className="text-gray-500">
-            There are currently no orders in the system.
-          </p>
+          <p className="text-gray-500">System has no orders.</p>
           <button
             onClick={handleRefresh}
             disabled={isLoading}
@@ -129,23 +128,19 @@ const AdminDashboardOrders = () => {
         </div>
       );
     }
-
-    // State when filters result in no matching orders
     if (filteredOrders.length === 0) {
+      // Orders exist, but none match filter
       return (
         <div className="p-6 text-center bg-white rounded-lg shadow border border-gray-200">
           <Search size={48} className="mx-auto text-gray-400 mb-4" />
           <h2 className="text-xl font-semibold text-gray-700 mb-2">
             No Matching Orders
           </h2>
-          <p className="text-gray-500">
-            No orders found for the current search criteria or filter.
-          </p>
+          <p className="text-gray-500">No orders found for filter.</p>
         </div>
       );
     }
-
-    // Render the table if orders exist and match filters
+    // Render Table
     return (
       <div className="bg-white rounded-lg shadow border border-gray-200 overflow-x-auto">
         <table className="w-full min-w-[900px] text-sm text-left text-gray-600">
@@ -197,7 +192,6 @@ const AdminDashboardOrders = () => {
                     disabled={isUpdating}
                     className="w-full p-1 border border-gray-300 rounded-md text-xs focus:ring-blue-400 bg-white disabled:opacity-70 disabled:cursor-not-allowed"
                   >
-                    {/* Map over the imported ORDER_STATUSES */}
                     {Object.values(ORDER_STATUSES).map((s) => (
                       <option key={s} value={s}>
                         {s}
@@ -225,11 +219,10 @@ const AdminDashboardOrders = () => {
   return (
     <div className="w-full p-4 md:p-6 min-h-screen bg-gray-100">
       <div className="max-w-[1400px] mx-auto">
-        {/* Header and Filters */}
         <div className="mb-6 bg-white p-4 rounded-lg shadow border border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
             <h1 className="text-xl md:text-2xl font-bold text-gray-800">
-              Orders Management ({filteredOrders.length})
+              Orders ({filteredOrders.length})
             </h1>
             <button
               onClick={handleRefresh}
@@ -251,7 +244,7 @@ const AdminDashboardOrders = () => {
               />
               <input
                 type="text"
-                placeholder="Search ID, customer, design..."
+                placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -268,8 +261,7 @@ const AdminDashboardOrders = () => {
               }}
               className="px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-300 text-sm"
             >
-              <option value="all">All Statuses</option>
-              {/* Map over the imported ORDER_STATUSES */}
+              <option value="all">All Statuses</option>{" "}
               {Object.values(ORDER_STATUSES).map((s) => (
                 <option key={s} value={s}>
                   {s}
@@ -277,18 +269,16 @@ const AdminDashboardOrders = () => {
               ))}
             </select>
           </div>
-          {/* Show error message overlay if needed, but only if data exists */}
+          {/* Error message shown only if data exists but refresh failed */}
           {error && adminOrders?.length > 0 && (
             <p className="text-red-500 text-sm mt-2">
-              Error refreshing data: {error}
+              Error fetching updates: {error}
             </p>
           )}
         </div>
 
-        {/* Render Table or Messages */}
         {renderMainContent()}
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center gap-2 mt-6 text-sm">
             <button
