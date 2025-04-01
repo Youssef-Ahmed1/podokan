@@ -259,3 +259,11 @@ export const getAllUsers = () => async (dispatch) => {
     });
   }
 };
+export const clearErrors = () => (dispatch) => {
+  dispatch({ type: "clearErrors" });
+};
+
+// Clear Success Messages Action Creator
+export const clearMessages = () => (dispatch) => {
+  dispatch({ type: "clearMessages" });
+};

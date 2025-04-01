@@ -136,3 +136,11 @@ export const logoutSeller = () => async (dispatch) => {
     });
   }
 };
+export const clearErrors = () => (dispatch) => {
+  dispatch({ type: "clearSellerErrors" });
+};
+
+// Clear Seller Success Messages Action Creator
+export const clearMessages = () => (dispatch) => {
+  dispatch({ type: "clearSellerMessages" });
+};
