@@ -16,9 +16,9 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import Loader from "../../components/Layout/Loader"; // Corrected path
+import Loader from "../components/Layout/Loader"; // Corrected relative path
 import { format } from "date-fns";
-import { ORDER_STATUSES } from "../../constants/orderStatuses"; // Corrected path
+import { ORDER_STATUSES } from "../constants/orderStatuses";
 
 const AdminDashboardOrders = () => {
   const dispatch = useDispatch();

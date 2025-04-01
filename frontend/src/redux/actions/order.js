@@ -1,7 +1,6 @@
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
-// DesignDownloader utility is intended to be called from UI components, not directly within Redux actions.
 
 export const ORDER_ACTIONS = Object.freeze({
   CREATE_REQUEST: "o/crReq",
