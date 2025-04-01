@@ -4,7 +4,7 @@ import {
   getAllOrdersOfAdmin,
   adminUpdateOrderStatus,
   clearErrors,
-} from "../../redux/actions/order";
+} from "../redux/actions/order";
 import { Link } from "react-router-dom";
 import {
   Eye,
