@@ -9,12 +9,12 @@ import {
   getAllOrdersOfShop,
   clearErrors as clearOrderErrors,
 } from "../../redux/actions/order";
-// **** CORRECTED: Ensure this import line exists and is correct ****
+// **** FIX: Import the correctly named export ****
 import {
   getAllProductsShop,
-  clearErrors as clearProductErrors,
-} from "../../redux/actions/product";
-import { IconButton } from "@mui/material"; // Use IconButton for actions
+  clearProductErrors,
+} from "../../redux/actions/product"; // Import clearProductErrors directly
+import { IconButton } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import Loader from "../Layout/Loader";
 import { format } from "date-fns";
@@ -35,12 +35,11 @@ const DashboardHero = () => {
   const { seller } = useSelector((state) => state.seller);
 
   useEffect(() => {
-    // Clear errors on mount or when they change
     if (ordersError) {
       toast.error(`Orders Error: ${ordersError}`);
       dispatch(clearOrderErrors());
     }
-    // **** CORRECTED: Use the correctly imported function ****
+    // **** FIX: Use the correctly imported function name ****
     if (productsError) {
       toast.error(`Products Error: ${productsError}`);
       dispatch(clearProductErrors());
@@ -50,10 +49,8 @@ const DashboardHero = () => {
       dispatch(getAllOrdersOfShop(seller._id));
       dispatch(getAllProductsShop(seller._id));
     }
-    // Add error states as dependencies to rerun effect if an error occurs
   }, [dispatch, seller?._id, ordersError, productsError]);
 
-  // Memoized calculations
   const availableBalance = useMemo(
     () => seller?.availableBalance ?? 0,
     [seller]
@@ -61,7 +58,6 @@ const DashboardHero = () => {
   const totalOrders = useMemo(() => orders?.length ?? 0, [orders]);
   const totalProducts = useMemo(() => products?.length ?? 0, [products]);
 
-  // Memoized columns
   const columns = useMemo(
     () => [
       {
@@ -131,9 +127,8 @@ const DashboardHero = () => {
       },
     ],
     []
-  ); // Empty dependency array if columns don't depend on state/props
+  );
 
-  // Memoized rows
   const rows = useMemo(
     () =>
       orders?.slice(0, 10).map((item) => ({
@@ -161,7 +156,6 @@ const DashboardHero = () => {
       <h3 className="text-xl md:text-2xl font-semibold text-gray-800 pb-4">
         Overview
       </h3>
-      {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
           <div className="flex items-center mb-1">
@@ -223,7 +217,7 @@ const DashboardHero = () => {
           </Link>
         </div>
       </div>
-      {/* Latest Orders */}
+
       <h3 className="text-lg font-semibold text-gray-800 mb-3">
         Latest Orders
       </h3>
