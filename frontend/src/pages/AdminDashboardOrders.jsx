@@ -21,7 +21,7 @@ import Loader from "../components/Layout/Loader";
 import { format } from "date-fns";
 import { DataGrid } from "@mui/x-data-grid";
 import { Select, MenuItem } from "@mui/material"; // Using MUI Select for consistency if needed elsewhere
-import { ORDER_STATUSES } from "../../../backend/constants/orderStatuses"; // Adjust path
+import { ORDER_STATUSES } from "../constants/orderStatuses";
 
 const AdminDashboardOrders = () => {
   const dispatch = useDispatch();
