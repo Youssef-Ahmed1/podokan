@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import {
   getAllProductsShop,
   deleteProduct,
-  clearErrors as clearProductErrors,
+  clearProductErrors as clearErrors,
 } from "../../redux/actions/product";
 import Loader from "../Layout/Loader";
 import { toast } from "react-toastify";
@@ -60,7 +60,7 @@ const AllProducts = () => {
       }
     },
     [dispatch]
-  ); 
+  );
 
   const columns = useMemo(
     () => [
