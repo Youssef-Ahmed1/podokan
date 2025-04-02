@@ -20,35 +20,32 @@ import { toast } from "react-toastify";
 import Loader from "../components/Layout/Loader";
 import { format } from "date-fns";
 import { DataGrid } from "@mui/x-data-grid";
-import { Select, MenuItem } from "@mui/material"; // Using MUI Select for consistency if needed elsewhere
+// **** FIX: Import IconButton ****
+import { Select, MenuItem, IconButton } from "@mui/material";
 import { ORDER_STATUSES } from "../constants/orderStatuses";
 
 const AdminDashboardOrders = () => {
   const dispatch = useDispatch();
   const { adminOrders, isLoading, error, isUpdating } = useSelector(
     (state) => state.order
-  ); // Added isUpdating
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1); // Using 1-based for display logic
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 15,
-  }); // DataGrid uses 0-based
+  });
   const [localError, setLocalError] = useState(null);
   const [rowCountState, setRowCountState] = useState(0);
 
-  // Fetching logic
   const fetchAdminOrders = useCallback(() => {
     setLocalError(null);
-    // You could add pagination params here if API supports it:
-    // dispatch(getAllOrdersOfAdmin(paginationModel.page + 1, paginationModel.pageSize));
     dispatch(getAllOrdersOfAdmin());
-  }, [dispatch]); // Removed paginationModel if API doesn't support it
+  }, [dispatch]);
 
   useEffect(() => {
     fetchAdminOrders();
-  }, [fetchAdminOrders]); // Fetch on mount
+  }, [fetchAdminOrders]);
 
   useEffect(() => {
     if (error) {
@@ -56,11 +53,9 @@ const AdminDashboardOrders = () => {
       setLocalError(error);
       dispatch(clearErrors());
     }
-    // Update total row count if adminOrders state provides it, otherwise use length
-    setRowCountState(adminOrders?.length || 0); // Assuming client-side pagination for now
+    setRowCountState(adminOrders?.length || 0);
   }, [error, dispatch, adminOrders]);
 
-  // Filtering logic
   const filteredOrders = useMemo(() => {
     if (!Array.isArray(adminOrders)) return [];
     return adminOrders.filter((order) => {
@@ -79,20 +74,15 @@ const AdminDashboardOrders = () => {
     });
   }, [adminOrders, searchTerm, filterStatus]);
 
-  // Pagination state for DataGrid (0-based page)
   const handlePaginationModelChange = (newModel) => {
     setPaginationModel(newModel);
-    setCurrentPage(newModel.page + 1); // Update 1-based display page
-    // If using server-side pagination, trigger fetchAdminOrders here
   };
 
-  // Handler for inline status update
   const handleStatusUpdate = (orderId, newStatus, currentStatus) => {
     if (newStatus === currentStatus || isUpdating) return;
-    dispatch(adminUpdateOrderStatus(orderId, newStatus)); // Action handles toast/error
+    dispatch(adminUpdateOrderStatus(orderId, newStatus));
   };
 
-  // Columns definition
   const columns = useMemo(
     () => [
       {
@@ -141,14 +131,13 @@ const AdminDashboardOrders = () => {
             }
             size="small"
             variant="outlined"
-            disabled={isUpdating} // Disable while any update is happening
+            disabled={isUpdating}
+            fullWidth // Make select fill the cell width
             sx={{
-              width: "100%",
               fontSize: "0.75rem",
               ".MuiSelect-select": { py: 0.5, px: 1 },
               ".MuiOutlinedInput-notchedOutline": { border: "none" },
             }}
-            // Optional: Add background color based on status
           >
             {Object.values(ORDER_STATUSES).map((stat) => (
               <MenuItem key={stat} value={stat}>
@@ -166,6 +155,7 @@ const AdminDashboardOrders = () => {
         align: "center",
         headerAlign: "center",
         renderCell: (params) => (
+          // **** FIX: IconButton was already imported, just ensure correct usage ****
           <IconButton
             component={Link}
             to={`/admin/order/${params.id}`}
@@ -178,7 +168,7 @@ const AdminDashboardOrders = () => {
       },
     ],
     [isUpdating]
-  ); // Re-render columns if isUpdating changes to toggle disable state
+  ); // Dependency added
 
   const rows = useMemo(
     () =>
@@ -193,15 +183,11 @@ const AdminDashboardOrders = () => {
     [filteredOrders]
   );
 
-  // **** FIX: Removed undefined renderMainContent function call ****
-  // Conditional rendering logic moved directly into the return statement
-
-  if (isLoading && adminOrders.length === 0) return <Loader />; // Loader on initial fetch
+  if (isLoading && adminOrders.length === 0) return <Loader />;
 
   return (
     <div className="w-full p-4 md:p-6 min-h-screen bg-gray-100">
       <div className="max-w-[1400px] mx-auto">
-        {/* Header & Controls */}
         <div className="mb-6 bg-white p-4 rounded-lg shadow border border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
             <h1 className="text-xl md:text-2xl font-bold text-gray-800">
@@ -232,7 +218,6 @@ const AdminDashboardOrders = () => {
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
                   setPaginationModel((prev) => ({ ...prev, page: 0 }));
-                  setCurrentPage(1);
                 }}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 text-sm"
               />
@@ -242,7 +227,6 @@ const AdminDashboardOrders = () => {
               onChange={(e) => {
                 setFilterStatus(e.target.value);
                 setPaginationModel((prev) => ({ ...prev, page: 0 }));
-                setCurrentPage(1);
               }}
               size="small"
               sx={{ minWidth: 180 }}
@@ -259,20 +243,15 @@ const AdminDashboardOrders = () => {
             </Select>
           </div>
           {localError && adminOrders.length > 0 && (
-            <p className="text-red-500 text-sm mt-2">
-              Error fetching updates: {localError}
-            </p>
+            <p className="text-red-500 text-sm mt-2">Error: {localError}</p>
           )}
         </div>
 
-        {/* Data Grid Section */}
-        {!isLoading &&
-        localError &&
-        adminOrders.length === 0 /* Error when no data */ ? (
+        {!isLoading && localError && adminOrders.length === 0 ? (
           <div className="p-6 text-center bg-red-50 rounded-lg border border-red-200">
             <AlertCircle size={48} className="mx-auto text-red-400 mb-4" />
             <h2 className="text-xl font-semibold text-red-700 mb-2">
-              Failed to Load Orders
+              Failed to Load
             </h2>
             <p className="text-red-600">{localError}</p>
             <button
@@ -283,7 +262,7 @@ const AdminDashboardOrders = () => {
               <RefreshCw size={16} className="mr-2" /> Retry
             </button>
           </div>
-        ) : !isLoading && adminOrders.length === 0 /* No data message */ ? (
+        ) : !isLoading && adminOrders.length === 0 ? (
           <div className="p-6 text-center bg-blue-50 rounded-lg border border-blue-100">
             <Package size={48} className="mx-auto text-blue-400 mb-4" />
             <h2 className="text-xl font-semibold text-gray-700 mb-2">
@@ -298,8 +277,7 @@ const AdminDashboardOrders = () => {
               <RefreshCw size={16} className="mr-2" /> Refresh
             </button>
           </div>
-        ) : !isLoading &&
-          filteredOrders.length === 0 /* No filter results */ ? (
+        ) : !isLoading && filteredOrders.length === 0 ? (
           <div className="p-6 text-center bg-white rounded-lg shadow border border-gray-200">
             <Search size={48} className="mx-auto text-gray-400 mb-4" />
             <h2 className="text-xl font-semibold text-gray-700 mb-2">
@@ -308,15 +286,14 @@ const AdminDashboardOrders = () => {
             <p className="text-gray-500">No orders found for filter.</p>
           </div>
         ) : (
-          /* Display DataGrid */
           <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
             <div style={{ height: 650, width: "100%" }}>
               <DataGrid
                 rows={rows}
                 columns={columns}
                 pagination
-                paginationMode="client" // Change to "server" if API supports it & rowCountState comes from API total
-                rowCount={rowCountState} // Use total count here if server-side
+                paginationMode="client" // Set to "server" if using API pagination
+                rowCount={rowCountState}
                 paginationModel={paginationModel}
                 onPaginationModelChange={handlePaginationModelChange}
                 pageSizeOptions={[15, 30, 50]}
@@ -328,10 +305,6 @@ const AdminDashboardOrders = () => {
             </div>
           </div>
         )}
-
-        {/* Client-side Pagination Display (if paginationMode="client") */}
-        {/* For server-side, DataGrid handles this better if rowCount is accurate */}
-        {/* {totalPages > 1 && (<div className="flex justify-center items-center gap-2 mt-6 text-sm"><button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="px-3 py-1 rounded bg-white border border-gray-300 disabled:opacity-50 flex items-center"><ChevronLeft size={14} className="mr-1"/> Prev</button><span>Page {currentPage} of {totalPages}</span><button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="px-3 py-1 rounded bg-white border border-gray-300 disabled:opacity-50 flex items-center">Next <ChevronRight size={14} className="ml-1"/></button></div>)} */}
       </div>
     </div>
   );

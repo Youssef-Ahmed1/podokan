@@ -9,10 +9,10 @@ import {
   getAllOrdersOfShop,
   clearErrors as clearOrderErrors,
 } from "../../redux/actions/order";
-// **** FIX: Import clearProductErrors ****
+// **** CORRECTED: Ensure this import line exists and is correct ****
 import {
   getAllProductsShop,
-  clearProductErrors as clearErrors,
+  clearErrors as clearProductErrors,
 } from "../../redux/actions/product";
 import { IconButton } from "@mui/material"; // Use IconButton for actions
 import { DataGrid } from "@mui/x-data-grid";
@@ -40,7 +40,7 @@ const DashboardHero = () => {
       toast.error(`Orders Error: ${ordersError}`);
       dispatch(clearOrderErrors());
     }
-    // **** FIX: Use imported clearProductErrors ****
+    // **** CORRECTED: Use the correctly imported function ****
     if (productsError) {
       toast.error(`Products Error: ${productsError}`);
       dispatch(clearProductErrors());
@@ -50,8 +50,10 @@ const DashboardHero = () => {
       dispatch(getAllOrdersOfShop(seller._id));
       dispatch(getAllProductsShop(seller._id));
     }
-  }, [dispatch, seller?._id, ordersError, productsError]); // Add error dependencies
+    // Add error states as dependencies to rerun effect if an error occurs
+  }, [dispatch, seller?._id, ordersError, productsError]);
 
+  // Memoized calculations
   const availableBalance = useMemo(
     () => seller?.availableBalance ?? 0,
     [seller]
@@ -59,6 +61,7 @@ const DashboardHero = () => {
   const totalOrders = useMemo(() => orders?.length ?? 0, [orders]);
   const totalProducts = useMemo(() => products?.length ?? 0, [products]);
 
+  // Memoized columns
   const columns = useMemo(
     () => [
       {
@@ -128,8 +131,9 @@ const DashboardHero = () => {
       },
     ],
     []
-  ); // Empty dependency array as columns don't depend on changing state here
+  ); // Empty dependency array if columns don't depend on state/props
 
+  // Memoized rows
   const rows = useMemo(
     () =>
       orders?.slice(0, 10).map((item) => ({
@@ -144,7 +148,6 @@ const DashboardHero = () => {
 
   const isLoading = ordersLoading || productsLoading;
 
-  // Combine initial loading check
   if (isLoading && !orders && !products) return <Loader />;
   if (!seller?._id)
     return (
@@ -158,8 +161,8 @@ const DashboardHero = () => {
       <h3 className="text-xl md:text-2xl font-semibold text-gray-800 pb-4">
         Overview
       </h3>
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {/* Balance Card */}
         <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
           <div className="flex items-center mb-1">
             <div className="p-2 bg-green-100 rounded-full mr-3">
@@ -181,7 +184,6 @@ const DashboardHero = () => {
             Withdraw
           </Link>
         </div>
-        {/* Orders Card */}
         <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
           <div className="flex items-center mb-1">
             <div className="p-2 bg-purple-100 rounded-full mr-3">
@@ -201,7 +203,6 @@ const DashboardHero = () => {
             View Orders
           </Link>
         </div>
-        {/* Products Card */}
         <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
           <div className="flex items-center mb-1">
             <div className="p-2 bg-blue-100 rounded-full mr-3">
@@ -222,7 +223,7 @@ const DashboardHero = () => {
           </Link>
         </div>
       </div>
-
+      {/* Latest Orders */}
       <h3 className="text-lg font-semibold text-gray-800 mb-3">
         Latest Orders
       </h3>
@@ -235,7 +236,7 @@ const DashboardHero = () => {
             pageSizeOptions={[10]}
             disableRowSelectionOnClick
             autoHeight={false}
-            loading={isLoading} // Use combined loading state
+            loading={isLoading}
             sx={{ "--DataGrid-overlayHeight": "300px", border: "none" }}
           />
         </div>
