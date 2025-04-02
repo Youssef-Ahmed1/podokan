@@ -11,7 +11,7 @@ import {
 } from "../../redux/actions/order";
 import {
   getAllProductsShop,
-  clearErrors as clearProductErrors,
+  clearProductErrors as clearErrors,
 } from "../../redux/actions/product";
 import { Button, IconButton } from "@mui/material"; // Changed import
 import { DataGrid } from "@mui/x-data-grid"; // Changed import
