@@ -8,9 +8,11 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   getAllOrdersOfShop,
   clearErrors as clearOrderErrors,
-  clearErrors as clearProductErrors,
 } from "../../redux/actions/order";
-import { getAllProductsShop } from "../../redux/actions/product";
+import {
+  getAllProductsShop,
+  clearErrors as clearProductErrors,
+} from "../../redux/actions/product";
 import { Button, IconButton } from "@mui/material"; // Changed import
 import { DataGrid } from "@mui/x-data-grid"; // Changed import
 import Loader from "../Layout/Loader"; // Assuming Loader exists
