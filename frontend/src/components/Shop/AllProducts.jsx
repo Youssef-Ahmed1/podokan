@@ -16,7 +16,6 @@ const AllProducts = () => {
   const dispatch = useDispatch();
   const { products, isLoading, error } = useSelector((state) => state.products);
   const { seller } = useSelector((state) => state.seller);
-  // DataGrid v5+ uses 0-based indexing for page
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 10,
@@ -45,8 +44,7 @@ const AllProducts = () => {
       toast.error(error);
       dispatch(clearErrors());
     }
-    // Assuming your Redux state for products doesn't include total count for shop view
-    // We'll use the length of the fetched array for rowCountState if API doesn't provide total
+
     setRowCountState((prevRowCount) => products?.length ?? prevRowCount);
   }, [error, dispatch, products]);
 
@@ -56,14 +54,13 @@ const AllProducts = () => {
       try {
         await dispatch(deleteProduct(id));
         toast.success("Product deleted");
-        // Refresh triggered by state change ideally, or uncomment below
-        // loadProducts();
+        loadProducts();
       } catch (err) {
         toast.error(err?.message || "Delete failed");
       }
     },
     [dispatch]
-  ); // Removed loadProducts dependency
+  ); 
 
   const columns = useMemo(
     () => [
