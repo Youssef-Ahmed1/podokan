@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import {
   getAllProductsShop,
   deleteProduct,
-  clearProductErrors as clearErrors,
+  clearErrors as clearProductErrors,
 } from "../../redux/actions/product";
 import Loader from "../Layout/Loader";
 import { toast } from "react-toastify";
