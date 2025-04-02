@@ -1,9 +1,9 @@
 // frontend/src/components/Profile/ProfileContent.jsx
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { AiOutlineCamera, AiOutlineDelete, AiOutlineEye } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import { server } from "../../server";
-import { DataGrid } from "@mui/x-data-grid"; // Changed import
+import { DataGrid } from "@mui/x-data-grid";
 import {
   Button,
   TextField,
@@ -16,7 +16,11 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
-} from "@mui/material"; // Changed imports
+  Box,
+  Typography,
+  Tabs,
+  Tab,
+} from "@mui/material";
 import { Link } from "react-router-dom";
 import { MdTrackChanges } from "react-icons/md";
 import { RxCross1 } from "react-icons/rx";
@@ -35,20 +39,23 @@ import {
   clearErrors as clearOrderErrors,
 } from "../../redux/actions/order";
 import styles from "../../styles/styles"; // Keep if used for non-MUI styles
-import Loader from "../Layout/Loader"; // Assuming Loader exists
+import Loader from "../Layout/Loader";
+import { format } from "date-fns";
 
 // --- Profile Info Sub-Component ---
 const ProfileInfo = () => {
-  const { user, error, successMessage } = useSelector((state) => state.user); // Add error/success selectors
-  const [name, setName] = useState(user?.name || "");
-  const [email, setEmail] = useState(user?.email || "");
-  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || "");
+  const { user, loading, error, successMessage } = useSelector(
+    (state) => state.user
+  );
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
-  const [avatar, setAvatar] = useState(null); // For file upload
+  const [avatar, setAvatar] = useState(null);
+  const [avatarLoading, setAvatarLoading] = useState(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Reset form on user change (e.g., after update)
     if (user) {
       setName(user.name);
       setEmail(user.email);
@@ -60,9 +67,9 @@ const ProfileInfo = () => {
     }
     if (successMessage) {
       toast.success(successMessage);
-      // Clear success message in reducer if needed: dispatch({ type: 'ClearSuccess' });
-      setPassword(""); // Clear password field after successful update
-    }
+      dispatch({ type: "clearMessages" });
+      setPassword("");
+    } // Clear success and password
   }, [user, error, successMessage, dispatch]);
 
   const handleSubmit = (e) => {
@@ -73,61 +80,88 @@ const ProfileInfo = () => {
   const handleImage = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setAvatar(file); // Store file object
-
+    setAvatar(file);
     const formData = new FormData();
-    formData.append("avatar", file); // Use 'avatar' as key expected by backend
-
+    formData.append("avatar", file);
+    setAvatarLoading(true);
     try {
-      // Assuming endpoint exists and returns updated user
-      const { data } = await axios.put(
-        `${server}/user/update-avatar`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true,
-        }
-      );
-      // Reload user data after successful avatar update
+      await axios.put(`${server}/user/update-avatar`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+      });
       dispatch(loadUser());
-      toast.success("Avatar updated successfully!");
+      toast.success("Avatar updated!");
     } catch (error) {
       toast.error(error.response?.data?.message || "Avatar update failed");
-      setAvatar(null); // Reset avatar state on error
+      setAvatar(null);
+    } finally {
+      setAvatarLoading(false);
     }
   };
 
   return (
-    <div className="w-full px-5 py-5">
-      <div className="flex flex-col items-center w-full">
-        <div className="relative mb-4">
+    <Box
+      sx={{
+        width: "100%",
+        px: 3,
+        py: 4,
+        display: "flex",
+        justifyContent: "center",
+      }}
+    >
+      <Box
+        sx={{
+          maxWidth: "sm",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <Box sx={{ position: "relative", mb: 2 }}>
           <img
             src={
               avatar
                 ? URL.createObjectURL(avatar)
                 : user?.avatar?.url || "/default-avatar.png"
             }
-            className="w-[150px] h-[150px] rounded-full object-cover border-[3px] border-[#3ad132]"
+            className="w-[150px] h-[150px] rounded-full object-cover border-4 border-green-500"
             alt="avatar"
           />
-          <label
+          <IconButton
+            component="label"
             htmlFor="avatar-input"
-            className="w-[35px] h-[35px] bg-[#E3E9EE] rounded-full flex items-center justify-center cursor-pointer absolute bottom-[5px] right-[5px] border hover:bg-gray-200"
+            size="small"
+            sx={{
+              position: "absolute",
+              bottom: 5,
+              right: 5,
+              bgcolor: "background.paper",
+              "&:hover": { bgcolor: "grey.200" },
+              border: "1px solid grey.300",
+            }}
+            disabled={avatarLoading}
           >
-            <AiOutlineCamera size={20} />
+            {avatarLoading ? <Loader size={20} /> : <AiOutlineCamera />}{" "}
             <input
               type="file"
               id="avatar-input"
+              hidden
               accept=".jpg,.jpeg,.png"
               onChange={handleImage}
-              className="sr-only"
             />
-          </label>
-        </div>
-
-        <form
+          </IconButton>
+        </Box>
+        <Box
+          component="form"
           onSubmit={handleSubmit}
-          className="w-full max-w-lg mt-4 space-y-4"
+          sx={{
+            width: "100%",
+            mt: 3,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+          }}
         >
           <TextField
             label="Full Name"
@@ -135,7 +169,6 @@ const ProfileInfo = () => {
             onChange={(e) => setName(e.target.value)}
             required
             fullWidth
-            variant="outlined"
             size="small"
           />
           <TextField
@@ -145,7 +178,6 @@ const ProfileInfo = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
             fullWidth
-            variant="outlined"
             size="small"
           />
           <TextField
@@ -154,32 +186,30 @@ const ProfileInfo = () => {
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
             fullWidth
-            variant="outlined"
             size="small"
           />
           <TextField
-            label="Enter Current Password to Update"
+            label="Current Password to Update"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             fullWidth
-            variant="outlined"
             size="small"
             helperText="Required to save changes"
           />
           <Button
             type="submit"
             variant="contained"
-            color="primary"
             fullWidth
-            sx={{ mt: 2, py: 1 }}
+            disabled={loading}
+            sx={{ mt: 1, py: 1.2 }}
           >
-            Update Profile
+            {loading ? "Updating..." : "Update Profile"}
           </Button>
-        </form>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 
@@ -197,85 +227,96 @@ const AllOrders = () => {
     if (user?._id) dispatch(getAllOrdersOfUser(user._id));
   }, [dispatch, user?._id, error]);
 
-  const columns = [
-    {
-      field: "id",
-      headerName: "Order ID",
-      width: 220,
-      renderCell: (p) => `#${p.value}`,
-    },
-    {
-      field: "status",
-      headerName: "Status",
-      width: 130,
-      renderCell: (p) => (
-        <span
-          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-            p.value === "Delivered"
-              ? "bg-green-100 text-green-800"
-              : p.value === "Cancelled"
-              ? "bg-red-100 text-red-800"
-              : "bg-gray-100 text-gray-800"
-          }`}
-        >
-          {p.value}
-        </span>
-      ),
-    },
-    {
-      field: "itemsQty",
-      headerName: "Items",
-      type: "number",
-      width: 80,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "total",
-      headerName: "Total",
-      type: "number",
-      width: 130,
-      valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
-    },
-    {
-      field: "orderDate",
-      headerName: "Date",
-      width: 120,
-      valueFormatter: (v) => (v ? format(new Date(v), "PP") : ""),
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 100,
-      sortable: false,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <IconButton
-          component={Link}
-          to={`/user/order/${params.id}`}
-          size="small"
-          title="View Details"
-        >
-          <AiOutlineEye className="text-blue-600" />
-        </IconButton>
-      ),
-    },
-  ];
+  const columns = useMemo(
+    () => [
+      {
+        field: "id",
+        headerName: "Order ID",
+        width: 220,
+        renderCell: (p) => `#${p.value}`,
+      },
+      {
+        field: "status",
+        headerName: "Status",
+        width: 130,
+        renderCell: (p) => (
+          <span
+            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+              p.value === "Delivered"
+                ? "bg-green-100 text-green-800"
+                : p.value === "Cancelled"
+                ? "bg-red-100 text-red-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {p.value}
+          </span>
+        ),
+      },
+      {
+        field: "itemsQty",
+        headerName: "Items",
+        type: "number",
+        width: 80,
+        align: "center",
+        headerAlign: "center",
+      },
+      {
+        field: "total",
+        headerName: "Total",
+        type: "number",
+        width: 130,
+        valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
+      },
+      {
+        field: "orderDate",
+        headerName: "Date",
+        width: 120,
+        type: "date",
+        valueGetter: (value) => (value ? new Date(value) : null),
+        valueFormatter: (v) => (v ? format(v, "PP") : ""),
+      },
+      {
+        field: "actions",
+        headerName: "Actions",
+        width: 100,
+        sortable: false,
+        align: "center",
+        headerAlign: "center",
+        renderCell: (p) => (
+          <IconButton
+            component={Link}
+            to={`/user/order/${p.id}`}
+            size="small"
+            title="View"
+          >
+            <AiOutlineEye className="text-blue-600" />
+          </IconButton>
+        ),
+      },
+    ],
+    []
+  );
 
-  const rows =
-    orders?.map((item) => ({
-      id: item._id,
-      itemsQty: item.cart?.length || 0,
-      total: item.totalPrice,
-      status: item.status,
-      orderDate: item.createdAt,
-    })) || [];
+  const rows = useMemo(
+    () =>
+      orders?.map((i) => ({
+        id: i._id,
+        itemsQty: i.cart?.length || 0,
+        total: i.totalPrice,
+        status: i.status,
+        orderDate: i.createdAt,
+      })) || [],
+    [orders]
+  );
 
   return (
     <div className="p-4 md:p-6">
       <h2 className="text-xl font-semibold mb-4">My Orders</h2>
-      <div className="w-full bg-white rounded" style={{ height: 500 }}>
+      <div
+        className="w-full bg-white rounded shadow-sm"
+        style={{ height: 500 }}
+      >
         <DataGrid
           rows={rows}
           columns={columns}
@@ -306,88 +347,100 @@ const AllRefundOrders = () => {
   }, [dispatch, user?._id, error]);
 
   const refundOrders = useMemo(
-    () => orders?.filter((item) => item.status?.includes("Refund")) || [],
+    () => orders?.filter((i) => i.status?.includes("Refund")) || [],
     [orders]
   );
 
-  const columns = [
-    {
-      field: "id",
-      headerName: "Order ID",
-      width: 220,
-      renderCell: (p) => `#${p.value}`,
-    },
-    {
-      field: "status",
-      headerName: "Status",
-      width: 150,
-      renderCell: (p) => (
-        <span
-          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-            p.value === "Refund Success"
-              ? "bg-green-100 text-green-800"
-              : p.value === "Refund Rejected"
-              ? "bg-red-100 text-red-800"
-              : "bg-yellow-100 text-yellow-800"
-          }`}
-        >
-          {p.value}
-        </span>
-      ),
-    },
-    {
-      field: "itemsQty",
-      headerName: "Items",
-      type: "number",
-      width: 80,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "total",
-      headerName: "Total",
-      type: "number",
-      width: 130,
-      valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
-    },
-    {
-      field: "orderDate",
-      headerName: "Date",
-      width: 120,
-      valueFormatter: (v) => (v ? format(new Date(v), "PP") : ""),
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 100,
-      sortable: false,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <IconButton
-          component={Link}
-          to={`/user/order/${params.id}`}
-          size="small"
-          title="View Details"
-        >
-          <AiOutlineEye className="text-blue-600" />
-        </IconButton>
-      ),
-    },
-  ];
+  const columns = useMemo(
+    () => [
+      {
+        field: "id",
+        headerName: "Order ID",
+        width: 220,
+        renderCell: (p) => `#${p.value}`,
+      },
+      {
+        field: "status",
+        headerName: "Status",
+        width: 150,
+        renderCell: (p) => (
+          <span
+            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+              p.value === "Refund Success"
+                ? "bg-green-100 text-green-800"
+                : p.value === "Refund Rejected"
+                ? "bg-red-100 text-red-800"
+                : "bg-yellow-100 text-yellow-800"
+            }`}
+          >
+            {p.value}
+          </span>
+        ),
+      },
+      {
+        field: "itemsQty",
+        headerName: "Items",
+        type: "number",
+        width: 80,
+        align: "center",
+        headerAlign: "center",
+      },
+      {
+        field: "total",
+        headerName: "Total",
+        type: "number",
+        width: 130,
+        valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
+      },
+      {
+        field: "orderDate",
+        headerName: "Date",
+        width: 120,
+        type: "date",
+        valueGetter: (v) => (v ? new Date(v) : null),
+        valueFormatter: (v) => (v ? format(v, "PP") : ""),
+      },
+      {
+        field: "actions",
+        headerName: "Actions",
+        width: 100,
+        sortable: false,
+        align: "center",
+        headerAlign: "center",
+        renderCell: (p) => (
+          <IconButton
+            component={Link}
+            to={`/user/order/${p.id}`}
+            size="small"
+            title="View"
+          >
+            <AiOutlineEye className="text-blue-600" />
+          </IconButton>
+        ),
+      },
+    ],
+    []
+  );
 
-  const rows = refundOrders.map((item) => ({
-    id: item._id,
-    itemsQty: item.cart?.length || 0,
-    total: item.totalPrice,
-    status: item.status,
-    orderDate: item.createdAt,
-  }));
+  const rows = useMemo(
+    () =>
+      refundOrders.map((i) => ({
+        id: i._id,
+        itemsQty: i.cart?.length || 0,
+        total: i.totalPrice,
+        status: i.status,
+        orderDate: i.createdAt,
+      })),
+    [refundOrders]
+  );
 
   return (
     <div className="p-4 md:p-6">
       <h2 className="text-xl font-semibold mb-4">Refund Requests</h2>
-      <div className="w-full bg-white rounded" style={{ height: 500 }}>
+      <div
+        className="w-full bg-white rounded shadow-sm"
+        style={{ height: 500 }}
+      >
         <DataGrid
           rows={rows}
           columns={columns}
@@ -417,83 +470,94 @@ const TrackOrder = () => {
     if (user?._id) dispatch(getAllOrdersOfUser(user._id));
   }, [dispatch, user?._id, error]);
 
-  const columns = [
-    {
-      field: "id",
-      headerName: "Order ID",
-      width: 220,
-      renderCell: (p) => `#${p.value}`,
-    },
-    {
-      field: "status",
-      headerName: "Status",
-      width: 150,
-      renderCell: (p) => (
-        <span
-          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-            p.value === "Delivered"
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
-          }`}
-        >
-          {p.value}
-        </span>
-      ),
-    },
-    {
-      field: "itemsQty",
-      headerName: "Items",
-      type: "number",
-      width: 80,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "total",
-      headerName: "Total",
-      type: "number",
-      width: 130,
-      valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
-    },
-    {
-      field: "orderDate",
-      headerName: "Date",
-      width: 120,
-      valueFormatter: (v) => (v ? format(new Date(v), "PP") : ""),
-    },
-    {
-      field: "actions",
-      headerName: "Track",
-      width: 100,
-      sortable: false,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <IconButton
-          component={Link}
-          to={`/user/track/order/${params.id}`}
-          size="small"
-          title="Track Order"
-        >
-          <MdTrackChanges className="text-blue-600" />
-        </IconButton>
-      ),
-    },
-  ];
+  const columns = useMemo(
+    () => [
+      {
+        field: "id",
+        headerName: "Order ID",
+        width: 220,
+        renderCell: (p) => `#${p.value}`,
+      },
+      {
+        field: "status",
+        headerName: "Status",
+        width: 150,
+        renderCell: (p) => (
+          <span
+            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+              p.value === "Delivered"
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {p.value}
+          </span>
+        ),
+      },
+      {
+        field: "itemsQty",
+        headerName: "Items",
+        type: "number",
+        width: 80,
+        align: "center",
+        headerAlign: "center",
+      },
+      {
+        field: "total",
+        headerName: "Total",
+        type: "number",
+        width: 130,
+        valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
+      },
+      {
+        field: "orderDate",
+        headerName: "Date",
+        width: 120,
+        type: "date",
+        valueGetter: (v) => (v ? new Date(v) : null),
+        valueFormatter: (v) => (v ? format(v, "PP") : ""),
+      },
+      {
+        field: "actions",
+        headerName: "Track",
+        width: 100,
+        sortable: false,
+        align: "center",
+        headerAlign: "center",
+        renderCell: (p) => (
+          <IconButton
+            component={Link}
+            to={`/user/track/order/${p.id}`}
+            size="small"
+            title="Track"
+          >
+            <MdTrackChanges className="text-blue-600" />
+          </IconButton>
+        ),
+      },
+    ],
+    []
+  );
 
-  const rows =
-    orders?.map((item) => ({
-      id: item._id,
-      itemsQty: item.cart?.length || 0,
-      total: item.totalPrice,
-      status: item.status,
-      orderDate: item.createdAt,
-    })) || [];
+  const rows = useMemo(
+    () =>
+      orders?.map((i) => ({
+        id: i._id,
+        itemsQty: i.cart?.length || 0,
+        total: i.totalPrice,
+        status: i.status,
+        orderDate: i.createdAt,
+      })) || [],
+    [orders]
+  );
 
   return (
     <div className="p-4 md:p-6">
       <h2 className="text-xl font-semibold mb-4">Track Your Orders</h2>
-      <div className="w-full bg-white rounded" style={{ height: 500 }}>
+      <div
+        className="w-full bg-white rounded shadow-sm"
+        style={{ height: 500 }}
+      >
         <DataGrid
           rows={rows}
           columns={columns}
@@ -514,7 +578,7 @@ const ChangePassword = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false); // Local loading state
+  const [loading, setLoading] = useState(false);
 
   const passwordChangeHandler = async (e) => {
     e.preventDefault();
@@ -525,12 +589,12 @@ const ChangePassword = () => {
         { oldPassword, newPassword, confirmPassword },
         { withCredentials: true }
       );
-      toast.success("Password updated successfully!");
+      toast.success("Password updated!");
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update password");
+      toast.error(error.response?.data?.message || "Update failed");
     } finally {
       setLoading(false);
     }
@@ -541,9 +605,16 @@ const ChangePassword = () => {
       <h1 className="text-xl text-center font-semibold mb-6">
         Change Password
       </h1>
-      <form
+      <Box
+        component="form"
         onSubmit={passwordChangeHandler}
-        className="max-w-md mx-auto space-y-4"
+        sx={{
+          maxWidth: "sm",
+          mx: "auto",
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+        }}
       >
         <TextField
           label="Old Password"
@@ -552,7 +623,6 @@ const ChangePassword = () => {
           onChange={(e) => setOldPassword(e.target.value)}
           required
           fullWidth
-          variant="outlined"
           size="small"
         />
         <TextField
@@ -562,7 +632,6 @@ const ChangePassword = () => {
           onChange={(e) => setNewPassword(e.target.value)}
           required
           fullWidth
-          variant="outlined"
           size="small"
         />
         <TextField
@@ -572,20 +641,18 @@ const ChangePassword = () => {
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
           fullWidth
-          variant="outlined"
           size="small"
         />
         <Button
           type="submit"
           variant="contained"
-          color="primary"
           fullWidth
           disabled={loading}
-          sx={{ mt: 2, py: 1.5 }}
+          sx={{ mt: 1, py: 1.2 }}
         >
           {loading ? "Updating..." : "Update Password"}
         </Button>
-      </form>
+      </Box>
     </div>
   );
 };
@@ -599,10 +666,12 @@ const Address = () => {
   const [address1, setAddress1] = useState("");
   const [address2, setAddress2] = useState("");
   const [addressType, setAddressType] = useState("");
-  const { user, error, successMessage } = useSelector((state) => state.user);
+  const { user, addressLoading, error, successMessage } = useSelector(
+    (state) => state.user
+  );
   const dispatch = useDispatch();
 
-  const addressTypeData = ["Default", "Home", "Office"]; // Simplified
+  const addressTypes = ["Default", "Home", "Office"];
 
   useEffect(() => {
     if (error) {
@@ -610,14 +679,15 @@ const Address = () => {
       dispatch(clearUserErrors());
     }
     if (successMessage) {
-      toast.success(successMessage); /* dispatch clear success */
+      toast.success(successMessage);
+      dispatch({ type: "clearMessages" });
     }
   }, [error, successMessage, dispatch]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!addressType || !country || !address1) {
-      toast.error("Please fill required address fields!");
+      toast.error("Fill required fields!");
       return;
     }
     dispatch(
@@ -626,12 +696,10 @@ const Address = () => {
     setOpen(false);
     resetForm();
   };
-
   const handleDelete = (item) => {
-    if (!window.confirm("Delete this address?")) return;
+    if (!window.confirm("Delete address?")) return;
     dispatch(deleteUserAddress(item._id));
   };
-
   const resetForm = () => {
     setCountry("");
     setCity("");
@@ -647,7 +715,6 @@ const Address = () => {
         <h1 className="text-xl font-semibold">My Addresses</h1>
         <Button
           variant="contained"
-          color="primary"
           onClick={() => {
             resetForm();
             setOpen(true);
@@ -656,19 +723,18 @@ const Address = () => {
           Add New
         </Button>
       </div>
-
       {user?.addresses?.length > 0 ? (
-        user.addresses.map((item, index) => (
+        user.addresses.map((item) => (
           <div
             className="w-full bg-white rounded-md shadow-sm flex items-center justify-between p-3 pr-6 mb-3"
-            key={item._id || index}
+            key={item._id}
           >
             <div className="flex items-center">
               <h5 className="font-semibold text-sm md:text-base">
                 {item.addressType}
               </h5>
             </div>
-            <div className="pl-4 text-sm md:text-base text-gray-700">
+            <div className="pl-4 text-sm md:text-base text-gray-700 flex-grow">
               {item.address1}, {item.address2 ? `${item.address2}, ` : ""}{" "}
               {item.city ? `${item.city}, ` : ""} {item.country || ""}{" "}
               {item.zipCode || ""}
@@ -677,7 +743,7 @@ const Address = () => {
               <IconButton
                 onClick={() => handleDelete(item)}
                 size="small"
-                title="Delete Address"
+                title="Delete"
               >
                 <AiOutlineDelete className="cursor-pointer text-red-500" />
               </IconButton>
@@ -685,12 +751,10 @@ const Address = () => {
           </div>
         ))
       ) : (
-        <h5 className="text-center pt-8 text-gray-500">
-          You have no saved addresses.
-        </h5>
+        <Typography textAlign="center" pt={4} color="text.secondary">
+          No saved addresses.
+        </Typography>
       )}
-
-      {/* Add Address Dialog */}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
@@ -707,18 +771,18 @@ const Address = () => {
             <RxCross1 />
           </IconButton>
         </DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent dividers>
-            <FormControl fullWidth margin="dense" size="small" required>
+        <Box component="form" onSubmit={handleSubmit}>
+          <DialogContent
+            dividers
+            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+          >
+            <FormControl fullWidth size="small" required>
               <InputLabel>Country</InputLabel>
               <Select
                 value={country}
                 label="Country"
                 onChange={(e) => setCountry(e.target.value)}
               >
-                <MenuItem value="">
-                  <em>Select Country</em>
-                </MenuItem>
                 {Country?.getAllCountries().map((c) => (
                   <MenuItem key={c.isoCode} value={c.isoCode}>
                     {c.name}
@@ -726,21 +790,13 @@ const Address = () => {
                 ))}
               </Select>
             </FormControl>
-            <FormControl
-              fullWidth
-              margin="dense"
-              size="small"
-              disabled={!country}
-            >
+            <FormControl fullWidth size="small" disabled={!country}>
               <InputLabel>City/State</InputLabel>
               <Select
                 value={city}
                 label="City/State"
                 onChange={(e) => setCity(e.target.value)}
               >
-                <MenuItem value="">
-                  <em>Select City/State</em>
-                </MenuItem>
                 {State?.getStatesOfCountry(country).map((s) => (
                   <MenuItem key={s.isoCode} value={s.isoCode}>
                     {s.name}
@@ -754,8 +810,6 @@ const Address = () => {
               onChange={(e) => setAddress1(e.target.value)}
               required
               fullWidth
-              margin="dense"
-              variant="outlined"
               size="small"
             />
             <TextField
@@ -763,8 +817,6 @@ const Address = () => {
               value={address2}
               onChange={(e) => setAddress2(e.target.value)}
               fullWidth
-              margin="dense"
-              variant="outlined"
               size="small"
             />
             <TextField
@@ -772,21 +824,16 @@ const Address = () => {
               value={zipCode}
               onChange={(e) => setZipCode(e.target.value)}
               fullWidth
-              margin="dense"
-              variant="outlined"
               size="small"
             />
-            <FormControl fullWidth margin="dense" size="small" required>
+            <FormControl fullWidth size="small" required>
               <InputLabel>Address Type</InputLabel>
               <Select
                 value={addressType}
                 label="Address Type"
                 onChange={(e) => setAddressType(e.target.value)}
               >
-                <MenuItem value="">
-                  <em>Select Type</em>
-                </MenuItem>
-                {addressTypeData.map((t) => (
+                {addressTypes.map((t) => (
                   <MenuItem key={t} value={t}>
                     {t}
                   </MenuItem>
@@ -794,29 +841,73 @@ const Address = () => {
               </Select>
             </FormControl>
           </DialogContent>
-          <DialogActions sx={{ padding: "16px 24px" }}>
+          <DialogActions sx={{ p: 2 }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="contained" color="primary">
-              Save Address
+            <Button type="submit" variant="contained" disabled={addressLoading}>
+              {addressLoading ? "Saving..." : "Save Address"}
             </Button>
           </DialogActions>
-        </form>
+        </Box>
       </Dialog>
     </div>
   );
 };
 
-// --- Main Profile Content Component ---
+// --- Main Profile Content Tabs ---
 const ProfileContent = ({ active }) => {
+  const [value, setValue] = useState(active - 1); // MUI Tabs are 0-indexed
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
+  // Map tab index to component
+  const renderContent = (index) => {
+    switch (index) {
+      case 0:
+        return <ProfileInfo />;
+      case 1:
+        return <AllOrders />;
+      case 2:
+        return <AllRefundOrders />;
+      case 3:
+        return <TrackOrder />; // Index adjusted (original was 5)
+      case 4:
+        return <ChangePassword />; // Index adjusted (original was 6)
+      case 5:
+        return <Address />; // Index adjusted (original was 7)
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="w-full">
-      {active === 1 && <ProfileInfo />}
-      {active === 2 && <AllOrders />}
-      {active === 3 && <AllRefundOrders />}
-      {active === 5 && <TrackOrder />}
-      {active === 6 && <ChangePassword />}
-      {active === 7 && <Address />}
-    </div>
+    <Box sx={{ width: "100%" }}>
+      <Box
+        sx={{
+          borderBottom: 1,
+          borderColor: "divider",
+          bgcolor: "background.paper",
+          borderRadius: 1,
+        }}
+      >
+        <Tabs
+          value={value}
+          onChange={handleChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          aria-label="Profile Tabs"
+        >
+          <Tab label="Profile" />
+          <Tab label="Orders" />
+          <Tab label="Refunds" />
+          <Tab label="Track Order" />
+          <Tab label="Change Password" />
+          <Tab label="Addresses" />
+        </Tabs>
+      </Box>
+      <Box sx={{ mt: 3 }}>{renderContent(value)}</Box>
+    </Box>
   );
 };
 

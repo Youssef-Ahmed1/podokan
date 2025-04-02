@@ -12,31 +12,29 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
-} from "@mui/material"; // Changed imports
-import { DataGrid } from "@mui/x-data-grid"; // Changed import
-import { AiOutlineDelete } from "react-icons/ai";
+  Box,
+} from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
+import { AiOutlineDelete, AiOutlinePlus } from "react-icons/ai";
 import { RxCross1 } from "react-icons/rx";
-import { useSelector, useDispatch } from "react-redux"; // Added useDispatch
-import styles from "../../styles/styles";
+import { useSelector } from "react-redux";
 import Loader from "../Layout/Loader";
 import { server } from "../../server";
 import { toast } from "react-toastify";
 import axios from "axios";
-// Assuming you have actions for coupons, otherwise keep using axios
-// import { createCoupon, deleteCoupon, getShopCoupons } from "../../redux/actions/coupon";
 
 const AllCoupons = () => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [coupons, setCoupons] = useState([]); // Changed name for clarity
-  const [minAmount, setMinAmount] = useState(""); // Use string for inputs
-  const [maxAmount, setMaxAmount] = useState(""); // Use string for inputs
-  const [selectedProducts, setSelectedProducts] = useState(""); // Use empty string for select default
-  const [value, setValue] = useState(""); // Use string for inputs
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [coupons, setCoupons] = useState([]);
+  const [minAmount, setMinAmount] = useState("");
+  const [maxAmount, setMaxAmount] = useState("");
+  const [selectedProducts, setSelectedProducts] = useState("");
+  const [value, setValue] = useState("");
   const { seller } = useSelector((state) => state.seller);
-  const { products } = useSelector((state) => state.products); // Assuming products are loaded elsewhere
-  // const dispatch = useDispatch(); // Use if using Redux actions
+  const { products } = useSelector((state) => state.products); // Assuming products are loaded
 
   const fetchCoupons = useCallback(async () => {
     if (!seller?._id) return;
@@ -49,7 +47,7 @@ const AllCoupons = () => {
       setCoupons(data.couponCodes || []);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to fetch coupons");
-      setCoupons([]); // Ensure it's an array on error
+      setCoupons([]);
     } finally {
       setIsLoading(false);
     }
@@ -66,44 +64,47 @@ const AllCoupons = () => {
         await axios.delete(`${server}/coupon/delete-coupon/${id}`, {
           withCredentials: true,
         });
-        toast.success("Coupon deleted successfully!");
-        fetchCoupons(); // Refetch after delete
+        toast.success("Coupon deleted!");
+        fetchCoupons();
       } catch (error) {
-        toast.error(error.response?.data?.message || "Failed to delete coupon");
+        toast.error(error.response?.data?.message || "Delete failed");
       }
     },
     [fetchCoupons]
   );
 
+  const resetForm = () => {
+    setName("");
+    setValue("");
+    setMinAmount("");
+    setMaxAmount("");
+    setSelectedProducts("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // Indicate loading during submit
+    setIsSubmitting(true);
     try {
       await axios.post(
         `${server}/coupon/create-coupon-code`,
         {
           name,
-          minAmount: minAmount ? Number(minAmount) : null, // Convert to number or null
-          maxAmount: maxAmount ? Number(maxAmount) : null, // Convert to number or null
-          selectedProducts: selectedProducts || null, // Send null if empty
-          value: Number(value), // Ensure value is a number
+          minAmount: minAmount ? Number(minAmount) : null,
+          maxAmount: maxAmount ? Number(maxAmount) : null,
+          selectedProducts: selectedProducts || null,
+          value: Number(value),
           shopId: seller._id,
         },
         { withCredentials: true }
       );
-      toast.success("Coupon created successfully!");
+      toast.success("Coupon created!");
       setOpen(false);
-      fetchCoupons(); // Refetch coupons
-      // Reset form fields
-      setName("");
-      setValue("");
-      setMinAmount("");
-      setMaxAmount("");
-      setSelectedProducts("");
+      fetchCoupons();
+      resetForm();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to create coupon");
+      toast.error(error.response?.data?.message || "Creation failed");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -111,7 +112,7 @@ const AllCoupons = () => {
     { field: "id", headerName: "Id", width: 150, flex: 0.5 },
     { field: "name", headerName: "Coupon Code", minWidth: 180, flex: 1 },
     {
-      field: "price",
+      field: "value",
       headerName: "Value (%)",
       width: 100,
       flex: 0.6,
@@ -123,7 +124,7 @@ const AllCoupons = () => {
       width: 120,
       flex: 0.6,
       type: "number",
-      valueFormatter: (value) => (value ? `EGP ${value}` : "N/A"),
+      valueFormatter: (v) => (v ? `EGP ${v}` : "N/A"),
     },
     {
       field: "maxAmount",
@@ -131,7 +132,16 @@ const AllCoupons = () => {
       width: 120,
       flex: 0.6,
       type: "number",
-      valueFormatter: (value) => (value ? `EGP ${value}` : "N/A"),
+      valueFormatter: (v) => (v ? `EGP ${v}` : "N/A"),
+    },
+    {
+      field: "selectedProduct",
+      headerName: "Product",
+      width: 150,
+      flex: 1,
+      valueGetter: (params) =>
+        products?.find((p) => p._id === params.row.selectedProducts)?.name ||
+        "All Products",
     },
     {
       field: "Delete",
@@ -156,14 +166,15 @@ const AllCoupons = () => {
     coupons?.map((item) => ({
       id: item._id,
       name: item.name,
-      price: item.value, // Keep as number for sorting/filtering
+      value: item.value,
       minAmount: item.minAmount,
       maxAmount: item.maxAmount,
+      selectedProducts: item.selectedProducts,
     })) || [];
 
   return (
     <>
-      {isLoading && coupons.length === 0 ? ( // Show loader only on initial load
+      {isLoading && coupons.length === 0 ? (
         <Loader />
       ) : (
         <div className="w-full mx-auto px-4 pt-1 mt-10 bg-white shadow rounded-lg">
@@ -171,9 +182,13 @@ const AllCoupons = () => {
             <Button
               variant="contained"
               color="primary"
-              onClick={() => setOpen(true)}
+              startIcon={<AiOutlinePlus />}
+              onClick={() => {
+                resetForm();
+                setOpen(true);
+              }}
             >
-              Create Coupon Code
+              Create Coupon
             </Button>
           </div>
           <div style={{ height: 600, width: "100%" }}>
@@ -190,8 +205,6 @@ const AllCoupons = () => {
               sx={{ "--DataGrid-overlayHeight": "300px", border: "none" }}
             />
           </div>
-
-          {/* Create Coupon Dialog */}
           <Dialog
             open={open}
             onClose={() => setOpen(false)}
@@ -203,80 +216,68 @@ const AllCoupons = () => {
               <IconButton
                 aria-label="close"
                 onClick={() => setOpen(false)}
-                sx={{
-                  position: "absolute",
-                  right: 8,
-                  top: 8,
-                  color: (theme) => theme.palette.grey[500],
-                }}
+                sx={{ position: "absolute", right: 8, top: 8 }}
               >
                 <RxCross1 />
               </IconButton>
             </DialogTitle>
             <form onSubmit={handleSubmit}>
               <DialogContent dividers>
-                <TextField
-                  label="Coupon Code Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  fullWidth
-                  margin="dense"
-                  variant="outlined"
-                  size="small"
-                />
-                <TextField
-                  label="Discount Percentage (%)"
-                  type="number"
-                  value={value}
-                  onChange={(e) => setValue(e.target.value)}
-                  required
-                  fullWidth
-                  margin="dense"
-                  variant="outlined"
-                  size="small"
-                  InputProps={{ inputProps: { min: 1, max: 100 } }}
-                />
-                <TextField
-                  label="Min Amount (Optional)"
-                  type="number"
-                  value={minAmount}
-                  onChange={(e) => setMinAmount(e.target.value)}
-                  fullWidth
-                  margin="dense"
-                  variant="outlined"
-                  size="small"
-                  InputProps={{ inputProps: { min: 0 } }}
-                />
-                <TextField
-                  label="Max Amount (Optional)"
-                  type="number"
-                  value={maxAmount}
-                  onChange={(e) => setMaxAmount(e.target.value)}
-                  fullWidth
-                  margin="dense"
-                  variant="outlined"
-                  size="small"
-                  InputProps={{ inputProps: { min: 0 } }}
-                />
-                <FormControl fullWidth margin="dense" size="small">
-                  <InputLabel>Selected Product (Optional)</InputLabel>
-                  <Select
-                    value={selectedProducts}
-                    label="Selected Product (Optional)"
-                    onChange={(e) => setSelectedProducts(e.target.value)}
-                  >
-                    <MenuItem value="">
-                      <em>Apply to all products</em>
-                    </MenuItem>
-                    {products &&
-                      products.map((i) => (
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <TextField
+                    label="Coupon Code Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    fullWidth
+                    size="small"
+                  />
+                  <TextField
+                    label="Discount %"
+                    type="number"
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    required
+                    fullWidth
+                    size="small"
+                    InputProps={{ inputProps: { min: 1, max: 100 } }}
+                  />
+                  <TextField
+                    label="Min Amount (Optional)"
+                    type="number"
+                    value={minAmount}
+                    onChange={(e) => setMinAmount(e.target.value)}
+                    fullWidth
+                    size="small"
+                    InputProps={{ inputProps: { min: 0 } }}
+                  />
+                  <TextField
+                    label="Max Amount (Optional)"
+                    type="number"
+                    value={maxAmount}
+                    onChange={(e) => setMaxAmount(e.target.value)}
+                    fullWidth
+                    size="small"
+                    InputProps={{ inputProps: { min: 0 } }}
+                  />
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Selected Product (Optional)</InputLabel>
+                    <Select
+                      value={selectedProducts}
+                      label="Selected Product (Optional)"
+                      onChange={(e) => setSelectedProducts(e.target.value)}
+                    >
+                      <MenuItem value="">
+                        <em>All Products</em>
+                      </MenuItem>
+                      {products?.map((i) => (
                         <MenuItem value={i._id} key={i._id}>
                           {i.name}
                         </MenuItem>
                       ))}
-                  </Select>
-                </FormControl>
+                    </Select>
+                  </FormControl>
+                </Box>
               </DialogContent>
               <DialogActions sx={{ padding: "16px 24px" }}>
                 <Button onClick={() => setOpen(false)}>Cancel</Button>
@@ -284,9 +285,9 @@ const AllCoupons = () => {
                   type="submit"
                   variant="contained"
                   color="primary"
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 >
-                  {isLoading ? "Creating..." : "Create"}
+                  {isSubmitting ? "Creating..." : "Create"}
                 </Button>
               </DialogActions>
             </form>
@@ -296,5 +297,4 @@ const AllCoupons = () => {
     </>
   );
 };
-
 export default AllCoupons;
