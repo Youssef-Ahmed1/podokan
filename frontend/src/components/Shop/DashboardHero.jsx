@@ -1,21 +1,22 @@
 // frontend/src/components/Shop/DashboardHero.jsx
 import React, { useEffect, useMemo } from "react";
 import { AiOutlineArrowRight, AiOutlineMoneyCollect } from "react-icons/ai";
-import styles from "../../styles/styles"; // Keep if used
+import styles from "../../styles/styles";
 import { Link } from "react-router-dom";
-import { MdBorderClear, MdOutlineShoppingBag } from "react-icons/md"; // Added icon
+import { MdBorderClear, MdOutlineShoppingBag } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getAllOrdersOfShop,
   clearErrors as clearOrderErrors,
 } from "../../redux/actions/order";
+// **** FIX: Import clearProductErrors ****
 import {
   getAllProductsShop,
-  clearProductErrors as clearErrors,
+  clearErrors as clearProductErrors,
 } from "../../redux/actions/product";
-import { Button, IconButton } from "@mui/material"; // Changed import
-import { DataGrid } from "@mui/x-data-grid"; // Changed import
-import Loader from "../Layout/Loader"; // Assuming Loader exists
+import { IconButton } from "@mui/material"; // Use IconButton for actions
+import { DataGrid } from "@mui/x-data-grid";
+import Loader from "../Layout/Loader";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
 
@@ -34,10 +35,12 @@ const DashboardHero = () => {
   const { seller } = useSelector((state) => state.seller);
 
   useEffect(() => {
+    // Clear errors on mount or when they change
     if (ordersError) {
       toast.error(`Orders Error: ${ordersError}`);
       dispatch(clearOrderErrors());
     }
+    // **** FIX: Use imported clearProductErrors ****
     if (productsError) {
       toast.error(`Products Error: ${productsError}`);
       dispatch(clearProductErrors());
@@ -45,9 +48,9 @@ const DashboardHero = () => {
 
     if (seller?._id) {
       dispatch(getAllOrdersOfShop(seller._id));
-      dispatch(getAllProductsShop(seller._id)); // Fetch products too
+      dispatch(getAllProductsShop(seller._id));
     }
-  }, [dispatch, seller?._id, ordersError, productsError]);
+  }, [dispatch, seller?._id, ordersError, productsError]); // Add error dependencies
 
   const availableBalance = useMemo(
     () => seller?.availableBalance ?? 0,
@@ -56,76 +59,80 @@ const DashboardHero = () => {
   const totalOrders = useMemo(() => orders?.length ?? 0, [orders]);
   const totalProducts = useMemo(() => products?.length ?? 0, [products]);
 
-  const columns = [
-    {
-      field: "id",
-      headerName: "Order ID",
-      width: 220,
-      renderCell: (p) => `#${p.value}`,
-    },
-    {
-      field: "status",
-      headerName: "Status",
-      width: 130,
-      renderCell: (p) => (
-        <span
-          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-            p.value === "Delivered"
-              ? "bg-green-100 text-green-800"
-              : p.value === "Processing"
-              ? "bg-blue-100 text-blue-800"
-              : "bg-gray-100 text-gray-800"
-          }`}
-        >
-          {p.value}
-        </span>
-      ),
-    },
-    {
-      field: "itemsQty",
-      headerName: "Items",
-      type: "number",
-      width: 80,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "total",
-      headerName: "Total",
-      type: "number",
-      width: 130,
-      valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
-    },
-    {
-      field: "orderDate",
-      headerName: "Date",
-      width: 120,
-      valueFormatter: (v) => (v ? format(new Date(v), "PP") : ""),
-    },
-    {
-      field: "actions",
-      headerName: "View",
-      width: 80,
-      sortable: false,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <IconButton
-          component={Link}
-          to={`/order/${params.id}`}
-          size="small"
-          title="View Order"
-        >
-          <AiOutlineArrowRight className="text-blue-600" />
-        </IconButton>
-      ),
-    },
-  ];
+  const columns = useMemo(
+    () => [
+      {
+        field: "id",
+        headerName: "Order ID",
+        width: 220,
+        renderCell: (p) => `#${p.value}`,
+      },
+      {
+        field: "status",
+        headerName: "Status",
+        width: 130,
+        renderCell: (p) => (
+          <span
+            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+              p.value === "Delivered"
+                ? "bg-green-100 text-green-800"
+                : p.value === "Processing"
+                ? "bg-blue-100 text-blue-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {p.value}
+          </span>
+        ),
+      },
+      {
+        field: "itemsQty",
+        headerName: "Items",
+        type: "number",
+        width: 80,
+        align: "center",
+        headerAlign: "center",
+      },
+      {
+        field: "total",
+        headerName: "Total",
+        type: "number",
+        width: 130,
+        valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
+      },
+      {
+        field: "orderDate",
+        headerName: "Date",
+        width: 120,
+        type: "date",
+        valueGetter: (v) => (v ? new Date(v) : null),
+        valueFormatter: (v) => (v ? format(v, "PP") : ""),
+      },
+      {
+        field: "actions",
+        headerName: "View",
+        width: 80,
+        sortable: false,
+        align: "center",
+        headerAlign: "center",
+        renderCell: (params) => (
+          <IconButton
+            component={Link}
+            to={`/order/${params.id}`}
+            size="small"
+            title="View Order"
+          >
+            <AiOutlineArrowRight className="text-blue-600" />
+          </IconButton>
+        ),
+      },
+    ],
+    []
+  ); // Empty dependency array as columns don't depend on changing state here
 
   const rows = useMemo(
     () =>
       orders?.slice(0, 10).map((item) => ({
-        // Show latest 10
         id: item._id,
         itemsQty: item.cart?.length || 0,
         total: item.totalPrice,
@@ -137,7 +144,7 @@ const DashboardHero = () => {
 
   const isLoading = ordersLoading || productsLoading;
 
-  // Render loading or error state if necessary
+  // Combine initial loading check
   if (isLoading && !orders && !products) return <Loader />;
   if (!seller?._id)
     return (
@@ -152,7 +159,7 @@ const DashboardHero = () => {
         Overview
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {/* Balance */}
+        {/* Balance Card */}
         <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
           <div className="flex items-center mb-1">
             <div className="p-2 bg-green-100 rounded-full mr-3">
@@ -174,7 +181,7 @@ const DashboardHero = () => {
             Withdraw
           </Link>
         </div>
-        {/* Orders */}
+        {/* Orders Card */}
         <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
           <div className="flex items-center mb-1">
             <div className="p-2 bg-purple-100 rounded-full mr-3">
@@ -194,7 +201,7 @@ const DashboardHero = () => {
             View Orders
           </Link>
         </div>
-        {/* Products */}
+        {/* Products Card */}
         <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
           <div className="flex items-center mb-1">
             <div className="p-2 bg-blue-100 rounded-full mr-3">
@@ -225,10 +232,10 @@ const DashboardHero = () => {
             rows={rows}
             columns={columns}
             initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-            pageSizeOptions={[10]} // Keep it simple for dashboard view
+            pageSizeOptions={[10]}
             disableRowSelectionOnClick
             autoHeight={false}
-            loading={isLoading}
+            loading={isLoading} // Use combined loading state
             sx={{ "--DataGrid-overlayHeight": "300px", border: "none" }}
           />
         </div>
@@ -236,5 +243,4 @@ const DashboardHero = () => {
     </div>
   );
 };
-
 export default DashboardHero;
