@@ -1,143 +1,180 @@
-// Shop/AllProducts.jsx
-import React, { useEffect, useState } from "react";
-import { Button } from "@material-ui/core";
-import { DataGrid } from "@material-ui/data-grid";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { IconButton } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
 import { AiOutlineDelete, AiOutlineEye } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { getAllProductsShop, deleteProduct } from "../../redux/actions/product.js";
+import {
+  getAllProductsShop,
+  deleteProduct,
+  clearErrors,
+} from "../../redux/actions/product";
 import Loader from "../Layout/Loader";
+import { toast } from "react-toastify";
 
 const AllProducts = () => {
   const dispatch = useDispatch();
-  const { allProducts, isLoading, pagination } = useSelector((state) => state.products);
+  const { products, isLoading, error } = useSelector((state) => state.products);
   const { seller } = useSelector((state) => state.seller);
+  // DataGrid v5+ uses 0-based indexing for page
   const [paginationModel, setPaginationModel] = useState({
-    page: 0, 
+    page: 0,
     pageSize: 10,
   });
+  const [rowCountState, setRowCountState] = useState(0);
 
-  useEffect(() => {
+  const loadProducts = useCallback(() => {
     if (seller?._id) {
-      dispatch(getAllProductsShop(seller._id, paginationModel.page + 1, paginationModel.pageSize));
+      // Pass page number (1-based for API) and page size
+      dispatch(
+        getAllProductsShop(
+          seller._id,
+          paginationModel.page + 1,
+          paginationModel.pageSize
+        )
+      );
     }
   }, [dispatch, seller?._id, paginationModel]);
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this product?")) return;
-    
-    try {
-      await dispatch(deleteProduct(id));
-      dispatch(getAllProductsShop(seller._id, paginationModel.page + 1, paginationModel.pageSize));
-    } catch (error) {
-      console.error("Delete failed:", error);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearErrors());
     }
-  };
+    // Assuming your Redux state for products doesn't include total count for shop view
+    // We'll use the length of the fetched array for rowCountState if API doesn't provide total
+    setRowCountState((prevRowCount) => products?.length ?? prevRowCount);
+  }, [error, dispatch, products]);
 
-  const columns = [
-    {
-      field: "name",
-      headerName: "Product Name",
-      minWidth: 200,
-      flex: 1,
-      renderCell: (params) => (
-        <div className="flex items-center gap-2">
+  const handleDelete = useCallback(
+    async (id) => {
+      if (!window.confirm("Delete this product?")) return;
+      try {
+        await dispatch(deleteProduct(id));
+        toast.success("Product deleted");
+        // Refresh triggered by state change ideally, or uncomment below
+        // loadProducts();
+      } catch (err) {
+        toast.error(err?.message || "Delete failed");
+      }
+    },
+    [dispatch]
+  ); // Removed loadProducts dependency
+
+  const columns = useMemo(
+    () => [
+      {
+        field: "designImage",
+        headerName: "Image",
+        width: 80,
+        sortable: false,
+        renderCell: (p) => (
           <img
-            src={params.row.designImage}
-            alt={params.value}
-            className="w-10 h-10 object-cover rounded"
+            src={p.value}
+            alt=""
+            className="w-12 h-12 object-contain rounded"
           />
-          <span>{params.value}</span>
-        </div>
-      ),
-    },
-    {
-      field: "price",
-      headerName: "Price",
-      minWidth: 100,
-      flex: 0.5,
-      renderCell: (params) => (
-        <span>EGP {parseFloat(params.value).toFixed(2)}</span>
-      ),
-    },
-    {
-      field: "status",
-      headerName: "Status",
-      minWidth: 120,
-      flex: 0.5,
-      renderCell: (params) => (
-        <span className={`px-2 py-1 rounded text-sm ${
-          params.value === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-          params.value === 'public' ? 'bg-green-100 text-green-800' :
-          'bg-red-100 text-red-800'
-        }`}>
-          {params.value}
-        </span>
-      ),
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      minWidth: 150,
-      flex: 0.7,
-      renderCell: (params) => (
-        <div className="flex gap-2">
-          <Link 
-            to={`/product/${params.row.id}`}
-            className="text-blue-600 hover:text-blue-800"
+        ),
+      },
+      { field: "name", headerName: "Name", minWidth: 180, flex: 1 },
+      {
+        field: "price",
+        headerName: "Price",
+        width: 100,
+        type: "number",
+        valueFormatter: (v) => `EGP ${Number(v ?? 0).toFixed(2)}`,
+      },
+      { field: "stock", headerName: "Stock", type: "number", width: 80 },
+      { field: "sold", headerName: "Sold", type: "number", width: 80 },
+      {
+        field: "status",
+        headerName: "Status",
+        width: 100,
+        renderCell: (p) => (
+          <span
+            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+              p.value === "pending"
+                ? "bg-yellow-100 text-yellow-800"
+                : p.value === "public"
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            }`}
           >
-            <AiOutlineEye size={20} />
-          </Link>
-          
-          <Button
-            onClick={() => handleDelete(params.row.id)}
-            className="min-w-0 p-1 text-red-600 hover:text-red-800"
-          >
-            <AiOutlineDelete size={20} />
-          </Button>
-        </div>
-      ),
-    },
-  ];
+            {p.value || "N/A"}
+          </span>
+        ),
+      },
+      {
+        field: "actions",
+        headerName: "Actions",
+        width: 120,
+        sortable: false,
+        renderCell: (p) => (
+          <div className="flex gap-1">
+            <IconButton
+              component={Link}
+              to={`/product/${p.id}`}
+              size="small"
+              title="Preview"
+            >
+              <AiOutlineEye className="text-blue-600" />
+            </IconButton>
+            <IconButton
+              onClick={() => handleDelete(p.id)}
+              size="small"
+              title="Delete"
+            >
+              <AiOutlineDelete className="text-red-600" />
+            </IconButton>
+          </div>
+        ),
+      },
+    ],
+    [handleDelete]
+  );
 
-  const handlePageChange = (newModel) => {
-    setPaginationModel(newModel);
-  };
-
-  // Process products for DataGrid
-  const rows = allProducts?.map(product => ({
-    id: product._id,
-    name: product.DesignTitle,
-    price: product.discountPrice || product.originalPrice,
-    Stock: product.availableColors?.length || 1,
-    sold: product.sold_out || 0,
-    status: product.status,
-    designImage: product.designImage?.url || product.designImage,
-    ProductType: product.ProductType,
-    ProductColor: product.ProductColor
-  })) || [];
+  const rows = useMemo(
+    () =>
+      products?.map((p) => ({
+        id: p._id,
+        name: p.DesignTitle || p.name || "N/A",
+        price: p.discountPrice ?? p.originalPrice ?? 0,
+        stock: p.stock ?? 0,
+        sold: p.sold_out ?? 0,
+        status: p.status,
+        designImage:
+          p.designImage?.url || p.images?.[0]?.url || "/default-product.png",
+      })) || [],
+    [products]
+  );
 
   return (
     <div className="w-full p-4 bg-white rounded-lg shadow">
       <h2 className="text-xl font-semibold mb-4">All Products</h2>
-      
-      {isLoading ? (
+      {isLoading && rows.length === 0 ? (
         <Loader />
       ) : (
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          pagination
-          paginationModel={paginationModel}
-          onPaginationModelChange={handlePageChange}
-          pageSizeOptions={[10, 25, 50]}
-          rowCount={pagination.totalPages * paginationModel.pageSize}
-          paginationMode="server"
-          disableSelectionOnClick
-          autoHeight
-          className="border-none"
-          getRowHeight={() => 'auto'}
-          getEstimatedRowHeight={() => 100}
-        />
+        <div style={{ height: 600, width: "100%" }}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            pagination
+            paginationMode="client" // Assuming getAllProductsShop fetches all for shop
+            rowCount={rowCountState} // Total rows for pagination display
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            pageSizeOptions={[10, 25, 50]}
+            loading={isLoading}
+            disableRowSelectionOnClick
+            autoHeight={false}
+            sx={{ "--DataGrid-overlayHeight": "300px", border: "none" }}
+            getRowHeight={() => "auto"}
+          />
+        </div>
       )}
     </div>
   );

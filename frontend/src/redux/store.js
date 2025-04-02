@@ -19,9 +19,8 @@ const Store = configureStore({
     wishlist: wishlistReducer,
     order: orderReducer,
   },
-  // Optional: Add middleware like logger in development
-  // middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),
-  devTools: process.env.NODE_ENV !== "production", // Enable devtools only in development
+
+  devTools: process.env.NODE_ENV !== "production",
 });
 
 export default Store;
