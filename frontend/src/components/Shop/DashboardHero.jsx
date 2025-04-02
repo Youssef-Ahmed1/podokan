@@ -12,7 +12,7 @@ import {
 // **** FIX: Import clearProductErrors ****
 import {
   getAllProductsShop,
-  clearErrors as clearProductErrors,
+  clearProductErrors as clearErrors,
 } from "../../redux/actions/product";
 import { IconButton } from "@mui/material"; // Use IconButton for actions
 import { DataGrid } from "@mui/x-data-grid";
