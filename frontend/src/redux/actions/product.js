@@ -117,7 +117,6 @@ export const fetchPendingProducts = () => async (dispatch) => {
   }
 };
 // Approve/Reject product
-// redux/actions/product.js
 export const approveRejectProduct = (productId, status, reason, productData) => async (dispatch) => {
   try {
     dispatch({ type: "approveRejectProductRequest" });
@@ -261,17 +260,15 @@ export const deleteProduct = (id) => async (dispatch) => {
     });
   }
 };
-// Clear Product Errors Action Creator
-export const clearProductErrors = () => (dispatch) => {
-  dispatch({ type: "clearProductErrors" });
+// Update Pagination Action Creator (if needed by components)
+export const updatePagination = (paginationData) => (dispatch) => {
+  dispatch({ type: "updatePagination", payload: paginationData });
 };
 
-// Clear Product Success Flag Action Creator
 export const clearProductSuccess = () => (dispatch) => {
   dispatch({ type: "clearProductSuccess" });
 };
 
-// Update Pagination Action Creator (if needed by components)
-export const updatePagination = (paginationData) => (dispatch) => {
-  dispatch({ type: "updatePagination", payload: paginationData });
+export const clearProductErrors = () => (dispatch) => {
+  dispatch({ type: "clearProductErrors" });
 };
