@@ -27,10 +27,9 @@ import {
   getOrderDetails,
   clearErrors,
 } from "../../redux/actions/order";
-import { server } from "../../server";
 import { DesignDownloader } from "../../utils/designDownload";
 import Loader from "../../components/Layout/Loader";
-import { ORDER_STATUSES } from "../../constants/orderStatuses"; 
+import { ORDER_STATUSES } from "../../constants/orderStatuses";
 import {
   Select,
   MenuItem,
@@ -42,7 +41,8 @@ import {
   CircularProgress,
 } from "@mui/material"; // MUI components
 
-// Status Update Modal Component (keep as previously corrected)
+// --- Status Update Modal Component ---
+// Included directly for completeness, could be moved to a separate file
 const StatusUpdateModal = ({
   open,
   onClose,
@@ -51,10 +51,71 @@ const StatusUpdateModal = ({
   availableStatuses,
   isUpdating,
 }) => {
-  /* ... */
+  const [newStatus, setNewStatus] = useState(currentStatus);
+
+  // Update local state if the modal reopens or the external status changes
+  useEffect(() => {
+    if (open) {
+      setNewStatus(currentStatus);
+    }
+  }, [open, currentStatus]);
+
+  const handleUpdateClick = () => {
+    if (newStatus !== currentStatus) {
+      onUpdate(newStatus); // Call the update function passed via props
+    } else {
+      onClose(); // Close if status hasn't changed
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+      <DialogTitle>Update Order Status</DialogTitle>
+      <DialogContent sx={{ paddingTop: "16px !important" }}>
+        {" "}
+        {/* Ensure some top padding */}
+        <Select
+          value={newStatus || ""} // Ensure value is controlled, handle initial empty state if needed
+          onChange={(e) => setNewStatus(e.target.value)}
+          fullWidth
+          size="small"
+          disabled={isUpdating}
+          displayEmpty // Allows showing placeholder if needed
+        >
+          {/* Optional: Placeholder */}
+          {/* <MenuItem value="" disabled><em>Select new status...</em></MenuItem> */}
+          {Object.values(availableStatuses).map((s) => (
+            <MenuItem key={s} value={s}>
+              {s}
+            </MenuItem>
+          ))}
+        </Select>
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button onClick={onClose} disabled={isUpdating} color="secondary">
+          Cancel
+        </Button>
+        <Button
+          onClick={handleUpdateClick}
+          variant="contained"
+          color="primary"
+          disabled={isUpdating || newStatus === currentStatus}
+          startIcon={
+            isUpdating ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              <Save size={16} />
+            )
+          }
+        >
+          {isUpdating ? "Updating..." : "Update"}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
 };
 
-// Main Admin Order Details Component
+// --- Main Admin Order Details Component ---
 const AdminOrderDetails = () => {
   const {
     order,
@@ -63,33 +124,43 @@ const AdminOrderDetails = () => {
     isDownloading,
     error: reduxError,
   } = useSelector((state) => state.order);
-  const { user } = useSelector((state) => state.user);
+  const { user } = useSelector((state) => state.user); // Assuming admin user info is here
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id } = useParams(); // Order ID from URL
+
   const [downloadingItemId, setDownloadingItemId] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const isAdmin = user?.role?.toLowerCase() === "admin";
 
   const fetchOrderData = useCallback(() => {
     dispatch(clearErrors()); // Clear previous errors first
-    if (id && isAdmin) dispatch(getOrderDetails(id));
-    else if (!isAdmin) {
-      toast.error("Access Denied.");
-      navigate("/");
+    if (id && isAdmin) {
+      dispatch(getOrderDetails(id));
+    } else if (!isAdmin && user) {
+      // Check if user exists but is not admin
+      toast.error("Access Denied: Admin privileges required.");
+      navigate("/"); // Redirect non-admins with message
+    } else if (!user) {
+      // If user data isn't loaded yet, maybe wait or handle appropriately
+      // For now, assume ProtectedAdminRoute handles unauthenticated access
+      console.warn("Admin check failed: User data not available.");
     }
-  }, [dispatch, id, isAdmin, navigate]);
+  }, [dispatch, id, isAdmin, navigate, user]);
 
   useEffect(() => {
     fetchOrderData();
   }, [fetchOrderData]); // Fetch on mount/id change
 
   useEffect(() => {
-    // Handle errors from Redux
     if (reduxError) {
       toast.error(reduxError);
-      if (reduxError.includes("not found") || reduxError.includes("Forbidden"))
-        navigate("/admin-orders");
+      if (
+        reduxError.includes("not found") ||
+        reduxError.includes("Forbidden")
+      ) {
+        navigate("/admin-orders"); // Redirect if order not found/accessible by admin
+      }
       dispatch(clearErrors());
     }
   }, [reduxError, dispatch, navigate]);
@@ -97,16 +168,23 @@ const AdminOrderDetails = () => {
   const handleDownloadDesignClick = (item) => {
     if (!item?._id || isDownloading || !order?._id) return;
     setDownloadingItemId(item._id);
+
     dispatch(adminGetDesignDataForDownload(order._id, item._id))
       .then((designData) => {
-        if (!designData) throw new Error("Failed to get design data.");
-        return DesignDownloader.downloadSingleDesign(designData);
+        if (designData) {
+          return DesignDownloader.downloadSingleDesign(designData);
+        } else {
+          // Action should have handled the error toast, but log just in case
+          console.error("Failed to get design data payload from action.");
+          throw new Error("Design data missing."); // Throw to trigger catch
+        }
       })
       .then(() =>
-        toast.success(`Design package for ${item._id.slice(-6)} started!`)
+        toast.success(`Design package for item ${item._id.slice(-6)} started!`)
       )
       .catch((err) => {
-        console.error("Download failed:", err); /* Toast handled by action */
+        console.error("Download initiation failed:", err);
+        // Error toast likely handled by action/interceptor, no need to double toast
       })
       .finally(() => setDownloadingItemId(null));
   };
@@ -118,19 +196,44 @@ const AdminOrderDetails = () => {
     }
     dispatch(adminUpdateOrderStatus(order._id, selectedStatus))
       .then(() => {
-        setShowStatusModal(false); /* State updates via Redux */
+        setShowStatusModal(false);
+        // State updates handled by Redux reducer, no need to manually setOrder
       })
       .catch(() => {
-        setShowStatusModal(false); /* Error handled by action */
+        // Error handled by action/toast
+        setShowStatusModal(false); // Close modal even on error
       });
   };
 
   // Render Logic
-  if (isDetailLoading && !order) return <Loader />;
+  if (isDetailLoading && !order) return <Loader />; // Show loader only if order is not yet loaded
+
+  // Order not found or error state after loading attempt
   if (!order && !isDetailLoading) {
-    /* ... (keep error/not found state as before) ... */
+    return (
+      <div className="p-6 text-center max-w-2xl mx-auto">
+        {reduxError && ( // Display error if fetch failed
+          <div className="bg-red-50 p-4 rounded-lg text-red-700 mb-4 flex items-center justify-center gap-2">
+            <AlertTriangle size={20} />
+            <span>{reduxError}</span>
+          </div>
+        )}
+        <Info size={48} className="mx-auto text-gray-400 mb-4" />
+        <h2 className="text-2xl font-bold mb-2">Order Not Found</h2>
+        <p className="text-gray-600 mb-4">
+          Could not load details for Order ID: {id}
+        </p>
+        <Link
+          to="/admin-orders"
+          className="text-blue-600 hover:underline inline-flex items-center"
+        >
+          <ArrowLeft size={16} className="mr-1" /> Back to Orders List
+        </Link>
+      </div>
+    );
   }
 
+  // Data is available, proceed with rendering
   const cartItems = order.cart || [];
   const subtotal = order.subtotal ?? 0;
   const shipping = order.shippingCost ?? 0;
@@ -172,7 +275,9 @@ const AdminOrderDetails = () => {
               {order._id?.slice(-8)}
             </h1>
             <p className="text-gray-500 text-sm mt-1">
-              {format(new Date(order.createdAt), "PP 'at' p")}
+              {order.createdAt
+                ? format(new Date(order.createdAt), "PP 'at' p")
+                : "N/A"}
             </p>
           </div>
           <div className="flex flex-col items-start md:items-end gap-2 w-full md:w-auto">
@@ -192,7 +297,7 @@ const AdminOrderDetails = () => {
                     : "bg-gray-100 text-gray-800"
                 }`}
               >
-                {order.status}
+                {order.status || "N/A"}
               </span>
             </div>
             <button
@@ -206,7 +311,7 @@ const AdminOrderDetails = () => {
         </div>
       </div>
 
-      {/* Customer & Shipping */}
+      {/* Customer & Shipping Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="bg-white rounded-lg shadow p-5 border border-gray-100">
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
@@ -243,17 +348,24 @@ const AdminOrderDetails = () => {
                 : ""}
             </p>
             <p>
-              {order.shippingAddress?.city}, {order.shippingAddress?.country}{" "}
+              {order.shippingAddress?.city},{" "}
+              {order.shippingAddress?.country || "(Country Missing!)"}{" "}
               {order.shippingAddress?.postalCode}
             </p>
             <p className="mt-1 flex items-center gap-1.5 text-gray-600">
               <Phone size={14} /> {order.shippingAddress?.phoneNumber}
             </p>
+            {/* Highlight missing country if validation was bypassed */}
+            {!order.shippingAddress?.country && (
+              <p className="text-red-500 text-xs mt-1">
+                (Warning: Country missing)
+              </p>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Items */}
+      {/* Items Section */}
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-4">
           Items ({cartItems.length})
@@ -265,6 +377,7 @@ const AdminOrderDetails = () => {
               className="bg-white rounded-lg shadow p-4 border border-gray-100"
             >
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                {/* Image Col */}
                 <div className="md:col-span-2 aspect-square bg-gray-100 rounded-md flex items-center justify-center overflow-hidden border">
                   {item.designImage?.url ? (
                     <img
@@ -273,9 +386,15 @@ const AdminOrderDetails = () => {
                       className="max-w-full max-h-full object-contain"
                     />
                   ) : (
-                    <AlertTriangle size={32} className="text-gray-400" />
-                  )}
+                    <AlertTriangle
+                      size={32}
+                      className="text-red-400"
+                      title="Design URL Missing!"
+                    />
+                  )}{" "}
+                  {/* Highlight missing URL */}
                 </div>
+                {/* Info Col */}
                 <div className="md:col-span-6">
                   <h3 className="text-md font-semibold">
                     {item.DesignTitle || "N/A"}
@@ -283,6 +402,12 @@ const AdminOrderDetails = () => {
                   <p className="text-xs text-gray-500">
                     Item ID: {item._id || "N/A"}
                   </p>
+                  {/* Highlight missing URL */}
+                  {!item.designImage?.url && (
+                    <p className="text-red-500 text-xs mt-1">
+                      (Warning: Design URL missing! Download may fail.)
+                    </p>
+                  )}
                   <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
                     <span className="px-1.5 py-0.5 bg-gray-100 rounded">
                       Type: {item.ProductType || "N/A"}
@@ -306,6 +431,7 @@ const AdminOrderDetails = () => {
                     </div>
                   </details>
                 </div>
+                {/* Actions/Price Col */}
                 <div className="md:col-span-4 text-left md:text-right">
                   <p className="text-sm text-gray-600">
                     EGP {(item.price ?? 0).toFixed(2)} x {item.qty || 1}
@@ -317,12 +443,21 @@ const AdminOrderDetails = () => {
                   <div className="mt-3 flex flex-col md:items-end gap-2">
                     <button
                       onClick={() => handleDownloadDesignClick(item)}
-                      disabled={isDownloading && downloadingItemId === item._id}
+                      disabled={
+                        !item.designImage?.url ||
+                        (isDownloading && downloadingItemId === item._id)
+                      } // Disable if URL missing
                       className={`w-full md:w-auto px-3 py-1.5 rounded text-sm flex items-center justify-center transition-colors ${
-                        isDownloading && downloadingItemId === item._id
-                          ? "bg-blue-300 cursor-not-allowed"
+                        !item.designImage?.url ||
+                        (isDownloading && downloadingItemId === item._id)
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                           : "bg-blue-600 hover:bg-blue-700 text-white"
                       }`}
+                      title={
+                        !item.designImage?.url
+                          ? "Cannot download: Design URL missing"
+                          : "Download Design Package"
+                      }
                     >
                       {isDownloading && downloadingItemId === item._id ? (
                         <>
@@ -342,6 +477,7 @@ const AdminOrderDetails = () => {
                     <button
                       disabled
                       className="w-full md:w-auto px-3 py-1.5 bg-gray-300 text-gray-600 rounded text-sm flex items-center justify-center cursor-not-allowed"
+                      title="Print file feature not available"
                     >
                       <Printer size={14} className="mr-1" /> Print File (N/A)
                     </button>
@@ -353,7 +489,7 @@ const AdminOrderDetails = () => {
         </div>
       </div>
 
-      {/* Financials & History */}
+      {/* Financials & History Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="bg-white rounded-lg shadow p-5 border border-gray-100">
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
@@ -429,19 +565,19 @@ const AdminOrderDetails = () => {
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">No status history.</p>
+              <p className="text-gray-500">No status history recorded.</p>
             )}
           </div>
         </div>
       </div>
 
-      {/* Status Modal */}
+      {/* Status Update Modal */}
       <StatusUpdateModal
         open={showStatusModal}
         onClose={() => setShowStatusModal(false)}
-        currentStatus={order.status}
+        currentStatus={order.status || ""} // Pass current status
         onUpdate={handleUpdateStatusSubmit}
-        availableStatuses={ORDER_STATUSES}
+        availableStatuses={ORDER_STATUSES} // Pass the constants
         isUpdating={isUpdating}
       />
     </div>
