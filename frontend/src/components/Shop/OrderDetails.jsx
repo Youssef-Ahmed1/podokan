@@ -22,7 +22,7 @@ import {
   sellerUpdateRefundStatus,
   clearErrors,
 } from "../../redux/actions/order"; // Adjust path
-import { ORDER_STATUSES } from "../../constants/orderStatuses"; // Adjust path
+import { ORDER_STATUSES } from "../../constants/orderStatuses.js";
 import { Select, MenuItem, Button, CircularProgress } from "@mui/material"; // MUI for better dropdown
 
 const OrderDetails = () => {
