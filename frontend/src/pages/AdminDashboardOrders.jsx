@@ -1,3 +1,4 @@
+// frontend/src/pages/Admin/AdminDashboardOrders.jsx
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -19,14 +20,45 @@ import {
   Typography,
   IconButton,
 } from "@mui/material";
-import { ORDER_STATUSES } from "../constants/orderStatuses"; // Adjust path
+import { ORDER_STATUSES } from "../constants/orderStatuses.js"; // Adjust path
 
-// Custom Overlays for DataGrid
+// Custom DataGrid Overlays
 function CustomLoadingOverlay() {
-  /* ... (keep as before) ... */
+  return (
+    <Box
+      sx={{
+        position: "absolute",
+        top: 0,
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(255, 255, 255, 0.7)",
+      }}
+    >
+      <CircularProgress />
+    </Box>
+  );
 }
 function CustomNoRowsOverlay({ message = "No orders found." }) {
-  /* ... (keep as before) ... */
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100%",
+        p: 2,
+      }}
+    >
+      <Package size={48} style={{ color: "#9ca3af", marginBottom: "1rem" }} />
+      <Typography variant="body1" color="textSecondary">
+        {message}
+      </Typography>
+    </Box>
+  );
 }
 
 const AdminDashboardOrders = () => {
@@ -43,25 +75,26 @@ const AdminDashboardOrders = () => {
     page: 0,
     pageSize: 15,
   });
-  const [rowCountState, setRowCountState] = useState(adminOrders.length);
+  // Row count state for DataGrid, derived from filtered data
+  const [rowCountState, setRowCountState] = useState(0);
 
+  // Fetching Logic
   const fetchAdminOrders = useCallback(() => {
     dispatch(getAllOrdersOfAdmin());
   }, [dispatch]);
   useEffect(() => {
     fetchAdminOrders();
-  }, [fetchAdminOrders]); // Fetch on mount
-  useEffect(() => {
-    setRowCountState(adminOrders?.length || 0);
-  }, [adminOrders]); // Update count when orders change
+  }, [fetchAdminOrders]);
+
+  // Error Handling
   useEffect(() => {
     if (error) {
       toast.error(`Error: ${error}`);
       dispatch(clearErrors());
     }
-  }, [error, dispatch]); // Handle errors
+  }, [error, dispatch]);
 
-  // Client-side filtering
+  // Filtering Logic (Client-Side)
   const filteredOrders = useMemo(() => {
     if (!Array.isArray(adminOrders)) return [];
     return adminOrders.filter((order) => {
@@ -78,17 +111,20 @@ const AdminDashboardOrders = () => {
     });
   }, [adminOrders, searchTerm, filterStatus]);
 
-  // Update row count for pagination based on filtering
+  // Update Row Count for Pagination when Filtered Data Changes
   useEffect(() => {
     setRowCountState(filteredOrders.length);
   }, [filteredOrders]);
 
+  // Handler for Status Update Dropdown
   const handleStatusUpdate = (orderId, newStatus, currentStatus) => {
     if (newStatus === currentStatus || isUpdating) return;
-    dispatch(adminUpdateOrderStatus(orderId, newStatus)).catch(() => {}); // Errors handled by action
+    dispatch(adminUpdateOrderStatus(orderId, newStatus)).catch(() => {
+      /* Errors handled by action/toast */
+    });
   };
 
-  // Define Columns
+  // DataGrid Column Definitions
   const columns = useMemo(
     () => [
       {
@@ -178,9 +214,9 @@ const AdminDashboardOrders = () => {
       },
     ],
     [isUpdating]
-  ); // isUpdating dependency disables dropdowns during update
+  ); // Memoize columns, re-render if `isUpdating` changes
 
-  // Prepare rows for DataGrid
+  // Prepare Rows for DataGrid based on filtered data
   const rows = useMemo(
     () =>
       filteredOrders.map((o) => ({
@@ -194,6 +230,7 @@ const AdminDashboardOrders = () => {
     [filteredOrders]
   );
 
+  // Main Component Render
   return (
     <div className="w-full p-4 md:p-6 min-h-screen bg-gray-100">
       <div className="max-w-[1400px] mx-auto">
@@ -205,13 +242,13 @@ const AdminDashboardOrders = () => {
             </h1>
             <button
               onClick={fetchAdminOrders}
-              disabled={isLoading}
+              disabled={isLoading || isUpdating}
               className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50"
               title="Refresh Orders"
             >
               <RefreshCw
                 size={18}
-                className={isLoading ? "animate-spin" : ""}
+                className={isLoading || isUpdating ? "animate-spin" : ""}
               />
             </button>
           </div>
@@ -255,6 +292,8 @@ const AdminDashboardOrders = () => {
         {/* Data Grid */}
         <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
           <Box sx={{ height: "70vh", width: "100%" }}>
+            {" "}
+            {/* Ensure Box has height */}
             <DataGrid
               rows={rows}
               columns={columns}
@@ -262,10 +301,10 @@ const AdminDashboardOrders = () => {
               loading={isLoading}
               pageSizeOptions={[15, 30, 50, 100]}
               paginationModel={paginationModel}
-              paginationMode="client"
+              paginationMode="client" // Using client-side filtering/pagination
               onPaginationModelChange={setPaginationModel}
               disableRowSelectionOnClick
-              autoHeight={false}
+              autoHeight={false} // Use Box height
               slots={{
                 loadingOverlay: CustomLoadingOverlay,
                 noRowsOverlay: () => (
