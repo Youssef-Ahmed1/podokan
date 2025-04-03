@@ -19,7 +19,7 @@ import {
   Typography,
   IconButton,
 } from "@mui/material";
-import { ORDER_STATUSES } from "../../constants/orderStatuses"; // Adjust path
+import { ORDER_STATUSES } from "../constants/orderStatuses"; // Adjust path
 
 // Custom Overlays for DataGrid
 function CustomLoadingOverlay() {
