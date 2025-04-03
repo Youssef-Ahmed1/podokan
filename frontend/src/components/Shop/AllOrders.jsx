@@ -1,3 +1,4 @@
+// frontend/src/pages/Shop/AllOrders.jsx
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -15,7 +16,7 @@ import { toast } from "react-toastify";
 import { getAllOrdersOfShop, clearErrors } from "../../redux/actions/order"; // Adjust path
 import Loader from "../../components/Layout/Loader"; // Adjust path
 import { format } from "date-fns";
-import { ORDER_STATUSES } from "../../constants/orderStatuses.js"; // Adjust path
+import { ORDER_STATUSES } from "../../constants/orderStatuses"; // Adjust path
 
 const AllOrders = () => {
   const dispatch = useDispatch();
@@ -30,11 +31,12 @@ const AllOrders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [ordersPerPage] = useState(10); // Items per page
 
+  // Fetching logic
   const fetchOrders = useCallback(() => {
     if (seller?._id) {
       dispatch(getAllOrdersOfShop());
     } else {
-      console.warn("Seller info not available for fetching orders.");
+      console.warn("Seller info not available for fetching shop orders.");
     }
   }, [dispatch, seller?._id]);
 
@@ -42,14 +44,15 @@ const AllOrders = () => {
     fetchOrders();
   }, [fetchOrders]); // Fetch on mount/seller change
 
+  // Error handling
   useEffect(() => {
-    // Handle errors
     if (error) {
       toast.error(`Error fetching orders: ${error}`);
       dispatch(clearErrors());
     }
   }, [error, dispatch]);
 
+  // Filtering logic
   const filteredOrders = useMemo(() => {
     if (!Array.isArray(shopOrders)) return [];
     return shopOrders.filter((order) => {
@@ -63,14 +66,14 @@ const AllOrders = () => {
       const designMatch =
         order.cart?.some((item) =>
           item?.DesignTitle?.toLowerCase().includes(lowerSearch)
-        ) || false; // Search seller's items
+        ) || false; // Search within seller's items
       const statusMatch =
         filterStatus === "all" || order.status === filterStatus;
       return (idMatch || customerMatch || designMatch) && statusMatch;
     });
   }, [shopOrders, searchTerm, filterStatus]);
 
-  // Pagination
+  // Pagination logic
   const indexOfLastOrder = currentPage * ordersPerPage;
   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
   const currentOrders = filteredOrders.slice(
@@ -82,6 +85,7 @@ const AllOrders = () => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
+  // Refresh handler
   const handleRefresh = () => {
     setSearchTerm("");
     setFilterStatus("all");
@@ -89,6 +93,7 @@ const AllOrders = () => {
     fetchOrders();
   };
 
+  // Initial Loading State
   if (isLoading && shopOrders.length === 0) return <Loader />;
 
   return (
@@ -121,7 +126,7 @@ const AllOrders = () => {
               />
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search by Order ID, Customer, Design..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -276,7 +281,7 @@ const AllOrders = () => {
                                 {item.size}
                               </p>
                               <p className="text-gray-600 mt-0.5">
-                                Qty: {item.qty} &times; EGP{" "}
+                                Qty: {item.qty} × EGP{" "}
                                 {(item.price ?? 0).toFixed(2)}
                               </p>
                             </div>

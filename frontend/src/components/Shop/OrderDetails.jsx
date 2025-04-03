@@ -1,3 +1,4 @@
+// frontend/src/pages/Shop/OrderDetails.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useParams, useNavigate } from "react-router-dom";
@@ -22,6 +23,7 @@ import {
   clearErrors,
 } from "../../redux/actions/order"; // Adjust path
 import { ORDER_STATUSES } from "../../constants/orderStatuses"; // Adjust path
+import { Select, MenuItem, Button, CircularProgress } from "@mui/material"; // MUI for better dropdown
 
 const OrderDetails = () => {
   const { seller } = useSelector((state) => state.seller);
@@ -35,6 +37,7 @@ const OrderDetails = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [localError, setLocalError] = useState(null);
 
+  // Fetching logic
   const fetchOrderDetails = useCallback(async () => {
     setLocalError(null);
     setIsLoading(true);
@@ -48,16 +51,15 @@ const OrderDetails = () => {
       setIsLoading(false);
       return;
     }
-
     try {
-      // Use axios directly - interceptor handles Seller token
+      // Use axios directly - interceptor adds Seller token
       const { data } = await axios.get(
         `${server}/order/get-seller-order/${id}`,
         { withCredentials: true }
       );
       if (data.success && data.order) {
         setOrder(data.order);
-        setRefundStatus(data.order.status); // Set initial refund status if applicable
+        setRefundStatus(data.order.status);
       } else {
         throw new Error(data.message || "Failed to get order details");
       }
@@ -76,10 +78,10 @@ const OrderDetails = () => {
 
   useEffect(() => {
     fetchOrderDetails();
-  }, [fetchOrderDetails]); // Fetch on load/change
+  }, [fetchOrderDetails]); // Fetch on load
 
+  // Handle Redux errors (from update action)
   useEffect(() => {
-    // Handle Redux errors (from update action)
     if (reduxError) {
       toast.error(reduxError);
       dispatch(clearErrors());
@@ -87,6 +89,7 @@ const OrderDetails = () => {
     return () => dispatch(clearErrors()); // Cleanup on unmount
   }, [reduxError, dispatch]);
 
+  // Refund Update Handler
   const handleRefundUpdate = () => {
     if (!order?._id) return;
     const currentStatus = order.status;
@@ -102,7 +105,6 @@ const OrderDetails = () => {
       toast.error(`Order not in '${ORDER_STATUSES.PROCESSING_REFUND}' status.`);
       return;
     }
-
     dispatch(sellerUpdateRefundStatus(id, refundStatus))
       .then((updatedData) => {
         if (updatedData?.order) {
@@ -111,16 +113,17 @@ const OrderDetails = () => {
         } else {
           fetchOrderDetails();
         }
-      }) // Update state or refetch
+      })
       .catch(() => {
         setRefundStatus(currentStatus);
       }); // Revert dropdown on error
   };
 
+  // Render Loading
   if (isLoading) return <Loader />;
 
+  // Render Error/Not Found
   if (!order) {
-    // Render error/not found state
     return (
       <div className="w-full min-h-[70vh] flex flex-col justify-center items-center p-4">
         {localError ? (
@@ -143,12 +146,14 @@ const OrderDetails = () => {
     );
   }
 
+  // Prepare data for rendering
   const sellerItems = order.cart || [];
   const sellerSubtotal = sellerItems.reduce(
     (t, i) => t + (i.price || 0) * (i.qty || 1),
     0
   );
 
+  // Main Render
   return (
     <div className="w-full p-4 md:p-8 bg-gray-50 min-h-screen">
       <div className="max-w-6xl mx-auto">
@@ -169,7 +174,7 @@ const OrderDetails = () => {
             </Link>
             <button
               onClick={fetchOrderDetails}
-              disabled={isLoading}
+              disabled={isLoading || isUpdating}
               className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50 transition-colors"
               title="Refresh Details"
             >
@@ -180,7 +185,6 @@ const OrderDetails = () => {
             </button>
           </div>
         </div>
-
         {/* Order Info Summary */}
         <div className="bg-white rounded-lg shadow p-5 mb-6 border border-gray-200">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm">
@@ -217,8 +221,7 @@ const OrderDetails = () => {
             </div>
           </div>
         </div>
-
-        {/* Your Items Section */}
+        {/* Items */}
         <div className="mb-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Your Items ({sellerItems.length})
@@ -272,8 +275,7 @@ const OrderDetails = () => {
             </div>
           )}
         </div>
-
-        {/* Totals, Customer, Shipping Grid */}
+        {/* Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <div className="lg:col-span-1 bg-white rounded-lg shadow p-5 border border-gray-100">
             <h3 className="text-lg font-semibold text-gray-800 mb-3">
@@ -309,7 +311,7 @@ const OrderDetails = () => {
               </div>
               <div>
                 <h4 className="font-medium text-gray-600 mb-1 flex items-center">
-                  <MapPin size={14} className="mr-1" /> Shipping Address
+                  <MapPin size={14} className="mr-1" /> Address
                 </h4>
                 <p className="text-gray-800">
                   {order.shippingAddress?.address1 || ""}{" "}
@@ -357,8 +359,7 @@ const OrderDetails = () => {
             </div>
           </div>
         </div>
-
-        {/* Refund Action Box */}
+        {/* Refund Action */}
         {order.status === ORDER_STATUSES.PROCESSING_REFUND && (
           <div className="mt-6 bg-white rounded-lg shadow p-5 border border-yellow-300">
             <h3 className="text-lg font-semibold text-yellow-800 mb-3">
@@ -368,30 +369,27 @@ const OrderDetails = () => {
               Approve or reject the customer's refund request.
             </p>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <select
+              <Select
                 value={refundStatus}
                 onChange={(e) => setRefundStatus(e.target.value)}
-                className="flex-grow border border-gray-300 h-10 rounded-md px-3 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-colors"
+                displayEmpty
+                size="small"
+                fullWidth
+                disabled={isUpdating}
+                sx={{ minWidth: 180, height: "40px" }}
               >
-                <option value={ORDER_STATUSES.PROCESSING_REFUND} disabled>
-                  Select action...
-                </option>
-                <option value={ORDER_STATUSES.REFUND_APPROVED}>
+                <MenuItem value={ORDER_STATUSES.PROCESSING_REFUND} disabled>
+                  <em>Select action...</em>
+                </MenuItem>
+                <MenuItem value={ORDER_STATUSES.REFUND_APPROVED}>
                   Approve Refund
-                </option>
-                <option value={ORDER_STATUSES.REFUND_REJECTED}>
+                </MenuItem>
+                <MenuItem value={ORDER_STATUSES.REFUND_REJECTED}>
                   Reject Refund
-                </option>
-              </select>
-              <button
-                className={`px-5 h-10 rounded-md text-white font-semibold flex items-center justify-center min-w-[120px] transition-colors ${
-                  ![
-                    ORDER_STATUSES.REFUND_APPROVED,
-                    ORDER_STATUSES.REFUND_REJECTED,
-                  ].includes(refundStatus) || isUpdating
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
-                }`}
+                </MenuItem>
+              </Select>
+              <Button
+                variant="contained"
                 onClick={handleRefundUpdate}
                 disabled={
                   ![
@@ -399,15 +397,17 @@ const OrderDetails = () => {
                     ORDER_STATUSES.REFUND_REJECTED,
                   ].includes(refundStatus) || isUpdating
                 }
+                startIcon={
+                  isUpdating ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    <Save size={16} />
+                  )
+                }
+                sx={{ height: "40px", minWidth: "140px" }}
               >
-                {isUpdating ? (
-                  <Loader />
-                ) : (
-                  <>
-                    <Save size={16} className="mr-1.5" /> Confirm Action
-                  </>
-                )}
-              </button>
+                {isUpdating ? "Processing..." : "Confirm Action"}
+              </Button>
             </div>
             {reduxError && (
               <p className="text-red-500 text-xs mt-2">{reduxError}</p>
