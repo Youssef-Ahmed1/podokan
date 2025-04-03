@@ -29,7 +29,7 @@ import {
 } from "../../redux/actions/order";
 import { DesignDownloader } from "../../utils/designDownload";
 import Loader from "../../components/Layout/Loader";
-import { ORDER_STATUSES } from "../../constants/orderStatuses";
+import { ORDER_STATUSES } from "../../constants/orderStatuses.js";
 import {
   Select,
   MenuItem,
