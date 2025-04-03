@@ -4,11 +4,11 @@ import {
   getAllOrdersOfAdmin,
   adminUpdateOrderStatus,
   clearErrors,
-} from "../../redux/actions/order"; // Adjust path
+} from "../redux/actions/order"; // Adjust path
 import { Link } from "react-router-dom";
 import { Eye, Search, Package, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
-import Loader from "../../components/Layout/Loader"; // Adjust path
+import Loader from "../components/Layout/Loader"; // Adjust path
 import { format } from "date-fns";
 import { DataGrid } from "@mui/x-data-grid";
 import {
