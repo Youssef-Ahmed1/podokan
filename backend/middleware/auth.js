@@ -3,217 +3,225 @@ const jwt = require("jsonwebtoken");
 const User = require("../model/user");
 const Shop = require("../model/shop");
 const catchAsyncErrors = require("./catchAsyncErrors");
+const AuthUtils = require("../utils/authUtils"); // Ensure path is correct
 
 /**
- * Extract token from various sources in the request
- * @param {Object} req - Express request object
- * @param {string} tokenName - Name of the token to extract (token or seller_token)
- * @returns {string|null} - The extracted token or null
- */
-const extractToken = (req, tokenName = "token") => {
-  // From cookies
-  if (req.cookies && req.cookies[tokenName]) {
-    return req.cookies[tokenName];
-  }
-
-  // From Authorization header
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    return authHeader.split(" ")[1];
-  }
-
-  // From plain Authorization header
-  if (authHeader) {
-    return authHeader;
-  }
-
-  // From seller-specific header if looking for seller token
-  if (tokenName === "seller_token") {
-    const sellerAuthHeader = req.headers["seller-authorization"];
-    if (sellerAuthHeader && sellerAuthHeader.startsWith("Bearer ")) {
-      return sellerAuthHeader.split(" ")[1];
-    }
-    if (sellerAuthHeader) {
-      return sellerAuthHeader;
-    }
-  }
-
-  return null;
-};
-
-/**
- * Set a new auth token as cookie
- * @param {Object} res - Express response object
- * @param {string} tokenName - Name of the token cookie
- * @param {string} token - The JWT token to set
- * @param {number} expiryDays - Days until token expires
- */
-const setTokenCookie = (res, tokenName, token, expiryDays = 90) => {
-  res.cookie(tokenName, token, {
-    expires: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000),
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-  });
-};
-
-/**
- * Authenticate regular users
+ * Authenticate regular users with token refresh
  */
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
-  try {
-    const token = extractToken(req, "token");
+  const token = AuthUtils.getTokenFromRequest(req, "user");
 
-    if (!token) {
+  if (!token) {
+    console.warn("isAuthenticated: No token found.");
+    return next(
+      new ErrorHandler("Authentication required - please login", 401)
+    );
+  }
+
+  try {
+    // Verify the token first
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const user = await User.findById(decoded.id).select("-password");
+
+    if (!user) {
+      console.warn(
+        `isAuthenticated: User not found for decoded ID: ${decoded.id}`
+      );
+      res.clearCookie("token", AuthUtils.getCookieOptions()); // Clear invalid token cookie
       return next(
-        new ErrorHandler("Authentication required - please login", 401)
+        new ErrorHandler("User associated with token not found", 401)
       );
     }
 
-    console.log("Authentication token found:", token ? "Present" : "Missing");
+    // Normalize role
+    user.role = user.role
+      ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()
+      : "User";
+    req.user = user;
+    next();
+  } catch (tokenError) {
+    // If verification fails (expired or invalid)
+    if (tokenError.name === "TokenExpiredError") {
+      console.log("isAuthenticated: User token expired, attempting refresh...");
+      const decodedExpired = jwt.decode(token); // Decode payload even if expired
 
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-      const user = await User.findById(decoded.id).select("-password");
+      if (decodedExpired && decodedExpired.id) {
+        const user = await User.findById(decodedExpired.id).select("-password");
 
-      if (!user) {
-        return next(new ErrorHandler("User not found or deleted", 401));
-      }
+        // Check if user exists and has the required method (belt-and-suspenders)
+        if (user && typeof user.getJwtToken === "function") {
+          // Generate and set new token
+          const newToken = user.getJwtToken();
+          // Get fresh cookie options from AuthUtils
+          const { cookieOptions } = AuthUtils.generateTokenResponse(user);
 
-      // Normalize role for consistency
-      user.role = user.role
-        ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()
-        : "User";
+          res.cookie("token", newToken, cookieOptions);
+          res.set("Authorization", `Bearer ${newToken}`); // Optionally set header
 
-      req.user = user;
-      next();
-    } catch (tokenError) {
-      if (tokenError.name === "TokenExpiredError") {
-        // For user tokens, we'll implement token refresh
-        const decoded = jwt.decode(token);
+          console.log(
+            "isAuthenticated: User token refreshed successfully for:",
+            user._id
+          );
 
-        if (decoded && decoded.id) {
-          const user = await User.findById(decoded.id).select("-password");
-
-          if (user) {
-            // Generate new token
-            const newToken = jwt.sign(
-              { id: user._id },
-              process.env.JWT_SECRET_KEY,
-              {
-                expiresIn: process.env.JWT_EXPIRES || "90d",
-              }
-            );
-
-            // Set new token in cookie
-            setTokenCookie(res, "token", newToken);
-
-            // Normalize role
-            user.role = user.role
-              ? user.role.charAt(0).toUpperCase() +
-                user.role.slice(1).toLowerCase()
-              : "User";
-
-            req.user = user;
-            return next();
-          }
+          // Proceed with the request using the refreshed user data
+          user.role = user.role
+            ? user.role.charAt(0).toUpperCase() +
+              user.role.slice(1).toLowerCase()
+            : "User";
+          req.user = user;
+          return next();
+        } else {
+          console.warn(
+            `isAuthenticated: User (${decodedExpired.id}) not found or missing getJwtToken during refresh attempt.`
+          );
+          res.clearCookie("token", AuthUtils.getCookieOptions());
+          return next(
+            new ErrorHandler("Invalid session, please login again", 401)
+          );
         }
+      } else {
+        console.warn(
+          "isAuthenticated: Could not decode expired user token for refresh."
+        );
+        res.clearCookie("token", AuthUtils.getCookieOptions());
+        return next(
+          new ErrorHandler("Invalid session, please login again", 401)
+        );
       }
-
-      // Handle other token errors
-      if (tokenError.name === "JsonWebTokenError") {
-        return next(new ErrorHandler("Invalid authentication token", 401));
-      }
-
+    } else if (tokenError.name === "JsonWebTokenError") {
+      console.error("isAuthenticated: Invalid user token:", tokenError.message);
+      res.clearCookie("token", AuthUtils.getCookieOptions());
+      return next(
+        new ErrorHandler(
+          "Invalid authentication token, please login again",
+          401
+        )
+      );
+    } else {
+      // Other unexpected errors during verification
+      console.error(
+        "isAuthenticated: Unhandled token verification error:",
+        tokenError
+      );
+      res.clearCookie("token", AuthUtils.getCookieOptions());
       return next(
         new ErrorHandler(`Authentication error: ${tokenError.message}`, 401)
       );
     }
-  } catch (error) {
-    console.error("Auth error:", error);
-    return next(new ErrorHandler("Authentication failed - server error", 500));
   }
 });
 
 /**
- * Authenticate sellers with auto token refresh
+ * Authenticate sellers with token refresh
  */
 exports.isSeller = catchAsyncErrors(async (req, res, next) => {
-  try {
-    const seller_token = extractToken(req, "seller_token");
+  const seller_token = AuthUtils.getTokenFromRequest(req, "seller");
 
-    if (!seller_token) {
-      return next(new ErrorHandler("Seller authentication required", 401));
+  if (!seller_token) {
+    console.warn("isSeller: No seller token found.");
+    return next(new ErrorHandler("Seller authentication required", 401));
+  }
+
+  try {
+    // Verify token
+    const decoded = jwt.verify(seller_token, process.env.JWT_SECRET_KEY);
+    const seller = await Shop.findById(decoded.id).select("-password");
+
+    if (!seller) {
+      console.warn(`isSeller: Seller not found for decoded ID: ${decoded.id}`);
+      res.clearCookie("seller_token", AuthUtils.getCookieOptions("seller"));
+      return next(new ErrorHandler("Seller account not found", 401));
     }
 
-    console.log(
-      "Seller auth token found:",
-      seller_token ? "Present" : "Missing"
-    );
+    // Check seller status
+    const sellerStatus = (seller.status || "").toLowerCase();
+    if (sellerStatus !== "active" && sellerStatus !== "approved") {
+      console.log(
+        `isSeller: Seller ${seller._id} access denied due to status: ${seller.status}`
+      );
+      return next(
+        new ErrorHandler(
+          `Seller account is not active or approved (${seller.status})`,
+          403
+        )
+      );
+    }
 
-    try {
-      // Try to verify the token
-      const decoded = jwt.verify(seller_token, process.env.JWT_SECRET_KEY);
-      const seller = await Shop.findById(decoded.id).select("-password");
+    req.seller = seller;
+    next();
+  } catch (tokenError) {
+    // Handle expired or invalid token
+    if (tokenError.name === "TokenExpiredError") {
+      console.log("isSeller: Seller token expired, attempting refresh...");
+      const decodedExpired = jwt.decode(seller_token);
 
-      if (!seller) {
-        return next(new ErrorHandler("Seller account not found", 401));
-      }
+      if (decodedExpired && decodedExpired.id) {
+        const seller = await Shop.findById(decodedExpired.id).select(
+          "-password"
+        );
 
-      // Status validation with normalization
-      const sellerStatus = (seller.status || "").toLowerCase();
-      if (sellerStatus !== "active" && sellerStatus !== "approved") {
-        return next(new ErrorHandler("Seller account is not active", 403));
-      }
-
-      req.seller = seller;
-      next();
-    } catch (tokenError) {
-      // Handle expired token with refresh mechanism
-      if (tokenError.name === "TokenExpiredError") {
-        try {
-          // Get data from expired token
-          const decoded = jwt.decode(seller_token);
-
-          if (decoded && decoded.id) {
-            // Find seller without validation
-            const seller = await Shop.findById(decoded.id).select("-password");
-
-            if (seller) {
-              // Check status before refreshing
-              const sellerStatus = (seller.status || "").toLowerCase();
-              if (sellerStatus !== "active" && sellerStatus !== "approved") {
-                return next(
-                  new ErrorHandler("Seller account is not active", 403)
-                );
-              }
-
-              // Generate new token
-              const newToken = jwt.sign(
-                { id: seller._id },
-                process.env.JWT_SECRET_KEY,
-                { expiresIn: process.env.JWT_EXPIRES || "90d" }
-              );
-
-              // Set the new token in cookie
-              setTokenCookie(res, "seller_token", newToken);
-
-              // Attach seller to request
-              req.seller = seller;
-              return next();
-            }
+        // Check if seller exists and has the method
+        if (seller && typeof seller.getJwtToken === "function") {
+          // Check status before refreshing
+          const sellerStatus = (seller.status || "").toLowerCase();
+          if (sellerStatus !== "active" && sellerStatus !== "approved") {
+            console.log(
+              `isSeller: Seller ${seller._id} token refresh denied due to status: ${seller.status}`
+            );
+            return next(
+              new ErrorHandler(
+                `Seller account is not active or approved (${seller.status})`,
+                403
+              )
+            );
           }
-        } catch (refreshError) {
-          console.error("Token refresh error:", refreshError);
-          return next(new ErrorHandler("Seller token refresh failed", 401));
+
+          // Generate and set new token
+          const newToken = seller.getJwtToken();
+          const { cookieOptions } = AuthUtils.generateTokenResponse(
+            seller,
+            "seller"
+          );
+
+          res.cookie("seller_token", newToken, cookieOptions);
+          res.set("Seller-Authorization", `Bearer ${newToken}`);
+
+          console.log(
+            "isSeller: Seller token refreshed successfully for:",
+            seller._id
+          );
+          req.seller = seller;
+          return next();
+        } else {
+          console.warn(
+            `isSeller: Seller (${decodedExpired.id}) not found or missing getJwtToken during refresh attempt.`
+          );
+          res.clearCookie("seller_token", AuthUtils.getCookieOptions("seller"));
+          return next(
+            new ErrorHandler("Invalid seller session, please login again", 401)
+          );
         }
+      } else {
+        console.warn(
+          "isSeller: Could not decode expired seller token for refresh."
+        );
+        res.clearCookie("seller_token", AuthUtils.getCookieOptions("seller"));
+        return next(
+          new ErrorHandler("Invalid seller session, please login again", 401)
+        );
       }
-
-      // Handle other token errors
-      if (tokenError.name === "JsonWebTokenError") {
-        return next(new ErrorHandler("Invalid seller token", 401));
-      }
-
+    } else if (tokenError.name === "JsonWebTokenError") {
+      console.error("isSeller: Invalid seller token:", tokenError.message);
+      res.clearCookie("seller_token", AuthUtils.getCookieOptions("seller"));
+      return next(
+        new ErrorHandler("Invalid seller token, please login again", 401)
+      );
+    } else {
+      console.error(
+        "isSeller: Unhandled token verification error:",
+        tokenError
+      );
+      res.clearCookie("seller_token", AuthUtils.getCookieOptions("seller"));
       return next(
         new ErrorHandler(
           `Seller authentication error: ${tokenError.message}`,
@@ -221,11 +229,6 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
         )
       );
     }
-  } catch (error) {
-    console.error("Seller auth error:", error);
-    return next(
-      new ErrorHandler("Seller authentication failed - server error", 500)
-    );
   }
 });
 
@@ -233,57 +236,28 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
  * Admin authorization middleware
  */
 exports.isAdmin = catchAsyncErrors(async (req, res, next) => {
-  try {
-    if (!req.user) {
-      return next(
-        new ErrorHandler("Authentication required before admin check", 401)
-      );
-    }
-
-    // Case-insensitive role check
-    const userRole = (req.user.role || "").toLowerCase();
-
-    console.log("Admin auth check:", {
-      userId: req.user._id,
-      role: req.user.role,
-      normalizedRole: userRole,
-    });
-
-    if (userRole !== "admin") {
-      return next(
-        new ErrorHandler("Access denied: Admin privileges required", 403)
-      );
-    }
-
-    console.log("Admin role check passed for user:", req.user._id);
-    next();
-  } catch (error) {
-    console.error("Admin auth error:", error);
-    return next(new ErrorHandler("Admin authorization failed", 500));
+  // This middleware MUST run AFTER isAuthenticated
+  if (!req.user) {
+    console.warn(
+      "isAdmin: req.user not found. Ensure isAuthenticated runs first."
+    );
+    return next(
+      new ErrorHandler("Authentication required before admin check", 401)
+    );
   }
+
+  const userRole = (req.user.role || "").toLowerCase();
+
+  if (userRole !== "admin") {
+    return next(
+      new ErrorHandler(
+        `Access denied: Admin privileges required. Your role: ${
+          req.user.role || "None"
+        }`,
+        403
+      )
+    );
+  }
+
+  next();
 });
-
-/**
- * Validate permissions for a specific resource
- * @param {Function} permissionFn - Function that checks if the user has permission
- */
-exports.hasPermission = (permissionFn) => {
-  return catchAsyncErrors(async (req, res, next) => {
-    if (!req.user) {
-      return next(new ErrorHandler("Authentication required", 401));
-    }
-
-    const hasAccess = await permissionFn(req);
-
-    if (!hasAccess) {
-      return next(
-        new ErrorHandler(
-          "You don't have permission to access this resource",
-          403
-        )
-      );
-    }
-
-    next();
-  });
-};

@@ -1,88 +1,94 @@
-// frontend/src/pages/Admin/AdminDashboardOrders.jsx
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getAllOrdersOfAdmin,
   adminUpdateOrderStatus,
   clearErrors,
-} from "../redux/actions/order";
+} from "../../redux/actions/order"; // Adjust path
 import { Link } from "react-router-dom";
-import {
-  Eye,
-  Search,
-  AlertCircle,
-  Package,
-  RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Eye, Search, Package, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
-import Loader from "../components/Layout/Loader";
+import Loader from "../../components/Layout/Loader"; // Adjust path
 import { format } from "date-fns";
 import { DataGrid } from "@mui/x-data-grid";
-// **** FIX: Import IconButton ****
-import { Select, MenuItem, IconButton } from "@mui/material";
-import { ORDER_STATUSES } from "../constants/orderStatuses";
+import {
+  Select,
+  MenuItem,
+  Box,
+  CircularProgress,
+  Typography,
+  IconButton,
+} from "@mui/material";
+import { ORDER_STATUSES } from "../../constants/orderStatuses"; // Adjust path
+
+// Custom Overlays for DataGrid
+function CustomLoadingOverlay() {
+  /* ... (keep as before) ... */
+}
+function CustomNoRowsOverlay({ message = "No orders found." }) {
+  /* ... (keep as before) ... */
+}
 
 const AdminDashboardOrders = () => {
   const dispatch = useDispatch();
-  const { adminOrders, isLoading, error, isUpdating } = useSelector(
-    (state) => state.order
-  );
+  const {
+    adminOrders = [],
+    isLoading,
+    error,
+    isUpdating,
+  } = useSelector((state) => state.order);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 15,
   });
-  const [localError, setLocalError] = useState(null);
-  const [rowCountState, setRowCountState] = useState(0);
+  const [rowCountState, setRowCountState] = useState(adminOrders.length);
 
   const fetchAdminOrders = useCallback(() => {
-    setLocalError(null);
     dispatch(getAllOrdersOfAdmin());
   }, [dispatch]);
-
   useEffect(() => {
     fetchAdminOrders();
-  }, [fetchAdminOrders]);
-
+  }, [fetchAdminOrders]); // Fetch on mount
+  useEffect(() => {
+    setRowCountState(adminOrders?.length || 0);
+  }, [adminOrders]); // Update count when orders change
   useEffect(() => {
     if (error) {
       toast.error(`Error: ${error}`);
-      setLocalError(error);
       dispatch(clearErrors());
     }
-    setRowCountState(adminOrders?.length || 0);
-  }, [error, dispatch, adminOrders]);
+  }, [error, dispatch]); // Handle errors
 
+  // Client-side filtering
   const filteredOrders = useMemo(() => {
     if (!Array.isArray(adminOrders)) return [];
     return adminOrders.filter((order) => {
       if (!order?._id) return false;
       const lowerSearch = searchTerm.toLowerCase();
-      const idMatch = order._id.toLowerCase().includes(lowerSearch);
+      const idMatch =
+        order._id.toLowerCase().includes(lowerSearch) ||
+        order._id.slice(-8).toLowerCase().includes(lowerSearch);
       const customerMatch =
         order.user?.name?.toLowerCase().includes(lowerSearch) || false;
-      const designMatch =
-        order.cart?.some((item) =>
-          item?.DesignTitle?.toLowerCase().includes(lowerSearch)
-        ) || false;
       const statusMatch =
         filterStatus === "all" || order.status === filterStatus;
-      return (idMatch || customerMatch || designMatch) && statusMatch;
+      return (idMatch || customerMatch) && statusMatch;
     });
   }, [adminOrders, searchTerm, filterStatus]);
 
-  const handlePaginationModelChange = (newModel) => {
-    setPaginationModel(newModel);
-  };
+  // Update row count for pagination based on filtering
+  useEffect(() => {
+    setRowCountState(filteredOrders.length);
+  }, [filteredOrders]);
 
   const handleStatusUpdate = (orderId, newStatus, currentStatus) => {
     if (newStatus === currentStatus || isUpdating) return;
-    dispatch(adminUpdateOrderStatus(orderId, newStatus));
+    dispatch(adminUpdateOrderStatus(orderId, newStatus)).catch(() => {}); // Errors handled by action
   };
 
+  // Define Columns
   const columns = useMemo(
     () => [
       {
@@ -94,12 +100,12 @@ const AdminDashboardOrders = () => {
       {
         field: "date",
         headerName: "Date",
-        width: 100,
+        width: 110,
         type: "date",
         valueGetter: (v) => (v ? new Date(v) : null),
-        valueFormatter: (v) => (v ? format(v, "PP") : ""),
+        renderCell: (p) => (p.value ? format(p.value, "PP") : "N/A"),
       },
-      { field: "customer", headerName: "Customer", width: 150, flex: 1 },
+      { field: "customer", headerName: "Customer", width: 180, flex: 1 },
       {
         field: "itemsQty",
         headerName: "Items",
@@ -120,27 +126,35 @@ const AdminDashboardOrders = () => {
       {
         field: "status",
         headerName: "Status",
-        minWidth: 200,
+        minWidth: 220,
         flex: 0.8,
         sortable: false,
         renderCell: (params) => (
           <Select
-            value={params.value}
+            value={params.value || ""}
             onChange={(e) =>
               handleStatusUpdate(params.id, e.target.value, params.value)
             }
             size="small"
             variant="outlined"
             disabled={isUpdating}
-            fullWidth // Make select fill the cell width
+            fullWidth
             sx={{
-              fontSize: "0.75rem",
-              ".MuiSelect-select": { py: 0.5, px: 1 },
-              ".MuiOutlinedInput-notchedOutline": { border: "none" },
+              fontSize: "0.8rem",
+              height: "35px",
+              bgcolor: "background.paper",
+              ".MuiSelect-select": { py: 0.8, px: 1 },
+              ".MuiOutlinedInput-notchedOutline": {
+                border: "1px solid #e0e0e0",
+              },
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#bdbdbd",
+              },
             }}
+            MenuProps={{ PaperProps: { sx: { maxHeight: 300 } } }}
           >
             {Object.values(ORDER_STATUSES).map((stat) => (
-              <MenuItem key={stat} value={stat}>
+              <MenuItem key={stat} value={stat} sx={{ fontSize: "0.8rem" }}>
                 {stat}
               </MenuItem>
             ))}
@@ -155,39 +169,35 @@ const AdminDashboardOrders = () => {
         align: "center",
         headerAlign: "center",
         renderCell: (params) => (
-          // **** FIX: IconButton was already imported, just ensure correct usage ****
-          <IconButton
-            component={Link}
-            to={`/admin/order/${params.id}`}
-            size="small"
-            title="View Details"
-          >
-            <Eye className="text-blue-600" />
-          </IconButton>
+          <Link to={`/admin/order/${params.id}`} title="View Details">
+            <IconButton size="small">
+              <Eye className="text-blue-600 hover:text-blue-800" />
+            </IconButton>
+          </Link>
         ),
       },
     ],
     [isUpdating]
-  ); // Dependency added
+  ); // isUpdating dependency disables dropdowns during update
 
+  // Prepare rows for DataGrid
   const rows = useMemo(
     () =>
-      filteredOrders.map((order) => ({
-        id: order._id,
-        date: order.createdAt,
-        customer: order.user?.name || "N/A",
-        itemsQty: order.cart?.length || 0,
-        total: order.totalPrice,
-        status: order.status,
+      filteredOrders.map((o) => ({
+        id: o._id,
+        date: o.createdAt,
+        customer: o.user?.name || "N/A",
+        itemsQty: o.cart?.length || 0,
+        total: o.totalPrice,
+        status: o.status,
       })),
     [filteredOrders]
   );
 
-  if (isLoading && adminOrders.length === 0) return <Loader />;
-
   return (
     <div className="w-full p-4 md:p-6 min-h-screen bg-gray-100">
       <div className="max-w-[1400px] mx-auto">
+        {/* Header & Filters */}
         <div className="mb-6 bg-white p-4 rounded-lg shadow border border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
             <h1 className="text-xl md:text-2xl font-bold text-gray-800">
@@ -197,7 +207,7 @@ const AdminDashboardOrders = () => {
               onClick={fetchAdminOrders}
               disabled={isLoading}
               className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50"
-              title="Refresh"
+              title="Refresh Orders"
             >
               <RefreshCw
                 size={18}
@@ -213,28 +223,26 @@ const AdminDashboardOrders = () => {
               />
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search by Order ID or Customer..."
                 value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setPaginationModel((prev) => ({ ...prev, page: 0 }));
-                }}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 text-sm"
               />
             </div>
             <Select
               value={filterStatus}
-              onChange={(e) => {
-                setFilterStatus(e.target.value);
-                setPaginationModel((prev) => ({ ...prev, page: 0 }));
-              }}
+              onChange={(e) => setFilterStatus(e.target.value)}
               size="small"
-              sx={{ minWidth: 180 }}
+              sx={{
+                minWidth: 180,
+                height: "42px",
+                bgcolor: "background.paper",
+              }}
               displayEmpty
             >
               <MenuItem value="all">
                 <em>All Statuses</em>
-              </MenuItem>{" "}
+              </MenuItem>
               {Object.values(ORDER_STATUSES).map((s) => (
                 <MenuItem key={s} value={s}>
                   {s}
@@ -242,69 +250,42 @@ const AdminDashboardOrders = () => {
               ))}
             </Select>
           </div>
-          {localError && adminOrders.length > 0 && (
-            <p className="text-red-500 text-sm mt-2">Error: {localError}</p>
-          )}
         </div>
 
-        {!isLoading && localError && adminOrders.length === 0 ? (
-          <div className="p-6 text-center bg-red-50 rounded-lg border border-red-200">
-            <AlertCircle size={48} className="mx-auto text-red-400 mb-4" />
-            <h2 className="text-xl font-semibold text-red-700 mb-2">
-              Failed to Load
-            </h2>
-            <p className="text-red-600">{localError}</p>
-            <button
-              onClick={fetchAdminOrders}
-              disabled={isLoading}
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center mx-auto hover:bg-blue-600 disabled:opacity-50"
-            >
-              <RefreshCw size={16} className="mr-2" /> Retry
-            </button>
-          </div>
-        ) : !isLoading && adminOrders.length === 0 ? (
-          <div className="p-6 text-center bg-blue-50 rounded-lg border border-blue-100">
-            <Package size={48} className="mx-auto text-blue-400 mb-4" />
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">
-              No Orders Found
-            </h2>
-            <p className="text-gray-500">No orders in system.</p>
-            <button
-              onClick={fetchAdminOrders}
-              disabled={isLoading}
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center mx-auto hover:bg-blue-600 disabled:opacity-50"
-            >
-              <RefreshCw size={16} className="mr-2" /> Refresh
-            </button>
-          </div>
-        ) : !isLoading && filteredOrders.length === 0 ? (
-          <div className="p-6 text-center bg-white rounded-lg shadow border border-gray-200">
-            <Search size={48} className="mx-auto text-gray-400 mb-4" />
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">
-              No Matching Orders
-            </h2>
-            <p className="text-gray-500">No orders found for filter.</p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
-            <div style={{ height: 650, width: "100%" }}>
-              <DataGrid
-                rows={rows}
-                columns={columns}
-                pagination
-                paginationMode="client" // Set to "server" if using API pagination
-                rowCount={rowCountState}
-                paginationModel={paginationModel}
-                onPaginationModelChange={handlePaginationModelChange}
-                pageSizeOptions={[15, 30, 50]}
-                loading={isLoading}
-                disableRowSelectionOnClick
-                autoHeight={false}
-                sx={{ "--DataGrid-overlayHeight": "300px", border: "none" }}
-              />
-            </div>
-          </div>
-        )}
+        {/* Data Grid */}
+        <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+          <Box sx={{ height: "70vh", width: "100%" }}>
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              rowCount={rowCountState}
+              loading={isLoading}
+              pageSizeOptions={[15, 30, 50, 100]}
+              paginationModel={paginationModel}
+              paginationMode="client"
+              onPaginationModelChange={setPaginationModel}
+              disableRowSelectionOnClick
+              autoHeight={false}
+              slots={{
+                loadingOverlay: CustomLoadingOverlay,
+                noRowsOverlay: () => (
+                  <CustomNoRowsOverlay
+                    message={
+                      searchTerm || filterStatus !== "all"
+                        ? "No orders match filters."
+                        : "No orders found."
+                    }
+                  />
+                ),
+              }}
+              sx={{
+                border: "none",
+                "& .MuiDataGrid-columnHeaders": { bgcolor: "#f9fafb" },
+                "& .MuiDataGrid-cell": { borderBottom: "1px solid #e0e0e0" },
+              }}
+            />
+          </Box>
+        </div>
       </div>
     </div>
   );

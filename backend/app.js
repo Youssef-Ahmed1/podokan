@@ -1,58 +1,46 @@
 const express = require("express");
-const ErrorHandler = require("./middleware/error");
 const cookieParser = require("cookie-parser");
-const bodyParser = require("body-parser");
 const cors = require("cors");
 const path = require("path");
-const compression = require('compression');
-const helmet = require('helmet');
-const morgan = require('morgan');
+const compression = require("compression");
+const helmet = require("helmet");
+const morgan = require("morgan");
+const ErrorHandler = require("./middleware/error"); // Assuming this path is correct
 
 const app = express();
 
-// Security Configurations
+// --- Middleware ---
+const allowedOrigins =
+  process.env.NODE_ENV === "production"
+    ? (process.env.CORS_ORIGIN || "https://testpodokan.store").split(",")
+    : ["http://localhost:3000"];
+
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'PRODUCTION' 
-    ? ['https://testpodokan.store']
-    : ['http://localhost:3000'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Seller-Authorization'],
-  exposedHeaders: ['Authorization', 'Seller-Authorization']
-};
-
-app.use(cors(corsOptions));
-
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      connectSrc: ["'self'", 'https://testpodokan.store', 'https://res.cloudinary.com'],
-      imgSrc: ["'self'", 'https:', 'data:', 'blob:'],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-    }
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) callback(null, true);
+    else callback(new Error("Not allowed by CORS"));
   },
-  crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: { policy: "cross-origin" }
-}));
-
-// Body Parser Configuration
-app.use(express.json({ limit: '50mb' }));
-app.use(cookieParser());
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
-
-// Static files
-app.use(express.static(path.join(__dirname, '../frontend/build')));
-
-// API Routes with error handling wrapper
-const asyncHandler = fn => (req, res, next) => {
-  return Promise.resolve(fn(req, res, next)).catch(next);
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "Seller-Authorization"],
+  exposedHeaders: ["Authorization", "Seller-Authorization"],
 };
+app.use(cors(corsOptions));
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+app.use(morgan("dev"));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(cookieParser());
+app.use(compression());
 
-// Import all routes
-const routes = {
+// --- API Routes ---
+const apiRoutes = {
   user: require("./controller/user"),
   shop: require("./controller/shop"),
   product: require("./controller/product"),
@@ -62,78 +50,57 @@ const routes = {
   order: require("./controller/order"),
   conversation: require("./controller/conversation"),
   message: require("./controller/message"),
-  withdraw: require("./controller/withdraw")
+  withdraw: require("./controller/withdraw"),
 };
-
-// Mount API routes - FIXED VERSION
-Object.entries(routes).forEach(([name, router]) => {
-  if (typeof router === 'function') {
-    // If router is a middleware function, use it directly
+Object.entries(apiRoutes).forEach(([name, router]) => {
+  if (router && typeof router === "function")
     app.use(`/api/v2/${name}`, router);
-  } else if (router.router && typeof router.router.use === 'function') {
-    // If router has a router property (Express Router instance)
-    app.use(`/api/v2/${name}`, router.router);
-  } else {
-    console.warn(`Warning: Invalid router for ${name}`);
-  }
+  else console.warn(`API route for '/api/v2/${name}' is invalid.`);
 });
+app.get("/api/v2", (req, res) =>
+  res.status(200).json({ message: "API V2 Active" })
+);
 
-// API Documentation
-app.get('/api/v2', (req, res) => {
-  res.json({
-    status: 'active',
-    version: '2.0',
-    endpoints: Object.keys(routes).map(route => ({
-      path: `/api/v2/${route}`,
-      methods: ['GET', 'POST', 'PUT', 'DELETE']
-    }))
+// --- Frontend Serving ---
+// Correctly resolve the path to the frontend build directory
+const frontendBuildPath = path.resolve(__dirname, "../frontend/build");
+console.log(`Serving static files from: ${frontendBuildPath}`);
+app.use(express.static(frontendBuildPath));
+
+// Health check
+app.get("/health", (req, res) => res.status(200).json({ status: "healthy" }));
+
+// SPA Fallback
+app.get("*", (req, res, next) => {
+  if (req.originalUrl.startsWith("/api/")) return next(); // Skip API calls
+  const indexPath = path.resolve(frontendBuildPath, "index.html");
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error(
+        `Error sending index.html for ${req.originalUrl}:`,
+        err.message
+      );
+      if (err.code === "ENOENT")
+        res.status(404).send("Application entry point not found.");
+      else res.status(500).send("Error loading application.");
+    }
   });
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
-});
+// --- Error Handling ---
+app.use(ErrorHandler);
 
-// Serve React app for all other routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
-});
-
-// Error Handling
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  
-  if (res.headersSent) {
-    return next(err);
-  }
-
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || 'Internal Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
-});
-
-// Handle Uncaught Exceptions
+// --- Process Event Handlers ---
 process.on("uncaughtException", (err) => {
-  console.error('Uncaught Exception:', err);
+  console.error(`UNCAUGHT EXCEPTION! 💥 Shutting down...\n`, err);
   process.exit(1);
 });
-
-// Handle Unhandled Promise Rejections
 process.on("unhandledRejection", (err) => {
-  console.error('Unhandled Rejection:', err);
+  console.error(`UNHANDLED REJECTION! 💥 Shutting down...\n`, err);
   process.exit(1);
 });
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('Received SIGTERM. Performing graceful shutdown...');
+process.on("SIGTERM", () => {
+  console.log("👋 SIGTERM RECEIVED. Shutting down...");
   process.exit(0);
 });
 
