@@ -5,7 +5,7 @@ import {
   getAllOrdersOfAdmin,
   adminUpdateOrderStatus,
   clearErrors,
-} from "../../redux/actions/order"; // Adjust path
+} from "../redux/actions/order"; // Adjust path
 import { Link } from "react-router-dom";
 import { Eye, Search, Package, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
@@ -20,7 +20,7 @@ import {
   Typography,
   IconButton,
 } from "@mui/material";
-import { ORDER_STATUSES } from "../../constants/orderStatuses"; // Adjust path
+import { ORDER_STATUSES } from "../constants/orderStatuses.js";
 
 // Custom Overlays for DataGrid
 function CustomLoadingOverlay() {
