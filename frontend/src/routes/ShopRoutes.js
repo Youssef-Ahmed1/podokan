@@ -7,8 +7,8 @@ import ShopCreateEvents from "../pages/Shop/ShopCreateEvents";
 import ShopAllEvents from "../pages/Shop/ShopAllEvents";
 import ShopAllCoupouns from "../pages/Shop/ShopAllCoupouns"; // Check spelling consistency
 import ShopPreviewPage from "../pages/Shop/ShopPreviewPage";
-import ShopAllOrders from "../pages/Shop/AllOrders"; // Corrected component name
-import ShopOrderDetails from "../pages/Shop/OrderDetails"; // Corrected component name
+import ShopAllOrders from "../pages/Shop/ShopAllOrders";
+import ShopOrderDetails from "../pages/Shop/ShopOrderDetails"; 
 import ShopAllRefunds from "../pages/Shop/ShopAllRefunds";
 import ShopSettingsPage from "../pages/Shop/ShopSettingsPage";
 import ShopWithDrawMoneyPage from "../pages/Shop/ShopWithDrawMoneyPage";
