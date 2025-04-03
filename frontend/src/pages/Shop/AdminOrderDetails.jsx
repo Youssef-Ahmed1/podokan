@@ -26,11 +26,11 @@ import {
   adminGetDesignDataForDownload,
   getOrderDetails,
   clearErrors,
-} from "../../redux/actions/order"; // Adjust path
-import { server } from "../../server"; // Adjust path
-import { DesignDownloader } from "../../utils/designDownload"; // Adjust path
-import Loader from "../../components/Layout/Loader"; // Adjust path
-import { ORDER_STATUSES } from "../../constants/orderStatuses"; // Adjust path
+} from "../../redux/actions/order";
+import { server } from "../../server";
+import { DesignDownloader } from "../../utils/designDownload";
+import Loader from "../../components/Layout/Loader";
+import { ORDER_STATUSES } from "../../constants/orderStatuses"; 
 import {
   Select,
   MenuItem,
