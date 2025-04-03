@@ -1,3 +1,4 @@
+// frontend/src/pages/UserOrderDetails.jsx
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, Link, useNavigate } from "react-router-dom";
@@ -14,12 +15,11 @@ import {
   Phone,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { getOrderDetails, clearErrors } from "../redux/actions/order";
-import Loader from "../components/Layout/Loader";
-import styles from "../styles/styles";
+import { getOrderDetails, clearErrors } from "../redux/actions/order"; // Adjust path if needed
+import Loader from "../components/Layout/Loader"; // Adjust path if needed
+import styles from "../styles/styles"; // Adjust path if needed
 
 const UserOrderDetails = () => {
-  // Select the specific order and loading state from Redux
   const {
     order: currentOrder,
     isDetailLoading,
@@ -28,39 +28,42 @@ const UserOrderDetails = () => {
   const { user, isAuthenticated } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { id } = useParams(); // Get order ID from URL
+  const { id } = useParams(); // Order ID from URL
 
+  // Effect to fetch order details
   useEffect(() => {
     dispatch(clearErrors()); // Clear previous errors on mount/ID change
     if (!isAuthenticated) {
       toast.info("Please login to view order details.");
       navigate("/login");
     } else if (id) {
-      // Fetch details for the specific order ID
-      dispatch(getOrderDetails(id));
+      dispatch(getOrderDetails(id)); // Fetch details for the specific order
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, id, isAuthenticated, navigate]); // Dependencies
+  }, [dispatch, id, isAuthenticated, navigate]); // Re-run if these change
 
+  // Effect to handle errors from the Redux state
   useEffect(() => {
-    // Handle errors during detail fetching
     if (detailError) {
       toast.error(detailError);
-      // Navigate back to profile if order not found or forbidden
       if (
         detailError.includes("not found") ||
         detailError.includes("Forbidden")
       ) {
-        navigate("/profile");
+        navigate("/profile"); // Redirect to orders list on critical errors
       }
-      dispatch(clearErrors()); // Clear the error after handling
+      dispatch(clearErrors()); // Clear error after handling
     }
   }, [detailError, dispatch, navigate]);
 
-  // Loading state
-  if (isDetailLoading) return <Loader />;
+  // --- Render Logic ---
 
-  // Order not found or error state after loading finished
+  // Loading State
+  if (isDetailLoading) {
+    return <Loader />;
+  }
+
+  // Order Not Found or Error State
   if (!currentOrder && !isDetailLoading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
@@ -69,7 +72,8 @@ const UserOrderDetails = () => {
           Order Details Unavailable
         </h2>
         <p className="text-gray-600 mt-2">
-          Could not load details for order ID: {id}.
+          Could not load details for order ID: {id}. It may not exist or you may
+          not have permission.
         </p>
         <Link
           to="/profile"
@@ -81,7 +85,7 @@ const UserOrderDetails = () => {
     );
   }
 
-  // Calculations using data from the Redux state `currentOrder`
+  // Calculations (safe with defaults)
   const subtotal = currentOrder.subtotal ?? 0;
   const shippingCost = currentOrder.shippingCost ?? 0;
   const total = currentOrder.totalPrice ?? subtotal + shippingCost;
@@ -89,6 +93,8 @@ const UserOrderDetails = () => {
 
   return (
     <div className={`${styles.section} py-8 font-sans`}>
+      {" "}
+      {/* Ensure styles.section provides padding etc. */}
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -111,9 +117,12 @@ const UserOrderDetails = () => {
         <div className="bg-white rounded-lg shadow-sm p-5 mb-6 border border-gray-200">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h2 className="text-lg md:text-xl font-semibold text-gray-800 flex items-center">
-                <ShoppingBag size={20} className="mr-2 text-blue-600" /> Order #
-                {currentOrder._id?.slice(-8) || "N/A"}
+              <h2 className="text-lg md:text-xl font-semibold text-gray-800 flex items-center gap-2">
+                <ShoppingBag
+                  size={20}
+                  className="text-blue-600 flex-shrink-0"
+                />{" "}
+                Order #{currentOrder._id?.slice(-8) || "N/A"}
               </h2>
               <p className="text-gray-500 text-sm mt-1">
                 Placed:{" "}
@@ -144,6 +153,7 @@ const UserOrderDetails = () => {
               </p>
             </div>
           </div>
+          {/* Track Order Link */}
           {currentOrder.status !== "Processing" &&
             currentOrder.status !== "Cancelled" &&
             !currentOrder.status?.includes("Refund") && (
@@ -167,21 +177,39 @@ const UserOrderDetails = () => {
             {cartItems.map((item) => (
               <div
                 key={item._id || Math.random()}
-                className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 flex flex-col sm:flex-row gap-4"
+                className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 flex flex-col sm:flex-row gap-4 items-start"
               >
                 <div className="w-full sm:w-24 h-24 flex-shrink-0 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden border">
                   {item.designImage?.url ? (
-                    <img
-                      src={item.designImage.url}
-                      alt={item.DesignTitle || "Design"}
-                      className="w-full h-full object-contain"
-                    />
+                    <>
+                      <img
+                        src={item.designImage.url}
+                        alt={item.DesignTitle || "Design"}
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          e.target.style.display = "none";
+                          if (e.target.nextSibling)
+                            e.target.nextSibling.style.display = "flex";
+                        }}
+                      />
+                      {/* Fallback shown on error */}
+                      <div className="w-full h-full items-center justify-center text-center text-gray-400 hidden">
+                        <AlertTriangle size={24} />
+                        <span className="text-xs block mt-1">
+                          Image
+                          <br />
+                          Error
+                        </span>
+                      </div>
+                    </>
                   ) : (
-                    <AlertTriangle size={24} className="text-gray-400" />
+                    <div className="w-full h-full flex items-center justify-center text-center text-gray-400">
+                      <AlertTriangle size={24} title="Image URL Missing" />
+                    </div>
                   )}
                 </div>
                 <div className="flex-grow">
-                  <h3 className="text-md font-semibold text-gray-800 mb-1">
+                  <h3 className="text-md font-semibold text-gray-800 mb-1 leading-snug">
                     {item.DesignTitle || "N/A"}
                   </h3>
                   <p className="text-xs text-gray-500 mb-1">
@@ -215,12 +243,12 @@ const UserOrderDetails = () => {
           </div>
         </div>
 
-        {/* Shipping & Payment Grid */}
+        {/* Shipping & Payment */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-              <MapPin className="mr-2 text-blue-600" size={18} /> Shipping
-              Address
+            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+              <MapPin className="text-blue-600 flex-shrink-0" size={18} />{" "}
+              Shipping Address
             </h3>
             <div className="text-sm text-gray-700 space-y-1">
               <p>
@@ -234,16 +262,16 @@ const UserOrderDetails = () => {
                 {currentOrder.shippingAddress?.country || "N/A"}{" "}
                 {currentOrder.shippingAddress?.postalCode || ""}
               </p>
-              <p className="flex items-center pt-1">
-                <Phone size={14} className="mr-1.5 text-gray-500" />{" "}
+              <p className="flex items-center pt-1 gap-1.5">
+                <Phone size={14} className="text-gray-500 flex-shrink-0" />{" "}
                 {currentOrder.shippingAddress?.phoneNumber || "N/A"}
               </p>
             </div>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-              <CreditCard className="mr-2 text-blue-600" size={18} /> Payment
-              Information
+            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+              <CreditCard className="text-blue-600 flex-shrink-0" size={18} />{" "}
+              Payment Information
             </h3>
             <div className="space-y-2 text-sm">
               <div>
@@ -277,7 +305,7 @@ const UserOrderDetails = () => {
           </div>
         </div>
 
-        {/* Order Totals Summary */}
+        {/* Totals */}
         <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100 mb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-3">
             Order Summary
@@ -298,12 +326,13 @@ const UserOrderDetails = () => {
           </div>
         </div>
 
-        {/* Order History */}
+        {/* History */}
         {currentOrder.statusHistory &&
           currentOrder.statusHistory.length > 0 && (
             <div className="mt-6 bg-white rounded-lg shadow-sm p-5 border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                <Clock className="mr-2 text-blue-600" size={18} /> Order History
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <Clock className="text-blue-600 flex-shrink-0" size={18} />{" "}
+                Order History
               </h3>
               <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
                 {[...currentOrder.statusHistory].reverse().map((s, index) => (
@@ -322,7 +351,7 @@ const UserOrderDetails = () => {
                         {s.updatedBy && ` by ${s.updatedBy.split(":")[0]}`}
                       </p>
                       {s.details && (
-                        <p className="text-xs text-gray-600 mt-0.5 italic bg-gray-50 p-1 rounded">
+                        <p className="text-xs text-gray-600 mt-0.5 italic bg-gray-50 p-1 rounded border border-gray-100">
                           "{s.details}"
                         </p>
                       )}
