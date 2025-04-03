@@ -15,7 +15,7 @@ import { toast } from "react-toastify";
 import { getAllOrdersOfShop, clearErrors } from "../../redux/actions/order"; // Adjust path
 import Loader from "../../components/Layout/Loader"; // Adjust path
 import { format } from "date-fns";
-import { ORDER_STATUSES } from "../../constants/orderStatuses"; // Adjust path
+import { ORDER_STATUSES } from "../../constants/orderStatuses.js"; // Adjust path
 
 const AllOrders = () => {
   const dispatch = useDispatch();
