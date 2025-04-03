@@ -5,11 +5,11 @@ import {
   getAllOrdersOfAdmin,
   adminUpdateOrderStatus,
   clearErrors,
-} from "../redux/actions/order"; // Adjust path
+} from "../../redux/actions/order"; // Adjust path
 import { Link } from "react-router-dom";
 import { Eye, Search, Package, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
-import Loader from "../components/Layout/Loader"; // Adjust path
+import Loader from "../../components/Layout/Loader"; // Adjust path
 import { format } from "date-fns";
 import { DataGrid } from "@mui/x-data-grid";
 import {
@@ -20,9 +20,9 @@ import {
   Typography,
   IconButton,
 } from "@mui/material";
-import { ORDER_STATUSES } from "../constants/orderStatuses.js"; // Adjust path
+import { ORDER_STATUSES } from "../../constants/orderStatuses"; // Adjust path
 
-// Custom DataGrid Overlays
+// Custom Overlays for DataGrid
 function CustomLoadingOverlay() {
   return (
     <Box
@@ -63,28 +63,37 @@ function CustomNoRowsOverlay({ message = "No orders found." }) {
 
 const AdminDashboardOrders = () => {
   const dispatch = useDispatch();
+  // Select pagination state along with orders and loading/error states
   const {
     adminOrders = [],
     isLoading,
     error,
     isUpdating,
+    adminTotalOrders, // Total count for pagination
+    // adminCurrentPage, // Current page from state (can be used if needed)
+    // adminTotalPages, // Total pages from state (can be used if needed)
+    adminLimit, // Items per page from state
   } = useSelector((state) => state.order);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  // Local pagination state controlled by DataGrid
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 15,
-  });
-  // Row count state for DataGrid, derived from filtered data
-  const [rowCountState, setRowCountState] = useState(0);
+    pageSize: adminLimit || 15,
+  }); // Use page 0 for MUI, default pageSize
 
-  // Fetching Logic
+  // Fetching Logic - fetch based on current pagination model
   const fetchAdminOrders = useCallback(() => {
-    dispatch(getAllOrdersOfAdmin());
-  }, [dispatch]);
+    // Convert MUI page (0-based) to API page (1-based)
+    const apiPage = paginationModel.page + 1;
+    const apiLimit = paginationModel.pageSize;
+    dispatch(getAllOrdersOfAdmin(apiPage, apiLimit));
+  }, [dispatch, paginationModel.page, paginationModel.pageSize]);
+
   useEffect(() => {
     fetchAdminOrders();
-  }, [fetchAdminOrders]);
+  }, [fetchAdminOrders]); // Fetch when page/pageSize changes
 
   // Error Handling
   useEffect(() => {
@@ -94,7 +103,9 @@ const AdminDashboardOrders = () => {
     }
   }, [error, dispatch]);
 
-  // Filtering Logic (Client-Side)
+  // Filtering Logic (Client-Side - Note: For large datasets, filtering should ideally be done on the backend)
+  // This filter runs *after* the backend has returned the paginated data for the *current* page.
+  // If you want to filter across ALL orders, you'd need backend filtering support.
   const filteredOrders = useMemo(() => {
     if (!Array.isArray(adminOrders)) return [];
     return adminOrders.filter((order) => {
@@ -109,22 +120,21 @@ const AdminDashboardOrders = () => {
         filterStatus === "all" || order.status === filterStatus;
       return (idMatch || customerMatch) && statusMatch;
     });
-  }, [adminOrders, searchTerm, filterStatus]);
+  }, [adminOrders, searchTerm, filterStatus]); // Depends on the current page's orders
 
-  // Update Row Count for Pagination when Filtered Data Changes
-  useEffect(() => {
-    setRowCountState(filteredOrders.length);
-  }, [filteredOrders]);
-
-  // Handler for Status Update Dropdown
+  // Status Update Handler
   const handleStatusUpdate = (orderId, newStatus, currentStatus) => {
     if (newStatus === currentStatus || isUpdating) return;
-    dispatch(adminUpdateOrderStatus(orderId, newStatus)).catch(() => {
-      /* Errors handled by action/toast */
-    });
+    dispatch(adminUpdateOrderStatus(orderId, newStatus)).catch(() => {});
   };
 
-  // DataGrid Column Definitions
+  // Handler for DataGrid pagination changes
+  const handlePaginationModelChange = (newModel) => {
+    // Update local state, which will trigger useEffect -> fetchAdminOrders
+    setPaginationModel(newModel);
+  };
+
+  // Column Definitions
   const columns = useMemo(
     () => [
       {
@@ -214,9 +224,10 @@ const AdminDashboardOrders = () => {
       },
     ],
     [isUpdating]
-  ); // Memoize columns, re-render if `isUpdating` changes
+  ); // Dependency ensures dropdowns are enabled/disabled correctly
 
-  // Prepare Rows for DataGrid based on filtered data
+  // Prepare Rows for DataGrid (using filtered data if client-side filtering is sufficient)
+  // If backend filtering is implemented, use `adminOrders` directly.
   const rows = useMemo(
     () =>
       filteredOrders.map((o) => ({
@@ -230,15 +241,15 @@ const AdminDashboardOrders = () => {
     [filteredOrders]
   );
 
-  // Main Component Render
   return (
     <div className="w-full p-4 md:p-6 min-h-screen bg-gray-100">
       <div className="max-w-[1400px] mx-auto">
         {/* Header & Filters */}
         <div className="mb-6 bg-white p-4 rounded-lg shadow border border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+            {/* Show total count from Redux state */}
             <h1 className="text-xl md:text-2xl font-bold text-gray-800">
-              Orders Management ({rowCountState})
+              Orders Management ({adminTotalOrders})
             </h1>
             <button
               onClick={fetchAdminOrders}
@@ -260,7 +271,7 @@ const AdminDashboardOrders = () => {
               />
               <input
                 type="text"
-                placeholder="Search by Order ID or Customer..."
+                placeholder="Search current page..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 text-sm"
@@ -287,22 +298,22 @@ const AdminDashboardOrders = () => {
               ))}
             </Select>
           </div>
+          {/* Display error if exists */}
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
         </div>
 
         {/* Data Grid */}
         <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
           <Box sx={{ height: "70vh", width: "100%" }}>
-            {" "}
-            {/* Ensure Box has height */}
             <DataGrid
-              rows={rows}
+              rows={rows} // Use client-filtered rows for current page
               columns={columns}
-              rowCount={rowCountState}
+              rowCount={adminTotalOrders} // ** Use total count from Redux **
               loading={isLoading}
-              pageSizeOptions={[15, 30, 50, 100]}
-              paginationModel={paginationModel}
-              paginationMode="client" // Using client-side filtering/pagination
-              onPaginationModelChange={setPaginationModel}
+              pageSizeOptions={[15, 30, 50, 100]} // Options for page size
+              paginationModel={paginationModel} // Control pagination state
+              paginationMode="server" // ** Set to server for backend pagination **
+              onPaginationModelChange={handlePaginationModelChange} // Handler to dispatch fetch for new page/size
               disableRowSelectionOnClick
               autoHeight={false} // Use Box height
               slots={{
@@ -311,7 +322,7 @@ const AdminDashboardOrders = () => {
                   <CustomNoRowsOverlay
                     message={
                       searchTerm || filterStatus !== "all"
-                        ? "No orders match filters."
+                        ? "No orders match filters on this page."
                         : "No orders found."
                     }
                   />

@@ -1,20 +1,23 @@
 // frontend/src/App.jsx
-import React, { useEffect, Suspense } from "react"; // Removed unused useState
+import React, { useEffect, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
-import { server } from "./server";
+import { server } from "./server"; // Base URL for backend
 import Store from "./redux/store";
 import { loadSeller, loadUser } from "./redux/actions/user";
 import { getAllProducts } from "./redux/actions/product";
 import { getAllEvents } from "./redux/actions/event";
 
+// Route Protection
 import ProtectedRoute from "./routes/ProtectedRoute";
 import ProtectedAdminRoute from "./routes/ProtectedAdminRoute";
 import SellerProtectedRoute from "./routes/SellerProtectedRoute";
+
+// Layout
 import Loader from "./components/Layout/Loader";
 
-// Import Page Components via Route Exports / Direct Paths
+// Page Imports (Ensure these files/exports exist and paths are correct)
 import {
   LoginPage,
   SignupPage,
@@ -36,8 +39,6 @@ import {
   TrackOrderPage,
   UserInbox,
 } from "./routes/Routes.js";
-
-// Assuming ShopHomePage from ShopRoutes IS the SELLER dashboard home page
 import {
   ShopHomePage as SellerShopHomePage,
   ShopDashboardPage,
@@ -54,73 +55,102 @@ import {
   ShopWithDrawMoneyPage,
   ShopInboxPage,
 } from "./routes/ShopRoutes";
+import {
+  AdminDashboardPage,
+  AdminDashboardUsers,
+  AdminDashboardSellers,
+  AdminDashboardOrders,
+  AdminDashboardProducts,
+  AdminDashboardEvents,
+  AdminDashboardWithdraw,
+  AdminApprovalProducts,
+} from "./routes/AdminRoutes";
+import AdminOrderDetails from "./pages/Shop/AdminOrderDetails.jsx"; // Direct import for parameterized route
 
-// Import Admin pages directly (assuming they are NOT in AdminRoutes.js export file)
-// Adjust paths if they live elsewhere (e.g., directly in ./pages/)
-import AdminDashboardPage from "./pages/AdminDashboardPage";
-import AdminDashboardUsers from "./pages/AdminDashboardUsers";
-import AdminDashboardSellers from "./pages/AdminDashboardSellers";
-import AdminDashboardOrders from "./pages/AdminDashboardOrders";
-// Assuming AdminOrderDetails lives in ./pages/Shop/ as per previous error log context
-import AdminOrderDetails from "./pages/Shop/AdminOrderDetails";
-import AdminDashboardProducts from "./pages/AdminDashboardProducts";
-import AdminDashboardEvents from "./pages/AdminDashboardEvents";
-import AdminDashboardWithdraw from "./pages/AdminDashboardWithdraw";
-import AdminApprovalProducts from "./pages/AdminApprovalProducts";
-
+// Styles
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
-// Axios Global Configuration
+// --- Axios Global Config ---
 axios.defaults.baseURL = server;
-axios.defaults.withCredentials = true;
+axios.defaults.withCredentials = true; // Send cookies globally
 
+// Request Interceptor (Adds Tokens)
 axios.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const userToken = localStorage.getItem("token");
     const sellerToken = localStorage.getItem("seller_token");
+    // Define seller paths accurately
     const sellerApiPatterns = [
       "/api/v2/shop",
-      "/api/v2/product/create-product",
+      "/api/v2/product",
       "/api/v2/event",
-      "/api/v2/coupon",
-      "/api/v2/order/get-seller-orders",
-      "/api/v2/order/get-seller-order",
+      "/api/v2/coupon", // Verify coupon path
+      "/api/v2/order/get-seller",
       "/api/v2/order/accept-refund",
-      "/api/v2/withdraw/create-withdraw-request",
+      "/api/v2/withdraw",
     ];
-    const isSellerRequest = sellerApiPatterns.some((pattern) =>
-      config.url?.startsWith(pattern)
-    );
+    const isSellerRequest =
+      config.url &&
+      sellerApiPatterns.some((pattern) => config.url.startsWith(pattern));
 
+    delete config.headers["Authorization"];
+    delete config.headers["Seller-Authorization"]; // Clear first
+
+    // Apply correct token based on route type
     if (isSellerRequest && sellerToken) {
       config.headers["Seller-Authorization"] = `Bearer ${sellerToken}`;
-    } else if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
+    } else if (userToken) {
+      config.headers["Authorization"] = `Bearer ${userToken}`;
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
+// Response Interceptor (Handles 401)
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const { status } = error.response || {};
+    const originalRequest = error.config;
+    // Only handle 401 and ensure we don't retry indefinitely
+    if (status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      const wasSellerRequest =
+        !!originalRequest.headers["Seller-Authorization"];
+      const toastId = wasSellerRequest ? "seller-401" : "user-401";
+      const message = wasSellerRequest
+        ? "Seller session expired. Please login again."
+        : "Session expired. Please login again.";
+      const tokenKey = wasSellerRequest ? "seller_token" : "token";
+
+      console.warn(`Axios Interceptor: ${message}`);
+      localStorage.removeItem(tokenKey); // Remove expired token
+      toast.error(message, { toastId }); // Notify user
+      // Consider dispatching logout actions if they exist and handle state correctly
+      // Store.dispatch(wasSellerRequest ? { type: 'SELLER_LOGOUT' } : { type: 'LOGOUT_SUCCESS' });
+    }
+    // Always re-reject the error so the original call site knows it failed
+    return Promise.reject(error);
+  }
+);
+
+// --- App Component ---
 const App = () => {
-  // Removed isInitializing state for brevity
+  // Load user/seller/initial data on first mount
   useEffect(() => {
-    const initializeAppData = async () => {
-      await Promise.allSettled([
-        Store.dispatch(loadUser()),
-        Store.dispatch(loadSeller()),
-        Store.dispatch(getAllProducts()),
-        Store.dispatch(getAllEvents()),
-      ]);
-    };
-    initializeAppData();
-  }, []);
+    Store.dispatch(loadUser());
+    Store.dispatch(loadSeller());
+    Store.dispatch(getAllProducts());
+    Store.dispatch(getAllEvents());
+  }, []); // Empty dependency array ensures this runs only once
 
   return (
     <BrowserRouter>
-      {/* Using Suspense with Loader for potential nested async components */}
       <Suspense fallback={<Loader />}>
+        {" "}
+        {/* For lazy loading routes if implemented */}
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
@@ -139,8 +169,7 @@ const App = () => {
           <Route path="/best-selling" element={<BestSellingPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/faq" element={<FAQPage />} />
-          <Route path="/shop/preview/:id" element={<ShopPreviewPage />} />{" "}
-          {/* From ShopRoutes */}
+          <Route path="/shop/preview/:id" element={<ShopPreviewPage />} />
           <Route path="/shop-create" element={<ShopCreatePage />} />
           <Route path="/shop-login" element={<ShopLoginPage />} />
           {/* User Protected Routes */}
@@ -248,7 +277,8 @@ const App = () => {
                 <ShopOrderDetails />
               </SellerProtectedRoute>
             }
-          />
+          />{" "}
+          {/* Seller order detail */}
           <Route
             path="/dashboard-refunds"
             element={
@@ -305,7 +335,7 @@ const App = () => {
               </SellerProtectedRoute>
             }
           />
-          {/* Admin Protected Routes (Using direct imports) */}
+          {/* Admin Protected Routes */}
           <Route
             path="/admin/dashboard"
             element={
@@ -345,7 +375,8 @@ const App = () => {
                 <AdminOrderDetails />
               </ProtectedAdminRoute>
             }
-          />
+          />{" "}
+          {/* Admin order detail */}
           <Route
             path="/admin-products"
             element={
@@ -380,11 +411,10 @@ const App = () => {
           />
         </Routes>
       </Suspense>
-
       <ToastContainer
         position="bottom-center"
         autoClose={4000}
-        hideProgressBar
+        hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
         rtl={false}
