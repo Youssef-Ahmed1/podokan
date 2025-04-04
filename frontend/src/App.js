@@ -1,9 +1,8 @@
-// frontend/src/App.jsx
 import React, { useEffect, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
-import { server } from "./server"; // Base URL for backend
+import { server } from "./server";
 import Store from "./redux/store";
 import { loadSeller, loadUser } from "./redux/actions/user";
 import { getAllProducts } from "./redux/actions/product";
@@ -17,7 +16,7 @@ import SellerProtectedRoute from "./routes/SellerProtectedRoute";
 // Layout
 import Loader from "./components/Layout/Loader";
 
-// Page Imports (Ensure these files/exports exist and paths are correct)
+// Page Imports
 import {
   LoginPage,
   SignupPage,
@@ -65,7 +64,7 @@ import {
   AdminDashboardWithdraw,
   AdminApprovalProducts,
 } from "./routes/AdminRoutes";
-import AdminOrderDetails from "./pages/Shop/AdminOrderDetails.jsx"; // Direct import for parameterized route
+import AdminOrderDetails from "./pages/Admin/AdminOrderDetails";
 
 // Styles
 import "react-toastify/dist/ReactToastify.css";
@@ -73,19 +72,18 @@ import "./App.css";
 
 // --- Axios Global Config ---
 axios.defaults.baseURL = server;
-axios.defaults.withCredentials = true; // Send cookies globally
+axios.defaults.withCredentials = true;
 
 // Request Interceptor (Adds Tokens)
 axios.interceptors.request.use(
   (config) => {
     const userToken = localStorage.getItem("token");
     const sellerToken = localStorage.getItem("seller_token");
-    // Define seller paths accurately
     const sellerApiPatterns = [
       "/api/v2/shop",
       "/api/v2/product",
       "/api/v2/event",
-      "/api/v2/coupon", // Verify coupon path
+      "/api/v2/coupon",
       "/api/v2/order/get-seller",
       "/api/v2/order/accept-refund",
       "/api/v2/withdraw",
@@ -97,12 +95,12 @@ axios.interceptors.request.use(
     delete config.headers["Authorization"];
     delete config.headers["Seller-Authorization"]; // Clear first
 
-    // Apply correct token based on route type
     if (isSellerRequest && sellerToken) {
       config.headers["Seller-Authorization"] = `Bearer ${sellerToken}`;
     } else if (userToken) {
       config.headers["Authorization"] = `Bearer ${userToken}`;
     }
+    // console.log(`Axios Request: ${config.method.toUpperCase()} ${config.url}`, config.headers); // Optional: Log headers being sent
     return config;
   },
   (error) => Promise.reject(error)
@@ -114,9 +112,11 @@ axios.interceptors.response.use(
   (error) => {
     const { status } = error.response || {};
     const originalRequest = error.config;
-    // Only handle 401 and ensure we don't retry indefinitely
+
+    // ** Handle 401 specifically - Clear token and notify user **
     if (status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+      // Check _retry flag
+      originalRequest._retry = true; // Prevent infinite loops
       const wasSellerRequest =
         !!originalRequest.headers["Seller-Authorization"];
       const toastId = wasSellerRequest ? "seller-401" : "user-401";
@@ -126,31 +126,38 @@ axios.interceptors.response.use(
       const tokenKey = wasSellerRequest ? "seller_token" : "token";
 
       console.warn(`Axios Interceptor: ${message}`);
-      localStorage.removeItem(tokenKey); // Remove expired token
-      toast.error(message, { toastId }); // Notify user
-      // Consider dispatching logout actions if they exist and handle state correctly
-      // Store.dispatch(wasSellerRequest ? { type: 'SELLER_LOGOUT' } : { type: 'LOGOUT_SUCCESS' });
+      localStorage.removeItem(tokenKey); // Remove the invalid/expired token
+      toast.error(message, { toastId }); // Show distinct toast
+
+      // Optionally dispatch logout actions
+      // Important: Ensure your logout actions correctly clear user/seller state in Redux
+      // if (wasSellerRequest) {
+      //    Store.dispatch({ type: 'SELLER_LOGOUT' }); // Replace with your actual seller logout action type
+      // } else {
+      //    Store.dispatch({ type: 'LOGOUT_SUCCESS' }); // Replace with your actual user logout action type
+      // }
+
+      // Don't automatically redirect here. Let components/routes handle the unauthenticated state.
     }
-    // Always re-reject the error so the original call site knows it failed
+    // Always re-reject the error so the original caller's .catch() block executes
     return Promise.reject(error);
   }
 );
 
 // --- App Component ---
 const App = () => {
-  // Load user/seller/initial data on first mount
   useEffect(() => {
+    // Load user/seller state on initial app load
     Store.dispatch(loadUser());
     Store.dispatch(loadSeller());
+    // Load initial common data
     Store.dispatch(getAllProducts());
     Store.dispatch(getAllEvents());
-  }, []); // Empty dependency array ensures this runs only once
+  }, []); // Runs once on mount
 
   return (
     <BrowserRouter>
       <Suspense fallback={<Loader />}>
-        {" "}
-        {/* For lazy loading routes if implemented */}
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
@@ -172,6 +179,7 @@ const App = () => {
           <Route path="/shop/preview/:id" element={<ShopPreviewPage />} />
           <Route path="/shop-create" element={<ShopCreatePage />} />
           <Route path="/shop-login" element={<ShopLoginPage />} />
+
           {/* User Protected Routes */}
           <Route
             path="/checkout"
@@ -229,6 +237,7 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+
           {/* Seller Protected Routes */}
           <Route
             path="/shop/:id"
@@ -277,8 +286,7 @@ const App = () => {
                 <ShopOrderDetails />
               </SellerProtectedRoute>
             }
-          />{" "}
-          {/* Seller order detail */}
+          />
           <Route
             path="/dashboard-refunds"
             element={
@@ -335,6 +343,7 @@ const App = () => {
               </SellerProtectedRoute>
             }
           />
+
           {/* Admin Protected Routes */}
           <Route
             path="/admin/dashboard"
@@ -375,8 +384,7 @@ const App = () => {
                 <AdminOrderDetails />
               </ProtectedAdminRoute>
             }
-          />{" "}
-          {/* Admin order detail */}
+          />
           <Route
             path="/admin-products"
             element={
@@ -409,6 +417,8 @@ const App = () => {
               </ProtectedAdminRoute>
             }
           />
+
+          {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Routes>
       </Suspense>
       <ToastContainer

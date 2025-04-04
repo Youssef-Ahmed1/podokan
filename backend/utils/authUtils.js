@@ -12,11 +12,13 @@ class AuthUtils {
       expires: new Date(
         Date.now() + DEFAULT_COOKIE_EXPIRY_DAYS * 24 * 60 * 60 * 1000
       ),
-      httpOnly: true, // Cannot be accessed by client-side JS
-      secure: isProduction, // Should be true in production (HTTPS)
-      sameSite: isProduction ? "none" : "lax", // 'none' requires Secure=true; use 'lax' for same-site or HTTP dev
-      path: "/",
-      // domain: isProduction ? '.testpodokan.store' : undefined, // Only set if using subdomains (e.g., api.testpodokan.store)
+      httpOnly: true, // Prevents client-side JS access
+      // --- Verify these settings for your production environment ---
+      secure: isProduction, // TRUE for HTTPS, FALSE for HTTP
+      sameSite: isProduction ? "none" : "lax", // 'none' requires Secure=true; use 'lax' if same domain or for local HTTP
+      // -------------------------------------------------------------
+      path: "/", // Make cookie available across the entire site
+      // domain: isProduction ? '.testpodokan.store' : undefined, // Only set if using subdomains like api.testpodokan.store
     };
   }
 
@@ -25,18 +27,15 @@ class AuthUtils {
       type === "seller" ? "seller-authorization" : "authorization";
     const cookieKey = type === "seller" ? "seller_token" : "token";
     let token = null;
-
     const authHeader = req.headers[headerKey];
     if (authHeader && authHeader.startsWith("Bearer ")) {
       token = authHeader.split(" ")[1];
       if (token && token !== "null" && token !== "undefined") return token;
     }
-
     if (req.cookies && req.cookies[cookieKey]) {
       token = req.cookies[cookieKey];
       if (token && token !== "null" && token !== "undefined") return token;
     }
-
     return null;
   }
 
@@ -70,7 +69,7 @@ class AuthUtils {
     const userData = userOrShop.toObject
       ? userOrShop.toObject()
       : { ...userOrShop };
-    delete userData.password; // CRITICAL: Never expose password hash
+    delete userData.password; // Never send password hash
     return { token, cookieOptions, userData };
   }
 }
