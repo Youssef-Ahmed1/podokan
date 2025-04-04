@@ -1,3 +1,4 @@
+// frontend/src/components/Admin/AdminDashboardMain.jsx
 import React, { useEffect, useMemo, useCallback } from "react";
 import { AiOutlineMoneyCollect } from "react-icons/ai";
 import { MdBorderClear, MdPeopleOutline } from "react-icons/md";
@@ -16,7 +17,7 @@ import Loader from "../Layout/Loader"; // Adjust path if needed
 import { format } from "date-fns";
 import { toast } from "react-toastify";
 import { Box, CircularProgress, Typography, IconButton } from "@mui/material";
-import { Eye, RefreshCw, Package } from "lucide-react"; // Added Package icon
+import { Eye, RefreshCw, Package } from "lucide-react";
 
 // --- Custom DataGrid Overlays ---
 function CustomLoadingOverlay() {
@@ -37,7 +38,6 @@ function CustomLoadingOverlay() {
     </Box>
   );
 }
-
 function CustomNoRowsOverlay({ message = "No data available." }) {
   return (
     <Box
@@ -61,20 +61,24 @@ function CustomNoRowsOverlay({ message = "No data available." }) {
 
 const AdminDashboardMain = () => {
   const dispatch = useDispatch();
+
+  // --- Selectors called at the top level ---
   const {
-    adminOrders = [],
+    adminOrders = [], // Orders for the first page (fetched below)
+    adminTotalOrders: totalOrdersCountFromState, // Get total count from state
     isLoading: ordersLoading,
     error: ordersError,
   } = useSelector((state) => state.order);
+
   const {
     sellers = [],
     isLoading: sellersLoading,
     error: sellersError,
-  } = useSelector((state) => state.seller); // Assuming seller slice exists
+  } = useSelector((state) => state.seller);
+  // --- End Selectors ---
 
   // Fetch data using useCallback for stability
   const fetchDashboardData = useCallback(() => {
-    // Fetch only the first page for the dashboard overview
     dispatch(getAllOrdersOfAdmin(1, 10)); // Fetch page 1, limit 10 for "Latest Orders"
     if (typeof getAllSellers === "function") {
       dispatch(getAllSellers());
@@ -104,34 +108,30 @@ const AdminDashboardMain = () => {
 
   // Calculate dashboard statistics safely
   const dashboardStats = useMemo(() => {
-    // Note: adminOrders here might only be the first page from the initial fetch.
-    // For accurate *total* counts/revenue across *all* orders, the backend API
-    // might need separate endpoints, or getAllOrdersOfAdmin needs to fetch all (potentially slow).
-    // This example uses the currently loaded (first page) orders for stats.
     const validOrders = Array.isArray(adminOrders) ? adminOrders : [];
     const validSellers = Array.isArray(sellers) ? sellers : [];
-    // Use totalOrders count from Redux state if available (updated by full list fetch)
-    const totalOrdersCount =
-      useSelector((state) => state.order.adminTotalOrders) ||
-      validOrders.length; // Fallback
 
     const totalRevenue = validOrders
       .filter((o) => o.status === "Delivered")
       .reduce((sum, o) => sum + (o.totalPrice || 0), 0);
-    const adminBalance = (totalRevenue * 0.1).toFixed(2); // Example 10% cut
+    const adminBalance = (totalRevenue * 0.1).toFixed(2);
+
+    // ** CORRECT: Use the variable fetched at the top level **
+    const totalOrdersCount = totalOrdersCountFromState || validOrders.length; // Use count from state, fallback to current page length
 
     return {
       adminBalance,
       totalSellers: validSellers.length,
-      totalOrders: totalOrdersCount,
+      totalOrders: totalOrdersCount, // Use the correctly obtained count
       totalRevenue: totalRevenue.toFixed(2),
     };
-  }, [adminOrders, sellers]); // Recalculate when these change
+    // ** CORRECT: Dependency array includes the variable from the top-level selector **
+  }, [adminOrders, sellers, totalOrdersCountFromState]);
 
   // Prepare rows for the latest orders DataGrid (using the fetched first page)
   const latestOrdersRows = useMemo(() => {
     if (!Array.isArray(adminOrders)) return [];
-    // Already fetched sorted, just map the current adminOrders
+    // Map the currently loaded adminOrders (first page)
     return adminOrders.map((o) => ({
       id: o._id,
       customer: o.user?.name || "N/A",
@@ -140,7 +140,7 @@ const AdminDashboardMain = () => {
       status: o.status || "N/A",
       date: o.createdAt ? format(new Date(o.createdAt), "PP") : "-",
     }));
-  }, [adminOrders]); // Depends only on the currently loaded adminOrders
+  }, [adminOrders]);
 
   // Define columns for the DataGrid
   const columns = useMemo(
@@ -308,9 +308,9 @@ const AdminDashboardMain = () => {
             rows={latestOrdersRows}
             columns={columns}
             pageSizeOptions={[10]}
-            paginationModel={{ page: 0, pageSize: 10 }} // Fixed pagination for dashboard view
-            rowCount={latestOrdersRows.length} // Row count is just the latest orders shown
-            paginationMode="client" // Pagination handled client-side for this small slice
+            paginationModel={{ page: 0, pageSize: 10 }}
+            rowCount={latestOrdersRows.length} // Use length of the displayed rows
+            paginationMode="client"
             disableRowSelectionOnClick
             autoHeight={false}
             loading={isLoading}
