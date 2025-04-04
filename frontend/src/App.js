@@ -64,7 +64,7 @@ import {
   AdminDashboardWithdraw,
   AdminApprovalProducts,
 } from "./routes/AdminRoutes";
-import AdminOrderDetails from "./pages/Admin/AdminOrderDetails";
+import AdminOrderDetails from "./pages/Shop/AdminOrderDetails";
 
 // Styles
 import "react-toastify/dist/ReactToastify.css";
