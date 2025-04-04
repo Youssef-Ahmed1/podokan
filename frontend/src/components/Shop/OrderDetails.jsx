@@ -1,4 +1,3 @@
-// frontend/src/pages/Shop/OrderDetails.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useParams, useNavigate } from "react-router-dom";
@@ -22,7 +21,7 @@ import {
   sellerUpdateRefundStatus,
   clearErrors,
 } from "../../redux/actions/order"; // Adjust path
-import { ORDER_STATUSES } from "../../constants/orderStatuses.js";
+import { ORDER_STATUSES } from "../../constants/orderStatuses"; // Adjust path
 import { Select, MenuItem, Button, CircularProgress } from "@mui/material"; // MUI for better dropdown
 
 const OrderDetails = () => {
@@ -113,7 +112,7 @@ const OrderDetails = () => {
         } else {
           fetchOrderDetails();
         }
-      })
+      }) // Update state or refetch
       .catch(() => {
         setRefundStatus(currentStatus);
       }); // Revert dropdown on error
