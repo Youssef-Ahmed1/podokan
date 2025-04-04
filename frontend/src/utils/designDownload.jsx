@@ -4,7 +4,7 @@ import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 
 // --- Configuration ---
-const CLOUDINARY_CLOUD_NAME = dkot9tyjm;
+const CLOUDINARY_CLOUD_NAME = "dkot9tyjm";
 if (!CLOUDINARY_CLOUD_NAME) {
   console.error(
     "CRITICAL: REACT_APP_CLOUDINARY_CLOUD_NAME environment variable not set!"
