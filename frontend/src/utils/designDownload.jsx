@@ -1,41 +1,29 @@
-// frontend/src/utils/designDownload.js
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 
 // --- Configuration ---
-// Reads the Cloudinary cloud name from the frontend environment variable
-const CLOUDINARY_CLOUD_NAME = "dkot9tyjm"
-
+const CLOUDINARY_CLOUD_NAME = dkot9tyjm;
 if (!CLOUDINARY_CLOUD_NAME) {
   console.error(
-    "CRITICAL: REACT_APP_CLOUDINARY_CLOUD_NAME environment variable is not set! Mockups and image fetches might fail. Add it to your frontend .env file and rebuild/restart."
+    "CRITICAL: REACT_APP_CLOUDINARY_CLOUD_NAME environment variable not set!"
   );
-  // Provide a fallback only if absolutely necessary, but ENV is strongly preferred
-  // CLOUDINARY_CLOUD_NAME = 'dkot9tyjm'; // Example fallback - REMOVE if ENV is set
 }
+const BASE_CLOUDINARY_URL = `https://res.cloudinary.com/${
+  CLOUDINARY_CLOUD_NAME || "YOUR_CLOUD_NAME_PLACEHOLDER"
+}/image/upload`;
 
-const BASE_CLOUDINARY_URL = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload`;
-
-// --- Define Template Paths on Cloudinary ---
-// Keys should match lowercase, hyphenated ProductType from your data.
-// Paths MUST match your actual Cloudinary folder structure.
 const TEMPLATE_FOLDERS = {
-  'hoodie': "hoodies",
-  't-shirt': "t-shirts",
-  'long-sleeve': "long-sleeves",
+  hoodie: "hoodies",
+  "t-shirt": "t-shirts",
+  "long-sleeve": "long-sleeves",
 };
 
-// Filename convention for templates (FRONT view used for mockups)
-// Assumes: <folder>/<type_prefix>-<color_key>-front.png
 const getTemplateFilenamePrefix = (typeKey) => {
-    // Handle inconsistencies observed in provided URLs
-    if (typeKey === 'long-sleeve') return 'longsleeve'; // Use 'longsleeve' prefix
-    if (typeKey === 't-shirt') return 't-shirt'; // Use 't-shirt' prefix
-    // Add other specific mappings if needed
-    return typeKey; // Default to the type key itself (e.g., 'hoodie')
-}
+  if (typeKey === "long-sleeve") return "longsleeve";
+  return typeKey;
+};
 
 // --- Error Classes ---
 class DesignDownloadError extends Error {
@@ -65,13 +53,13 @@ export class DesignDownloader {
         method: "GET",
         responseType: "blob",
         headers: {
-          "Cache-Control": "no-store, max-age=0",
+          "Cache-Control": "no-store",
           Pragma: "no-cache",
           Expires: "0",
         },
         timeout: 45000,
         validateStatus: (s) => s >= 200 && s < 300,
-        withCredentials: false, // ** Keep false for public assets **
+        withCredentials: false,
       });
       if (!(response.data instanceof Blob))
         throw new ImageProcessingError(
@@ -85,10 +73,10 @@ export class DesignDownloader {
     } catch (error) {
       let errMsg = `Image fetch failed: ${error.message}`;
       let status = error.response?.status;
-      if (axios.isCancel(error)) errMsg = "Image fetch cancelled.";
-      else if (error.code === "ECONNABORTED") errMsg = "Image fetch timed out.";
+      if (axios.isCancel(error)) errMsg = "Cancelled.";
+      else if (error.code === "ECONNABORTED") errMsg = "Timed out.";
       else if (error.response)
-        errMsg = `Image fetch failed (Status ${status}): ${error.message}`;
+        errMsg = `Failed (Status ${status}): ${error.message}`;
       console.error(`fetchImageAsBlob Error (${url}):`, errMsg, error);
       throw new ImageProcessingError(errMsg, status, url);
     }
@@ -118,7 +106,7 @@ export class DesignDownloader {
         console.error("Image load error:", err);
         reject(
           new ImageProcessingError(
-            `Failed to load image resource. Check network and URL.`,
+            `Failed to load image resource.`,
             null,
             typeof imageSource === "string" ? imageSource : "Blob"
           )
@@ -133,9 +121,6 @@ export class DesignDownloader {
     });
   }
 
-  /**
-   * Constructs the Cloudinary URL for a product template's FRONT view.
-   */
   static getProductTemplateUrl(productType, productColor) {
     const typeKey = (productType || "t-shirt")
       .toLowerCase()
@@ -144,23 +129,15 @@ export class DesignDownloader {
       .toLowerCase()
       .replace(/\s+/g, "-");
     const folder = TEMPLATE_FOLDERS[typeKey];
-    if (!folder) {
-      console.error(
-        `Template folder path not defined for type key: '${typeKey}'.`
-      );
+    if (!folder)
       throw new Error(
-        `Configuration error: Template path missing for type '${productType}'.`
+        `Config error: Template path missing for type '${productType}'.`
       );
-    }
     const filenamePrefix = getTemplateFilenamePrefix(typeKey);
     const fileName = `${filenamePrefix}-${colorKey}-front.png`;
-    // No version segment is added here based on provided URLs
     return `${BASE_CLOUDINARY_URL}/${folder}/${fileName}`;
   }
 
-  /**
-   * Generates a standardized filename for downloads.
-   */
   static generateFileName(prefix, orderId, itemId, extension = "zip") {
     const ts = new Date().toISOString().slice(0, 19).replace(/[:T-]/g, "");
     const safeOId = (orderId || uuidv4())
@@ -172,9 +149,6 @@ export class DesignDownloader {
     return `${prefix}_${safeOId}_${safeIId}_${ts}.${extension}`;
   }
 
-  /**
-   * Creates a product mockup canvas.
-   */
   static async createProductMockup(
     designImageUrl,
     productType,
@@ -188,7 +162,7 @@ export class DesignDownloader {
       designSpecs?.positionX == null ||
       designSpecs?.positionY == null
     )
-      throw new ImageProcessingError("Missing required parameters for mockup.");
+      throw new ImageProcessingError("Missing params for mockup.");
     let templateImageUrl;
     try {
       templateImageUrl = DesignDownloader.getProductTemplateUrl(
@@ -209,11 +183,11 @@ export class DesignDownloader {
       ]);
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-      if (!ctx) throw new ImageProcessingError("Failed to get 2D context.");
+      if (!ctx) throw new ImageProcessingError("No 2D context.");
       canvas.width = templateImage.naturalWidth;
       canvas.height = templateImage.naturalHeight;
-      if (canvas.width === 0 || canvas.height === 0)
-        throw new ImageProcessingError("Template image has zero dimensions.");
+      if (canvas.width === 0)
+        throw new ImageProcessingError("Template zero width.");
       ctx.drawImage(templateImage, 0, 0, canvas.width, canvas.height);
       // ** ADJUST PRINTABLE AREA RATIOS FOR YOUR TEMPLATES **
       const area = {
@@ -238,10 +212,8 @@ export class DesignDownloader {
       }
       if (dW <= 0 || dH <= 0) {
         console.warn("Zero design dimensions calculated.");
-        return new Promise((resolve) => {
-          canvas.toBlob((b) => resolve(b), "image/png");
-        });
-      } // Return template only
+        return new Promise((res) => canvas.toBlob((b) => res(b), "image/png"));
+      }
       const cX = areaX + (posX / 100) * areaW;
       const cY = areaY + (posY / 100) * areaH;
       ctx.save();
@@ -267,9 +239,6 @@ export class DesignDownloader {
     }
   }
 
-  /**
-   * Packages and downloads a single design.
-   */
   static async downloadSingleDesign(designData) {
     const requiredFields = [
       "imageUrl",
@@ -351,9 +320,6 @@ export class DesignDownloader {
     }
   }
 
-  /**
-   * Packages and downloads all designs from an order.
-   */
   static async downloadAllDesigns(orderData) {
     if (
       !orderData?._id ||

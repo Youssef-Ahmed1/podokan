@@ -5,7 +5,7 @@ const path = require("path");
 const compression = require("compression");
 const helmet = require("helmet");
 const morgan = require("morgan");
-const ErrorHandler = require("./middleware/error"); // Assuming this path is correct
+const ErrorHandler = require("./middleware/error");
 
 const app = express();
 
@@ -18,7 +18,7 @@ const allowedOrigins =
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.indexOf(origin) !== -1) callback(null, true);
-    else callback(new Error("Not allowed by CORS"));
+    else callback(new Error(`Origin ${origin} not allowed by CORS`));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
@@ -26,6 +26,8 @@ const corsOptions = {
   exposedHeaders: ["Authorization", "Seller-Authorization"],
 };
 app.use(cors(corsOptions));
+
+// Security Headers - CSP disabled, adjust if needed.
 app.use(
   helmet({
     contentSecurityPolicy: false,
@@ -45,7 +47,7 @@ const apiRoutes = {
   shop: require("./controller/shop"),
   product: require("./controller/product"),
   event: require("./controller/event"),
-  coupon: require("./controller/coupounCode"),
+  coupon: require("./controller/coupounCode"), // Verify spelling
   payment: require("./controller/payment"),
   order: require("./controller/order"),
   conversation: require("./controller/conversation"),
@@ -58,11 +60,10 @@ Object.entries(apiRoutes).forEach(([name, router]) => {
   else console.warn(`API route for '/api/v2/${name}' is invalid.`);
 });
 app.get("/api/v2", (req, res) =>
-  res.status(200).json({ message: "API V2 Active" })
+  res.status(200).json({ message: "Podokan API V2 Active" })
 );
 
 // --- Frontend Serving ---
-// Correctly resolve the path to the frontend build directory
 const frontendBuildPath = path.resolve(__dirname, "../frontend/build");
 console.log(`Serving static files from: ${frontendBuildPath}`);
 app.use(express.static(frontendBuildPath));
@@ -72,7 +73,7 @@ app.get("/health", (req, res) => res.status(200).json({ status: "healthy" }));
 
 // SPA Fallback
 app.get("*", (req, res, next) => {
-  if (req.originalUrl.startsWith("/api/")) return next(); // Skip API calls
+  if (req.originalUrl.startsWith("/api/")) return next();
   const indexPath = path.resolve(frontendBuildPath, "index.html");
   res.sendFile(indexPath, (err) => {
     if (err) {
@@ -88,6 +89,7 @@ app.get("*", (req, res, next) => {
 });
 
 // --- Error Handling ---
+// Ensure ErrorHandler middleware is correctly defined and placed last.
 app.use(ErrorHandler);
 
 // --- Process Event Handlers ---

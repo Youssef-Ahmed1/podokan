@@ -1,4 +1,3 @@
-// frontend/src/components/Admin/AdminDashboardMain.jsx
 import React, { useEffect, useMemo, useCallback } from "react";
 import { AiOutlineMoneyCollect } from "react-icons/ai";
 import { MdBorderClear, MdPeopleOutline } from "react-icons/md";
@@ -31,7 +30,7 @@ function CustomLoadingOverlay() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "rgba(255, 255, 255, 0.7)", // Optional overlay background
+        background: "rgba(255, 255, 255, 0.7)",
       }}
     >
       <CircularProgress />
@@ -62,7 +61,6 @@ function CustomNoRowsOverlay({ message = "No data available." }) {
 
 const AdminDashboardMain = () => {
   const dispatch = useDispatch();
-  // Select relevant state slices
   const {
     adminOrders = [],
     isLoading: ordersLoading,
@@ -72,12 +70,17 @@ const AdminDashboardMain = () => {
     sellers = [],
     isLoading: sellersLoading,
     error: sellersError,
-  } = useSelector((state) => state.seller); // Assuming 'seller' slice holds sellers list
+  } = useSelector((state) => state.seller); // Assuming seller slice exists
 
   // Fetch data using useCallback for stability
   const fetchDashboardData = useCallback(() => {
-    dispatch(getAllOrdersOfAdmin());
-    dispatch(getAllSellers());
+    // Fetch only the first page for the dashboard overview
+    dispatch(getAllOrdersOfAdmin(1, 10)); // Fetch page 1, limit 10 for "Latest Orders"
+    if (typeof getAllSellers === "function") {
+      dispatch(getAllSellers());
+    } else {
+      console.error("getAllSellers action is not available.");
+    }
   }, [dispatch]);
 
   // Fetch data on component mount
@@ -93,50 +96,51 @@ const AdminDashboardMain = () => {
     }
     if (sellersError) {
       toast.error(`Sellers Fetch Error: ${sellersError}`);
-      // Ensure clearSellerErrors exists before calling
-      if (typeof clearSellerErrors === "function") {
+      if (typeof clearSellerErrors === "function")
         dispatch(clearSellerErrors());
-      } else {
-        console.warn("clearSellerErrors action not found.");
-      }
+      else console.warn("clearSellerErrors action not found.");
     }
   }, [dispatch, ordersError, sellersError]);
 
   // Calculate dashboard statistics safely
   const dashboardStats = useMemo(() => {
+    // Note: adminOrders here might only be the first page from the initial fetch.
+    // For accurate *total* counts/revenue across *all* orders, the backend API
+    // might need separate endpoints, or getAllOrdersOfAdmin needs to fetch all (potentially slow).
+    // This example uses the currently loaded (first page) orders for stats.
     const validOrders = Array.isArray(adminOrders) ? adminOrders : [];
     const validSellers = Array.isArray(sellers) ? sellers : [];
+    // Use totalOrders count from Redux state if available (updated by full list fetch)
+    const totalOrdersCount =
+      useSelector((state) => state.order.adminTotalOrders) ||
+      validOrders.length; // Fallback
 
     const totalRevenue = validOrders
-      .filter((o) => o.status === "Delivered") // Only count delivered orders for revenue
+      .filter((o) => o.status === "Delivered")
       .reduce((sum, o) => sum + (o.totalPrice || 0), 0);
-
-    // Example: 10% admin cut
-    const adminBalance = (totalRevenue * 0.1).toFixed(2);
+    const adminBalance = (totalRevenue * 0.1).toFixed(2); // Example 10% cut
 
     return {
       adminBalance,
       totalSellers: validSellers.length,
-      totalOrders: validOrders.length,
+      totalOrders: totalOrdersCount,
       totalRevenue: totalRevenue.toFixed(2),
     };
-  }, [adminOrders, sellers]);
+  }, [adminOrders, sellers]); // Recalculate when these change
 
-  // Prepare rows for the latest orders DataGrid
+  // Prepare rows for the latest orders DataGrid (using the fetched first page)
   const latestOrdersRows = useMemo(() => {
     if (!Array.isArray(adminOrders)) return [];
-    return [...adminOrders] // Create copy before sorting
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sort descending by creation date
-      .slice(0, 10) // Take the first 10
-      .map((o) => ({
-        id: o._id,
-        customer: o.user?.name || "N/A",
-        itemsQty: o.cart?.length || 0,
-        total: `EGP ${Number(o.totalPrice || 0).toFixed(2)}`,
-        status: o.status || "N/A",
-        date: o.createdAt ? format(new Date(o.createdAt), "PP") : "-", // Format date nicely
-      }));
-  }, [adminOrders]);
+    // Already fetched sorted, just map the current adminOrders
+    return adminOrders.map((o) => ({
+      id: o._id,
+      customer: o.user?.name || "N/A",
+      itemsQty: o.cart?.length || 0,
+      total: `EGP ${Number(o.totalPrice || 0).toFixed(2)}`,
+      status: o.status || "N/A",
+      date: o.createdAt ? format(new Date(o.createdAt), "PP") : "-",
+    }));
+  }, [adminOrders]); // Depends only on the currently loaded adminOrders
 
   // Define columns for the DataGrid
   const columns = useMemo(
@@ -148,7 +152,7 @@ const AdminDashboardMain = () => {
         renderCell: (p) => `#${p.value.slice(-6)}`,
       },
       { field: "date", headerName: "Date", width: 100 },
-      { field: "customer", headerName: "Customer", width: 150, flex: 1 }, // Flex allows column to grow
+      { field: "customer", headerName: "Customer", width: 150, flex: 1 },
       {
         field: "itemsQty",
         headerName: "Items",
@@ -168,9 +172,7 @@ const AdminDashboardMain = () => {
         field: "status",
         headerName: "Status",
         width: 150,
-        renderCell: (
-          p // Conditional styling for status
-        ) => (
+        renderCell: (p) => (
           <span
             className={`px-2 py-0.5 rounded-full text-xs font-medium ${
               p.value === "Processing"
@@ -184,7 +186,8 @@ const AdminDashboardMain = () => {
                 : "bg-gray-100 text-gray-800"
             }`}
           >
-            {p.value || "N/A"}
+            {" "}
+            {p.value || "N/A"}{" "}
           </span>
         ),
       },
@@ -195,9 +198,7 @@ const AdminDashboardMain = () => {
         sortable: false,
         align: "center",
         headerAlign: "center",
-        renderCell: (
-          params // Link to detailed order view
-        ) => (
+        renderCell: (params) => (
           <Link to={`/admin/order/${params.id}`} title="View Details">
             <IconButton size="small">
               <Eye className="text-blue-600 hover:text-blue-800 transition-colors" />
@@ -207,12 +208,11 @@ const AdminDashboardMain = () => {
       },
     ],
     []
-  ); // Empty dependency array as columns don't depend on changing state here
+  );
 
-  // Determine overall loading state
   const isLoading = ordersLoading || sellersLoading;
 
-  // Conditional rendering for initial loading state
+  // Initial loading state
   if (isLoading && adminOrders.length === 0 && sellers.length === 0) {
     return <Loader />;
   }
@@ -220,11 +220,7 @@ const AdminDashboardMain = () => {
   // Main component render
   return (
     <div className="w-full p-4 md:p-6 bg-gray-50 min-h-screen">
-      {" "}
-      {/* Added bg and min-height */}
       <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
-        {" "}
-        {/* Added border */}
         <h3 className="text-xl md:text-2xl font-semibold text-gray-800">
           Dashboard Overview
         </h3>
@@ -242,14 +238,10 @@ const AdminDashboardMain = () => {
           />
         </button>
       </div>
+
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {" "}
-        {/* Increased gap and margin */}
-        {/* Admin Earnings Card */}
         <div className="bg-white shadow rounded-lg p-5 border border-gray-100 flex items-center gap-4">
-          {" "}
-          {/* Adjusted padding/gap */}
           <div className="p-3 bg-green-100 rounded-full">
             <AiOutlineMoneyCollect size={24} className="text-green-600" />
           </div>
@@ -262,11 +254,8 @@ const AdminDashboardMain = () => {
             </h5>
           </div>
         </div>
-        {/* Total Sellers Card */}
         <div className="bg-white shadow rounded-lg p-5 border border-gray-100">
           <div className="flex items-center gap-4 mb-2">
-            {" "}
-            {/* Added margin */}
             <div className="p-3 bg-blue-100 rounded-full">
               <MdPeopleOutline size={24} className="text-blue-600" />
             </div>
@@ -286,11 +275,8 @@ const AdminDashboardMain = () => {
             Manage Sellers
           </Link>
         </div>
-        {/* Total Orders Card */}
         <div className="bg-white shadow rounded-lg p-5 border border-gray-100">
           <div className="flex items-center gap-4 mb-2">
-            {" "}
-            {/* Added margin */}
             <div className="p-3 bg-purple-100 rounded-full">
               <MdBorderClear size={24} className="text-purple-600" />
             </div>
@@ -311,23 +297,22 @@ const AdminDashboardMain = () => {
           </Link>
         </div>
       </div>
+
       {/* Latest Orders Table */}
       <h3 className="text-lg font-semibold text-gray-800 mb-3 mt-6">
-        {" "}
-        {/* Adjusted margin */}
-        Latest Orders (Recent 10)
+        Latest Orders
       </h3>
       <div className="w-full bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
-        {" "}
-        {/* Added overflow hidden */}
         <Box sx={{ height: 450, width: "100%" }}>
           <DataGrid
             rows={latestOrdersRows}
             columns={columns}
-            pageSizeOptions={[10]} // Keep fixed size for dashboard view
-            paginationModel={{ page: 0, pageSize: 10 }}
+            pageSizeOptions={[10]}
+            paginationModel={{ page: 0, pageSize: 10 }} // Fixed pagination for dashboard view
+            rowCount={latestOrdersRows.length} // Row count is just the latest orders shown
+            paginationMode="client" // Pagination handled client-side for this small slice
             disableRowSelectionOnClick
-            autoHeight={false} // Important: Use the Box height
+            autoHeight={false}
             loading={isLoading}
             slots={{
               loadingOverlay: CustomLoadingOverlay,
@@ -336,7 +321,7 @@ const AdminDashboardMain = () => {
               ),
             }}
             sx={{
-              border: "none", // Remove grid border
+              border: "none",
               "& .MuiDataGrid-columnHeaders": {
                 bgcolor: "#f9fafb",
                 textTransform: "uppercase",
@@ -345,10 +330,10 @@ const AdminDashboardMain = () => {
               "& .MuiDataGrid-cell": {
                 fontSize: "0.8rem",
                 borderBottom: "1px solid #f0f0f0",
-              }, // Lighter cell border
+              },
               "& .MuiDataGrid-footerContainer": {
                 borderTop: "1px solid #e0e0e0",
-              }, // Optional footer border
+              },
             }}
           />
         </Box>
