@@ -294,24 +294,39 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
  */
 exports.isAdmin = catchAsyncErrors(async (req, res, next) => {
   const requestPath = req.originalUrl || req.path;
+
+  // ** CRITICAL CHECK **: Ensure `isAuthenticated` ran successfully and set `req.user`
   if (!req.user) {
     console.error(
-      `[isAdmin Failed - ${requestPath}] CRITICAL: req.user not found. Check middleware order.`
+      `[Auth - isAdmin @ ${requestPath}] CRITICAL FAILURE: req.user object not found. Middleware 'isAuthenticated' might have failed or was not used before 'isAdmin'.`
     );
+    // Return a generic authentication error, as the user isn't even properly logged in.
     return next(
-      new ErrorHandler("Authentication required - please login", 401)
+      new ErrorHandler(
+        "Authentication failure. Cannot verify admin status.",
+        401
+      )
     );
   }
-  const userRole = (req.user.role || "").toLowerCase();
+  const userRole = (req.user.role || "").toLowerCase(); // Ensure lowercase comparison and handle undefined role
+
   if (userRole !== "admin") {
     console.warn(
-      `[isAdmin Denied - ${requestPath}] User ${req.user._id}. Role: ${
+      `[Auth - isAdmin @ ${requestPath}] Denied: User ${
+        req.user._id
+      } attempted access. Role: '${
         req.user.role || "None"
-      }`
+      }'. Required: 'Admin'.`
     );
     return next(
-      new ErrorHandler(`Access denied: Admin privileges required.`, 403)
+      new ErrorHandler(
+        "Access Denied: Administrator privileges are required for this resource.",
+        403
+      )
     );
   }
+
+  // If the role is 'admin', proceed
+  // console.log(`[Auth - isAdmin @ ${requestPath}] Success: User ${req.user._id} authorized as Admin.`);
   next();
 });

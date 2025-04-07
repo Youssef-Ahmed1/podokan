@@ -2,57 +2,73 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const path = require("path");
-const compression = require("compression");
-const helmet = require("helmet");
-const morgan = require("morgan");
-const ErrorHandler = require("./middleware/error");
+const compression = require("compression"); // Compresses response bodies
+const helmet = require("helmet"); // Sets various security headers
+const morgan = require("morgan"); // HTTP request logger
+const ErrorHandler = require("./middleware/error"); // Custom error handler middleware
 
 const app = express();
 
-// --- Middleware ---
-// ** CORS Configuration - Verify Allowed Origins **
+// --- Essential Middleware ---
+
+// ** CORS Configuration **
+// Define allowed origins based on environment
 const allowedOrigins =
   process.env.NODE_ENV === "production"
-    ? (process.env.CORS_ORIGIN || "https://testpodokan.store").split(",") // Allows multiple comma-separated origins from ENV
-    : ["http://localhost:3000"]; // Development origin
+    ? (
+        process.env.CORS_ORIGIN ||
+        "https://testpodokan.store/" ||
+        "http://testpodokan.store/"
+      ).split(",") // Use env var, split by comma for multiple, provide a sensible default
+    : ["http://localhost:3000"]; // Allow local dev server
+
+console.log("Allowed CORS Origins:", allowedOrigins);
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (e.g., mobile apps, curl) or from whitelisted origins
-    // If you still get CORS errors, temporarily set origin: true for debugging,
-    // but revert to the function check for security.
+    // Allow requests with no origin (like mobile apps or curl requests) OR from whitelisted origins
     if (!origin || allowedOrigins.includes(origin)) {
-      // Use includes for array check
       callback(null, true);
     } else {
       console.warn(
-        `CORS blocked origin: ${origin}. Allowed: ${allowedOrigins.join(", ")}`
+        `CORS Error: Origin '${origin}' not allowed. Allowed: ${allowedOrigins.join(
+          ", "
+        )}`
       );
-      callback(new Error(`Origin ${origin} not allowed by CORS`));
+      callback(new Error(`Origin '${origin}' not permitted by CORS policy.`)); // Deny request
     }
   },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "Seller-Authorization"],
-  exposedHeaders: ["Authorization", "Seller-Authorization"],
+  credentials: true, // Allow cookies to be sent with requests
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // Allowed HTTP methods
+  allowedHeaders: ["Content-Type", "Authorization", "Seller-Authorization"], // Headers frontend can send
+  exposedHeaders: ["Authorization", "Seller-Authorization"], // Headers frontend can access in response (e.g., refreshed tokens)
 };
-app.use(cors(corsOptions));
+app.use(cors(corsOptions)); // Enable CORS with specified options
 
 app.use(
   helmet({
-    // Security Headers
-    contentSecurityPolicy: false, // Keep disabled unless fully configured
-    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false, // Disable CSP unless you configure it thoroughly
+    crossOriginEmbedderPolicy: false, // Might be needed depending on resource embedding
+    // Allows resources (like images from Cloudinary) to be loaded cross-origin
     crossOriginResourcePolicy: { policy: "cross-origin" },
   })
 );
-app.use(morgan("dev")); // Request logging
-app.use(express.json({ limit: "50mb" }));
+
+// Request Logging (Using 'dev' format for concise output during development)
+app.use(morgan("dev"));
+
+// Body Parsers (for handling JSON and URL-encoded request bodies)
+app.use(express.json({ limit: "50mb" })); // Increase limit if handling large uploads (e.g., images)
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+// Cookie Parser (for accessing `req.cookies`)
 app.use(cookieParser());
+
+// Response Compression (Reduces size of responses like JSON, HTML)
 app.use(compression());
 
 // --- API Routes ---
+// Load route controllers
 const apiRoutes = {
   user: require("./controller/user"),
   shop: require("./controller/shop"),
@@ -64,55 +80,84 @@ const apiRoutes = {
   conversation: require("./controller/conversation"),
   message: require("./controller/message"),
   withdraw: require("./controller/withdraw"),
+  // Add other controllers here
 };
+
+// Mount API routes under /api/v2/
 Object.entries(apiRoutes).forEach(([name, router]) => {
-  if (router && typeof router === "function")
+  if (router && typeof router === "function") {
+    // Check if it's a valid router
     app.use(`/api/v2/${name}`, router);
-  else console.warn(`API route for '/api/v2/${name}' is invalid.`);
+    console.log(`API route mounted: /api/v2/${name}`);
+  } else {
+    console.warn(`Invalid API route object for '/api/v2/${name}'. Skipping.`);
+  }
 });
+
 app.get("/api/v2", (req, res) =>
-  res.status(200).json({ message: "Podokan API V2 Active" })
+  res.status(200).json({ message: "Podokan API V2 Running" })
 );
 
-// --- Frontend Serving ---
-const frontendBuildPath = path.resolve(__dirname, "../frontend/build");
-console.log(`Serving static files from: ${frontendBuildPath}`);
-app.use(express.static(frontendBuildPath));
+if (process.env.NODE_ENV === "production") {
+  const frontendBuildPath = path.resolve(__dirname, "../frontend/build");
+  console.log(
+    `Production mode: Serving static files from ${frontendBuildPath}`
+  );
 
-app.get("/health", (req, res) => res.status(200).json({ status: "healthy" }));
+  app.use(express.static(frontendBuildPath));
 
-// SPA Fallback
-app.get("*", (req, res, next) => {
-  if (req.originalUrl.startsWith("/api/")) return next();
-  const indexPath = path.resolve(frontendBuildPath, "index.html");
-  res.sendFile(indexPath, (err) => {
-    if (err) {
-      console.error(
-        `Error sending index.html for ${req.originalUrl}:`,
-        err.message
-      );
-      if (err.code === "ENOENT")
-        res.status(404).send("Application entry point not found.");
-      else res.status(500).send("Error loading application.");
+  // Health check endpoint (useful for load balancers, monitoring)
+  app.get("/health", (req, res) => res.status(200).send("OK"));
+
+  app.get("*", (req, res, next) => {
+    // Avoid interfering with API routes (though they should be handled already)
+    if (req.originalUrl.startsWith("/api/")) {
+      return next();
     }
+    // Send the main HTML file for any other GET request
+    const indexPath = path.resolve(frontendBuildPath, "index.html");
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        // Log error but avoid sending verbose errors to client
+        console.error(
+          `Error sending index.html for ${req.originalUrl}:`,
+          err.message
+        );
+        res.status(500).send("Error loading application.");
+      }
+    });
   });
-});
+} else {
+  console.log(
+    "Development mode: Static file serving and SPA fallback handled by React Dev Server."
+  );
+  // Health check endpoint for development
+  app.get("/health", (req, res) =>
+    res.status(200).json({ status: "healthy", mode: "development" })
+  );
+}
 
-// --- Error Handling ---
-app.use(ErrorHandler); // Must be last
+app.use(ErrorHandler);
 
-// --- Process Event Handlers ---
 process.on("uncaughtException", (err) => {
-  console.error(`UNCAUGHT EXCEPTION! 💥 Shutting down...\n`, err);
-  process.exit(1);
+  console.error("UNCAUGHT EXCEPTION! 💥 Shutting down...");
+  console.error(err.name, err.message, err.stack);
+  process.exit(1); // Mandatory exit
 });
+
 process.on("unhandledRejection", (err) => {
-  console.error(`UNHANDLED REJECTION! 💥 Shutting down...\n`, err);
-  process.exit(1);
+  console.error("UNHANDLED REJECTION! 💥 Shutting down...");
+  // Log the error object itself for more details if available
+  console.error(err); // Log the rejection reason (could be Error object or something else)
+  process.exit(1); // Mandatory exit
 });
+
 process.on("SIGTERM", () => {
-  console.log("👋 SIGTERM RECEIVED. Shutting down...");
-  process.exit(0);
+  console.log("👋 SIGTERM RECEIVED. Shutting down gracefully...");
+  console.log("HTTP server closed.");
+  process.exit(0); // Exit successfully
+  // });
 });
+
 
 module.exports = app;

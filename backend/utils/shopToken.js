@@ -1,42 +1,43 @@
-const AuthUtils = require('./authUtils');
+const AuthUtils = require("./authUtils"); // Ensure path is correct
 
 /**
- * Sets auth cookie and sends JSON response for sellers (shops).
- * @param {object} shop - Shop Mongoose document (must have .getJwtToken method).
- * @param {number} statusCode - HTTP status code for the response.
+ * Utility to set authentication cookie and send JSON response for SELLER login/activation.
+ * @param {object} shop - The Mongoose Shop document (must have .getJwtToken method).
+ * @param {number} statusCode - HTTP status code for the response (e.g., 200, 201).
  * @param {object} res - Express response object.
  */
 const sendShopToken = (shop, statusCode, res) => {
- try {
-   if (!shop || typeof shop.getJwtToken !== "function") {
-     console.error(
-       "Invalid shop object passed to sendShopToken or getJwtToken method missing."
-     );
-     throw new Error("Invalid shop data for token generation.");
-   }
+  try {
+    // Generate token, cookie options, and sanitized shop data using AuthUtils
+    const {
+      token,
+      cookieOptions,
+      userData: shopData,
+    } = AuthUtils.generateTokenResponse(
+      shop,
+      "seller" // Specify type as 'seller'
+    );
 
-   const { token, cookieOptions, userData } = AuthUtils.generateTokenResponse(
-     shop,
-     "seller"
-   );
+    // console.log(`[sendShopToken] Setting cookie 'seller_token' for shop ${shopData._id}`);
 
-   res
-     .status(statusCode)
-     .cookie("seller_token", token, cookieOptions) // Set the 'seller_token' cookie
-     // .header('Seller-Authorization', `Bearer ${token}`) // Optional: Set header
-     .json({
-       success: true,
-       token: token, // Optional: Include token in body
-       seller: userData, // Send sanitized shop data as 'seller'
-     });
- } catch (error) {
-   console.error("Error in sendShopToken utility:", error);
-   res.status(500).json({
-     success: false,
-     message:
-       "An internal error occurred during seller authentication response generation.",
-   });
- }
+    res
+      .status(statusCode)
+      .cookie("seller_token", token, cookieOptions) // Set the 'seller_token' cookie
+      // Optional: Include token in response body
+      .json({
+        success: true,
+        token: token,
+        seller: shopData, // Send sanitized shop data (password removed by AuthUtils)
+      });
+  } catch (error) {
+    console.error("[sendShopToken Utility Error]:", error);
+    // Send a generic server error response
+    res.status(500).json({
+      success: false,
+      message:
+        "An internal server error occurred during seller authentication response.",
+    });
+  }
 };
 
 module.exports = sendShopToken;
