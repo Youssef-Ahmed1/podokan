@@ -6,23 +6,21 @@ const compression = require("compression"); // Compresses response bodies
 const helmet = require("helmet"); // Sets various security headers
 const morgan = require("morgan"); // HTTP request logger
 const ErrorHandler = require("./middleware/error"); // Custom error handler middleware
-
 const app = express();
 
 // --- Essential Middleware ---
 
-// ** CORS Configuration **
-// Define allowed origins based on environment
-const allowedOrigins =
+const allowedOrigins = (
   process.env.NODE_ENV === "production"
     ? (
         process.env.CORS_ORIGIN ||
-        "https://testpodokan.store/" ||
-        "http://testpodokan.store/"
-      ).split(",") // Use env var, split by comma for multiple, provide a sensible default
-    : ["http://localhost:3000"]; // Allow local dev server
-
-console.log("Allowed CORS Origins:", allowedOrigins);
+        "https://testpodokan.store" ||
+        "http://testpodokan.store"
+      )
+        .split(",")
+        .map((origin) => origin.trim().replace(/\/$/, "")) // *** This removes trailing slash ***
+    : ["http://localhost:3000"]
+).filter(Boolean);
 
 const corsOptions = {
   origin: function (origin, callback) {
