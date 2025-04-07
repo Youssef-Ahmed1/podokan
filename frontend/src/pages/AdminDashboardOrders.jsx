@@ -6,7 +6,7 @@ import {
   clearErrors,
 } from "../redux/actions/order"; // Adjust path
 import { Link } from "react-router-dom";
-import { Eye, Search, Package, RefreshCw } from "lucide-react";
+import { Eye, Search, Package, RefreshCw, AlertTriangle } from "lucide-react";
 import { toast } from "react-toastify";
 import Loader from "../components/Layout/Loader"; // Adjust path
 import { format } from "date-fns";
@@ -18,6 +18,7 @@ import {
   CircularProgress,
   Typography,
   IconButton,
+  Button,
 } from "@mui/material";
 import { ORDER_STATUSES } from "../constants/orderStatuses"; // Adjust path
 
@@ -34,6 +35,7 @@ function CustomLoadingOverlay() {
         alignItems: "center",
         justifyContent: "center",
         background: "rgba(255, 255, 255, 0.7)",
+        zIndex: 1,
       }}
     >
       <CircularProgress />
@@ -63,78 +65,96 @@ function CustomNoRowsOverlay({ message = "No orders found." }) {
 
 const AdminDashboardOrders = () => {
   const dispatch = useDispatch();
-  // Select admin order state including pagination info
+  // Select admin order state including pagination info from Redux
   const {
-    adminOrders = [], // Orders for the current page
-    isLoading,
-    error,
-    isUpdating,
-    adminTotalOrders, // Total count for pagination
-    adminLimit, // Page size from state
+    adminOrders = [], // Orders for the current page fetched from backend
+    isLoading, // Loading state for the list fetch
+    error, // Error state for the list fetch
+    isUpdating, // Loading state for status updates
+    adminTotalOrders = 0, // Total count of ALL admin orders (for pagination)
+    adminLimit = 15, // Default page size (can be overridden by backend response)
   } = useSelector((state) => state.order);
 
-  const [searchTerm, setSearchTerm] = useState(""); // For client-side search on current page
-  const [filterStatus, setFilterStatus] = useState("all"); // For client-side status filter on current page
-  // Local pagination state controlled by DataGrid (page is 0-based for MUI)
+  // Local state for client-side filtering (applies only to current page data)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+
+  // Local state for MUI DataGrid pagination (0-based page index)
   const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: adminLimit || 15,
+    page: 0, // MUI DataGrid uses 0-based index
+    pageSize: adminLimit, // Initial page size from Redux state or default
   });
 
-  // Fetching Logic - fetch based on current pagination model state
+  // Fetching Logic - useCallback ensures stability
   const fetchAdminOrders = useCallback(() => {
     const apiPage = paginationModel.page + 1; // Convert 0-based MUI page to 1-based API page
     const apiLimit = paginationModel.pageSize;
+    // console.log(`Fetching admin orders - Page: ${apiPage}, Limit: ${apiLimit}`);
     dispatch(getAllOrdersOfAdmin(apiPage, apiLimit));
   }, [dispatch, paginationModel.page, paginationModel.pageSize]);
 
-  // Fetch orders when component mounts or pagination changes
+  // Fetch orders when component mounts or paginationModel state changes
   useEffect(() => {
     fetchAdminOrders();
-  }, [fetchAdminOrders]);
+  }, [fetchAdminOrders]); // Dependency: fetchAdminOrders (which depends on paginationModel)
 
-  // Handle Redux errors
+  // Update local pageSize if adminLimit from Redux changes (e.g., after first fetch)
+  useEffect(() => {
+    setPaginationModel((prev) => ({ ...prev, pageSize: adminLimit }));
+  }, [adminLimit]);
+
+  // Handle Redux errors (for fetching list or updating status)
   useEffect(() => {
     if (error) {
-      toast.error(`Error: ${error}`);
-      dispatch(clearErrors());
+      toast.error(`Order Operation Error: ${error}`);
+      dispatch(clearErrors()); // Clear error after showing
     }
+    // Cleanup
+    return () => {
+      if (error) dispatch(clearErrors());
+    };
   }, [error, dispatch]);
 
-  // Client-Side filtering (only filters the orders currently loaded on the page)
-  // NOTE: For true filtering across all orders, implement backend filtering.
-  const filteredOrders = useMemo(() => {
+  // Client-Side filtering (filters ONLY the `adminOrders` currently loaded on the page)
+  // For full server-side filtering, backend API needs search/status params
+  const filteredOrdersForCurrentPage = useMemo(() => {
     if (!Array.isArray(adminOrders)) return [];
     return adminOrders.filter((order) => {
       if (!order?._id) return false;
       const lowerSearch = searchTerm.toLowerCase();
+      // Match ID, Short ID, or Customer Name
       const idMatch =
         order._id.toLowerCase().includes(lowerSearch) ||
         order._id.slice(-8).toLowerCase().includes(lowerSearch);
       const customerMatch =
         order.user?.name?.toLowerCase().includes(lowerSearch) || false;
+      // Match Status
       const statusMatch =
         filterStatus === "all" || order.status === filterStatus;
       return (idMatch || customerMatch) && statusMatch;
     });
-  }, [adminOrders, searchTerm, filterStatus]);
+  }, [adminOrders, searchTerm, filterStatus]); // Filter when data or filter terms change
 
   // Status Update Handler
   const handleStatusUpdate = (orderId, newStatus, currentStatus) => {
+    // Prevent update if status is the same or already updating
     if (newStatus === currentStatus || isUpdating) return;
+    // console.log(`Admin updating order ${orderId} status to ${newStatus}`);
     dispatch(adminUpdateOrderStatus(orderId, newStatus))
-      .then(() => {
-        /* Data updates via Redux state */
-      })
-      .catch(() => {}); // Errors handled by action/toast
+      // Success/Error toasts are handled by the action
+      // Optionally refetch current page after successful update if needed, but Redux update should suffice
+      // .then(() => fetchAdminOrders())
+      .catch(() => {}); // Errors already handled
   };
 
-  // Pagination Model Change Handler (from DataGrid)
+  // DataGrid Pagination Model Change Handler
   const handlePaginationModelChange = (newModel) => {
-    setPaginationModel(newModel); // Update local state, triggering useEffect -> fetchAdminOrders
+    // Update the local state, which will trigger the useEffect to fetch new data
+    // console.log("Pagination model changed:", newModel);
+    setPaginationModel(newModel);
   };
 
-  // Column Definitions
+  // Column Definitions using useMemo
   const columns = useMemo(
     () => [
       {
@@ -148,7 +168,7 @@ const AdminDashboardOrders = () => {
         headerName: "Date",
         width: 110,
         type: "date",
-        valueGetter: (v) => (v ? new Date(v) : null),
+        valueGetter: (value) => (value ? new Date(value) : null), // Ensure value is Date object
         renderCell: (p) => (p.value ? format(p.value, "PP") : "N/A"),
       },
       { field: "customer", headerName: "Customer", width: 180, flex: 1 },
@@ -167,38 +187,42 @@ const AdminDashboardOrders = () => {
         type: "number",
         align: "right",
         headerAlign: "right",
-        valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
+        valueFormatter: (value) => `EGP ${Number(value || 0).toFixed(2)}`,
       },
       {
         field: "status",
         headerName: "Status",
-        minWidth: 220,
+        minWidth: 200,
         flex: 0.8,
         sortable: false,
-        renderCell: (params) => (
+        renderCell: (
+          params // Use MUI Select for inline status update
+        ) => (
           <Select
-            value={params.value || ""}
+            value={params.value || ""} // Current status from row data
             onChange={(e) =>
               handleStatusUpdate(params.id, e.target.value, params.value)
             }
             size="small"
             variant="outlined"
-            disabled={isUpdating}
+            disabled={isUpdating} // Disable while any update is in progress
             fullWidth
             sx={{
               fontSize: "0.8rem",
               height: "35px",
               bgcolor: "background.paper",
-              ".MuiSelect-select": { py: 0.8, px: 1 },
+              ".MuiSelect-select": { py: 0.8, px: 1 }, // Adjust padding
               ".MuiOutlinedInput-notchedOutline": {
                 border: "1px solid #e0e0e0",
               },
               "&:hover .MuiOutlinedInput-notchedOutline": {
                 borderColor: "#bdbdbd",
               },
+              "&.Mui-disabled": { bgcolor: "#f5f5f5", opacity: 0.7 },
             }}
-            MenuProps={{ PaperProps: { sx: { maxHeight: 300 } } }}
+            MenuProps={{ PaperProps: { sx: { maxHeight: 300 } } }} // Limit dropdown height
           >
+            {/* Map through available statuses */}
             {Object.values(ORDER_STATUSES).map((stat) => (
               <MenuItem key={stat} value={stat} sx={{ fontSize: "0.8rem" }}>
                 {stat}
@@ -214,7 +238,9 @@ const AdminDashboardOrders = () => {
         sortable: false,
         align: "center",
         headerAlign: "center",
-        renderCell: (params) => (
+        renderCell: (
+          params // Link to Admin Order Detail page
+        ) => (
           <Link to={`/admin/order/${params.id}`} title="View Details">
             <IconButton size="small">
               <Eye className="text-blue-600 hover:text-blue-800" />
@@ -223,13 +249,13 @@ const AdminDashboardOrders = () => {
         ),
       },
     ],
-    [isUpdating]
-  ); // Memoize based on isUpdating
+    [isUpdating] // Re-memoize columns if isUpdating changes (to enable/disable Select)
+  );
 
-  // Prepare Rows for DataGrid (use filtered data if client-side filtering is acceptable)
+  // Prepare Rows for DataGrid using the client-side filtered data for the current page
   const rows = useMemo(
     () =>
-      filteredOrders.map((o) => ({
+      filteredOrdersForCurrentPage.map((o) => ({
         id: o._id,
         date: o.createdAt,
         customer: o.user?.name || "N/A",
@@ -237,24 +263,31 @@ const AdminDashboardOrders = () => {
         total: o.totalPrice,
         status: o.status,
       })),
-    [filteredOrders]
+    [filteredOrdersForCurrentPage] // Depends on the filtered data for the current page
   );
+
+  // Initial loading state
+  if (isLoading && adminOrders.length === 0) {
+    return <Loader />;
+  }
 
   // Main Component Render
   return (
     <div className="w-full p-4 md:p-6 min-h-screen bg-gray-100">
       <div className="max-w-[1400px] mx-auto">
+        {" "}
+        {/* Wider max-width for admin tables */}
         {/* Header & Filters */}
         <div className="mb-6 bg-white p-4 rounded-lg shadow border border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
             <h1 className="text-xl md:text-2xl font-bold text-gray-800">
-              Orders Management ({adminTotalOrders})
+              Orders Management ({adminTotalOrders}) {/* Show total count */}
             </h1>
             <button
-              onClick={fetchAdminOrders}
+              onClick={fetchAdminOrders} // Refresh current page data
               disabled={isLoading || isUpdating}
               className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50"
-              title="Refresh Current Page"
+              title="Refresh Current Page Data"
             >
               <RefreshCw
                 size={18}
@@ -262,6 +295,7 @@ const AdminDashboardOrders = () => {
               />
             </button>
           </div>
+          {/* Client-side Filters */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-grow">
               <Search
@@ -270,10 +304,10 @@ const AdminDashboardOrders = () => {
               />
               <input
                 type="text"
-                placeholder="Search current page..."
+                placeholder="Search ID or Customer on current page..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 text-sm"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 text-sm outline-none"
               />
             </div>
             <Select
@@ -297,22 +331,26 @@ const AdminDashboardOrders = () => {
               ))}
             </Select>
           </div>
-          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          {/* Display fetch error */}
+          {error && !isLoading && (
+            <p className="text-red-500 text-sm mt-3 p-2 bg-red-50 border border-red-200 rounded flex items-center gap-2">
+              <AlertTriangle size={16} /> Failed to load orders: {error}
+            </p>
+          )}
         </div>
-
-        {/* Data Grid */}
+        {/* Data Grid - Server-Side Pagination */}
         <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
           <Box sx={{ height: "70vh", width: "100%" }}>
             {" "}
-            {/* Set explicit height */}
+            {/* Ensure Box has height */}
             <DataGrid
-              rows={rows} // Use the client-side filtered rows (data from current page)
+              rows={rows} // Use the client-side filtered rows for the CURRENT page
               columns={columns}
-              rowCount={adminTotalOrders || 0} // Total count from backend for pagination UI
-              loading={isLoading}
-              pageSizeOptions={[15, 30, 50, 100]}
-              paginationModel={paginationModel}
-              paginationMode="server" // Tell grid backend handles pages
+              rowCount={adminTotalOrders || 0} // ** TOTAL count of orders across all pages **
+              loading={isLoading || isUpdating} // Show loading state during fetch or status update
+              pageSizeOptions={[15, 30, 50, 100]} // Options for page size
+              paginationModel={paginationModel} // Controlled pagination state
+              paginationMode="server" // ** Crucial for backend pagination **
               onPaginationModelChange={handlePaginationModelChange} // Handler triggers fetch for new page/size
               disableRowSelectionOnClick
               autoHeight={false} // Use the Box height
@@ -321,17 +359,27 @@ const AdminDashboardOrders = () => {
                 noRowsOverlay: () => (
                   <CustomNoRowsOverlay
                     message={
-                      searchTerm || filterStatus !== "all"
+                      // Adjust message based on filtering state
+                      (searchTerm || filterStatus !== "all") &&
+                      adminOrders.length > 0
                         ? "No orders match filters on this page."
-                        : "No orders found."
+                        : adminTotalOrders === 0
+                        ? "No orders found in the system."
+                        : "No orders found for this page."
                     }
                   />
                 ),
               }}
               sx={{
                 border: "none",
-                "& .MuiDataGrid-columnHeaders": { bgcolor: "#f9fafb" },
+                "& .MuiDataGrid-columnHeaders": {
+                  bgcolor: "#f9fafb",
+                  fontWeight: "bold",
+                },
                 "& .MuiDataGrid-cell": { borderBottom: "1px solid #e0e0e0" },
+                "& .MuiDataGrid-footerContainer": {
+                  borderTop: "1px solid #e0e0e0",
+                },
               }}
             />
           </Box>

@@ -1,61 +1,66 @@
-import { ORDER_ACTIONS } from "../actions/order"; // Adjust path if needed
+import { ORDER_ACTIONS } from "../actions/order"; // Adjust path
 
 const initialState = {
-  isLoading: false, // For loading lists (user, admin, shop)
+  // Loading states
+  isLoading: false, // For loading lists (user, admin page, shop)
   isDetailLoading: false, // For loading single order detail
   isUpdating: false, // For create, status updates, refund actions
-  isDownloading: false, // For design download preparation step
+  isDownloading: false, // For design download data preparation step
 
-  // User Orders State
-  orders: [],
+  // Data states
+  orders: [], // User's orders list
+  shopOrders: [], // Seller's orders list
+  adminOrders: [], // Admin orders for the CURRENT page
+  order: null, // Single order detail view
 
-  // Admin Orders State (now with pagination info)
-  adminOrders: [], // Orders for the current page
-  adminTotalOrders: 0, // Total count of all admin orders
-  adminCurrentPage: 1, // Current page number being viewed
-  adminTotalPages: 1, // Total pages available
-  adminLimit: 15, // Items per page
+  // Pagination state for Admin orders
+  adminTotalOrders: 0, // Total count across all pages
+  adminCurrentPage: 1, // Current page number from the last fetch
+  adminTotalPages: 1, // Total pages based on totalOrders and limit
+  adminLimit: 15, // Items per page from the last fetch (or default)
 
-  // Seller Orders State
-  shopOrders: [],
+  // Error states
+  error: null, // General error for list/detail loading
+  updateError: null, // Specific error for update operations
+  downloadError: null, // Specific error for download data fetch
 
-  // Single Order Detail State
-  order: null,
-
-  // Error/Success States
-  error: null, // General list/detail loading errors
-  updateError: null, // Errors during update operations
-  downloadError: null, // Errors during download data fetch
+  // Success flags (optional, can rely on absence of error)
   success: false, // Generic success flag (e.g., for creation)
-
-  // Caching Info (optional)
-  lastFetched: { user: null, admin: null, shop: null, detail: {} },
 };
 
-// Helper to update an order within any list immutably
 const updateOrderInList = (list, updatedOrder) => {
+  // Basic validation
   if (!Array.isArray(list) || !updatedOrder?._id) {
-    // console.warn("updateOrderInList: Invalid input", { list: typeof list, updatedOrder });
-    return list || []; // Return original list or empty array
+    // console.warn("updateOrderInList: Invalid input provided.", { listType: typeof list, updatedOrder });
+    return list || []; // Return original list or empty array if invalid
   }
+
   const index = list.findIndex((o) => o._id === updatedOrder._id);
+
+  // If the order isn't found in this list, return the original list
   if (index === -1) {
-    return list; // Order not found in this list, return original
+    return list;
   }
-  // Merge updated data onto existing data to preserve fields not included in update response
+
   const existingOrder = list[index];
   const mergedOrder = { ...existingOrder, ...updatedOrder };
-  // Return new array with updated order
-  return [...list.slice(0, index), mergedOrder, ...list.slice(index + 1)];
+
+  // Return a new array instance
+  return [
+    ...list.slice(0, index), // Elements before the updated one
+    mergedOrder, // The updated order
+    ...list.slice(index + 1), // Elements after the updated one
+  ];
 };
 
+// --- The Reducer Function ---
 export const orderReducer = (state = initialState, action) => {
   switch (action.type) {
     // --- Create Order ---
     case ORDER_ACTIONS.CREATE_REQUEST:
       return { ...state, isUpdating: true, success: false, updateError: null };
     case ORDER_ACTIONS.CREATE_SUCCESS:
-      return { ...state, isUpdating: false, success: true, updateError: null };
+      return { ...state, isUpdating: false, success: true, updateError: null }; // Orders aren't added to list here, usually redirect occurs
     case ORDER_ACTIONS.CREATE_FAIL:
       return {
         ...state,
@@ -70,7 +75,7 @@ export const orderReducer = (state = initialState, action) => {
     case ORDER_ACTIONS.GET_USER_REQUEST:
       return { ...state, isLoading: true, error: null };
     case ORDER_ACTIONS.GET_USER_SUCCESS:
-      // Handle potential object payload vs just array
+      // Ensure payload is an array, even if API response wraps it
       const userOrdersPayload = Array.isArray(action.payload)
         ? action.payload
         : action.payload?.orders || [];
@@ -78,11 +83,10 @@ export const orderReducer = (state = initialState, action) => {
         ...state,
         isLoading: false,
         orders: userOrdersPayload,
-        lastFetched: { ...state.lastFetched, user: Date.now() },
         error: null,
       };
     case ORDER_ACTIONS.GET_USER_FAIL:
-      return { ...state, isLoading: false, error: action.payload, orders: [] };
+      return { ...state, isLoading: false, error: action.payload, orders: [] }; // Clear orders on fail
     case ORDER_ACTIONS.GET_USER_FINALLY:
       return { ...state, isLoading: false };
 
@@ -97,7 +101,6 @@ export const orderReducer = (state = initialState, action) => {
         ...state,
         isLoading: false,
         shopOrders: shopOrdersPayload,
-        lastFetched: { ...state.lastFetched, shop: Date.now() },
         error: null,
       };
     case ORDER_ACTIONS.GET_SHOP_FAIL:
@@ -106,54 +109,47 @@ export const orderReducer = (state = initialState, action) => {
         isLoading: false,
         error: action.payload,
         shopOrders: [],
-      };
+      }; // Clear on fail
     case ORDER_ACTIONS.GET_SHOP_FINALLY:
       return { ...state, isLoading: false };
 
     // --- Get Admin Orders (Paginated) ---
     case ORDER_ACTIONS.GET_ADMIN_REQUEST:
-      return { ...state, isLoading: true, error: null }; // Keep existing admin orders while loading new page potentially
+      // Keep existing data while loading next page, but set loading true
+      return { ...state, isLoading: true, error: null };
     case ORDER_ACTIONS.GET_ADMIN_SUCCESS:
-      // Expecting payload = { orders, totalOrders, currentPage, totalPages, limit } from action
+      // Payload is expected to be: { orders, totalOrders, currentPage, totalPages, limit }
       const adminPayload = action.payload;
       return {
         ...state,
         isLoading: false,
+        // Update the list with orders for the fetched page
         adminOrders: Array.isArray(adminPayload?.orders)
           ? adminPayload.orders
-          : [], // Orders for the current page
+          : [],
+        // Update pagination info from the response
         adminTotalOrders: adminPayload?.totalOrders || 0,
         adminCurrentPage: adminPayload?.currentPage || 1,
         adminTotalPages: adminPayload?.totalPages || 1,
-        adminLimit: adminPayload?.limit || state.adminLimit, // Keep existing limit if not provided
-        lastFetched: { ...state.lastFetched, admin: Date.now() }, // Or maybe track per page?
+        adminLimit: adminPayload?.limit || state.adminLimit, // Use response limit or keep previous
         error: null,
       };
     case ORDER_ACTIONS.GET_ADMIN_FAIL:
-      return {
-        ...state,
-        isLoading: false,
-        error: action.payload,
-        // Optionally clear adminOrders on fail, or keep previous page data
-        // adminOrders: [],
-        // adminTotalOrders: 0, adminCurrentPage: 1, adminTotalPages: 1,
-      };
+      // Keep previous page data on error? Or clear? Clearing might be confusing.
+      // Let's keep the previous data but show the error.
+      return { ...state, isLoading: false, error: action.payload };
     case ORDER_ACTIONS.GET_ADMIN_FINALLY:
       return { ...state, isLoading: false };
 
     // --- Get Order Detail ---
     case ORDER_ACTIONS.GET_DETAIL_REQUEST:
+      // Clear previous detail and error when starting fetch
       return { ...state, isDetailLoading: true, order: null, error: null };
     case ORDER_ACTIONS.GET_DETAIL_SUCCESS:
-      const dId = action.payload?._id;
       return {
         ...state,
         isDetailLoading: false,
         order: action.payload,
-        lastFetched: {
-          ...state.lastFetched,
-          detail: { ...state.lastFetched.detail, [dId]: Date.now() },
-        },
         error: null,
       };
     case ORDER_ACTIONS.GET_DETAIL_FAIL:
@@ -162,88 +158,67 @@ export const orderReducer = (state = initialState, action) => {
         isDetailLoading: false,
         error: action.payload,
         order: null,
-      };
+      }; // Clear order on fail
     case ORDER_ACTIONS.GET_DETAIL_FINALLY:
       return { ...state, isDetailLoading: false };
 
     // --- Admin Update Status ---
     case ORDER_ACTIONS.ADMIN_UPDATE_STATUS_REQUEST:
+    case ORDER_ACTIONS.SELLER_UPDATE_REFUND_REQUEST: // Combine request/finally states
       return { ...state, isUpdating: true, updateError: null };
+
     case ORDER_ACTIONS.ADMIN_UPDATE_STATUS_SUCCESS:
-      const updatedAdminOrder = action.payload; // Expecting the updated order object
+    case ORDER_ACTIONS.SELLER_UPDATE_REFUND_SUCCESS: // Combine success states
+      const updatedOrder = action.payload; // Expecting the updated order object as payload
+      if (!updatedOrder?._id) return state; // Ignore if payload is invalid
       return {
         ...state,
         isUpdating: false,
         success: true,
         updateError: null,
-        // Update the order in all relevant lists
-        adminOrders: updateOrderInList(state.adminOrders, updatedAdminOrder), // Update in current admin page list
-        shopOrders: updateOrderInList(state.shopOrders, updatedAdminOrder),
-        orders: updateOrderInList(state.orders, updatedAdminOrder),
+        // Update the order immutably in all relevant lists
+        adminOrders: updateOrderInList(state.adminOrders, updatedOrder),
+        shopOrders: updateOrderInList(state.shopOrders, updatedOrder),
+        orders: updateOrderInList(state.orders, updatedOrder),
         // Update the detailed view if it's the one currently displayed
         order:
-          state.order?._id === updatedAdminOrder._id
-            ? updatedAdminOrder
-            : state.order,
+          state.order?._id === updatedOrder._id ? updatedOrder : state.order,
       };
-    case ORDER_ACTIONS.ADMIN_UPDATE_STATUS_FAIL:
-      return {
-        ...state,
-        isUpdating: false,
-        success: false,
-        updateError: action.payload,
-      };
-    case ORDER_ACTIONS.ADMIN_UPDATE_STATUS_FINALLY:
-      return { ...state, isUpdating: false };
 
-    // --- Seller Update Refund Status ---
-    case ORDER_ACTIONS.SELLER_UPDATE_REFUND_REQUEST:
-      return { ...state, isUpdating: true, updateError: null };
-    case ORDER_ACTIONS.SELLER_UPDATE_REFUND_SUCCESS:
-      const updatedRefundOrder = action.payload; // Expecting updated order object
-      return {
-        ...state,
-        isUpdating: false,
-        success: true,
-        updateError: null,
-        shopOrders: updateOrderInList(state.shopOrders, updatedRefundOrder),
-        adminOrders: updateOrderInList(state.adminOrders, updatedRefundOrder),
-        orders: updateOrderInList(state.orders, updatedRefundOrder),
-        order:
-          state.order?._id === updatedRefundOrder._id
-            ? updatedRefundOrder
-            : state.order,
-      };
-    case ORDER_ACTIONS.SELLER_UPDATE_REFUND_FAIL:
+    case ORDER_ACTIONS.ADMIN_UPDATE_STATUS_FAIL:
+    case ORDER_ACTIONS.SELLER_UPDATE_REFUND_FAIL: // Combine fail states
       return {
         ...state,
         isUpdating: false,
         success: false,
         updateError: action.payload,
       };
-    case ORDER_ACTIONS.SELLER_UPDATE_REFUND_FINALLY:
+
+    case ORDER_ACTIONS.ADMIN_UPDATE_STATUS_FINALLY:
+    case ORDER_ACTIONS.SELLER_UPDATE_REFUND_FINALLY: // Combine finally states
       return { ...state, isUpdating: false };
 
     // --- Download Design Data Fetch ---
     case ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_REQUEST:
       return { ...state, isDownloading: true, downloadError: null };
     case ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_SUCCESS:
-      return { ...state, isDownloading: false, downloadError: null }; // Only indicates fetch success
+      // Success only indicates the data fetch was successful, actual download is handled client-side
+      return { ...state, isDownloading: false, downloadError: null };
     case ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_FAIL:
       return { ...state, isDownloading: false, downloadError: action.payload };
     case ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_FINALLY:
       return { ...state, isDownloading: false };
 
-    // --- SSE Order Update Handler ---
-    case "o/sseUpdate": // Ensure this matches the type dispatched by your SSE utility
+    // --- Placeholder for potential real-time updates (e.g., via WebSockets/SSE) ---
+    case "order/sseUpdate": // Example action type for SSE
       const sseUpdatedOrder = action.payload;
-      if (!sseUpdatedOrder?._id) return state; // Ignore if no valid ID
+      if (!sseUpdatedOrder?._id) return state; // Ignore invalid SSE data
       console.log(
         `Reducer: Handling SSE update for order ${sseUpdatedOrder._id}`
       );
       return {
         ...state,
-        // Update the order wherever it appears in the state
+        // Update the order wherever it might appear in the state
         adminOrders: updateOrderInList(state.adminOrders, sseUpdatedOrder),
         shopOrders: updateOrderInList(state.shopOrders, sseUpdatedOrder),
         orders: updateOrderInList(state.orders, sseUpdatedOrder),
@@ -255,8 +230,14 @@ export const orderReducer = (state = initialState, action) => {
 
     // --- Clear Errors ---
     case ORDER_ACTIONS.CLEAR_ERRORS:
-      return { ...state, error: null, updateError: null, downloadError: null };
+      return {
+        ...state,
+        error: null,
+        updateError: null,
+        downloadError: null,
+      };
 
+    // --- Default ---
     default:
       return state;
   }
