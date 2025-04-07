@@ -1,4 +1,3 @@
-// frontend/src/pages/Shop/AllOrders.jsx
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -16,73 +15,95 @@ import { toast } from "react-toastify";
 import { getAllOrdersOfShop, clearErrors } from "../../redux/actions/order"; // Adjust path
 import Loader from "../../components/Layout/Loader"; // Adjust path
 import { format } from "date-fns";
-import { ORDER_STATUSES } from "../../constants/orderStatuses.js";
+import { ORDER_STATUSES } from "../../constants/orderStatuses"; // Adjust path
 
 const AllOrders = () => {
   const dispatch = useDispatch();
+  // Get seller-specific orders from state
   const {
-    shopOrders = [],
+    shopOrders = [], // Ensure default is an empty array
     isLoading,
     error,
   } = useSelector((state) => state.order);
   const { seller } = useSelector((state) => state.seller);
+
+  // Local state for filtering and pagination
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [ordersPerPage] = useState(10); // Items per page
 
-  // Fetching logic
+  // Fetching logic using useCallback
   const fetchOrders = useCallback(() => {
     if (seller?._id) {
-      dispatch(getAllOrdersOfShop());
+      // console.log("Fetching shop orders for seller:", seller._id);
+      dispatch(getAllOrdersOfShop()); // Action fetches orders specifically for the logged-in seller
     } else {
-      console.warn("Seller info not available for fetching shop orders.");
+      // This might happen briefly on load before seller info is ready
+      // console.warn("Seller info not available yet for fetching shop orders.");
+      // Optionally show a message or wait, but usually Redux handles the loading state.
     }
   }, [dispatch, seller?._id]);
 
+  // Fetch on mount and when seller ID becomes available
   useEffect(() => {
     fetchOrders();
-  }, [fetchOrders]); // Fetch on mount/seller change
+  }, [fetchOrders]);
 
-  // Error handling
+  // Error handling from Redux state
   useEffect(() => {
     if (error) {
       toast.error(`Error fetching orders: ${error}`);
-      dispatch(clearErrors());
+      dispatch(clearErrors()); // Clear error after displaying
     }
+    // Cleanup function
+    return () => {
+      if (error) dispatch(clearErrors());
+    };
   }, [error, dispatch]);
 
-  // Filtering logic
+  // Filtering logic - applies to the fetched `shopOrders`
   const filteredOrders = useMemo(() => {
-    if (!Array.isArray(shopOrders)) return [];
+    if (!Array.isArray(shopOrders)) return []; // Safety check
+
     return shopOrders.filter((order) => {
-      if (!order?._id) return false;
+      if (!order?._id) return false; // Skip invalid order data
+
       const lowerSearch = searchTerm.toLowerCase();
+
+      // Match search term against relevant fields
       const idMatch =
         order._id.toLowerCase().includes(lowerSearch) ||
-        order._id.slice(-8).toLowerCase().includes(lowerSearch);
+        order._id.slice(-8).toLowerCase().includes(lowerSearch); // Match full or short ID
       const customerMatch =
         order.user?.name?.toLowerCase().includes(lowerSearch) || false;
+      // Search within the seller's items in the cart (cart is already pre-filtered by the backend/action)
       const designMatch =
         order.cart?.some((item) =>
           item?.DesignTitle?.toLowerCase().includes(lowerSearch)
-        ) || false; // Search within seller's items
+        ) || false;
+
+      // Match status filter
       const statusMatch =
         filterStatus === "all" || order.status === filterStatus;
+
       return (idMatch || customerMatch || designMatch) && statusMatch;
     });
   }, [shopOrders, searchTerm, filterStatus]);
 
-  // Pagination logic
+  // Pagination logic based on filtered orders
   const indexOfLastOrder = currentPage * ordersPerPage;
   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
   const currentOrders = filteredOrders.slice(
     indexOfFirstOrder,
     indexOfLastOrder
-  );
+  ); // Orders for the current page view
   const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
-  const paginate = (page) => {
-    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+
+  const paginate = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
   };
 
   // Refresh handler
@@ -90,11 +111,13 @@ const AllOrders = () => {
     setSearchTerm("");
     setFilterStatus("all");
     setCurrentPage(1);
-    fetchOrders();
+    fetchOrders(); // Re-fetch data from backend
   };
 
   // Initial Loading State
-  if (isLoading && shopOrders.length === 0) return <Loader />;
+  if (isLoading && shopOrders.length === 0) {
+    return <Loader />;
+  }
 
   return (
     <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
@@ -103,8 +126,8 @@ const AllOrders = () => {
         <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <h1 className="text-xl md:text-2xl font-bold text-gray-800">
-              {" "}
               My Shop Orders ({filteredOrders.length}){" "}
+              {/* Show count of filtered orders */}
             </h1>
             <button
               onClick={handleRefresh}
@@ -118,7 +141,9 @@ const AllOrders = () => {
               />
             </button>
           </div>
+          {/* Filter Controls */}
           <div className="flex flex-col md:flex-row gap-4 mt-4">
+            {/* Search Input */}
             <div className="relative flex-grow">
               <Search
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -130,18 +155,27 @@ const AllOrders = () => {
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
-                  setCurrentPage(1);
+                  setCurrentPage(1); // Reset to page 1 on search
                 }}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 text-sm transition-colors"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 text-sm transition-colors outline-none"
               />
             </div>
+            {/* Status Filter Dropdown */}
             <select
               value={filterStatus}
               onChange={(e) => {
                 setFilterStatus(e.target.value);
-                setCurrentPage(1);
+                setCurrentPage(1); // Reset to page 1 on status change
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-300 focus:border-blue-300 text-sm transition-colors"
+              className="px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-300 focus:border-blue-500 text-sm transition-colors outline-none appearance-none"
+              style={{
+                backgroundImage:
+                  "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")",
+                backgroundPosition: "right 0.5rem center",
+                backgroundRepeat: "no-repeat",
+                backgroundSize: "1.5em 1.5em",
+                paddingRight: "2.5rem",
+              }}
             >
               <option value="all">All Statuses</option>
               {Object.values(ORDER_STATUSES).map((status) => (
@@ -151,16 +185,18 @@ const AllOrders = () => {
               ))}
             </select>
           </div>
+          {/* Show error message if fetch failed but previous orders exist */}
           {error && shopOrders.length > 0 && (
             <p className="text-red-500 text-xs mt-2 pl-1">
-              Could not refresh orders: {error}
+              Could not refresh orders: {error}. Displaying cached data.
             </p>
           )}
         </div>
 
         {/* Orders List / Status Messages */}
         <div className="space-y-4">
-          {!isLoading && error && shopOrders.length === 0 ? (
+          {/* Case 1: Error and no orders loaded ever */}
+          {!isLoading && error && shopOrders.length === 0 && (
             <div className="p-6 text-center bg-red-50 rounded-lg border border-red-200">
               <Frown size={48} className="mx-auto text-red-400 mb-4" />
               <h2 className="text-xl font-semibold text-red-700 mb-2">
@@ -170,18 +206,22 @@ const AllOrders = () => {
               <button
                 onClick={handleRefresh}
                 disabled={isLoading}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center mx-auto hover:bg-blue-600 disabled:opacity-50 transition-colors"
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center mx-auto hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
                 <RefreshCw size={16} className="mr-2" /> Retry
               </button>
             </div>
-          ) : !isLoading && shopOrders.length === 0 ? (
+          )}
+          {/* Case 2: No error, but no orders found for the seller */}
+          {!isLoading && !error && shopOrders.length === 0 && (
             <div className="p-6 text-center bg-blue-50 rounded-lg border border-blue-100">
               <Package size={48} className="mx-auto text-blue-400 mb-4" />
               <h2 className="text-xl font-semibold text-gray-700 mb-2">
                 No Orders Yet
               </h2>
-              <p className="text-gray-500">You haven't received any orders.</p>
+              <p className="text-gray-500">
+                You haven't received any orders for your shop.
+              </p>
               <button
                 onClick={handleRefresh}
                 disabled={isLoading}
@@ -190,23 +230,41 @@ const AllOrders = () => {
                 <RefreshCw size={16} className="mr-2" /> Refresh
               </button>
             </div>
-          ) : filteredOrders.length === 0 ? (
-            <div className="p-6 text-center bg-white rounded-lg shadow border border-gray-200">
-              <Info size={48} className="mx-auto text-gray-400 mb-4" />
-              <h2 className="text-xl font-semibold text-gray-700 mb-2">
-                No Matching Orders
-              </h2>
-              <p className="text-gray-500">
-                No orders found for the current filter.
-              </p>
-            </div>
-          ) : (
+          )}
+          {/* Case 3: Orders loaded, but current filters match none */}
+          {!isLoading &&
+            shopOrders.length > 0 &&
+            filteredOrders.length === 0 && (
+              <div className="p-6 text-center bg-white rounded-lg shadow border border-gray-200">
+                <Info size={48} className="mx-auto text-gray-400 mb-4" />
+                <h2 className="text-xl font-semibold text-gray-700 mb-2">
+                  No Matching Orders
+                </h2>
+                <p className="text-gray-500">
+                  No orders found matching your search term "{searchTerm}" and
+                  status "{filterStatus}".
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setFilterStatus("all");
+                    setCurrentPage(1);
+                  }}
+                  className="mt-4 text-sm text-blue-600 hover:underline"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            )}
+          {/* Case 4: Orders loaded and filters match some - display current page */}
+          {filteredOrders.length > 0 &&
             currentOrders.map((order) => (
               <div
                 key={order._id}
                 className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 overflow-hidden"
               >
                 <div className="p-4 md:p-5">
+                  {/* Order Header */}
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-3">
                     <div>
                       <Link
@@ -226,6 +284,7 @@ const AllOrders = () => {
                       </p>
                     </div>
                     <div className="flex flex-col items-start md:items-end gap-2 mt-2 md:mt-0 w-full md:w-auto">
+                      {/* Status Badge */}
                       <span
                         className={`px-2.5 py-0.5 text-xs rounded-full font-medium ${
                           order.status === "Processing"
@@ -242,6 +301,7 @@ const AllOrders = () => {
                       >
                         {order.status}
                       </span>
+                      {/* View Details Button */}
                       <Link to={`/order/${order._id}`}>
                         <button className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-md flex items-center hover:bg-blue-700 transition-colors">
                           <Eye size={14} className="mr-1" /> View Details
@@ -249,15 +309,18 @@ const AllOrders = () => {
                       </Link>
                     </div>
                   </div>
+
+                  {/* Seller's Items in the Order */}
                   {order.cart?.length > 0 && (
                     <div className="border-t border-gray-100 pt-3 mt-3">
                       <h4 className="text-xs font-medium text-gray-600 mb-2">
-                        Your Item(s):
+                        Your Item(s) in this Order:
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {order.cart.map((item) => (
+                        {/* Map through the cart items (already filtered for the seller) */}
+                        {order.cart.map((item, itemIndex) => (
                           <div
-                            key={item._id || Math.random()}
+                            key={item._id || `item-${itemIndex}`}
                             className="flex items-start gap-2 bg-gray-50 p-2 rounded text-xs border border-gray-100"
                           >
                             {item.designImage?.url && (
@@ -290,6 +353,8 @@ const AllOrders = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* Order Footer (Total) */}
                   <div className="flex justify-end items-center mt-3 pt-3 border-t border-gray-100">
                     <div className="text-right">
                       <p className="text-xs text-gray-500">Order Total</p>
@@ -300,13 +365,12 @@ const AllOrders = () => {
                   </div>
                 </div>
               </div>
-            ))
-          )}
+            ))}
         </div>
 
-        {/* Pagination */}
+        {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-6 text-sm">
+          <div className="flex justify-center items-center gap-2 mt-8 text-sm">
             <button
               onClick={() => paginate(currentPage - 1)}
               disabled={currentPage === 1}
@@ -314,9 +378,8 @@ const AllOrders = () => {
             >
               <ArrowLeft size={14} className="mr-1" /> Prev
             </button>
-            <span className="text-gray-600">
-              {" "}
-              Page {currentPage} of {totalPages}{" "}
+            <span className="text-gray-600 px-2">
+              Page {currentPage} of {totalPages}
             </span>
             <button
               onClick={() => paginate(currentPage + 1)}

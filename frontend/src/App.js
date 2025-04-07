@@ -2,7 +2,7 @@ import React, { useEffect, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
-import { server } from "./server";
+import { server } from "./server"; // Base URL for backend
 import Store from "./redux/store";
 import { loadSeller, loadUser } from "./redux/actions/user";
 import { getAllProducts } from "./redux/actions/product";
@@ -16,7 +16,7 @@ import SellerProtectedRoute from "./routes/SellerProtectedRoute";
 // Layout
 import Loader from "./components/Layout/Loader";
 
-// Page Imports
+// Route Components (assuming lazy loading isn't fully implemented yet based on Suspense usage)
 import {
   LoginPage,
   SignupPage,
@@ -34,12 +34,12 @@ import {
   ShopCreatePage,
   SellerActivationPage,
   ShopLoginPage,
-  OrderDetailsPage as UserOrderDetailsPage,
+  OrderDetailsPage as UserOrderDetailsPage, // Renamed import for clarity
   TrackOrderPage,
   UserInbox,
 } from "./routes/Routes.js";
 import {
-  ShopHomePage as SellerShopHomePage,
+  ShopHomePage as SellerShopHomePage, // Renamed import for clarity
   ShopDashboardPage,
   ShopCreateProduct,
   ShopAllProducts,
@@ -47,8 +47,8 @@ import {
   ShopAllEvents,
   ShopAllCoupouns,
   ShopPreviewPage,
-  ShopAllOrders,
-  ShopOrderDetails,
+  ShopAllOrders, // Component for /dashboard-orders
+  ShopOrderDetails, // Component for /order/:id (Seller)
   ShopAllRefunds,
   ShopSettingsPage,
   ShopWithDrawMoneyPage,
@@ -58,13 +58,13 @@ import {
   AdminDashboardPage,
   AdminDashboardUsers,
   AdminDashboardSellers,
-  AdminDashboardOrders,
+  AdminDashboardOrders, // Component for /admin-orders
   AdminDashboardProducts,
   AdminDashboardEvents,
   AdminDashboardWithdraw,
   AdminApprovalProducts,
 } from "./routes/AdminRoutes";
-import AdminOrderDetails from "./pages/Shop/AdminOrderDetails";
+import AdminOrderDetails from "./pages/Shop/AdminOrderDetails"; // Use direct import for admin detail page
 
 // Styles
 import "react-toastify/dist/ReactToastify.css";
@@ -72,92 +72,144 @@ import "./App.css";
 
 // --- Axios Global Config ---
 axios.defaults.baseURL = server;
-axios.defaults.withCredentials = true;
+axios.defaults.withCredentials = true; // Send cookies globally
 
 // Request Interceptor (Adds Tokens)
 axios.interceptors.request.use(
   (config) => {
     const userToken = localStorage.getItem("token");
     const sellerToken = localStorage.getItem("seller_token");
-    const sellerApiPatterns = [
-      "/api/v2/shop",
-      "/api/v2/product",
-      "/api/v2/event",
-      "/api/v2/coupon",
-      "/api/v2/order/get-seller",
-      "/api/v2/order/accept-refund",
-      "/api/v2/withdraw",
+
+    // Define API paths that require the Seller token more precisely
+    const sellerApiPrefixes = [
+      "/api/v2/shop/", // Covers shop creation, login, activation, loading seller data
+      "/api/v2/product/", // Covers seller product actions
+      "/api/v2/event/", // Covers seller event actions
+      "/api/v2/coupon/", // Covers seller coupon actions
+      "/api/v2/order/get-seller", // Covers getting seller orders/details
+      "/api/v2/order/accept-refund", // Seller refund action
+      "/api/v2/withdraw/", // Seller withdrawal actions
+      "/api/v2/message/", // Seller message actions (if applicable)
+      // Add other seller-specific base paths if needed
     ];
+
+    const isAdminRequest = config.url?.startsWith("/api/v2/order/admin/"); // Specific admin order routes
     const isSellerRequest =
       config.url &&
-      sellerApiPatterns.some((pattern) => config.url.startsWith(pattern));
+      sellerApiPrefixes.some((prefix) => config.url.startsWith(prefix));
 
+    // Clear existing auth headers first
     delete config.headers["Authorization"];
-    delete config.headers["Seller-Authorization"]; // Clear first
+    delete config.headers["Seller-Authorization"];
 
+    // Apply correct token based on route type priority (Seller > User)
+    // Admin routes use the standard User token (assuming admin logs in as a user)
     if (isSellerRequest && sellerToken) {
       config.headers["Seller-Authorization"] = `Bearer ${sellerToken}`;
-    } else if (userToken) {
+      // console.log(`[Axios Req] Using Seller Token for: ${config.url}`);
+    } else if (userToken && !isSellerRequest) {
+      // Apply user token if it's not a seller-specific request OR if it's an admin request
       config.headers["Authorization"] = `Bearer ${userToken}`;
+      // console.log(`[Axios Req] Using User Token for: ${config.url}`);
+    } else if (!userToken && !isSellerRequest) {
+      // console.log(`[Axios Req] No token available for non-seller route: ${config.url}`);
+    } else if (!sellerToken && isSellerRequest) {
+      // console.warn(`[Axios Req] Seller token missing for seller route: ${config.url}`);
     }
-    // console.log(`Axios Request: ${config.method.toUpperCase()} ${config.url}`, config.headers); // Optional: Log headers being sent
+
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor (Handles 401)
+// Response Interceptor (Handles 401 Unauthorized)
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
     const { status } = error.response || {};
     const originalRequest = error.config;
 
-    // ** Handle 401 specifically - Clear token and notify user **
+    // Only handle 401 and prevent infinite retry loops
     if (status === 401 && !originalRequest._retry) {
-      // Check _retry flag
-      originalRequest._retry = true; // Prevent infinite loops
+      originalRequest._retry = true; // Mark request to prevent re-handling
+
+      // Determine if it was likely a seller or user request based on headers SENT
       const wasSellerRequest =
         !!originalRequest.headers["Seller-Authorization"];
       const toastId = wasSellerRequest ? "seller-401" : "user-401";
       const message = wasSellerRequest
-        ? "Seller session expired. Please login again."
-        : "Session expired. Please login again.";
+        ? "Seller session expired or invalid. Please login again."
+        : "Session expired or invalid. Please login again.";
       const tokenKey = wasSellerRequest ? "seller_token" : "token";
+      const loginPath = wasSellerRequest ? "/shop-login" : "/login";
 
-      console.warn(`Axios Interceptor: ${message}`);
-      localStorage.removeItem(tokenKey); // Remove the invalid/expired token
-      toast.error(message, { toastId }); // Show distinct toast
+      console.warn(
+        `Axios Interceptor (401): ${message} (URL: ${originalRequest.url})`
+      );
 
-      // Optionally dispatch logout actions
-      // Important: Ensure your logout actions correctly clear user/seller state in Redux
-      // if (wasSellerRequest) {
-      //    Store.dispatch({ type: 'SELLER_LOGOUT' }); // Replace with your actual seller logout action type
-      // } else {
-      //    Store.dispatch({ type: 'LOGOUT_SUCCESS' }); // Replace with your actual user logout action type
-      // }
+      localStorage.removeItem(tokenKey); 
 
-      // Don't automatically redirect here. Let components/routes handle the unauthenticated state.
+      if (!toast.isActive(toastId)) {
+        toast.error(message, { toastId });
+      }
+      setTimeout(() => {
+        // Check if still on a protected page before redirecting
+        const currentPath = window.location.pathname;
+        const isProtectedRoute =
+          currentPath.startsWith("/dashboard") ||
+          currentPath.startsWith("/profile") ||
+          currentPath.startsWith("/admin") ||
+          currentPath.startsWith("/settings") ||
+          currentPath.startsWith("/checkout") ||
+          currentPath.startsWith("/payment") ||
+          currentPath.startsWith("/inbox") ||
+          currentPath.includes("/order/");
+
+        if (isProtectedRoute) {
+          // Check user/seller state before redirecting forcefully
+          const state = Store.getState();
+          const stillAuthenticated = wasSellerRequest
+            ? state.seller?.isSellerAuthenticated
+            : state.user?.isAuthenticated;
+          if (!stillAuthenticated) {
+            console.log(`Redirecting to ${loginPath} due to 401.`);
+            window.location.href = loginPath; // Force redirect if state confirms logout
+          } else {
+            console.log(
+              "State indicates still logged in, skipping forced redirect for 401."
+            );
+          }
+        }
+      }, 500);
+
+   
     }
-    // Always re-reject the error so the original caller's .catch() block executes
+
     return Promise.reject(error);
   }
 );
 
 // --- App Component ---
 const App = () => {
+  // Load user/seller/initial data on first mount
   useEffect(() => {
-    // Load user/seller state on initial app load
-    Store.dispatch(loadUser());
-    Store.dispatch(loadSeller());
-    // Load initial common data
-    Store.dispatch(getAllProducts());
-    Store.dispatch(getAllEvents());
-  }, []); // Runs once on mount
+    // Wrap dispatches in try/catch if actions might throw errors themselves
+    try {
+      Store.dispatch(loadUser());
+      Store.dispatch(loadSeller());
+      Store.dispatch(getAllProducts());
+      Store.dispatch(getAllEvents());
+    } catch (error) {
+      console.error("Error during initial data load:", error);
+      toast.error("Failed to load initial application data.");
+    }
+  }, []); // Empty dependency array ensures this runs only once
 
   return (
     <BrowserRouter>
       <Suspense fallback={<Loader />}>
+        {" "}
+        {/* For lazy loading routes */}
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
@@ -222,7 +274,7 @@ const App = () => {
             }
           />
           <Route
-            path="/user/order/:id"
+            path="/user/order/:id" // User specific order detail route
             element={
               <ProtectedRoute>
                 <UserOrderDetailsPage />
@@ -240,7 +292,7 @@ const App = () => {
 
           {/* Seller Protected Routes */}
           <Route
-            path="/shop/:id"
+            path="/shop/:id" // Public shop view? Or Seller Home? Assuming Seller Home
             element={
               <SellerProtectedRoute>
                 <SellerShopHomePage />
@@ -272,7 +324,7 @@ const App = () => {
             }
           />
           <Route
-            path="/dashboard-orders"
+            path="/dashboard-orders" // Seller All Orders page
             element={
               <SellerProtectedRoute>
                 <ShopAllOrders />
@@ -280,7 +332,7 @@ const App = () => {
             }
           />
           <Route
-            path="/order/:id"
+            path="/order/:id" // Seller specific order detail route
             element={
               <SellerProtectedRoute>
                 <ShopOrderDetails />
@@ -370,7 +422,7 @@ const App = () => {
             }
           />
           <Route
-            path="/admin-orders"
+            path="/admin-orders" // Admin All Orders page
             element={
               <ProtectedAdminRoute>
                 <AdminDashboardOrders />
@@ -378,7 +430,7 @@ const App = () => {
             }
           />
           <Route
-            path="/admin/order/:id"
+            path="/admin/order/:id" // Admin specific order detail route
             element={
               <ProtectedAdminRoute>
                 <AdminOrderDetails />
@@ -417,8 +469,6 @@ const App = () => {
               </ProtectedAdminRoute>
             }
           />
-
-          {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Routes>
       </Suspense>
       <ToastContainer

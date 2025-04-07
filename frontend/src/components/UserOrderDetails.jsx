@@ -12,17 +12,19 @@ import {
   ShoppingBag,
   MapPin,
   Phone,
+  Package as PackageIcon, // Renamed to avoid conflict
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { getOrderDetails, clearErrors } from "../redux/actions/order"; // Adjust path if needed
-import Loader from "../components/Layout/Loader"; // Adjust path if needed
-import styles from "../styles/styles"; // Adjust path if needed
+import { getOrderDetails, clearErrors } from "../redux/actions/order"; // Adjust path
+import Loader from "../components/Layout/Loader"; // Adjust path
+import styles from "../styles/styles"; // Adjust path
 
 const UserOrderDetails = () => {
+  // Select the single 'order' object and loading/error state for details
   const {
-    order: currentOrder,
-    isDetailLoading,
-    error: detailError,
+    order: currentOrder, // Rename state.order.order to currentOrder
+    isDetailLoading, // Use the specific loading state for details
+    error: detailError, // Use the specific error state
   } = useSelector((state) => state.order);
   const { user, isAuthenticated } = useSelector((state) => state.user);
   const dispatch = useDispatch();
@@ -32,26 +34,29 @@ const UserOrderDetails = () => {
   // Effect to fetch order details
   useEffect(() => {
     dispatch(clearErrors()); // Clear previous errors on mount/ID change
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !user) {
+      // Check both flags
       toast.info("Please login to view order details.");
       navigate("/login");
     } else if (id) {
-      dispatch(getOrderDetails(id)); // Fetch details for the specific order
+      dispatch(getOrderDetails(id)); // Fetch details for the specific order ID
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, id, isAuthenticated, navigate]); // Dependencies for fetching
+  }, [dispatch, id, isAuthenticated, user, navigate]); // Added user to dependencies
 
-  // Effect to handle errors from the Redux state
+  // Effect to handle errors from the Redux state after fetch attempt
   useEffect(() => {
     if (detailError) {
-      toast.error(detailError);
+      toast.error(detailError); // Show the error from Redux state
+      // Redirect only on critical errors indicating no access or not found
       if (
-        detailError.includes("not found") ||
-        detailError.includes("Forbidden")
+        detailError.toLowerCase().includes("not found") ||
+        detailError.toLowerCase().includes("forbidden") ||
+        detailError.toLowerCase().includes("invalid order id")
       ) {
-        navigate("/profile"); // Redirect to orders list on critical errors
+        navigate("/profile"); // Redirect to the main orders list (profile page)
       }
-      dispatch(clearErrors()); // Clear error after handling
+      dispatch(clearErrors()); // Clear the error after handling
     }
   }, [detailError, dispatch, navigate]);
 
@@ -62,7 +67,8 @@ const UserOrderDetails = () => {
     return <Loader />;
   }
 
-  // Order Not Found or Error State
+  // Order Not Found or Error State (after loading attempt)
+  // Check if loading is finished AND currentOrder is still null/undefined
   if (!currentOrder && !isDetailLoading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
@@ -71,11 +77,12 @@ const UserOrderDetails = () => {
           Order Details Unavailable
         </h2>
         <p className="text-gray-600 mt-2">
-          Could not load details for order ID: {id}. It may not exist or you may
-          not have permission.
+          {detailError
+            ? `Error: ${detailError}`
+            : `Could not load details for order ID: ${id}. It may not exist or you may not have permission.`}
         </p>
         <Link
-          to="/profile"
+          to="/profile" // Link back to the general orders list
           className="inline-flex items-center mt-6 text-blue-600 hover:underline"
         >
           <ArrowLeft size={16} className="mr-1" /> Back to My Orders
@@ -84,11 +91,12 @@ const UserOrderDetails = () => {
     );
   }
 
-  // Prepare data for rendering
+  // If currentOrder exists, proceed with rendering
+  // Prepare data for rendering (with defaults for safety)
   const subtotal = currentOrder.subtotal ?? 0;
   const shippingCost = currentOrder.shippingCost ?? 0;
   const total = currentOrder.totalPrice ?? subtotal + shippingCost;
-  const cartItems = currentOrder.cart || [];
+  const cartItems = currentOrder.cart || []; // Ensure cartItems is an array
 
   return (
     <div className={`${styles.section} py-8 font-sans`}>
@@ -98,13 +106,13 @@ const UserOrderDetails = () => {
         {/* Header */}
         <div className="mb-6">
           <Link
-            to="/profile"
+            to="/profile" // Link back to the profile page (where orders are listed)
             className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium group"
           >
             <ArrowLeft
               size={18}
               className="mr-1 group-hover:-translate-x-1 transition-transform"
-            />{" "}
+            />
             Back to My Orders
           </Link>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mt-2">
@@ -120,13 +128,13 @@ const UserOrderDetails = () => {
                 <ShoppingBag
                   size={20}
                   className="text-blue-600 flex-shrink-0"
-                />{" "}
+                />
                 Order #{currentOrder._id?.slice(-8) || "N/A"}
               </h2>
               <p className="text-gray-500 text-sm mt-1">
                 Placed:{" "}
                 {currentOrder.createdAt
-                  ? format(new Date(currentOrder.createdAt), "PP 'at' p")
+                  ? format(new Date(currentOrder.createdAt), "PP 'at' p") // Format: Jan 1, 2023 at 1:30 PM
                   : "N/A"}
               </p>
             </div>
@@ -138,11 +146,12 @@ const UserOrderDetails = () => {
                     ? "bg-blue-100 text-blue-800"
                     : currentOrder.status === "Delivered"
                     ? "bg-green-100 text-green-800"
-                    : currentOrder.status === "Cancelled"
+                    : currentOrder.status === "Cancelled" ||
+                      currentOrder.status?.includes("Rejected")
                     ? "bg-red-100 text-red-800"
                     : currentOrder.status?.includes("Refund")
                     ? "bg-yellow-100 text-yellow-800"
-                    : "bg-gray-100 text-gray-800"
+                    : "bg-gray-100 text-gray-800" // Default/other statuses
                 }`}
               >
                 {currentOrder.status || "Unknown"}
@@ -152,10 +161,15 @@ const UserOrderDetails = () => {
               </p>
             </div>
           </div>
-          {/* Track Order Link */}
-          {currentOrder.status !== "Processing" &&
-            currentOrder.status !== "Cancelled" &&
-            !currentOrder.status?.includes("Refund") && (
+          {/* Track Order Link - Show only for relevant statuses */}
+          {currentOrder.status &&
+            ![
+              "Processing",
+              "Cancelled",
+              "Processing Refund",
+              "Refund Approved",
+              "Refund Rejected",
+            ].includes(currentOrder.status) && (
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <Link
                   to={`/user/track/order/${currentOrder._id}`}
@@ -173,102 +187,136 @@ const UserOrderDetails = () => {
             Items ({cartItems.length})
           </h2>
           <div className="space-y-4">
-            {cartItems.map((item) => (
-              <div
-                key={item._id || item.productId || Math.random()}
-                className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 flex flex-col sm:flex-row gap-4 items-start"
-              >
-                <div className="w-full sm:w-24 h-24 flex-shrink-0 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden border">
-                  {item.designImage?.url ? (
-                    <>
-                      <img
-                        src={item.designImage.url}
-                        alt={item.DesignTitle || "Design"}
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                          e.target.style.display = "none";
-                          if (e.target.nextSibling)
-                            e.target.nextSibling.style.display = "flex";
-                        }}
+            {cartItems.map(
+              (
+                item,
+                index // Added index for key fallback
+              ) => (
+                <div
+                  key={item._id || `item-${index}`} // Use item._id if available, fallback to index
+                  className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 flex flex-col sm:flex-row gap-4 items-start"
+                >
+                  {/* Image Container with Fallback */}
+                  <div className="w-full sm:w-24 h-24 flex-shrink-0 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden border">
+                    {
+                      item.designImage?.url ? (
+                        <img
+                          src={item.designImage.url}
+                          alt={item.DesignTitle || "Design"}
+                          className="w-full h-full object-contain"
+                          // Basic error handling: hide broken image, show placeholder
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none"; // Hide broken img tag
+                            const placeholder =
+                              e.currentTarget.nextElementSibling;
+                            if (placeholder) placeholder.style.display = "flex"; // Show placeholder div
+                          }}
+                        />
+                      ) : null /* Render nothing initially if no URL */
+                    }
+                    {/* Placeholder Div (initially hidden if URL exists) */}
+                    <div
+                      className={`w-full h-full items-center justify-center text-center text-gray-400 ${
+                        item.designImage?.url ? "hidden" : "flex"
+                      } flex-col`}
+                    >
+                      <AlertTriangle
+                        size={24}
+                        title={
+                          item.designImage?.url
+                            ? "Image Load Error"
+                            : "Image URL Missing"
+                        }
                       />
-                      <div className="w-full h-full items-center justify-center text-center text-gray-400 hidden">
-                        <AlertTriangle size={24} />
-                        <span className="text-xs block mt-1">
-                          Image
-                          <br />
-                          Error
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-center text-gray-400">
-                      <AlertTriangle size={24} title="Image URL Missing" />
+                      <span className="text-xs block mt-1">
+                        {item.designImage?.url ? (
+                          <>
+                            Image
+                            <br />
+                            Error
+                          </>
+                        ) : (
+                          <>
+                            No
+                            <br />
+                            Image
+                          </>
+                        )}
+                      </span>
                     </div>
-                  )}
-                </div>
-                <div className="flex-grow">
-                  <h3 className="text-md font-semibold text-gray-800 mb-1 leading-snug">
-                    {item.DesignTitle || "N/A"}
-                  </h3>
-                  <p className="text-xs text-gray-500 mb-1">
-                    Type: {item.ProductType || "N/A"}
-                  </p>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs mb-2">
-                    <span className="font-medium text-gray-700">
-                      Color:{" "}
-                      <span className="font-normal text-gray-600">
-                        {item.ProductColor || "N/A"}
+                  </div>
+                  {/* Item Details */}
+                  <div className="flex-grow">
+                    <h3 className="text-md font-semibold text-gray-800 mb-1 leading-snug">
+                      {item.DesignTitle || "N/A"}
+                    </h3>
+                    <p className="text-xs text-gray-500 mb-1">
+                      Type: {item.ProductType || "N/A"}
+                    </p>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs mb-2">
+                      <span className="font-medium text-gray-700">
+                        Color:{" "}
+                        <span className="font-normal text-gray-600">
+                          {item.ProductColor || "N/A"}
+                        </span>
                       </span>
-                    </span>
-                    <span className="font-medium text-gray-700">
-                      Size:{" "}
-                      <span className="font-normal text-gray-600">
-                        {item.size || "N/A"}
+                      <span className="font-medium text-gray-700">
+                        Size:{" "}
+                        <span className="font-normal text-gray-600">
+                          {item.size || "N/A"}
+                        </span>
                       </span>
-                    </span>
+                    </div>
+                    {/* Optional: Show Item ID */}
+                    {/* <p className="text-xs text-gray-400">Item ID: {item._id || 'N/A'}</p> */}
+                  </div>
+                  {/* Item Pricing */}
+                  <div className="w-full sm:w-auto text-left sm:text-right flex-shrink-0 mt-2 sm:mt-0">
+                    <p className="text-sm text-gray-600">
+                      EGP {(item.price ?? 0).toFixed(2)} x {item.qty || 1}
+                    </p>
+                    <p className="text-md font-semibold text-gray-800 mt-1">
+                      EGP {((item.price || 0) * (item.qty || 1)).toFixed(2)}
+                    </p>
                   </div>
                 </div>
-                <div className="w-full sm:w-auto text-left sm:text-right flex-shrink-0 mt-2 sm:mt-0">
-                  <p className="text-sm text-gray-600">
-                    EGP {(item.price ?? 0).toFixed(2)} x {item.qty || 1}
-                  </p>
-                  <p className="text-md font-semibold text-gray-800 mt-1">
-                    EGP {((item.price || 0) * (item.qty || 1)).toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
         </div>
 
         {/* Shipping & Payment */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Shipping Address */}
           <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
             <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <MapPin className="text-blue-600 flex-shrink-0" size={18} />{" "}
+              <MapPin className="text-blue-600 flex-shrink-0" size={18} />
               Shipping Address
             </h3>
             <div className="text-sm text-gray-700 space-y-1">
               <p>
-                {currentOrder.shippingAddress?.address1 || "N/A"}
+                {currentOrder.shippingAddress?.address1 ||
+                  "(No address line 1)"}
                 {currentOrder.shippingAddress?.address2
                   ? `, ${currentOrder.shippingAddress.address2}`
                   : ""}
               </p>
               <p>
-                {currentOrder.shippingAddress?.city || "N/A"},{" "}
-                {currentOrder.shippingAddress?.country || "N/A"}{" "}
+                {currentOrder.shippingAddress?.city || "(No city)"},{" "}
+                {currentOrder.shippingAddress?.country || "(No country)"}{" "}
                 {currentOrder.shippingAddress?.postalCode || ""}
               </p>
               <p className="flex items-center pt-1 gap-1.5">
-                <Phone size={14} className="text-gray-500 flex-shrink-0" />{" "}
-                {currentOrder.shippingAddress?.phoneNumber || "N/A"}
+                <Phone size={14} className="text-gray-500 flex-shrink-0" />
+                {currentOrder.shippingAddress?.phoneNumber ||
+                  "(No phone number)"}
               </p>
             </div>
           </div>
+          {/* Payment Information */}
           <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
             <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <CreditCard className="text-blue-600 flex-shrink-0" size={18} />{" "}
+              <CreditCard className="text-blue-600 flex-shrink-0" size={18} />
               Payment Information
             </h3>
             <div className="space-y-2 text-sm">
@@ -285,10 +333,12 @@ const UserOrderDetails = () => {
                     currentOrder.paymentInfo?.status?.toLowerCase() ===
                     "succeeded"
                       ? "bg-green-100 text-green-800"
-                      : "bg-yellow-100 text-yellow-800"
+                      : currentOrder.paymentInfo?.status === "Processing"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-gray-100 text-gray-800" // Default for other statuses
                   }`}
                 >
-                  {currentOrder.paymentInfo?.status || "Processing"}
+                  {currentOrder.paymentInfo?.status || "N/A"}
                 </span>
               </div>
               {currentOrder.paidAt && (
@@ -329,33 +379,47 @@ const UserOrderDetails = () => {
           currentOrder.statusHistory.length > 0 && (
             <div className="mt-6 bg-white rounded-lg shadow-sm p-5 border border-gray-100">
               <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <Clock className="text-blue-600 flex-shrink-0" size={18} />{" "}
+                <Clock className="text-blue-600 flex-shrink-0" size={18} />
                 Order History
               </h3>
-              <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                {[...currentOrder.statusHistory].reverse().map((s, index) => (
-                  <div key={index} className="flex items-start gap-3 text-sm">
-                    <div
-                      className={`mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-                        index === 0 ? "bg-blue-500" : "bg-gray-300"
-                      }`}
-                    ></div>
-                    <div>
-                      <p className="font-medium text-gray-700">{s.status}</p>
-                      <p className="text-xs text-gray-500">
-                        {s.timestamp
-                          ? format(new Date(s.timestamp), "PPp")
-                          : "N/A"}
-                        {s.updatedBy && ` by ${s.updatedBy.split(":")[0]}`}
-                      </p>
-                      {s.details && (
-                        <p className="text-xs text-gray-600 mt-0.5 italic bg-gray-50 p-1 rounded border border-gray-100">
-                          "{s.details}"
+              {/* Reverse history so newest is first, limit height and make scrollable */}
+              <div className="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                {[...currentOrder.statusHistory].reverse().map(
+                  (
+                    s,
+                    index // Reverse for display
+                  ) => (
+                    <div key={index} className="flex items-start gap-3 text-sm">
+                      {/* Timeline indicator */}
+                      <div className="flex flex-col items-center">
+                        <div
+                          className={`mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                            index === 0 ? "bg-blue-500" : "bg-gray-300"
+                          }`}
+                        ></div>
+                        {index < currentOrder.statusHistory.length - 1 && (
+                          <div className="w-px h-full bg-gray-200 mt-1 flex-grow"></div>
+                        )}
+                      </div>
+                      {/* History entry details */}
+                      <div>
+                        <p className="font-medium text-gray-700">{s.status}</p>
+                        <p className="text-xs text-gray-500">
+                          {s.timestamp
+                            ? format(new Date(s.timestamp), "PPp")
+                            : "N/A"}
+                          {s.updatedBy && ` by ${s.updatedBy.split(":")[0]}`}{" "}
+                          {/* Show user/admin/seller */}
                         </p>
-                      )}
+                        {s.details && (
+                          <p className="text-xs text-gray-600 mt-0.5 italic bg-gray-50 p-1 rounded border border-gray-100">
+                            "{s.details}"
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             </div>
           )}
