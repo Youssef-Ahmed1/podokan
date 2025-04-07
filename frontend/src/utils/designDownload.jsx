@@ -2,90 +2,89 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid"; // For unique fallback IDs
-
+import { toast } from "react-toastify";
 // --- Configuration ---
-// ** IMPORTANT: Ensure this environment variable is set in your frontend build process **
-//    (e.g., in a .env file: REACT_APP_CLOUDINARY_CLOUD_NAME=your_cloud_name)
-const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
+// ** Access Cloudinary Name from Frontend Environment Variable **
+//    Ensure you have REACT_APP_CLOUDINARY_NAME=dkot9tyjm in your .env file for React
+const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_NAME;
 
 if (!CLOUDINARY_CLOUD_NAME) {
   console.error(
     "CRITICAL CONFIG ERROR: REACT_APP_CLOUDINARY_CLOUD_NAME environment variable is not set! Image templates will fail to load."
   );
-  // Optionally throw an error or provide a fallback, but functionality will be broken.
-  // throw new Error("Cloudinary configuration missing.");
+  toast.error(
+    "Application Configuration Error: Cannot load image templates. Please contact support.",
+    { autoClose: false }
+  );
+  // throw new Error("Cloudinary configuration missing."); // Optionally throw to halt execution
 }
 
+// Base URL construction using the cloud name
 const BASE_CLOUDINARY_URL = `https://res.cloudinary.com/${
   CLOUDINARY_CLOUD_NAME || "YOUR_CLOUD_NAME_PLACEHOLDER"
 }/image/upload`;
 
 // Mapping product types (lowercase, hyphenated) to Cloudinary folder names
-// ** ADJUST THESE TO MATCH YOUR CLOUDINARY FOLDER STRUCTURE **
+// ** Updated based on your provided URLs **
 const TEMPLATE_FOLDERS = {
-  hoodie: "podokan/templates/hoodies", // Example path
-  "t-shirt": "podokan/templates/t-shirts", // Example path
-  "long-sleeve": "podokan/templates/long-sleeves", // Example path
-  // Add other product types here
+  hoodie: "hoodies",
+  "t-shirt": "t-shirts",
+  "long-sleeve": "long-sleeves",
+  // Add other product types and their corresponding Cloudinary folder names here
 };
 
-// Helper to get filename prefix (e.g., "long-sleeve" -> "longsleeve")
-// ** ADJUST IF YOUR FILENAMES DIFFER **
+// Helper to get the correct filename prefix for the template file
+// ** Updated based on your provided URLs and standardization **
 const getTemplateFilenamePrefix = (typeKey) => {
-  if (typeKey === "long-sleeve") return "longsleeve";
-  return typeKey; // Default: use the type key directly
+  switch (typeKey) {
+    case "hoodie":
+      return "hoodie";
+    case "t-shirt":
+      return "t-shirt";
+    case "long-sleeve":
+      return "longsleeves"; // Standardizing to 'longsleeves' based on some filenames
+    default:
+      return typeKey; // Fallback to the type key itself
+  }
 };
 
-// --- Custom Error Classes ---
+// --- Custom Error Classes --- (Keep as they are)
 class DesignDownloadError extends Error {
   constructor(message, code = "DESIGN_DOWNLOAD_FAILED", details = {}) {
     super(message);
     this.name = "DesignDownloadError";
-    this.code = code; // e.g., 'FETCH_FAILED', 'PROCESSING_ERROR', 'MISSING_DATA'
-    this.details = details; // Any additional context
+    this.code = code;
+    this.details = details;
   }
 }
-
 class ImageProcessingError extends DesignDownloadError {
   constructor(message, httpStatus = null, failedUrl = null) {
     super(message, "IMAGE_PROCESSING_ERROR", { httpStatus, failedUrl });
-    this.status = httpStatus; // Store HTTP status if applicable
-    this.url = failedUrl; // Store the URL that failed
+    this.status = httpStatus;
+    this.url = failedUrl;
   }
 }
 
 // --- DesignDownloader Class ---
 export class DesignDownloader {
-  /**
-   * Fetches an image from a URL as a Blob.
-   * @param {string} url - The URL of the image to fetch.
-   * @returns {Promise<Blob>} - A promise resolving to the image Blob.
-   * @throws {ImageProcessingError} - If fetch fails or response is invalid.
-   */
   static async fetchImageAsBlob(url) {
     if (!url || typeof url !== "string") {
       throw new ImageProcessingError("Invalid image URL provided.", null, url);
     }
-
     try {
       const response = await axios({
         url,
         method: "GET",
-        responseType: "blob", // Crucial for getting binary data
+        responseType: "blob",
         headers: {
-          // Try to bypass caches for freshest image
           "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
           Pragma: "no-cache",
           Expires: "0",
         },
-        timeout: 45000, // Increased timeout for potentially large images
-        // Ensure only 2xx status codes are considered successful
+        timeout: 45000,
         validateStatus: (status) => status >= 200 && status < 300,
-        // Don't send cookies when fetching external images (usually not needed)
         withCredentials: false,
       });
-
-      // Validate response data type
       if (!(response.data instanceof Blob)) {
         throw new ImageProcessingError(
           "Invalid response received from image server: expected a Blob.",
@@ -93,36 +92,26 @@ export class DesignDownloader {
           url
         );
       }
-
-      // Create a new Blob with the correct MIME type from headers
       return new Blob([response.data], {
-        type: response.headers["content-type"] || "image/png", // Default to png if type missing
+        type: response.headers["content-type"] || "image/png",
       });
     } catch (error) {
       let errMsg = `Image fetch failed: ${error.message}`;
       let status = error.response?.status;
-
       if (axios.isCancel(error)) errMsg = "Image fetch request was cancelled.";
       else if (error.code === "ECONNABORTED") errMsg = "Image fetch timed out.";
       else if (error.response)
         errMsg = `Image fetch failed (Status ${status}): ${error.message}`;
-
       console.error(
         `fetchImageAsBlob Error (${url}):`,
         errMsg,
         "\nFull Error:",
         error
       );
-      throw new ImageProcessingError(errMsg, status, url); // Re-throw specific error
+      throw new ImageProcessingError(errMsg, status, url);
     }
   }
 
-  /**
-   * Loads an image source (URL or Blob) into an HTMLImageElement.
-   * @param {string | Blob} imageSource - The URL string or Blob object.
-   * @returns {Promise<HTMLImageElement>} - A promise resolving to the loaded Image object.
-   * @throws {ImageProcessingError} - If loading fails or source is invalid.
-   */
   static loadImage(imageSource) {
     return new Promise((resolve, reject) => {
       if (!imageSource) {
@@ -130,14 +119,11 @@ export class DesignDownloader {
           new ImageProcessingError("Cannot load image: source is missing.")
         );
       }
-
       const image = new Image();
-      image.crossOrigin = "anonymous"; // Necessary for canvas operations with external images
-      let objectUrl = null; // To store Blob URL if created
-
+      image.crossOrigin = "anonymous";
+      let objectUrl = null;
       image.onload = () => {
-        if (objectUrl) URL.revokeObjectURL(objectUrl); // Clean up Blob URL
-        // Check for invalid image dimensions after load
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
         if (image.naturalWidth === 0 || image.naturalHeight === 0) {
           reject(
             new ImageProcessingError(
@@ -147,12 +133,11 @@ export class DesignDownloader {
             )
           );
         } else {
-          resolve(image); // Resolve with the loaded image object
+          resolve(image);
         }
       };
-
       image.onerror = (errorEvent) => {
-        if (objectUrl) URL.revokeObjectURL(objectUrl); // Clean up Blob URL
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
         console.error("Image load error:", errorEvent);
         reject(
           new ImageProcessingError(
@@ -162,13 +147,11 @@ export class DesignDownloader {
           )
         );
       };
-
-      // Set the source based on type
       if (imageSource instanceof Blob) {
-        objectUrl = URL.createObjectURL(imageSource); // Create temporary URL for Blob
+        objectUrl = URL.createObjectURL(imageSource);
         image.src = objectUrl;
       } else if (typeof imageSource === "string") {
-        image.src = imageSource; // Use URL directly
+        image.src = imageSource;
       } else {
         reject(
           new ImageProcessingError(
@@ -180,11 +163,11 @@ export class DesignDownloader {
   }
 
   /**
-   * Constructs the Cloudinary URL for a product template image.
+   * Constructs the Cloudinary URL for a product template image (FRONT view only).
    * @param {string} productType - e.g., "T-Shirt", "Hoodie".
    * @param {string} productColor - e.g., "White", "Black".
-   * @returns {string} - The full Cloudinary URL.
-   * @throws {Error} - If configuration for the product type is missing.
+   * @returns {string} - The full Cloudinary URL for the front template.
+   * @throws {Error} - If configuration for the product type is missing or template cannot be formed.
    */
   static getProductTemplateUrl(productType, productColor) {
     if (!productType || !productColor) {
@@ -204,26 +187,20 @@ export class DesignDownloader {
     }
 
     const filenamePrefix = getTemplateFilenamePrefix(typeKey);
-    // ** ADJUST FILENAME FORMAT IF NEEDED (e.g., front/back, .jpg/.png) **
-    const fileName = `${filenamePrefix}-${colorKey}-front.png`; // Assuming front view PNG
+    // ** Construct filename for FRONT view only **
+    const fileName = `${filenamePrefix}-${colorKey}-front.png`;
 
-    return `${BASE_CLOUDINARY_URL}/${folder}/${fileName}`;
+    // Construct the full URL (without version number for simplicity, Cloudinary handles it)
+    const templateUrl = `${BASE_CLOUDINARY_URL}/${folder}/${fileName}`;
+    // console.log(`Generated template URL for ${productType} ${productColor}: ${templateUrl}`);
+    return templateUrl;
   }
 
-  /**
-   * Generates a standardized filename for download packages.
-   * @param {string} prefix - e.g., "design", "mockup", "batch_order".
-   * @param {string} orderId - The order ID.
-   * @param {string} itemId - The item ID or "all_items".
-   * @param {string} [extension="zip"] - File extension.
-   * @returns {string} - The generated filename.
-   */
   static generateFileName(prefix, orderId, itemId, extension = "zip") {
     const timestamp = new Date()
       .toISOString()
       .slice(0, 19)
-      .replace(/[:T-]/g, ""); // YYYYMMDDHHMMSS
-    // Sanitize IDs to be filesystem-safe
+      .replace(/[:T-]/g, "");
     const safeOrderId = (orderId || uuidv4())
       .toString()
       .replace(/[^a-z0-9_.-]/gi, "_");
@@ -233,22 +210,12 @@ export class DesignDownloader {
     return `${prefix}_${safeOrderId}_${safeItemId}_${timestamp}.${extension}`;
   }
 
-  /**
-   * Creates a product mockup by overlaying a design onto a template image.
-   * @param {string} designImageUrl - URL of the customer's design.
-   * @param {string} productType - Type of the product (e.g., "T-Shirt").
-   * @param {string} productColor - Color of the product (e.g., "White").
-   * @param {object} designSpecs - Positioning, scale, rotation { positionX, positionY, scale, rotation }.
-   * @returns {Promise<Blob>} - A promise resolving to the mockup image Blob (PNG).
-   * @throws {ImageProcessingError} - If any step fails.
-   */
   static async createProductMockup(
     designImageUrl,
     productType,
     productColor,
     designSpecs
   ) {
-    // --- Validate Input ---
     if (
       !designImageUrl ||
       !productType ||
@@ -260,37 +227,34 @@ export class DesignDownloader {
         "Missing required parameters for mockup generation."
       );
     }
-    // Use defaults for scale/rotation if missing
     const scale = designSpecs.scale ?? 1;
     const rotation = designSpecs.rotation ?? 0;
-    const posX = designSpecs.positionX; // Already checked non-null
-    const posY = designSpecs.positionY; // Already checked non-null
+    const posX = designSpecs.positionX;
+    const posY = designSpecs.positionY;
 
     let templateImageUrl;
     try {
+      // Get the URL for the FRONT template
       templateImageUrl = DesignDownloader.getProductTemplateUrl(
         productType,
         productColor
       );
     } catch (e) {
-      // Wrap config error in ImageProcessingError
       throw new ImageProcessingError(
         `Template URL generation failed: ${e.message}`
       );
     }
 
     try {
-      // --- Fetch and Load Images Concurrently ---
       const [designBlob, templateBlob] = await Promise.all([
         DesignDownloader.fetchImageAsBlob(designImageUrl),
-        DesignDownloader.fetchImageAsBlob(templateImageUrl),
+        DesignDownloader.fetchImageAsBlob(templateImageUrl), // Fetch the front template
       ]);
       const [designImage, templateImage] = await Promise.all([
         DesignDownloader.loadImage(designBlob),
         DesignDownloader.loadImage(templateBlob),
       ]);
 
-      // --- Setup Canvas ---
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       if (!ctx) {
@@ -299,7 +263,6 @@ export class DesignDownloader {
         );
       }
 
-      // Set canvas size to template size
       canvas.width = templateImage.naturalWidth;
       canvas.height = templateImage.naturalHeight;
       if (canvas.width === 0 || canvas.height === 0) {
@@ -310,44 +273,56 @@ export class DesignDownloader {
         );
       }
 
-      // --- Draw Template ---
       ctx.drawImage(templateImage, 0, 0, canvas.width, canvas.height);
 
-      // --- Calculate Design Placement ---
-      // ** CRITICAL ADJUSTMENT AREA: Define the printable area on your templates **
-      //    These ratios (relative to canvas width/height) define the box where the design can be placed.
-      //    Measure these on your actual template images.
-      const printableArea = {
-        xRatio: 0.3, // Example: Starts 30% from the left edge
-        yRatio: 0.2, // Example: Starts 20% from the top edge
-        widthRatio: 0.4, // Example: Width is 40% of the canvas width
-        heightRatio: 0.5, // Example: Height is 50% of the canvas height
-      };
+      // --- Define Printable Area ---
+      // ** IMPORTANT: Adjust these ratios based on your specific template images **
+      //    Measure the Bounding Box where designs should go relative to the template dimensions.
+      let printableArea = {
+        xRatio: 0.3,
+        yRatio: 0.2,
+        widthRatio: 0.4,
+        heightRatio: 0.5,
+      }; // Default (likely T-Shirt)
+
+      // Adjust area based on product type if necessary
+      const typeKey = productType.toLowerCase().replace(/\s+/g, "-");
+      if (typeKey === "hoodie") {
+        printableArea = {
+          xRatio: 0.32,
+          yRatio: 0.25,
+          widthRatio: 0.36,
+          heightRatio: 0.4,
+        }; // Example for Hoodie
+      } else if (typeKey === "long-sleeve") {
+        printableArea = {
+          xRatio: 0.3,
+          yRatio: 0.22,
+          widthRatio: 0.4,
+          heightRatio: 0.48,
+        }; // Example for Long Sleeve
+      }
+      // -----------------------------
+
       const areaX = canvas.width * printableArea.xRatio;
       const areaY = canvas.height * printableArea.yRatio;
       const areaW = canvas.width * printableArea.widthRatio;
       const areaH = canvas.height * printableArea.heightRatio;
 
-      // Calculate scaled design dimensions, maintaining aspect ratio, fitting within area bounds
       let designRenderWidth = areaW * scale;
       let designRenderHeight =
         (designImage.naturalHeight / designImage.naturalWidth) *
         designRenderWidth;
-
-      // If scaled height exceeds printable area height, recalculate width based on height constraint
       if (designRenderHeight > areaH * scale) {
         designRenderHeight = areaH * scale;
         designRenderWidth =
           (designImage.naturalWidth / designImage.naturalHeight) *
           designRenderHeight;
       }
-
-      // Prevent drawing if dimensions are invalid
       if (designRenderWidth <= 0 || designRenderHeight <= 0) {
         console.warn(
           "Calculated design dimensions for mockup are zero or negative. Skipping design draw."
         );
-        // Return canvas with just the template
         return new Promise((resolve, reject) => {
           canvas.toBlob(
             (blob) =>
@@ -359,15 +334,12 @@ export class DesignDownloader {
         });
       }
 
-      // Calculate center point for drawing based on percentage position within the area
       const drawCenterX = areaX + (posX / 100) * areaW;
       const drawCenterY = areaY + (posY / 100) * areaH;
 
-      // --- Draw Design with Transformations ---
-      ctx.save(); // Save current context state
-      ctx.translate(drawCenterX, drawCenterY); // Move origin to the calculated center
-      ctx.rotate((rotation * Math.PI) / 180); // Apply rotation (convert degrees to radians)
-      // Draw the design centered on the new origin
+      ctx.save();
+      ctx.translate(drawCenterX, drawCenterY);
+      ctx.rotate((rotation * Math.PI) / 180);
       ctx.drawImage(
         designImage,
         -designRenderWidth / 2,
@@ -375,28 +347,25 @@ export class DesignDownloader {
         designRenderWidth,
         designRenderHeight
       );
-      ctx.restore(); // Restore previous context state
+      ctx.restore();
 
-      // --- Export Canvas to Blob ---
       return new Promise((resolve, reject) => {
         canvas.toBlob(
           (blob) => {
-            // Callback function
             if (blob) {
-              resolve(blob); // Resolve promise with the PNG Blob
+              resolve(blob);
             } else {
               reject(
                 new ImageProcessingError("Canvas toBlob conversion failed.")
               );
             }
           },
-          "image/png", // Specify PNG format
-          0.95 // Optional: Image quality (0 to 1)
+          "image/png",
+          0.95
         );
       });
     } catch (error) {
       console.error("Mockup creation failed:", error);
-      // Re-throw specific errors or wrap generic ones
       throw error instanceof DesignDownloadError
         ? error
         : new ImageProcessingError(
@@ -405,14 +374,10 @@ export class DesignDownloader {
     }
   }
 
-  /**
-   * Downloads a single design package (design, mockup, metadata) as a ZIP file.
-   * @param {object} designData - Object containing imageUrl, orderId, itemId, specs, etc.
-   * @returns {Promise<boolean>} - True if download initiated successfully.
-   * @throws {DesignDownloadError} - If validation or processing fails.
-   */
+  // downloadSingleDesign and downloadAllDesigns methods remain the same as in the previous version...
+  // They rely on the corrected getProductTemplateUrl and createProductMockup methods.
+
   static async downloadSingleDesign(designData) {
-    // --- Validate Input Data ---
     const requiredFields = [
       "imageUrl",
       "orderId",
@@ -423,11 +388,9 @@ export class DesignDownloader {
       "specs.position",
     ];
     for (const field of requiredFields) {
-      // Helper to check nested properties
       const checkNested = (obj, path) =>
         path.split(".").reduce((o, k) => o?.[k], obj);
       if (checkNested(designData, field) == null) {
-        // Check for null or undefined
         throw new DesignDownloadError(
           `Missing required field '${field}' in designData for download.`
         );
@@ -446,7 +409,6 @@ export class DesignDownloader {
     } = designData;
 
     try {
-      // --- Add Metadata ---
       const metadata = {
         downloadedAt: new Date().toISOString(),
         order: {
@@ -461,12 +423,10 @@ export class DesignDownloader {
           size: specs.size,
         },
         design: { sourceUrl: imageUrl, specifications: specs.position },
-        pricing: price || {}, // Include pricing info if available
+        pricing: price || {},
       };
-      zip.file("metadata.json", JSON.stringify(metadata, null, 2)); // Pretty-printed JSON
+      zip.file("metadata.json", JSON.stringify(metadata, null, 2));
 
-      // --- Fetch Design and Generate Mockup Concurrently ---
-      // Use Promise.allSettled to handle potential failures in one part without stopping the whole process
       const results = await Promise.allSettled([
         DesignDownloader.fetchImageAsBlob(imageUrl).catch((e) => {
           console.error(`Failed to fetch original design (${imageUrl}):`, e);
@@ -482,19 +442,16 @@ export class DesignDownloader {
           specs.position
         ).catch((e) => {
           console.error(`Failed to generate mockup for item ${itemId}:`, e);
-          // Don't throw here, instead add an error file to the zip
-          return { error: `Mockup generation failed: ${e.message}` }; // Return error object
+          return { error: `Mockup generation failed: ${e.message}` };
         }),
       ]);
 
       const designResult = results[0];
       const mockupResult = results[1];
 
-      // Add Original Design (if successful)
       if (designResult.status === "fulfilled") {
         zip.file("original_design.png", designResult.value);
       } else {
-        // Add error file if design fetch failed
         zip.file(
           "ERROR_fetching_design.txt",
           `Failed to fetch original design:\n${
@@ -503,7 +460,6 @@ export class DesignDownloader {
         );
       }
 
-      // Add Mockup (if successful) or Error File
       if (
         mockupResult.status === "fulfilled" &&
         mockupResult.value &&
@@ -514,43 +470,32 @@ export class DesignDownloader {
         const errorMsg =
           mockupResult.status === "rejected"
             ? mockupResult.reason?.message || "Unknown mockup error"
-            : mockupResult.value?.error || "Unknown mockup error"; // Handle error object case
+            : mockupResult.value?.error || "Unknown mockup error";
         zip.file(
           "ERROR_generating_mockup.txt",
           `Failed to generate mockup:\n${errorMsg}`
         );
       }
 
-      // --- Generate and Save ZIP ---
       const zipBlob = await zip.generateAsync({
         type: "blob",
         compression: "DEFLATE",
-        compressionOptions: { level: 6 }, // Balance between speed and size
+        compressionOptions: { level: 6 },
       });
-
       saveAs(
         zipBlob,
         DesignDownloader.generateFileName("design_pkg", orderId, itemId)
-      ); // Trigger browser download
-
-      return true; // Indicate success
+      );
+      return true;
     } catch (error) {
       console.error("Single design package creation error:", error);
-      // Re-throw specific or wrapped error
       throw error instanceof DesignDownloadError
         ? error
         : new DesignDownloadError(`Package creation failed: ${error.message}`);
     }
   }
 
-  /**
-   * Downloads all design packages for a given order as a single batch ZIP.
-   * @param {object} orderData - The full order object containing the cart array.
-   * @returns {Promise<boolean>} - True if download initiated.
-   * @throws {DesignDownloadError} - If validation or processing fails.
-   */
   static async downloadAllDesigns(orderData) {
-    // --- Validate Input ---
     if (
       !orderData?._id ||
       !Array.isArray(orderData.cart) ||
@@ -562,7 +507,7 @@ export class DesignDownloader {
     }
 
     const mainZip = new JSZip();
-    const itemsFolder = mainZip.folder("order_items"); // Create a subfolder for items
+    const itemsFolder = mainZip.folder("order_items");
     const totalItems = orderData.cart.length;
     const processingPromises = [];
     const failures = [];
@@ -572,16 +517,13 @@ export class DesignDownloader {
       `Starting batch download for order ${orderData._id} with ${totalItems} items.`
     );
 
-    // --- Process Each Item ---
     orderData.cart.forEach((item, index) => {
-      const itemIndex = index + 1; // 1-based index for filename/reporting
-      const itemId = item._id || `item_${itemIndex}`; // Use actual ID or fallback
+      const itemIndex = index + 1;
+      const itemId = item._id || `item_${itemIndex}`;
 
-      // Create a promise for each item's processing
       const itemPromise = (async () => {
-        const itemZip = new JSZip(); // Zip for this individual item
+        const itemZip = new JSZip();
         try {
-          // Validate item data
           const imageUrl = item.designImage?.url;
           if (!imageUrl)
             throw new DesignDownloadError(
@@ -601,7 +543,6 @@ export class DesignDownloader {
             },
           };
 
-          // Add item details JSON
           itemZip.file(
             "details.json",
             JSON.stringify(
@@ -619,7 +560,6 @@ export class DesignDownloader {
             )
           );
 
-          // Fetch design and generate mockup concurrently
           const itemResults = await Promise.allSettled([
             DesignDownloader.fetchImageAsBlob(imageUrl),
             DesignDownloader.createProductMockup(
@@ -633,7 +573,6 @@ export class DesignDownloader {
           const designResult = itemResults[0];
           const mockupResult = itemResults[1];
 
-          // Add design or error
           if (designResult.status === "fulfilled") {
             itemZip.file("design.png", designResult.value);
           } else {
@@ -648,7 +587,6 @@ export class DesignDownloader {
             );
           }
 
-          // Add mockup or error
           if (mockupResult.status === "fulfilled") {
             itemZip.file("mockup.png", mockupResult.value);
           } else {
@@ -656,7 +594,6 @@ export class DesignDownloader {
               "ERROR_mockup.txt",
               `Mockup failed:\n${mockupResult.reason?.message || "Unknown"}`
             );
-            // Decide if mockup failure should fail the whole item package? Let's allow it to proceed but log failure.
             console.warn(
               `Mockup failed for item ${itemIndex}, but continuing.`
             );
@@ -667,18 +604,14 @@ export class DesignDownloader {
             });
           }
 
-          // Generate the individual item's zip blob
           const itemZipBlob = await itemZip.generateAsync({
             type: "blob",
             compression: "DEFLATE",
             compressionOptions: { level: 1 },
-          }); // Faster compression for items
-
-          // Add the item's zip to the main zip's folder
+          });
           itemsFolder.file(`item_${itemIndex}_${itemId}.zip`, itemZipBlob);
-          successCount++; // Increment success count for this item
+          successCount++;
         } catch (error) {
-          // Catch errors during this item's processing
           console.error(
             `Failed to process item ${itemIndex} (ID: ${itemId}):`,
             error
@@ -688,41 +621,34 @@ export class DesignDownloader {
               ? `${error.code}: ${error.message}`
               : error.message;
           failures.push({ itemId, index: itemIndex, reason });
-          // Add an error file to the main zip for this item
           itemsFolder.file(
             `item_${itemIndex}_${itemId}_ERROR.txt`,
             `Processing Failed: ${reason}\n${error.stack || ""}`
           );
         }
-      })(); // Immediately invoke the async function
+      })();
 
       processingPromises.push(itemPromise);
     });
 
-    // --- Wait for all items to be processed ---
     await Promise.all(processingPromises);
-
     console.log(
       `Batch processing finished. Success: ${successCount}, Failures: ${failures.length}`
     );
 
-    // --- Add Summary File ---
     const summary = {
       batchDownloadedAt: new Date().toISOString(),
       order: { id: orderData._id, totalItems },
       summary: { successes: successCount, failures: failures.length },
-      failedItems: failures, // List details of failed items
+      failedItems: failures,
     };
     mainZip.file("batch_summary.json", JSON.stringify(summary, null, 2));
 
-    // --- Generate Final Batch ZIP ---
     const mainZipBlob = await mainZip.generateAsync({
       type: "blob",
       compression: "DEFLATE",
-      compressionOptions: { level: 6 }, // Better compression for final zip
+      compressionOptions: { level: 6 },
     });
-
-    // --- Trigger Download ---
     saveAs(
       mainZipBlob,
       DesignDownloader.generateFileName(
@@ -743,7 +669,6 @@ export class DesignDownloader {
         )} initiated successfully!`
       );
     }
-
     return true;
   }
-}
+} // End of DesignDownloader Class
