@@ -1,9 +1,7 @@
-// frontend/src/redux/actions/order.js
 import axios from "axios";
-import { server } from "../../server"; // Adjust path if needed
+import { server } from "../../server";
 import { toast } from "react-toastify";
 
-// --- Action Types ---
 export const ORDER_ACTIONS = Object.freeze({
   CREATE_REQUEST: "order/createRequest",
   CREATE_SUCCESS: "order/createSuccess",
@@ -40,7 +38,6 @@ export const ORDER_ACTIONS = Object.freeze({
   CLEAR_ERRORS: "order/clearErrors",
 });
 
-// --- API Request Handler Helper ---
 const handleApiRequest = async ({
   dispatch,
   requestType,
@@ -62,11 +59,51 @@ const handleApiRequest = async ({
       );
     }
 
-    // **** CORRECTED PAYLOAD ASSIGNMENT ****
-    // Pass the entire 'data' object received from the API call as the payload.
-    // The reducer will be responsible for extracting the specific fields it needs based on the action type.
-    const payload = data;
-    // **************************************
+    let payload;
+    if (
+      successType === ORDER_ACTIONS.GET_DETAIL_SUCCESS ||
+      successType === ORDER_ACTIONS.ADMIN_UPDATE_STATUS_SUCCESS ||
+      successType === ORDER_ACTIONS.SELLER_UPDATE_REFUND_SUCCESS
+    ) {
+      payload = data?.order;
+      if (payload === undefined) {
+        console.error(
+          `Payload extraction failed for ${successType}. Expected 'order' key in data:`,
+          data
+        );
+        throw new Error(
+          `API response format error for ${successType}. Missing 'order' object.`
+        );
+      }
+    } else if (
+      successType === ORDER_ACTIONS.GET_USER_SUCCESS ||
+      successType === ORDER_ACTIONS.GET_SHOP_SUCCESS
+    ) {
+      payload = data?.orders;
+      if (payload === undefined) {
+        console.error(
+          `Payload extraction failed for ${successType}. Expected 'orders' key in data:`,
+          data
+        );
+        throw new Error(
+          `API response format error for ${successType}. Missing 'orders' array.`
+        );
+      }
+      payload = Array.isArray(payload) ? payload : [];
+    } else if (successType === ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_SUCCESS) {
+      payload = data?.designData;
+      if (payload === undefined) {
+        console.error(
+          `Payload extraction failed for ${successType}. Expected 'designData' key in data:`,
+          data
+        );
+        throw new Error(
+          `API response format error for ${successType}. Missing 'designData' object.`
+        );
+      }
+    } else {
+      payload = data;
+    }
 
     dispatch({ type: successType, payload });
 
@@ -74,10 +111,9 @@ const handleApiRequest = async ({
       toast.success(successMessage);
     }
 
-    return payload; // Return the full data object
+    return payload;
   } catch (error) {
     let message = "An unexpected error occurred.";
-    // ... (rest of error handling as before) ...
     if (error.response) {
       message =
         error.response.data?.message ||
@@ -110,9 +146,6 @@ const handleApiRequest = async ({
   }
 };
 
-// --- Action Creators ---
-
-// User: Create a new order
 export const createOrder = (orderData) => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -126,9 +159,8 @@ export const createOrder = (orderData) => (dispatch) =>
       }),
     successMessage: "Order placed successfully!",
     errorMessagePrefix: "Create Order Error",
-  }).then((data) => data.orders); // Still resolve with orders array if needed downstream
+  }).then((data) => data.orders);
 
-// User: Get all orders for the logged-in user
 export const getAllOrdersOfUser = () => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -139,9 +171,8 @@ export const getAllOrdersOfUser = () => (dispatch) =>
     apiCall: () =>
       axios.get(`${server}/order/get-user-orders`, { withCredentials: true }),
     errorMessagePrefix: "Get User Orders Error",
-  }).then((data) => data.orders); // Resolve with orders array
+  });
 
-// Shop: Get all orders for the logged-in seller
 export const getAllOrdersOfShop = () => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -152,16 +183,15 @@ export const getAllOrdersOfShop = () => (dispatch) =>
     apiCall: () =>
       axios.get(`${server}/order/get-seller-orders`, { withCredentials: true }),
     errorMessagePrefix: "Get Seller Orders Error",
-  }).then((data) => data.orders); // Resolve with orders array
+  });
 
-// Admin: Get all orders (Paginated)
 export const getAllOrdersOfAdmin =
   (page = 1, limit = 15) =>
   (dispatch) =>
     handleApiRequest({
       dispatch,
       requestType: ORDER_ACTIONS.GET_ADMIN_REQUEST,
-      successType: ORDER_ACTIONS.GET_ADMIN_SUCCESS, // Reducer handles the full payload object now
+      successType: ORDER_ACTIONS.GET_ADMIN_SUCCESS,
       failType: ORDER_ACTIONS.GET_ADMIN_FAIL,
       finallyType: ORDER_ACTIONS.GET_ADMIN_FINALLY,
       apiCall: () =>
@@ -170,9 +200,8 @@ export const getAllOrdersOfAdmin =
           { withCredentials: true }
         ),
       errorMessagePrefix: "Get Admin Orders Error",
-    }); // Resolves with the full pagination data object
+    });
 
-// User/Admin: Get single order details
 export const getOrderDetails = (orderId) => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -185,9 +214,8 @@ export const getOrderDetails = (orderId) => (dispatch) =>
         withCredentials: true,
       }),
     errorMessagePrefix: "Get Order Details Error",
-  }).then((data) => data.order); // Resolve with the single order object
+  });
 
-// Admin: Update order status
 export const adminUpdateOrderStatus = (orderId, status) => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -203,9 +231,8 @@ export const adminUpdateOrderStatus = (orderId, status) => (dispatch) =>
       ),
     successMessage: `Order status updated to ${status}.`,
     errorMessagePrefix: "Admin Update Status Error",
-  }).then((data) => data.order); // Resolve with updated order object
+  });
 
-// Seller: Update refund status
 export const sellerUpdateRefundStatus = (orderId, status) => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -221,9 +248,8 @@ export const sellerUpdateRefundStatus = (orderId, status) => (dispatch) =>
       ),
     successMessage: `Refund status updated to ${status}.`,
     errorMessagePrefix: "Seller Refund Update Error",
-  }).then((data) => data.order); // Resolve with updated order object
+  });
 
-// Admin: Get data needed for design download package
 export const adminGetDesignDataForDownload = (orderId, itemId) => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -236,9 +262,8 @@ export const adminGetDesignDataForDownload = (orderId, itemId) => (dispatch) =>
         withCredentials: true,
       }),
     errorMessagePrefix: "Download Design Data Error",
-  }).then((data) => data.designData); // Resolve specifically with the designData payload
+  }).then((data) => data);
 
-// Clear Errors Action
 export const clearErrors = () => (dispatch) => {
   dispatch({ type: ORDER_ACTIONS.CLEAR_ERRORS });
 };
