@@ -705,14 +705,14 @@ const CreateProduct = () => {
     }
   }, [seller, navigate]);
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const sellerToken = localStorage.getItem('seller_token');
-    
-    if (!token || !sellerToken) {
-      toast.error("Please login again to continue");
-      navigate("/login");
+    const sellerToken = localStorage.getItem("seller_token");
+
+    if (!sellerToken) {
+      toast.error("Seller login required to create products.");
+      navigate("/shop-login");
     }
   }, [navigate]);
+
   // Return/Render JSX
   return (
     <div className="w-[90%] 800px:w-[90%] bg-white shadow h-[80vh] rounded-[4px] p-3 overflow-y-scroll">

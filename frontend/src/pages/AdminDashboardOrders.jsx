@@ -65,14 +65,13 @@ function CustomNoRowsOverlay({ message = "No orders found." }) {
 
 const AdminDashboardOrders = () => {
   const dispatch = useDispatch();
-  // Select admin order state including pagination info from Redux
   const {
-    adminOrders = [], // Orders for the current page fetched from backend
-    isLoading, // Loading state for the list fetch
-    error, // Error state for the list fetch
-    isUpdating, // Loading state for status updates
-    adminTotalOrders = 0, // Total count of ALL admin orders (for pagination)
-    adminLimit = 15, // Default page size (can be overridden by backend response)
+    adminOrders = [],
+    isLoading,
+    error,
+    isUpdating,
+    adminTotalOrders = 0, // Select the total count
+    adminLimit = 15,
   } = useSelector((state) => state.order);
 
   // Local state for client-side filtering (applies only to current page data)
@@ -114,7 +113,12 @@ const AdminDashboardOrders = () => {
       if (error) dispatch(clearErrors());
     };
   }, [error, dispatch]);
-
+  console.log(
+    "[AdminDashboardOrders] Data from Redux - adminTotalOrders:",
+    adminTotalOrders,
+    "adminOrders on page:",
+    adminOrders
+  );
   // Client-Side filtering (filters ONLY the `adminOrders` currently loaded on the page)
   // For full server-side filtering, backend API needs search/status params
   const filteredOrdersForCurrentPage = useMemo(() => {
@@ -249,13 +253,13 @@ const AdminDashboardOrders = () => {
         ),
       },
     ],
-    [isUpdating] // Re-memoize columns if isUpdating changes (to enable/disable Select)
+    [isUpdating]
   );
 
-  // Prepare Rows for DataGrid using the client-side filtered data for the current page
   const rows = useMemo(
     () =>
-      filteredOrdersForCurrentPage.map((o) => ({
+      adminOrders.map((o) => ({
+        // Temporarily use adminOrders directly
         id: o._id,
         date: o.createdAt,
         customer: o.user?.name || "N/A",
@@ -263,13 +267,14 @@ const AdminDashboardOrders = () => {
         total: o.totalPrice,
         status: o.status,
       })),
-    [filteredOrdersForCurrentPage] // Depends on the filtered data for the current page
+    [adminOrders] // Depend on adminOrders
   );
 
   // Initial loading state
   if (isLoading && adminOrders.length === 0) {
     return <Loader />;
   }
+  console.log("[AdminDashboardOrders] Calculated rows for DataGrid:", rows); // Log the rows being passed
 
   // Main Component Render
   return (
@@ -341,31 +346,33 @@ const AdminDashboardOrders = () => {
         {/* Data Grid - Server-Side Pagination */}
         <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
           <Box sx={{ height: "70vh", width: "100%" }}>
-            {" "}
-            {/* Ensure Box has height */}
             <DataGrid
-              rows={rows} // Use the client-side filtered rows for the CURRENT page
+              rows={rows} // Pass the calculated rows
               columns={columns}
-              rowCount={adminTotalOrders || 0} // ** TOTAL count of orders across all pages **
-              loading={isLoading || isUpdating} // Show loading state during fetch or status update
-              pageSizeOptions={[15, 30, 50, 100]} // Options for page size
-              paginationModel={paginationModel} // Controlled pagination state
-              paginationMode="server" // ** Crucial for backend pagination **
-              onPaginationModelChange={handlePaginationModelChange} // Handler triggers fetch for new page/size
+              rowCount={adminTotalOrders || 0} // Pass the total count
+              loading={isLoading || isUpdating}
+              pageSizeOptions={[15, 30, 50, 100]}
+              paginationModel={paginationModel}
+              paginationMode="server"
+              onPaginationModelChange={handlePaginationModelChange}
               disableRowSelectionOnClick
-              autoHeight={false} // Use the Box height
+              autoHeight={false}
               slots={{
                 loadingOverlay: CustomLoadingOverlay,
                 noRowsOverlay: () => (
                   <CustomNoRowsOverlay
+                    // Update message logic based on total count and rows
                     message={
-                      // Adjust message based on filtering state
-                      (searchTerm || filterStatus !== "all") &&
-                      adminOrders.length > 0
-                        ? "No orders match filters on this page."
+                      isLoading
+                        ? "Loading..."
                         : adminTotalOrders === 0
                         ? "No orders found in the system."
-                        : "No orders found for this page."
+                        : rows.length === 0 &&
+                          (searchTerm || filterStatus !== "all")
+                        ? "No orders match filters on this page."
+                        : rows.length === 0
+                        ? "No orders found for this page." // Should not happen if total > 0 and rows is empty without filters
+                        : "No data available." // Fallback
                     }
                   />
                 ),

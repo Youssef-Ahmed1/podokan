@@ -120,10 +120,15 @@ export const orderReducer = (state = initialState, action) => {
     case ORDER_ACTIONS.GET_ADMIN_SUCCESS:
       // Payload is expected to be: { orders, totalOrders, currentPage, totalPages, limit }
       const adminPayload = action.payload;
+      console.log(
+        "[Reducer GET_ADMIN_SUCCESS] Received payload:",
+        JSON.stringify(adminPayload)
+      );
       return {
         ...state,
         isLoading: false,
         // Update the list with orders for the fetched page
+
         adminOrders: Array.isArray(adminPayload?.orders)
           ? adminPayload.orders
           : [],
