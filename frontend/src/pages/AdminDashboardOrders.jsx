@@ -106,7 +106,7 @@ const AdminDashboardOrders = () => {
     };
   }, [error, dispatch]);
 
-  // Client-Side filtering (filters ONLY the `adminOrders` currently loaded on the page)
+  // Client-Side filtering
   const filteredOrdersForCurrentPage = useMemo(() => {
     if (!Array.isArray(adminOrders)) return [];
     return adminOrders.filter((order) => {
@@ -132,48 +132,48 @@ const AdminDashboardOrders = () => {
     setPaginationModel(newModel);
   };
 
-  // Prepare Rows for DataGrid
-  const rows = useMemo(
-    () =>
-      // Use the filtered data if client-side filtering is intended for the current page
-      // Or use adminOrders directly if you want to disable filtering temporarily for testing
-      filteredOrdersForCurrentPage.map((o) => ({
-        id: o._id,
-        date: o.createdAt,
-        customer: o.user?.name || "N/A",
-        itemsQty: o.cart?.length || 0,
-        total: o.totalPrice, // Pass the raw number
-        status: o.status,
-      })),
-    [filteredOrdersForCurrentPage] // Depend on filtered data
-    // [adminOrders] // Or depend only on raw data for testing
-  );
+  // Prepare Rows for DataGrid - Log the source object 'o'
+  const rows = useMemo(() => {
+    console.log(
+      "[AdminDashboardOrders] Generating rows from adminOrders:",
+      adminOrders
+    ); // Log the source data
+    return adminOrders.map((o, index) => {
+      // Use adminOrders directly
+      // Log each object being mapped
+      console.log(`[AdminDashboardOrders] Mapping order at index ${index}:`, o);
+      return {
+        id: o._id, // Expects: string
+        date: o.createdAt, // Expects: date string like "2025-01-21T18:33:45.427Z"
+        customer: o.user?.name || "N/A", // Expects: string
+        itemsQty: o.cart?.length || 0, // Expects: number
+        total: o.totalPrice, // Expects: number like 1265
+        status: o.status, // Expects: string like "Received"
+      };
+    });
+  }, [adminOrders]); // Depend only on adminOrders for this mapping
 
-  // Column Definitions using useMemo (Simplified for Debugging)
+  // Column Definitions (Restored original with formatters)
   const columns = useMemo(
     () => [
       {
         field: "id",
         headerName: "ID",
         width: 100,
-        renderCell: (p) => `#${p.value.slice(-6)}`,
+        renderCell: (params) => `#${params.value?.slice(-6) || "N/A"}`, // Added null check for safety
       },
       {
-        field: "date", // Matches row key 'date'
+        field: "date",
         headerName: "Date",
-        width: 150, // Increased width to see raw date better
-        type: "string", // Treat as string initially
-        // valueGetter: (value) => (value ? new Date(value) : null), // Temporarily REMOVED
-        // renderCell: (p) => (p.value ? format(p.value, "PP") : "N/A"), // Temporarily REMOVED
+        width: 110,
+        type: "date", // Use date type for sorting
+        valueGetter: (value) => (value ? new Date(value) : null), // Convert string to Date object
+        renderCell: (params) =>
+          params.value ? format(params.value, "PP") : "N/A", // Format the Date object
       },
+      { field: "customer", headerName: "Customer", width: 180, flex: 1 },
       {
-        field: "customer", // Matches row key 'customer'
-        headerName: "Customer",
-        width: 180,
-        flex: 1,
-      },
-      {
-        field: "itemsQty", // Matches row key 'itemsQty'
+        field: "itemsQty",
         headerName: "Items",
         type: "number",
         width: 70,
@@ -181,22 +181,22 @@ const AdminDashboardOrders = () => {
         headerAlign: "center",
       },
       {
-        field: "total", // Matches row key 'total'
+        field: "total",
         headerName: "Total",
         width: 120,
         type: "number",
         align: "right",
         headerAlign: "right",
-        // valueFormatter: (value) => `EGP ${Number(value || 0).toFixed(2)}`, // Temporarily REMOVED
+        valueFormatter: (value) => `EGP ${Number(value || 0).toFixed(2)}`, // Format number as currency
       },
       {
-        field: "status", // Matches row key 'status'
+        field: "status",
         headerName: "Status",
         minWidth: 200,
         flex: 0.8,
         sortable: false,
         renderCell: (
-          params // Keep renderCell for status as it uses Select
+          params // Use MUI Select for inline status update
         ) => (
           <Select
             value={params.value || ""}
@@ -231,14 +231,14 @@ const AdminDashboardOrders = () => {
         ),
       },
       {
-        field: "actions", // Not a direct data field
+        field: "actions",
         headerName: "View",
         width: 70,
         sortable: false,
         align: "center",
         headerAlign: "center",
         renderCell: (
-          params // Keep renderCell for action button
+          params // Link to Admin Order Detail page
         ) => (
           <Link to={`/admin/order/${params.id}`} title="View Details">
             <IconButton size="small">
@@ -248,18 +248,18 @@ const AdminDashboardOrders = () => {
         ),
       },
     ],
-    [isUpdating] // Dependency only on isUpdating now
+    [isUpdating] // Re-memoize columns if isUpdating changes
   );
 
-  // Log the final props being passed
   console.log(
     "[AdminDashboardOrders] Passing to DataGrid -> rows:",
     rows,
     "rowCount:",
     adminTotalOrders
-  );
+  ); // Log final props
 
-  if (isLoading && adminOrders.length === 0) {
+  // Use initial loading state only if data hasn't arrived yet
+  if (isLoading && adminOrders.length === 0 && adminTotalOrders === 0) {
     return <Loader />;
   }
 
@@ -284,6 +284,7 @@ const AdminDashboardOrders = () => {
               />
             </button>
           </div>
+          {/* Filters remain client-side for current page */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-grow">
               <Search
@@ -330,9 +331,9 @@ const AdminDashboardOrders = () => {
         <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
           <Box sx={{ height: "70vh", width: "100%" }}>
             <DataGrid
-              rows={rows} // Ensure correct rows are passed
-              columns={columns} // Use the simplified columns
-              rowCount={adminTotalOrders || 0}
+              rows={rows} // Use the generated rows
+              columns={columns} // Use the restored columns
+              rowCount={adminTotalOrders || 0} // Total count for pagination
               loading={isLoading || isUpdating}
               pageSizeOptions={[15, 30, 50, 100]}
               paginationModel={paginationModel}
@@ -352,8 +353,9 @@ const AdminDashboardOrders = () => {
                         : rows.length === 0 &&
                           (searchTerm || filterStatus !== "all")
                         ? "No orders match filters on this page."
-                        : rows.length === 0
-                        ? "No orders found for this page."
+                        : // Check if rows is empty BUT totalOrders is not, indicating a potential rendering issue
+                        rows.length === 0 && adminTotalOrders > 0
+                        ? "Processing data..."
                         : "No data available."
                     }
                   />
