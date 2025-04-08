@@ -23,12 +23,12 @@ import { format } from "date-fns";
 import {
   adminUpdateOrderStatus,
   adminGetDesignDataForDownload,
-  getOrderDetails, // Use generic action, backend authorizes admin
+  getOrderDetails,
   clearErrors,
-} from "../../redux/actions/order"; // Adjust path
-import { DesignDownloader } from "../../utils/designDownload"; // Adjust path
-import Loader from "../../components/Layout/Loader"; // Adjust path
-import { ORDER_STATUSES } from "../../constants/orderStatuses"; // Adjust path
+} from "../../redux/actions/order";
+import { DesignDownloader } from "../../utils/designDownload";
+import Loader from "../../components/Layout/Loader";
+import { ORDER_STATUSES } from "../../constants/orderStatuses";
 import {
   Select,
   MenuItem,
@@ -41,9 +41,8 @@ import {
   Box,
   Typography,
   IconButton,
-} from "@mui/material"; // MUI components
+} from "@mui/material";
 
-// --- Status Update Modal Component ---
 const StatusUpdateModal = ({
   open,
   onClose,
@@ -54,7 +53,6 @@ const StatusUpdateModal = ({
 }) => {
   const [newStatus, setNewStatus] = useState(currentStatus);
 
-  // Reset local state when modal opens or currentStatus changes externally
   useEffect(() => {
     if (open) {
       setNewStatus(currentStatus);
@@ -63,9 +61,9 @@ const StatusUpdateModal = ({
 
   const handleUpdateClick = () => {
     if (newStatus !== currentStatus) {
-      onUpdate(newStatus); // Call the update handler passed from parent
+      onUpdate(newStatus);
     } else {
-      onClose(); // Close if status hasn't changed
+      onClose();
     }
   };
 
@@ -84,7 +82,6 @@ const StatusUpdateModal = ({
           disabled={isUpdating}
           displayEmpty
         >
-          {/* <MenuItem value={currentStatus} disabled><em>Select new status...</em></MenuItem> */}
           {Object.values(availableStatuses).map((s) => (
             <MenuItem key={s} value={s}>
               {s}
@@ -100,7 +97,7 @@ const StatusUpdateModal = ({
           onClick={handleUpdateClick}
           variant="contained"
           color="primary"
-          disabled={isUpdating || newStatus === currentStatus} // Disable if no change or updating
+          disabled={isUpdating || newStatus === currentStatus}
           startIcon={
             isUpdating ? (
               <CircularProgress size={20} color="inherit" />
@@ -116,39 +113,32 @@ const StatusUpdateModal = ({
   );
 };
 
-// --- Main Admin Order Details Component ---
+
 const AdminOrderDetails = () => {
-  // Select relevant state from Redux
   const {
-    order, // The detailed order object
-    isDetailLoading, // Loading state for fetching the detail
-    isUpdating, // Loading state for status updates
-    isDownloading, // Loading state for preparing download data
-    error: reduxError, // Combined error state from Redux actions
+    order,
+    isDetailLoading,
+    isUpdating,
+    isDownloading,
+    error: reduxError,
   } = useSelector((state) => state.order);
-  const { user } = useSelector((state) => state.user); // Need admin user info
+  const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { id } = useParams(); // Order ID from URL
-
-  // Local state
-  const [downloadingItemId, setDownloadingItemId] = useState(null); // Track which item's download is processing
+  const { id } = useParams();
+  const [downloadingItemId, setDownloadingItemId] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
-
-  // Basic check if the logged-in user is an admin
   const isAdmin = user?.role?.toLowerCase() === "admin";
 
-  // Fetching logic using useCallback
   const fetchOrderData = useCallback(() => {
-    dispatch(clearErrors()); // Clear previous errors
+    dispatch(clearErrors());
     if (!isAdmin) {
       toast.error("Access Denied: Admin privileges required.");
-      navigate("/admin/dashboard"); // Redirect non-admins
+      navigate("/admin/dashboard");
       return;
     }
     if (id) {
-      // console.log("Admin fetching order details for:", id);
-      dispatch(getOrderDetails(id)); // Use the generic action
+      dispatch(getOrderDetails(id));
     } else {
       console.error("Order ID missing in AdminOrderDetails.");
       toast.error("Order ID is missing.");
@@ -156,53 +146,43 @@ const AdminOrderDetails = () => {
     }
   }, [dispatch, id, isAdmin, navigate]);
 
-  // Fetch data on mount or when ID/admin status changes
   useEffect(() => {
     fetchOrderData();
   }, [fetchOrderData]);
 
-  // Handle Redux errors
   useEffect(() => {
     if (reduxError) {
       toast.error(`Error: ${reduxError}`);
-      // Redirect if order not found or forbidden after fetch attempt
       if (
         reduxError.toLowerCase().includes("not found") ||
         reduxError.toLowerCase().includes("forbidden")
       ) {
         navigate("/admin-orders");
       }
-      dispatch(clearErrors()); // Clear error after handling
+      dispatch(clearErrors());
     }
-    // Cleanup
     return () => {
       if (reduxError) dispatch(clearErrors());
     };
   }, [reduxError, dispatch, navigate]);
 
-  // Download Handler
   const handleDownloadDesignClick = (item) => {
-    // Basic validation
-    if (!item?._id || isDownloading || !order?._id || downloadingItemId) return; // Prevent multiple clicks
+    if (!item?._id || isDownloading || !order?._id || downloadingItemId) return;
     if (!item.designImage?.url) {
       toast.error(
         "Cannot download: Design image URL is missing for this item."
       );
       return;
     }
-
-    setDownloadingItemId(item._id); // Set loading state for this specific item
+    setDownloadingItemId(item._id);
     toast.info(`Preparing download package for item ${item._id.slice(-6)}...`);
-
     dispatch(adminGetDesignDataForDownload(order._id, item._id))
       .then((designData) => {
-        // Check if designData was actually returned
         if (!designData) {
           throw new Error(
             "Failed to retrieve necessary data for download preparation."
           );
         }
-        // Call the utility function to process and trigger download
         return DesignDownloader.downloadSingleDesign(designData);
       })
       .then(() => {
@@ -212,57 +192,47 @@ const AdminOrderDetails = () => {
       })
       .catch((err) => {
         console.error("Design download failed:", err);
-        // Toast for specific errors is handled in the action/downloader, show generic here if needed
-        // toast.error(`Download failed for item ${item._id.slice(-6)}: ${err.message}`);
       })
       .finally(() => {
-        setDownloadingItemId(null); // Clear loading state regardless of outcome
+        setDownloadingItemId(null);
       });
   };
 
-  // Status Update Handler (called from modal)
   const handleUpdateStatusSubmit = (selectedStatus) => {
     if (!order?._id || selectedStatus === order.status || isUpdating) {
-      setShowStatusModal(false); // Close modal if no change or already updating
+      setShowStatusModal(false);
       return;
     }
-
     dispatch(adminUpdateOrderStatus(order._id, selectedStatus))
       .then(() => {
-        setShowStatusModal(false); // Close modal on success (state updates via Redux)
-        // Success toast handled by action
+        setShowStatusModal(false);
       })
       .catch(() => {
-        setShowStatusModal(false); // Close modal even on error
-        // Error toast handled by action/effect hook
+        setShowStatusModal(false);
       });
   };
 
-  // --- Render Logic ---
-
-  // Initial Loading State
-  if (isDetailLoading && !order) {
+  if (isDetailLoading) {
     return <Loader />;
   }
 
-  // Order Not Found or Error State (after loading attempt)
-  if (!order && !isDetailLoading) {
+  if ((!order && !isDetailLoading) || (reduxError && !order)) {
     return (
       <div className="p-6 text-center max-w-2xl mx-auto min-h-[60vh] flex flex-col justify-center items-center">
-        {/* Display specific error if available */}
         {reduxError && (
           <div className="bg-red-50 p-4 rounded-lg text-red-700 mb-4 flex items-center justify-center gap-2 shadow-sm border border-red-200">
             <AlertTriangle size={20} /> <span>{reduxError}</span>
           </div>
         )}
         <Info size={48} className="mx-auto text-gray-400 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Order Not Found</h2>
+        <h2 className="text-2xl font-bold mb-2">Order Details Unavailable</h2>
         <p className="text-gray-600 mb-4">
-          Could not load details for Order ID: {id}. It may not exist or an
-          error occurred.
+          {reduxError
+            ? "An error occurred while loading details."
+            : `Could not load details for Order ID: ${id}. It may not exist.`}
         </p>
         <Link
-          to="/admin-orders" // Link back to the main admin orders list
+          to="/admin-orders"
           className="text-blue-600 hover:underline inline-flex items-center"
         >
           <ArrowLeft size={16} className="mr-1" /> Back to Orders List
@@ -271,7 +241,6 @@ const AdminOrderDetails = () => {
     );
   }
 
-  // If order exists, prepare data
   const cartItems = order.cart || [];
   const subtotal = order.subtotal ?? 0;
   const shipping = order.shippingCost ?? 0;
@@ -279,7 +248,6 @@ const AdminOrderDetails = () => {
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto font-sans bg-gray-50 min-h-screen">
-      {/* Header & Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
         <Link
           to="/admin-orders"
@@ -288,11 +256,11 @@ const AdminOrderDetails = () => {
           <ArrowLeft
             size={18}
             className="mr-1 group-hover:-translate-x-1 transition-transform"
-          />
+          />{" "}
           Back to Orders List
         </Link>
         <button
-          onClick={fetchOrderData} // Refresh button
+          onClick={fetchOrderData}
           disabled={isDetailLoading || isUpdating || isDownloading}
           className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50"
           title="Refresh Order Details"
@@ -308,14 +276,12 @@ const AdminOrderDetails = () => {
         </button>
       </div>
 
-      {/* Order Summary Box */}
       <div className="bg-white rounded-lg shadow p-5 mb-6 border border-gray-200">
         <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-          {/* Left Side: Order ID and Date */}
           <div>
             <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
               <ShoppingBag size={24} className="text-blue-600" /> Order #
-              {order._id?.slice(-8)}
+              {order._id?.slice(-8) || "N/A"}
             </h1>
             <p className="text-gray-500 text-sm mt-1">
               Placed:{" "}
@@ -330,7 +296,6 @@ const AdminOrderDetails = () => {
               </span>
             </p>
           </div>
-          {/* Right Side: Status and Update Button */}
           <div className="flex flex-col items-start md:items-end gap-2 w-full md:w-auto">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Status:</span>
@@ -351,10 +316,9 @@ const AdminOrderDetails = () => {
                 {order.status || "N/A"}
               </span>
             </div>
-            {/* Button to open the status update modal */}
             <button
               onClick={() => setShowStatusModal(true)}
-              disabled={isUpdating} // Disable while an update is in progress
+              disabled={isUpdating}
               className="w-full md:w-auto px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium flex items-center justify-center transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
             >
               <Edit size={14} className="mr-1.5" /> Update Status
@@ -363,9 +327,7 @@ const AdminOrderDetails = () => {
         </div>
       </div>
 
-      {/* Customer & Shipping Info Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Customer Card */}
         <div className="bg-white rounded-lg shadow p-5 border border-gray-100">
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
             <UserIcon size={18} className="text-blue-600" /> Customer Details
@@ -389,27 +351,26 @@ const AdminOrderDetails = () => {
             </p>
           </div>
         </div>
-        {/* Shipping Address Card */}
         <div className="bg-white rounded-lg shadow p-5 border border-gray-100">
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
             <MapPin size={18} className="text-blue-600" /> Shipping Address
           </h2>
           <div className="space-y-1 text-sm">
             <p>
-              {order.shippingAddress?.address1}
+              {order.shippingAddress?.address1 || "(Missing!)"}
               {order.shippingAddress?.address2
                 ? `, ${order.shippingAddress.address2}`
                 : ""}
             </p>
             <p>
-              {order.shippingAddress?.city},{" "}
+              {order.shippingAddress?.city || "(Missing!)"},{" "}
               {order.shippingAddress?.country || "(Missing!)"}{" "}
               {order.shippingAddress?.postalCode}
             </p>
             <p className="mt-1 flex items-center gap-1.5 text-gray-600">
-              <Phone size={14} /> {order.shippingAddress?.phoneNumber}
+              <Phone size={14} />{" "}
+              {order.shippingAddress?.phoneNumber || "(Missing!)"}
             </p>
-            {/* Highlight missing critical address parts */}
             {!order.shippingAddress?.address1 && (
               <p className="text-red-500 text-xs mt-1">
                 (Warning: Address Line 1 missing)
@@ -434,7 +395,6 @@ const AdminOrderDetails = () => {
         </div>
       </div>
 
-      {/* Items Section */}
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-4">
           Items ({cartItems.length})
@@ -446,7 +406,6 @@ const AdminOrderDetails = () => {
               className="bg-white rounded-lg shadow p-4 border border-gray-100"
             >
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
-                {/* Image */}
                 <div className="md:col-span-2 aspect-square bg-gray-100 rounded-md flex items-center justify-center overflow-hidden border">
                   {item.designImage?.url ? (
                     <img
@@ -461,7 +420,6 @@ const AdminOrderDetails = () => {
                     </div>
                   )}
                 </div>
-                {/* Item Info */}
                 <div className="md:col-span-6">
                   <h3 className="text-md font-semibold">
                     {item.DesignTitle || "(No Title)"}
@@ -469,13 +427,11 @@ const AdminOrderDetails = () => {
                   <p className="text-xs text-gray-500">
                     Item ID: {item._id || "N/A"}
                   </p>
-                  {/* Display warning if URL is missing */}
                   {!item.designImage?.url && (
                     <p className="text-red-500 text-xs mt-1">
                       (Warning: Design URL missing! Download/Print unavailable.)
                     </p>
                   )}
-                  {/* Item Attributes */}
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
                     <span className="px-1.5 py-0.5 bg-gray-100 rounded border">
                       Type: {item.ProductType || "N/A"}
@@ -490,12 +446,11 @@ const AdminOrderDetails = () => {
                       Qty: {item.qty || 1}
                     </span>
                   </div>
-                  {/* Design Specs Details */}
                   <details className="mt-3 text-xs cursor-pointer group">
                     <summary className="font-medium text-gray-600 hover:text-black list-none flex items-center group-open:mb-1">
                       Design Specs{" "}
                       <span className="ml-1 transform group-open:rotate-90 transition-transform">
-                        &rarr;
+                        →
                       </span>
                     </summary>
                     <div className="mt-1 bg-gray-50 p-2 rounded border text-gray-700">
@@ -521,7 +476,6 @@ const AdminOrderDetails = () => {
                     </div>
                   </details>
                 </div>
-                {/* Pricing & Actions */}
                 <div className="md:col-span-4 text-left md:text-right">
                   <p className="text-sm text-gray-600">
                     Unit Price: EGP {(item.price ?? 0).toFixed(2)}
@@ -530,16 +484,14 @@ const AdminOrderDetails = () => {
                     Item Total: EGP{" "}
                     {((item.price || 0) * (item.qty || 1)).toFixed(2)}
                   </p>
-                  {/* Action Buttons */}
                   <div className="mt-4 flex flex-col md:items-end gap-2">
-                    {/* Download Button */}
                     <button
                       onClick={() => handleDownloadDesignClick(item)}
                       disabled={
                         !item.designImage?.url ||
                         isDownloading ||
                         downloadingItemId === item._id
-                      } // Disable if no URL, any download active, or this item downloading
+                      }
                       className={`w-full md:w-auto px-3 py-1.5 rounded text-sm flex items-center justify-center transition-colors ${
                         !item.designImage?.url ||
                         isDownloading ||
@@ -568,9 +520,8 @@ const AdminOrderDetails = () => {
                         </>
                       )}
                     </button>
-                    {/* Print Button (Placeholder) */}
                     <button
-                      disabled // Disabled as functionality is not implemented
+                      disabled
                       className="w-full md:w-auto px-3 py-1.5 bg-gray-300 text-gray-600 rounded text-sm flex items-center justify-center cursor-not-allowed"
                       title="Print file generation not available"
                     >
@@ -584,9 +535,7 @@ const AdminOrderDetails = () => {
         </div>
       </div>
 
-      {/* Financials & History Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Financial Summary Card */}
         <div className="bg-white rounded-lg shadow p-5 border border-gray-100">
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
             <CreditCard size={18} className="text-blue-600" /> Financial Summary
@@ -637,48 +586,40 @@ const AdminOrderDetails = () => {
             </div>
           </div>
         </div>
-        {/* Order History Card */}
         <div className="bg-white rounded-lg shadow p-5 border border-gray-100">
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
             <Clock size={18} className="text-blue-600" /> Order History
           </h2>
           <div className="space-y-3 max-h-60 overflow-y-auto text-sm pr-2 custom-scrollbar">
             {order.statusHistory?.length > 0 ? (
-              [...order.statusHistory].reverse().map(
-                (
-                  s,
-                  i // Reverse for newest first display
-                ) => (
-                  <div key={i} className="flex items-start gap-2">
-                    {/* Timeline indicator */}
-                    <div className="flex flex-col items-center">
-                      <div
-                        className={`mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-                          i === 0 ? "bg-blue-500" : "bg-gray-300"
-                        }`}
-                      ></div>
-                      {i < order.statusHistory.length - 1 && (
-                        <div className="w-px h-full bg-gray-200 mt-1 flex-grow"></div>
-                      )}
-                    </div>
-                    {/* History details */}
-                    <div>
-                      <p className="font-medium text-gray-700">{s.status}</p>
-                      <p className="text-xs text-gray-500">
-                        {s.timestamp
-                          ? format(new Date(s.timestamp), "PPp")
-                          : "N/A"}
-                        {s.updatedBy && ` by ${s.updatedBy.split(":")[0]}`}
-                      </p>
-                      {s.details && (
-                        <p className="text-xs text-gray-600 mt-0.5 bg-gray-50 p-1 rounded italic border border-gray-100">
-                          "{s.details}"
-                        </p>
-                      )}
-                    </div>
+              [...order.statusHistory].reverse().map((s, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={`mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                        i === 0 ? "bg-blue-500" : "bg-gray-300"
+                      }`}
+                    ></div>
+                    {i < order.statusHistory.length - 1 && (
+                      <div className="w-px h-full bg-gray-200 mt-1 flex-grow"></div>
+                    )}
                   </div>
-                )
-              )
+                  <div>
+                    <p className="font-medium text-gray-700">{s.status}</p>
+                    <p className="text-xs text-gray-500">
+                      {s.timestamp
+                        ? format(new Date(s.timestamp), "PPp")
+                        : "N/A"}
+                      {s.updatedBy && ` by ${s.updatedBy.split(":")[0]}`}
+                    </p>
+                    {s.details && (
+                      <p className="text-xs text-gray-600 mt-0.5 bg-gray-50 p-1 rounded italic border border-gray-100">
+                        "{s.details}"
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))
             ) : (
               <p className="text-gray-500">No status history recorded.</p>
             )}
@@ -686,14 +627,13 @@ const AdminOrderDetails = () => {
         </div>
       </div>
 
-      {/* Status Update Modal */}
       <StatusUpdateModal
         open={showStatusModal}
         onClose={() => setShowStatusModal(false)}
-        currentStatus={order.status || ""} // Pass current status
-        onUpdate={handleUpdateStatusSubmit} // Pass update handler
-        availableStatuses={ORDER_STATUSES} // Pass all available statuses
-        isUpdating={isUpdating} // Pass loading state for update
+        currentStatus={order.status || ""}
+        onUpdate={handleUpdateStatusSubmit}
+        availableStatuses={ORDER_STATUSES}
+        isUpdating={isUpdating}
       />
     </div>
   );
