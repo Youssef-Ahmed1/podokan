@@ -185,6 +185,7 @@ router.post(
             );
           }
         } else {
+          // console.log(`Item "${item.DesignTitle}" has no valid productId, skipping stock check.`);
         }
       }
     } catch (validationOrStockError) {
@@ -354,6 +355,8 @@ router.get(
     const cacheKey = CACHE_KEYS.USER_ORDERS(userId);
     const cachedOrders = orderCache.get(cacheKey);
 
+    // ** Disable cache for testing if needed **
+    // if (cachedOrders && process.env.NODE_ENV !== 'development') { // Example: only use cache in prod
     if (cachedOrders) {
       // console.log(`[Cache Hit] User orders for ${userId}`);
       return res.json({
@@ -371,9 +374,18 @@ router.get(
 
     orderCache.set(cacheKey, orders); // Cache the results
 
+    // Set cache control headers to prevent intermediate caching if needed for user orders too
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, private"
+    );
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+
     res.json({ success: true, orders, count: orders.length, fromCache: false });
   })
 );
+
 
 // --- Get Single Order Details (User or Admin) ---
 router.get(
@@ -393,7 +405,6 @@ router.get(
         return next(new ErrorHandler("Order not found.", 404));
       }
 
-      // Authorization Check: Ensure req.user is populated
       if (!req.user?._id) {
         console.error(
           "CRITICAL: req.user not populated in get-order/:id route after isAuthenticated."
@@ -402,34 +413,40 @@ router.get(
       }
 
       const isOwner = orderData.user._id.toString() === req.user._id.toString();
-      // Ensure role check is case-insensitive and handles potential null/undefined
       const isAdminUser = (req.user.role || "").toLowerCase() === "admin";
 
-      // Allow access if the requester is the order owner OR an admin
       if (!isOwner && !isAdminUser) {
-        // console.warn(`Forbidden access attempt: User ${req.user._id} trying to access order ${id} owned by ${orderData.user._id}`);
         return next(
           new ErrorHandler("Forbidden: You cannot access this order.", 403)
         );
       }
 
+      // Set cache control headers here as well if disabling caching generally
+      res.setHeader(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, private"
+      );
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+
       res.json({ success: true, order: orderData, fromCache });
     };
 
-    // Check cache first
+    // ** Disable cache for testing if needed **
+    // if (cachedOrder && process.env.NODE_ENV !== 'development') {
     if (cachedOrder) {
       // console.log(`[Cache Hit] Order detail for ${id}`);
-      return checkAuthAndRespond(cachedOrder, true); // Check auth even for cached data
+      return checkAuthAndRespond(cachedOrder, true);
     }
 
     // console.log(`[Cache Miss] Fetching order detail for ${id} from DB`);
-    const order = await Order.findById(id).lean(); // Use lean
+    const order = await Order.findById(id).lean();
 
     if (order) {
-      orderCache.set(cacheKey, order); // Cache the result if found
+      orderCache.set(cacheKey, order);
     }
 
-    checkAuthAndRespond(order, false); // Handles not found and auth check
+    checkAuthAndRespond(order, false);
   })
 );
 
@@ -443,9 +460,17 @@ router.get(
     const cachedData = orderCache.get(cacheKey);
     const cacheTTLms = 120 * 1000; // Cache seller orders for 2 minutes
 
-    // Check if cached data exists and is recent enough
+    // ** Disable cache for testing if needed **
+    // if (cachedData && (Date.now() - (cachedData.timestamp || 0) < cacheTTLms) && process.env.NODE_ENV !== 'development') {
     if (cachedData && Date.now() - (cachedData.timestamp || 0) < cacheTTLms) {
       // console.log(`[Cache Hit] Seller orders for ${sellerId}`);
+      // Set cache control headers even for cache hit if needed downstream
+      res.setHeader(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, private"
+      );
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
       return res.json({
         success: true,
         orders: cachedData.data || [],
@@ -455,21 +480,23 @@ router.get(
     }
 
     // console.log(`[Cache Miss] Fetching seller orders for ${sellerId} from DB`);
-    // Fetch orders where at least one cart item belongs to this seller
     const dbOrders = await Order.find({ "cart.shopId": req.seller._id })
       .sort({ createdAt: -1 })
       .lean();
 
-    // Filter the cart within each order to only include items from THIS seller
     const sellerOrders = dbOrders.map((order) => ({
       ...order,
-      cart: order.cart.filter(
-        (item) => item.shopId?.toString() === sellerId // Ensure comparison is string-to-string
-      ),
+      cart: order.cart.filter((item) => item.shopId?.toString() === sellerId),
     }));
 
-    // Cache the processed data with a timestamp
     orderCache.set(cacheKey, { data: sellerOrders, timestamp: Date.now() });
+
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, private"
+    );
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
 
     res.json({
       success: true,
@@ -492,37 +519,40 @@ router.get(
       return next(new ErrorHandler("Invalid Order ID format.", 400));
     }
 
-    // Seller detail doesn't use cache as often, direct fetch might be okay
-    // Or implement caching similar to user/admin detail if needed
+    // No caching implemented here yet, direct fetch
     const order = await Order.findById(id).lean();
 
     if (!order) {
       return next(new ErrorHandler("Order not found.", 404));
     }
 
-    // Filter cart items specifically for this seller
     const sellerItemsInCart = order.cart.filter(
       (item) => item.shopId?.toString() === sellerId
     );
 
-    // Check if this order actually contains items from the requesting seller
     if (sellerItemsInCart.length === 0) {
-      // console.warn(`Seller ${sellerId} attempted access to order ${id} with no items from their shop.`);
       return next(
         new ErrorHandler(
           "Order found, but it contains no items associated with your shop.",
-          403 // Forbidden, as they shouldn't see this order detail
+          403
         )
       );
     }
 
-    // Return the order but with the cart filtered to only the seller's items
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, private"
+    );
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+
     res.json({
       success: true,
       order: { ...order, cart: sellerItemsInCart },
     });
   })
 );
+
 
 // --- Seller Action: Update Refund Status ---
 router.put(
@@ -552,19 +582,16 @@ router.put(
       );
     }
 
-    // Fetch the order with write lock if possible, or just fetch normally
-    const order = await Order.findById(id); // Need the full Mongoose object to save
+    const order = await Order.findById(id);
 
     if (!order) {
       return next(new ErrorHandler("Order not found.", 404));
     }
 
-    // Verify the seller is associated with this order
     const isSellerAssociated = order.cart.some(
       (item) => item.shopId?.toString() === sellerId
     );
     if (!isSellerAssociated) {
-      // console.warn(`Seller ${sellerId} unauthorized attempt to update refund for order ${id}.`);
       return next(
         new ErrorHandler(
           "You are not authorized to update this order's refund status.",
@@ -573,7 +600,6 @@ router.put(
       );
     }
 
-    // Check if the order is in the correct state to be actioned
     if (order.status !== ORDER_STATUSES.PROCESSING_REFUND) {
       return next(
         new ErrorHandler(
@@ -583,12 +609,11 @@ router.put(
       );
     }
 
-    // Update status and history
     const previousStatus = order.status;
     order.status = newStatus;
     order.statusHistory.push({
       status: newStatus,
-      updatedBy: `seller:${sellerId}`, // Identify updater type and ID
+      updatedBy: `seller:${sellerId}`,
       timestamp: new Date(),
       details: `Seller action: Refund ${
         newStatus === ORDER_STATUSES.REFUND_APPROVED ? "Approved" : "Rejected"
@@ -596,26 +621,21 @@ router.put(
     });
 
     try {
-      const updatedOrder = await order.save(); // Run schema validations
-
-      // Clear relevant caches
+      const updatedOrder = await order.save();
       clearRelevantOrderCaches(id, order.user?._id?.toString(), [sellerId]);
-
       res.json({
         success: true,
         message: `Refund status successfully updated to '${newStatus}'.`,
-        order: updatedOrder, // Send back the updated order
+        order: updatedOrder,
       });
     } catch (e) {
       console.error(`Error saving seller refund update (Order ${id}):`, e);
       if (e.name === "ValidationError") {
-        // Extract validation messages
         const messages = Object.values(e.errors)
           .map((err) => err.message)
           .join(", ");
         return next(new ErrorHandler(`Validation failed: ${messages}`, 400));
       }
-      // General save error
       return next(
         new ErrorHandler(
           `Failed to save refund status update: ${e.message}`,
@@ -631,8 +651,8 @@ router.put(
 // --- Get Single Order Details (Admin) ---
 router.get(
   "/admin/order/:id",
-  isAuthenticated, // Ensure logged in
-  isAdmin, // Ensure role is Admin
+  isAuthenticated,
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     const { id } = req.params;
     if (!isValidObjectId(id)) {
@@ -642,19 +662,34 @@ router.get(
     const cacheKey = CACHE_KEYS.ORDER_DETAIL(id);
     const cachedOrder = orderCache.get(cacheKey);
 
+    // ** Disable cache for testing if needed **
+    // if (cachedOrder && process.env.NODE_ENV !== 'development') {
     if (cachedOrder) {
-      // console.log(`[Cache Hit] Admin order detail for ${id}`);
+      // Set cache control headers even for cache hit
+      res.setHeader(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, private"
+      );
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
       return res.json({ success: true, order: cachedOrder, fromCache: true });
     }
 
-    // console.log(`[Cache Miss] Admin fetching order detail for ${id} from DB`);
-    const order = await Order.findById(id).lean(); // Use lean
+    const order = await Order.findById(id).lean();
 
     if (!order) {
       return next(new ErrorHandler("Order not found.", 404));
     }
 
-    orderCache.set(cacheKey, order); // Cache the result
+    orderCache.set(cacheKey, order);
+
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, private"
+    );
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+
     res.json({ success: true, order, fromCache: false });
   })
 );
@@ -669,33 +704,47 @@ router.get(
     const limit = parseInt(req.query.limit) || 15; // Default limit
     const skip = (page - 1) * limit;
 
-    // console.log(`[Admin Orders] Request: Page ${page}, Limit ${limit}`);
-
-    // ** Caching paginated admin data is complex and often not worth it unless traffic is very high
-    // ** and data changes infrequently. We will skip caching here for simplicity and correctness.
-
     try {
       // Fetch total count and paginated orders concurrently
       const [totalOrders, orders] = await Promise.all([
-        Order.countDocuments(), // Add filter criteria here if needed (e.g., based on status query param)
-        Order.find() // Add filter criteria here if needed
+        Order.countDocuments(), // Count all orders
+        Order.find() // Find orders for the page
           .sort({ createdAt: -1 }) // Sort by newest first
           .skip(skip)
           .limit(limit)
           .lean(), // Use lean for read-only
       ]);
 
+      // Log database results for debugging
+      console.log(
+        `[Admin Orders API] DB Result - totalOrders: ${totalOrders}, ordersOnPage: ${orders.length}`
+      );
+      if (totalOrders > 0 && orders.length > 0) {
+        console.log(
+          `[Admin Orders API] First order ID on page: ${orders[0]._id}`
+        );
+      }
+
       const totalPages = Math.ceil(totalOrders / limit);
-      // console.log(`[Admin Orders] DB Result: Found ${orders.length} orders for page ${page}/${totalPages} (Total: ${totalOrders})`);
+
+      // **** ADD CACHE CONTROL HEADERS ****
+      res.setHeader(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, private"
+      ); // Instructs browser (and proxies) not to cache
+      res.setHeader("Pragma", "no-cache"); // For older HTTP/1.0 caches
+      res.setHeader("Expires", "0"); // Expire immediately
+      // ***********************************
 
       res.json({
+        // Send the actual data
         success: true,
         orders, // Orders for the current page
         totalOrders, // Total count for pagination calculation
         currentPage: page,
         totalPages,
         limit,
-        fromCache: false, // Indicate data is fresh from DB
+        fromCache: false, // Indicate data is fresh from DB (due to cache headers)
       });
     } catch (dbError) {
       console.error(
@@ -715,57 +764,52 @@ router.get(
 // --- Delete Order (Admin) ---
 router.delete(
   "/admin/delete/:id",
-  isAuthenticated, // Ensure logged in
-  isAdmin, // Ensure role is Admin
+  isAuthenticated,
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     const { id } = req.params;
     if (!isValidObjectId(id)) {
       return next(new ErrorHandler("Invalid Order ID format.", 400));
     }
 
-    // Find the order first to get related IDs for cache clearing
-    const order = await Order.findById(id).select("user cart"); // Select only necessary fields
+    const order = await Order.findById(id).select("user cart");
     if (!order) {
       return next(new ErrorHandler("Order not found.", 404));
     }
 
     const userId = order.user?._id?.toString();
     const involvedSellers = [
-      ...new Set(order.cart.map((i) => i.shopId?.toString()).filter(Boolean)), // Get unique seller IDs
+      ...new Set(order.cart.map((i) => i.shopId?.toString()).filter(Boolean)),
     ];
 
-    // Perform the deletion
     const result = await Order.deleteOne({ _id: id });
 
     if (result.deletedCount === 0) {
       console.error(
         `Admin delete failed for order ${id}, but order was found initially.`
       );
-      // This might happen in a race condition, but usually indicates an issue.
       return next(new ErrorHandler("Order deletion failed unexpectedly.", 500));
     }
 
-    // Clear caches AFTER successful deletion
     clearRelevantOrderCaches(id, userId, involvedSellers);
 
-    // console.log(`Admin ${req.user._id} deleted order ${id}`);
     res
       .status(200)
       .json({ success: true, message: "Order deleted successfully." });
   })
 );
 
+
 // --- Admin Update Order Status ---
 router.put(
   "/admin/update-status/:id",
-  isAuthenticated, // Ensure logged in
-  isAdmin, // Ensure role is Admin
+  isAuthenticated,
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     const { id } = req.params;
     const { status: newStatus } = req.body;
-    const adminId = req.user._id.toString(); // Get admin ID from authenticated user
+    const adminId = req.user._id.toString();
 
-    // --- Validation ---
     if (!newStatus) {
       return next(new ErrorHandler("New status is required.", 400));
     }
@@ -778,54 +822,43 @@ router.put(
       return next(new ErrorHandler("Invalid Order ID format.", 400));
     }
 
-    // Fetch the order
-    const order = await Order.findById(id); // Need full object to save
+    const order = await Order.findById(id);
     if (!order) {
       return next(new ErrorHandler("Order not found.", 404));
     }
 
-    // Check if status is actually changing
     if (order.status === newStatus) {
       return res.json({
         success: true,
         message: `Order status is already '${newStatus}'. No update needed.`,
-        order, // Return current order data
+        order,
       });
     }
 
     const previousStatus = order.status;
-
-    // --- Update Status and Handle Side Effects ---
     order.status = newStatus;
 
-    // If status changes to "Delivered"
     if (newStatus === ORDER_STATUSES.DELIVERED && !order.deliveredAt) {
       order.deliveredAt = new Date();
-      // If payment was COD and not yet marked succeeded, mark it now
       if (
         order.paymentInfo?.type === "Cash On Delivery" &&
-        order.paymentInfo.status !== "Succeeded" // Check case-insensitively if needed
+        order.paymentInfo.status !== "Succeeded"
       ) {
         order.paymentInfo.status = "Succeeded";
-        if (!order.paidAt) order.paidAt = new Date(); // Also set paidAt if not already set
-        order.markModified("paymentInfo"); // Important: Mark nested object as modified
+        if (!order.paidAt) order.paidAt = new Date();
+        order.markModified("paymentInfo");
       }
     }
 
-    // --- Add Status History ---
     order.statusHistory.push({
       status: newStatus,
-      updatedBy: `admin:${adminId}`, // Identify updater
+      updatedBy: `admin:${adminId}`,
       timestamp: new Date(),
       details: `Admin changed status from '${previousStatus}' to '${newStatus}'.`,
     });
 
     try {
-      // ** WORKAROUND APPLIED **: Bypassing validation temporarily.
-      // Ideally, investigate *why* validation might fail here (e.g., schema mismatch, hook issues).
-      const updatedOrder = await order.save({ validateBeforeSave: false });
-
-      // Clear relevant caches AFTER successful save
+      const updatedOrder = await order.save({ validateBeforeSave: false }); // Keep workaround for now
       const involvedSellers = [
         ...new Set(order.cart.map((i) => i.shopId?.toString()).filter(Boolean)),
       ];
@@ -834,19 +867,16 @@ router.put(
         order.user?._id?.toString(),
         involvedSellers
       );
-
-      // console.log(`Admin ${adminId} updated order ${id} status: ${previousStatus} -> ${newStatus}`);
       res.json({
         success: true,
         message: `Order status updated to '${newStatus}'.`,
-        order: updatedOrder, // Return the fully updated order
+        order: updatedOrder,
       });
     } catch (e) {
       console.error(
         `Admin status update save error (Order ${id}, Status ${newStatus}) (Validation Bypassed):`,
         e
       );
-      // Even with bypass, other errors can occur (e.g., DB connection)
       return next(
         new ErrorHandler(`Failed to save status update: ${e.message}`, 500)
       );
@@ -854,21 +884,19 @@ router.put(
   })
 );
 
-// --- Admin Update Order Item Details --- (Example: Color/Size)
+// --- Admin Update Order Item Details ---
 router.put(
   "/update-item-details/:orderId/:itemId",
-  isAuthenticated, // Ensure logged in
-  isAdmin, // Ensure role is Admin
+  isAuthenticated,
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     const { orderId, itemId } = req.params;
-    // Only allow updating specific, safe fields via body
     const { ProductColor, size } = req.body;
     const adminId = req.user._id.toString();
 
     if (!isValidObjectId(orderId) || !isValidObjectId(itemId)) {
       return next(new ErrorHandler("Invalid Order or Item ID format.", 400));
     }
-    // Check if at least one valid field to update is provided
     if (ProductColor === undefined && size === undefined) {
       return next(
         new ErrorHandler(
@@ -878,12 +906,11 @@ router.put(
       );
     }
 
-    const order = await Order.findById(orderId); // Need full object
+    const order = await Order.findById(orderId);
     if (!order) {
       return next(new ErrorHandler("Order not found.", 404));
     }
 
-    // Find the specific item within the cart array
     const itemIndex = order.cart.findIndex(
       (item) => item._id?.toString() === itemId
     );
@@ -893,52 +920,43 @@ router.put(
 
     let detailsLog = "Admin updated item details:";
     let itemUpdated = false;
-    const itemToUpdate = order.cart[itemIndex]; // Direct reference to the subdocument
+    const itemToUpdate = order.cart[itemIndex];
 
-    // Update Color if provided and different
     if (
       ProductColor !== undefined &&
       ProductColor !== itemToUpdate.ProductColor
     ) {
       detailsLog += ` Color='${itemToUpdate.ProductColor}'->'${ProductColor}'`;
-      itemToUpdate.ProductColor = ProductColor.trim(); // Trim whitespace
+      itemToUpdate.ProductColor = ProductColor.trim();
       itemUpdated = true;
     }
 
-    // Update Size if provided and different
     if (size !== undefined && size !== itemToUpdate.size) {
       detailsLog += `${itemUpdated ? "," : ""} Size='${
         itemToUpdate.size
       }'->'${size}'`;
-      itemToUpdate.size = size.trim(); // Trim whitespace
+      itemToUpdate.size = size.trim();
       itemUpdated = true;
     }
 
-    // If no actual changes were made
     if (!itemUpdated) {
       return res.json({
         success: true,
         message: "No changes detected for the item.",
-        order, // Return unchanged order
+        order,
       });
     }
 
-    // Add to history log
     order.statusHistory.push({
-      status: order.status, // Keep current order status
+      status: order.status,
       updatedBy: `admin:${adminId}`,
       timestamp: new Date(),
       details: `${detailsLog} (Item ID: ${itemId})`,
     });
-
-    // Mark the 'cart' array as modified since we changed a subdocument
     order.markModified("cart");
 
     try {
-      // ** WORKAROUND APPLIED **: Bypass validation. Needs investigation if issues arise.
-      const updatedOrder = await order.save({ validateBeforeSave: false });
-
-      // Clear relevant caches
+      const updatedOrder = await order.save({ validateBeforeSave: false }); // Keep workaround
       const involvedSellers = [
         ...new Set(order.cart.map((i) => i.shopId?.toString()).filter(Boolean)),
       ];
@@ -947,8 +965,6 @@ router.put(
         order.user?._id?.toString(),
         involvedSellers
       );
-
-      // console.log(`Admin ${adminId} updated item ${itemId} in order ${orderId}.`);
       res.json({
         success: true,
         message: "Order item details updated successfully.",
@@ -969,8 +985,8 @@ router.put(
 // --- Admin Get Design Data for Download ---
 router.get(
   "/download-design/:orderId/:itemId",
-  isAuthenticated, // Ensure logged in
-  isAdmin, // Ensure role is Admin
+  isAuthenticated,
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     const { orderId, itemId } = req.params;
     const adminId = req.user._id.toString();
@@ -979,13 +995,11 @@ router.get(
       return next(new ErrorHandler("Invalid Order or Item ID format.", 400));
     }
 
-    // Use lean for read-only operation
     const order = await Order.findById(orderId).lean();
     if (!order) {
       return next(new ErrorHandler("Order not found.", 404));
     }
 
-    // Find the specific item in the cart
     const item = order.cart.find(
       (cartItem) => cartItem._id?.toString() === itemId
     );
@@ -993,7 +1007,6 @@ router.get(
       return next(new ErrorHandler("Item not found within this order.", 404));
     }
 
-    // Crucial check: Ensure the design image URL exists
     const designUrl = item.designImage?.url;
     if (!designUrl) {
       console.error(
@@ -1007,11 +1020,11 @@ router.get(
       );
     }
 
-    // Log the download request asynchronously (don't block response)
+    // Log download request async
     Order.findByIdAndUpdate(orderId, {
       $push: {
         statusHistory: {
-          status: order.status, // Current status
+          status: order.status,
           updatedBy: `admin:${adminId}`,
           timestamp: new Date(),
           details: `Admin requested design download package for item: ${
@@ -1028,19 +1041,17 @@ router.get(
         )
       );
 
-    // Prepare the payload needed by the frontend DesignDownloader utility
     const payload = {
       imageUrl: designUrl,
       orderId: order._id.toString(),
       itemId: item._id.toString(),
-      orderNumber: order._id.toString().slice(-8), // Use last 8 chars as order number
+      orderNumber: order._id.toString().slice(-8),
       productTitle: item.DesignTitle || "Untitled Design",
       specs: {
         type: item.ProductType || "N/A",
         color: item.ProductColor || "N/A",
         size: item.size || "N/A",
         position: {
-          // Ensure defaults are provided if missing
           positionX: item.designSpecs?.positionX ?? 50,
           positionY: item.designSpecs?.positionY ?? 50,
           scale: item.designSpecs?.scale ?? 1,
@@ -1048,14 +1059,21 @@ router.get(
         },
       },
       price: {
-        // Include pricing info if needed
         itemPrice: item.price || 0,
         quantity: item.qty || 1,
         itemTotal: (item.price || 0) * (item.qty || 1),
-        shippingCost: order.shippingCost || 0, // Shipping cost for this sub-order
-        orderTotal: order.totalPrice || 0, // Total price for this sub-order
+        shippingCost: order.shippingCost || 0,
+        orderTotal: order.totalPrice || 0,
       },
     };
+
+    // Set cache headers for this specific response too if needed, although it's less likely to be cached aggressively
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, private"
+    );
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
 
     res.json({ success: true, designData: payload });
   })
