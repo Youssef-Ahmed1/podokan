@@ -212,9 +212,11 @@ const AdminOrderDetails = () => {
       });
   };
 
+
   if (isDetailLoading) {
     return <Loader />;
   }
+
 
   if ((!order && !isDetailLoading) || (reduxError && !order)) {
     return (
@@ -245,6 +247,7 @@ const AdminOrderDetails = () => {
   const subtotal = order.subtotal ?? 0;
   const shipping = order.shippingCost ?? 0;
   const total = order.totalPrice ?? subtotal + shipping;
+
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto font-sans bg-gray-50 min-h-screen">

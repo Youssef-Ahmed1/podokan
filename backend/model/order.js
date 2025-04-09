@@ -2,14 +2,12 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const { ORDER_STATUSES } = require("../constants/orderStatuses");
 
-// --- Subdocument Schema for Order Items ---
 const orderItemSchema = new mongoose.Schema(
   {
-    // Optional link to a specific Product document
     productId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
-      default: null, // Allow items not directly linked to a Product
+      default: null,
     },
     qty: {
       type: Number,
@@ -21,63 +19,59 @@ const orderItemSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Shop",
       required: [true, "Item must belong to a specific Shop."],
-      index: true, // Index for efficient seller order lookup
+      index: true,
     },
     price: {
       type: Number,
       required: [true, "Item price is required."],
       min: [0, "Price cannot be negative."],
     },
-    // Design details are crucial
     designImage: {
-      public_id: { type: String, trim: true }, // Optional Cloudinary ID
+      public_id: { type: String, trim: true },
       url: {
         type: String,
-        required: [true, "Item design image URL is required."], // Make URL mandatory
+        required: [true, "Item design image URL is required."],
         trim: true,
       },
     },
     DesignTitle: {
       type: String,
-      required: [true, "Item design title is required."], // Make title mandatory
+      required: [true, "Item design title is required."],
       trim: true,
     },
     ProductType: {
       type: String,
-      required: [true, "Item product type is required."], // Make type mandatory
+      required: [true, "Item product type is required."],
       trim: true,
     },
     ProductColor: {
       type: String,
-      required: [true, "Item product color is required."], // Make color mandatory
-      default: "White", // Sensible default
+      required: [true, "Item product color is required."],
+      default: "White",
       trim: true,
     },
     size: {
       type: String,
-      required: [true, "Item size is required."], // Make size mandatory
-      default: "One Size", // Sensible default
+      required: [true, "Item size is required."],
+      default: "One Size",
       trim: true,
     },
-    // Design placement/scaling details
     designSpecs: {
       positionX: { type: Number, default: 50, min: 0, max: 100 },
       positionY: { type: Number, default: 50, min: 0, max: 100 },
-      scale: { type: Number, default: 1, min: 0.1, max: 5 }, // Allow scaling down/up
-      rotation: { type: Number, default: 0, min: -360, max: 360 }, // Allow full rotation
+      scale: { type: Number, default: 1, min: 0.1, max: 5 },
+      rotation: { type: Number, default: 0, min: -360, max: 360 },
     },
   },
-  { _id: true } // Ensure items get their own _id for easier updates/refs
+  { _id: true }
 );
 
-// --- Main Order Schema ---
 const orderSchema = new mongoose.Schema(
   {
     cart: {
-      type: [orderItemSchema], // Array of order items
+      type: [orderItemSchema],
       required: true,
       validate: [
-        // Ensure cart is not empty
         (v) => Array.isArray(v) && v.length > 0,
         "Order cart cannot be empty.",
       ],
@@ -98,49 +92,44 @@ const orderSchema = new mongoose.Schema(
         type: String,
         required: [true, "Shipping country is required."],
         trim: true,
-      }, // REQUIRED
+      },
       postalCode: { type: String, trim: true, default: "" },
       phoneNumber: {
         type: String,
         required: [true, "Shipping phone number is required."],
         trim: true,
-      }, // REQUIRED
-      shippingPrice: { type: Number, default: 50, min: 0 }, // Price associated with this address (can be overridden by shippingCost)
+      },
+      shippingPrice: { type: Number, default: 50, min: 0 },
     },
     shippingCost: {
       type: Number,
       required: [true, "Order shipping cost is required."],
-      default: 50, // Default cost for this sub-order
+      default: 50,
       min: 0,
     },
     user: {
-      // Denormalized user info for quick access
       _id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
         index: true,
-      }, // Index for user order lookup
+      },
       name: { type: String, required: [true, "User name is required."] },
       email: { type: String, required: [true, "User email is required."] },
     },
     subtotal: {
-      // Calculated sum of (item.price * item.qty)
       type: Number,
       required: [true, "Order subtotal is required."],
       default: 0,
       min: 0,
     },
     totalPrice: {
-      // Calculated subtotal + shippingCost
       type: Number,
       required: [true, "Order total price is required."],
       default: 0,
       min: 0,
       validate: {
-        // Basic validation: totalPrice should be roughly subtotal + shipping
         validator: function (v) {
-          // Allow for small floating point discrepancies
           const calculatedTotal =
             (this.subtotal || 0) + (this.shippingCost || 0);
           return Math.abs(v - calculatedTotal) < 0.01;
@@ -156,79 +145,65 @@ const orderSchema = new mongoose.Schema(
       required: true,
       default: ORDER_STATUSES.PROCESSING,
       enum: {
-        values: Object.values(ORDER_STATUSES), // Use predefined statuses
+        values: Object.values(ORDER_STATUSES),
         message: '"{VALUE}" is not a valid order status.',
       },
-      index: true, // Index for filtering by status
+      index: true,
     },
     paymentInfo: {
-      // Details about the payment
-      id: { type: String, trim: true }, // e.g., Stripe charge ID
-      status: { type: String, default: "Processing", trim: true }, // e.g., Processing, Succeeded, Failed
-      type: { type: String, default: "Cash On Delivery", trim: true }, // e.g., Stripe, COD
+      id: { type: String, trim: true },
+      status: { type: String, default: "Processing", trim: true },
+      type: { type: String, default: "Cash On Delivery", trim: true },
     },
-    paidAt: { type: Date, default: null }, // Timestamp when payment succeeded
-    deliveredAt: { type: Date, default: null }, // Timestamp when order was delivered
+    paidAt: { type: Date, default: null },
+    deliveredAt: { type: Date, default: null },
     statusHistory: [
-      // Log of status changes
       {
         status: { type: String, required: true },
-        updatedBy: { type: String, required: true }, // e.g., "user:<id>", "admin:<id>", "seller:<id>", "system"
+        updatedBy: { type: String, required: true },
         timestamp: { type: Date, default: Date.now },
-        details: { type: String, trim: true, default: "" }, // Optional notes about the change
-        _id: false, // Don't create separate IDs for history entries
+        details: { type: String, trim: true, default: "" },
+        _id: false,
       },
     ],
   },
-  { timestamps: true } // Adds createdAt and updatedAt automatically
+  { timestamps: true }
 );
 
-// --- Indexes ---
-// Compound index for efficient user order lookup, sorted by date
 orderSchema.index({ "user._id": 1, createdAt: -1 });
-// Compound index for efficient seller order lookup, sorted by date
 orderSchema.index({ "cart.shopId": 1, createdAt: -1 });
-// Index for filtering by status, sorted by date
 orderSchema.index({ status: 1, createdAt: -1 });
-// General index on creation date for sorting all orders
 orderSchema.index({ createdAt: -1 });
 
-// --- Pre-Save Hook ---
 orderSchema.pre("save", function (next) {
-  // Recalculate totals if cart or shippingCost changes, or if it's a new document
-  if (
-    this.isModified("cart") ||
-    this.isModified("shippingCost") ||
-    this.isNew
-  ) {
-    this.subtotal = this.cart.reduce(
-      (sum, item) => sum + (item.price || 0) * (item.qty || 1),
-      0
-    );
-    // Ensure shippingCost has a valid non-negative value
-    this.shippingCost =
-      typeof this.shippingCost === "number" && this.shippingCost >= 0
-        ? this.shippingCost
-        : this.shippingAddress?.shippingPrice ?? 50; // Fallback if needed
+  // Always recalculate subtotal before any save, based on current cart
+  this.subtotal = this.cart.reduce(
+    (sum, item) => sum + (item.price || 0) * (item.qty || 1),
+    0
+  );
 
-    this.totalPrice = this.subtotal + this.shippingCost;
-  }
+  // Ensure shippingCost is valid, use address.shippingPrice or default as fallback if needed
+  this.shippingCost =
+    typeof this.shippingCost === "number" && this.shippingCost >= 0
+      ? this.shippingCost
+      : this.shippingAddress?.shippingPrice ?? 50;
 
-  // Initialize status history if it's a new order and history is empty
+  // Always recalculate totalPrice based on current subtotal and shippingCost
+  this.totalPrice = this.subtotal + this.shippingCost;
+
   if (this.isNew && (!this.statusHistory || this.statusHistory.length === 0)) {
-    // Ensure user._id exists before creating history entry
     const userIdStr = this.user?._id ? `user:${this.user._id}` : "system";
     this.statusHistory = [
       {
         status: this.status,
-        updatedBy: userIdStr, // Log who created it (user or system if user missing)
-        timestamp: this.createdAt || new Date(), // Use createdAt if available
+        updatedBy: userIdStr,
+        timestamp: this.createdAt || new Date(),
         details: "Order created.",
       },
     ];
   }
 
-  next(); // Continue with the save operation
+  next();
 });
 
 module.exports = mongoose.model("Order", orderSchema);
