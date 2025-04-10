@@ -303,7 +303,7 @@ const CreateProduct = () => {
   const { seller } = useSelector((state) => state.seller);
 
   const designPreviewRef = useRef(null);
-  const designPositionRef = useRef({ x: 0, y: 0 });
+  const DesignPositionRef = useRef({ x: 0, y: 0 });
   const dragStartRef = useRef(null);
   const compressionTimeoutRef = useRef(null);
   const lastScaleRef = useRef(1);
@@ -744,7 +744,7 @@ const CreateProduct = () => {
 
   useEffect(() => {
     if (seller && seller._id) {
-      setFormState(prev => ({ ...prev, shopId: seller._id }));
+      setFormState((prev) => ({ ...prev, shopId: seller._id }));
       setIsLoading(false);
     } else if (seller === null) {
       toast.error("Please log in as a seller to create products");
@@ -1047,15 +1047,15 @@ const CreateProduct = () => {
                         ref={designPreviewRef}
                         className={`design-preview absolute ${
                           isScaling ? "scaling" : ""
-                        }
-                          ${!isDesignVisible ? "outside" : ""}`}
+                        } ${!isDesignVisible ? "outside" : ""}`}
                         style={{
-                          position: "absolute",
-                          top: `${formState.DesignPosition.y}%`,
-                          left: `${formState.DesignPosition.x}%`,
-                          transform: `translate(-50%, -50%) scale(${formState.DesignScale})`,
-                          width: "200px",
-                          height: "200px",
+                          ...DesignScalingManager.getConsistentContainerStyles(
+                            formState.DesignPosition,
+                            formState.DesignScale,
+                            formState.ProductColor,
+                            formState.ProductType,
+                            formState.ProductView
+                          ),
                           cursor: isDragging ? "grabbing" : "grab",
                         }}
                       >
@@ -1066,6 +1066,7 @@ const CreateProduct = () => {
                           draggable="false"
                         />
                       </div>
+
                       {showGuides && (
                         <BoundaryGuides productType={formState.ProductType} />
                       )}

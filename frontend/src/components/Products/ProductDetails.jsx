@@ -190,21 +190,13 @@ const ProductDetails = ({ data }) => {
                   {!showBack && data?.designImage && (
                     <div
                       className="absolute design-preview pointer-events-none"
-                      style={{
-                        position: "absolute",
-                        top: `${
-                          data.DesignPosition?.y || designSpecs.position.y
-                        }%`,
-                        left: `${
-                          data.DesignPosition?.x || designSpecs.position.x
-                        }%`,
-                        transform: `translate(-50%, -50%) scale(${
-                          data.DesignScale || designSpecs.scale
-                        })`,
-                        width: "200px",
-                        height: "200px",
-                        ...designStyles,
-                      }}
+                      style={DesignScalingManager.getConsistentContainerStyles(
+                        data?.DesignPosition || { x: 50, y: 40 },
+                        data?.DesignScale || 0.8,
+                        selectedColor,
+                        data?.ProductType || "hoodie",
+                        showBack ? "back" : "front"
+                      )}
                     >
                       <img
                         src={
@@ -214,11 +206,6 @@ const ProductDetails = ({ data }) => {
                         }
                         alt="Design"
                         className="w-full h-full object-contain"
-                        style={{
-                          mixBlendMode:
-                            selectedColor === "black" ? "screen" : "multiply",
-                          background: "transparent",
-                        }}
                         draggable="false"
                       />
                     </div>
