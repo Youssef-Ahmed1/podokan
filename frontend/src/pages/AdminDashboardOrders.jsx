@@ -1,15 +1,14 @@
-// frontend/src/pages/Admin/AdminDashboardOrders.jsx
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getAllOrdersOfAdmin,
   adminUpdateOrderStatus,
   clearErrors,
-} from "../redux/actions/order"; // Adjust path
+} from "../redux/actions/order";
 import { Link } from "react-router-dom";
 import { Eye, Search, Package, RefreshCw, AlertTriangle } from "lucide-react";
 import { toast } from "react-toastify";
-import Loader from "../components/Layout/Loader"; // Adjust path
+import Loader from "../components/Layout/Loader";
 import { format } from "date-fns";
 import { DataGrid } from "@mui/x-data-grid";
 import {
@@ -19,11 +18,9 @@ import {
   CircularProgress,
   Typography,
   IconButton,
-  Button,
 } from "@mui/material";
-import { ORDER_STATUSES } from "../constants/orderStatuses"; // Adjust path
+import { ORDER_STATUSES } from "../constants/orderStatuses";
 
-// --- Custom DataGrid Overlays ---
 function CustomLoadingOverlay() {
   return (
     <Box
@@ -62,7 +59,6 @@ function CustomNoRowsOverlay({ message = "No orders found." }) {
     </Box>
   );
 }
-// --- End Custom Overlays ---
 
 const AdminDashboardOrders = () => {
   const dispatch = useDispatch();
@@ -101,12 +97,23 @@ const AdminDashboardOrders = () => {
       toast.error(`Order Operation Error: ${error}`);
       dispatch(clearErrors());
     }
+
+    // Check for orders with missing user data
+    if (
+      adminOrders.length > 0 &&
+      adminOrders.some((order) => !order.user?.name)
+    ) {
+      console.warn(
+        "Some orders are missing user data:",
+        adminOrders.filter((order) => !order.user?.name).map((o) => o._id)
+      );
+    }
+
     return () => {
       if (error) dispatch(clearErrors());
     };
-  }, [error, dispatch]);
+  }, [error, dispatch, adminOrders]);
 
-  // Client-Side filtering
   const filteredOrdersForCurrentPage = useMemo(() => {
     if (!Array.isArray(adminOrders)) return [];
     return adminOrders.filter((order) => {
@@ -132,44 +139,43 @@ const AdminDashboardOrders = () => {
     setPaginationModel(newModel);
   };
 
-  // Prepare Rows for DataGrid - Log the source object 'o'
   const rows = useMemo(() => {
-    console.log(
-      "[AdminDashboardOrders] Generating rows from adminOrders:",
-      adminOrders
-    ); // Log the source data
-    return adminOrders.map((o, index) => {
-      // Use adminOrders directly
-      // Log each object being mapped
-      console.log(`[AdminDashboardOrders] Mapping order at index ${index}:`, o);
+    return (Array.isArray(adminOrders) ? adminOrders : []).map((o, index) => {
+      // Enhanced logging to identify user data issues
+      if (!o.user || !o.user.name) {
+        console.warn(
+          `[AdminDashboardOrders] Order at index ${index} is missing user data:`,
+          { id: o._id, hasUser: !!o.user, userData: o.user }
+        );
+      }
+
       return {
-        id: o._id, // Expects: string
-        date: o.createdAt, // Expects: date string like "2025-01-21T18:33:45.427Z"
-        customer: o.user?.name || "N/A", // Expects: string
-        itemsQty: o.cart?.length || 0, // Expects: number
-        total: o.totalPrice, // Expects: number like 1265
-        status: o.status, // Expects: string like "Received"
+        id: o._id || `unknown-${index}`,
+        date: o.createdAt || new Date().toISOString(),
+        customer: o.user?.name || "Unknown Customer",
+        itemsQty: Array.isArray(o.cart) ? o.cart.length : 0,
+        total: typeof o.totalPrice === "number" ? o.totalPrice : 0,
+        status: o.status || "Unknown",
       };
     });
-  }, [adminOrders]); // Depend only on adminOrders for this mapping
+  }, [adminOrders]);
 
-  // Column Definitions (Restored original with formatters)
   const columns = useMemo(
     () => [
       {
         field: "id",
         headerName: "ID",
         width: 100,
-        renderCell: (params) => `#${params.value?.slice(-6) || "N/A"}`, // Added null check for safety
+        renderCell: (params) => `#${params.value?.slice(-6) || "N/A"}`,
       },
       {
         field: "date",
         headerName: "Date",
         width: 110,
-        type: "date", // Use date type for sorting
-        valueGetter: (value) => (value ? new Date(value) : null), // Convert string to Date object
+        type: "date",
+        valueGetter: (value) => (value ? new Date(value) : null),
         renderCell: (params) =>
-          params.value ? format(params.value, "PP") : "N/A", // Format the Date object
+          params.value ? format(params.value, "PP") : "N/A",
       },
       { field: "customer", headerName: "Customer", width: 180, flex: 1 },
       {
@@ -187,7 +193,7 @@ const AdminDashboardOrders = () => {
         type: "number",
         align: "right",
         headerAlign: "right",
-        valueFormatter: (value) => `EGP ${Number(value || 0).toFixed(2)}`, // Format number as currency
+        valueFormatter: (value) => `EGP ${Number(value || 0).toFixed(2)}`,
       },
       {
         field: "status",
@@ -195,9 +201,7 @@ const AdminDashboardOrders = () => {
         minWidth: 200,
         flex: 0.8,
         sortable: false,
-        renderCell: (
-          params // Use MUI Select for inline status update
-        ) => (
+        renderCell: (params) => (
           <Select
             value={params.value || ""}
             onChange={(e) =>
@@ -237,9 +241,7 @@ const AdminDashboardOrders = () => {
         sortable: false,
         align: "center",
         headerAlign: "center",
-        renderCell: (
-          params // Link to Admin Order Detail page
-        ) => (
+        renderCell: (params) => (
           <Link to={`/admin/order/${params.id}`} title="View Details">
             <IconButton size="small">
               <Eye className="text-blue-600 hover:text-blue-800" />
@@ -248,17 +250,9 @@ const AdminDashboardOrders = () => {
         ),
       },
     ],
-    [isUpdating] // Re-memoize columns if isUpdating changes
+    [isUpdating]
   );
 
-  console.log(
-    "[AdminDashboardOrders] Passing to DataGrid -> rows:",
-    rows,
-    "rowCount:",
-    adminTotalOrders
-  ); // Log final props
-
-  // Use initial loading state only if data hasn't arrived yet
   if (isLoading && adminOrders.length === 0 && adminTotalOrders === 0) {
     return <Loader />;
   }
@@ -266,7 +260,6 @@ const AdminDashboardOrders = () => {
   return (
     <div className="w-full p-4 md:p-6 min-h-screen bg-gray-100">
       <div className="max-w-[1400px] mx-auto">
-        {/* Header & Filters */}
         <div className="mb-6 bg-white p-4 rounded-lg shadow border border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
             <h1 className="text-xl md:text-2xl font-bold text-gray-800">
@@ -284,7 +277,6 @@ const AdminDashboardOrders = () => {
               />
             </button>
           </div>
-          {/* Filters remain client-side for current page */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-grow">
               <Search
@@ -327,13 +319,12 @@ const AdminDashboardOrders = () => {
           )}
         </div>
 
-        {/* Data Grid */}
         <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
           <Box sx={{ height: "70vh", width: "100%" }}>
             <DataGrid
-              rows={rows} // Use the generated rows
-              columns={columns} // Use the restored columns
-              rowCount={adminTotalOrders || 0} // Total count for pagination
+              rows={rows}
+              columns={columns}
+              rowCount={adminTotalOrders || 0}
               loading={isLoading || isUpdating}
               pageSizeOptions={[15, 30, 50, 100]}
               paginationModel={paginationModel}
@@ -353,8 +344,7 @@ const AdminDashboardOrders = () => {
                         : rows.length === 0 &&
                           (searchTerm || filterStatus !== "all")
                         ? "No orders match filters on this page."
-                        : // Check if rows is empty BUT totalOrders is not, indicating a potential rendering issue
-                        rows.length === 0 && adminTotalOrders > 0
+                        : rows.length === 0 && adminTotalOrders > 0
                         ? "Processing data..."
                         : "No data available."
                     }

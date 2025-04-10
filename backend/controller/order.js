@@ -1,4 +1,3 @@
-// backend/controller/order.js
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
@@ -386,7 +385,6 @@ router.get(
   })
 );
 
-
 // --- Get Single Order Details (User or Admin) ---
 router.get(
   "/get-order/:id",
@@ -553,7 +551,6 @@ router.get(
   })
 );
 
-
 // --- Seller Action: Update Refund Status ---
 router.put(
   "/accept-refund/:id",
@@ -695,13 +692,14 @@ router.get(
 );
 
 // --- Get All Orders (Admin - PAGINATED) ---
+// FIX 1: Changed route to match frontend expectations
 router.get(
-  "/admin/all-orders",
-  isAuthenticated, // Ensure logged in
-  isAdmin, // Ensure role is Admin
+  "/admin-all-orders", // Changed from "/admin/all-orders" to match frontend
+  isAuthenticated,
+  isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 15; // Default limit
+    const limit = parseInt(req.query.limit) || 15;
     const skip = (page - 1) * limit;
 
     try {
@@ -715,14 +713,14 @@ router.get(
           .lean(), // Use lean for read-only
       ]);
 
-      // Log database results for debugging
-      console.log(
-        `[Admin Orders API] DB Result - totalOrders: ${totalOrders}, ordersOnPage: ${orders.length}`
-      );
-      if (totalOrders > 0 && orders.length > 0) {
-        console.log(
-          `[Admin Orders API] First order ID on page: ${orders[0]._id}`
-        );
+      // Add logging to debug user data issues
+      if (orders.length > 0) {
+        console.log(`[Admin API] First order sample:`, {
+          _id: orders[0]._id,
+          hasUserData: !!orders[0].user,
+          userName: orders[0].user?.name || "MISSING",
+          userEmail: orders[0].user?.email || "MISSING",
+        });
       }
 
       const totalPages = Math.ceil(totalOrders / limit);
@@ -731,20 +729,19 @@ router.get(
       res.setHeader(
         "Cache-Control",
         "no-store, no-cache, must-revalidate, private"
-      ); // Instructs browser (and proxies) not to cache
-      res.setHeader("Pragma", "no-cache"); // For older HTTP/1.0 caches
-      res.setHeader("Expires", "0"); // Expire immediately
+      );
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
       // ***********************************
 
       res.json({
-        // Send the actual data
         success: true,
         orders, // Orders for the current page
         totalOrders, // Total count for pagination calculation
         currentPage: page,
         totalPages,
         limit,
-        fromCache: false, // Indicate data is fresh from DB (due to cache headers)
+        fromCache: false,
       });
     } catch (dbError) {
       console.error(
@@ -799,10 +796,10 @@ router.delete(
   })
 );
 
-
 // --- Admin Update Order Status ---
+// FIX 2: Changed route to match frontend expectations
 router.put(
-  "/admin/update-status/:id",
+  "/admin-update-status/:id", // Changed from "/admin/update-status/:id" to match frontend
   isAuthenticated,
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
@@ -1067,7 +1064,6 @@ router.get(
       },
     };
 
-    // Set cache headers for this specific response too if needed, although it's less likely to be cached aggressively
     res.setHeader(
       "Cache-Control",
       "no-store, no-cache, must-revalidate, private"

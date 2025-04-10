@@ -87,6 +87,7 @@ export const orderReducer = (state = initialState, action) => {
       const adminPayload = action.payload;
       return {
         ...state,
+        isLoading: false,
         adminOrders: Array.isArray(adminPayload?.orders)
           ? adminPayload.orders
           : [],
@@ -97,7 +98,12 @@ export const orderReducer = (state = initialState, action) => {
         error: null,
       };
     case ORDER_ACTIONS.GET_ADMIN_FAIL:
-      return { ...state, isLoading: false, error: action.payload };
+      return {
+        ...state,
+        isLoading: false,
+        error: action.payload,
+        adminOrders: [],
+      };
     case ORDER_ACTIONS.GET_ADMIN_FINALLY:
       return { ...state, isLoading: false };
 
