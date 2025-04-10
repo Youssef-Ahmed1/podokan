@@ -113,7 +113,6 @@ const StatusUpdateModal = ({
   );
 };
 
-
 const AdminOrderDetails = () => {
   const {
     order,
@@ -212,11 +211,9 @@ const AdminOrderDetails = () => {
       });
   };
 
-
   if (isDetailLoading) {
     return <Loader />;
   }
-
 
   if ((!order && !isDetailLoading) || (reduxError && !order)) {
     return (
@@ -247,7 +244,6 @@ const AdminOrderDetails = () => {
   const subtotal = order.subtotal ?? 0;
   const shipping = order.shippingCost ?? 0;
   const total = order.totalPrice ?? subtotal + shipping;
-
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto font-sans bg-gray-50 min-h-screen">
@@ -335,24 +331,34 @@ const AdminOrderDetails = () => {
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
             <UserIcon size={18} className="text-blue-600" /> Customer Details
           </h2>
-          <div className="space-y-1 text-sm">
-            <p>
-              <strong className="text-gray-600 w-20 inline-block">Name:</strong>{" "}
-              {order.user?.name || "N/A"}
-            </p>
-            <p>
-              <strong className="text-gray-600 w-20 inline-block">
-                Email:
-              </strong>{" "}
-              {order.user?.email || "N/A"}
-            </p>
-            <p>
-              <strong className="text-gray-600 w-20 inline-block">
-                User ID:
-              </strong>{" "}
-              {order.user?._id || "N/A"}
-            </p>
-          </div>
+          {order.user ? (
+            <div className="space-y-1 text-sm">
+              <p>
+                <strong className="text-gray-600 w-20 inline-block">
+                  Name:
+                </strong>{" "}
+                {order.user.name || "(No name provided)"}
+              </p>
+              <p>
+                <strong className="text-gray-600 w-20 inline-block">
+                  Email:
+                </strong>{" "}
+                {order.user.email || "(No email provided)"}
+              </p>
+              <p>
+                <strong className="text-gray-600 w-20 inline-block">
+                  User ID:
+                </strong>{" "}
+                {order.user._id || "N/A"}
+              </p>
+            </div>
+          ) : (
+            <div className="bg-yellow-50 p-3 rounded-md text-yellow-700 border border-yellow-200">
+              <AlertTriangle size={18} className="inline-block mr-1" />
+              Customer data is missing for this order. This may be a data
+              integrity issue.
+            </div>
+          )}
         </div>
         <div className="bg-white rounded-lg shadow p-5 border border-gray-100">
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
