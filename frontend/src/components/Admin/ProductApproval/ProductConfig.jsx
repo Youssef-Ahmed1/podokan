@@ -7,7 +7,10 @@ import {
   DEFAULT_PRODUCT_CONFIG,
   validateDesignPosition,
 } from "../ProductApproval/constants/productConfig";
-import { DesignScalingManager } from "../../../utils/designScaling";
+import {
+  DesignScalingManager,
+  DESIGN_CONFIG,
+} from "../../../utils/designScaling";
 
 const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabled }) => {
   const defaultProductType = 'hoodie';
