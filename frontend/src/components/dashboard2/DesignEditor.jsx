@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Rnd } from 'react-rnd';
 
 const DesignEditor = () => {
-  const [designPosition, setDesignPosition] = useState({ x: -19, y: 23 });
+  const [DesignPosition, setDesignPosition] = useState({ x: -19, y: 23 });
   const [designSize, setDesignSize] = useState({ width: 214, height: 214 });
   const designRef = useRef(null);
 
@@ -16,11 +16,11 @@ const DesignEditor = () => {
   };
 
   return (
-    <div className="design_div" style={{ position: 'relative' }}>
+    <div className="design_div" style={{ position: "relative" }}>
       <Rnd
         ref={designRef}
         size={designSize}
-        position={designPosition}
+        position={DesignPosition}
         onDragStop={handleDragStop}
         onResizeStop={handleResizeStop}
         bounds="parent"
@@ -32,7 +32,7 @@ const DesignEditor = () => {
           src={`https://res.cloudinary.com/dkot9tyjm/image/upload/v1714163748/shirts/mockupshirt-/${this.state.tshirtColor}.png`}
           data-id="845"
           alt="design"
-          style={{ width: '100%', height: '100%' }}
+          style={{ width: "100%", height: "100%" }}
         />
       </Rnd>
     </div>
