@@ -443,24 +443,28 @@ const AdminProductApproval = () => {
     });
   }, [updatePosition, handleScaleChange]);
   // Enhanced design position update handling
-  const handleDesignPositionUpdate = useCallback((newPosition, newScale) => {
-    // Clamp the position and scale using DesignScalingManager
-    const clampedPosition = DesignScalingManager.clampPosition(
-      newPosition,
-      editedProduct?.ProductType || 'hoodie',
-      editedProduct?.view || 'front'
-    );
-    const clampedScale = DesignScalingManager.clampScale(newScale);
-  
-    updatePosition(clampedPosition);
-    handleScaleChange(clampedScale);
-    
-    handleProductUpdate({
-      DesignPosition: clampedPosition,
-      DesignScale: clampedScale
-    });
-  }, [updatePosition, handleScaleChange, handleProductUpdate, editedProduct]);
-  // Enhanced status change handling
+  const handleDesignPositionUpdate = useCallback(
+    (newPosition, newScale) => {
+      // Use DesignScalingManager to clamp values
+      const clampedPosition = DesignScalingManager.clampPosition(
+        newPosition,
+        editedProduct?.ProductType || "hoodie",
+        editedProduct?.ProductView || "front"
+      );
+      const clampedScale = DesignScalingManager.clampScale(newScale);
+
+      // Update position and scale in the UI
+      updatePosition(clampedPosition);
+      handleScaleChange(clampedScale);
+
+      // Update the edited product
+      handleProductUpdate({
+        DesignPosition: clampedPosition,
+        DesignScale: clampedScale,
+      });
+    },
+    [editedProduct, updatePosition, handleScaleChange, handleProductUpdate]
+  );
 
 
 const handleStatusChange = useCallback(async (newStatus) => {

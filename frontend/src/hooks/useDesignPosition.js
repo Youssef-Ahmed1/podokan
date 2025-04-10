@@ -1,12 +1,12 @@
 // hooks/useDesignPosition.js
-
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   DESIGN_BOUNDARIES,
   DESIGN_SCALE,
   DEFAULT_POSITION,
-  validateDesignPosition
-} from '../components/Admin/ProductApproval/constants/productConfig';
+  validateDesignPosition,
+} from "../components/Admin/ProductApproval/constants/productConfig";
+import { DESIGN_CONFIG, DesignScalingManager } from "../utils/designScaling";
 
 export const useDesignPosition = ({
   productType = "hoodie",
@@ -15,9 +15,20 @@ export const useDesignPosition = ({
   initialScale = DESIGN_SCALE.default,
   disabled = false,
   onChange,
+  minScale = DESIGN_SCALE.min,
+  maxScale = DESIGN_SCALE.max,
 } = {}) => {
-  const [position, setPosition] = useState(initialPosition);
-  const [scale, setScale] = useState(initialScale);
+  // Use DesignScalingManager to clamp initial values
+  const [position, setPosition] = useState(
+    DesignScalingManager.clampPosition(
+      initialPosition,
+      productType,
+      productView
+    )
+  );
+  const [scale, setScale] = useState(
+    DesignScalingManager.clampScale(initialScale)
+  );
   const [isDragging, setIsDragging] = useState(false);
   const [isOutOfBounds, setIsOutOfBounds] = useState(false);
 
@@ -25,44 +36,41 @@ export const useDesignPosition = ({
   const dragStartRef = useRef(null);
   const positionRef = useRef(position);
 
+  // Get boundaries for current product and view
+  const bounds = DESIGN_BOUNDARIES[productType]?.[productView] || {
+    x: { min: 35, max: 65 },
+    y: { min: 25, max: 55 },
+  };
+
   // Validate and update position
   const updatePosition = useCallback(
     (newPosition, newScale = scale) => {
-      const { isValid, boundaries } = validateDesignPosition(
+      // Use both validation systems for now, will consolidate later
+      const { isValid } = validateDesignPosition(
         newPosition,
         productType,
         productView
       );
 
-      if (isValid) {
-        setPosition(newPosition);
-        positionRef.current = newPosition;
-        setIsOutOfBounds(false);
+      // Also check with DesignScalingManager
+      const isValidDesignScaling = DesignScalingManager.validatePosition(
+        newPosition,
+        productType,
+        productView
+      );
 
-        if (onChange) {
-          onChange({ position: newPosition, scale: newScale });
-        }
-      } else {
-        setIsOutOfBounds(true);
+      const clampedPosition = DesignScalingManager.clampPosition(
+        newPosition,
+        productType,
+        productView
+      );
 
-        // Clamp position to boundaries
-        const clampedPosition = {
-          x: Math.max(
-            boundaries.x.min,
-            Math.min(boundaries.x.max, newPosition.x)
-          ),
-          y: Math.max(
-            boundaries.y.min,
-            Math.min(boundaries.y.max, newPosition.y)
-          ),
-        };
+      setPosition(clampedPosition);
+      positionRef.current = clampedPosition;
+      setIsOutOfBounds(!isValid || !isValidDesignScaling);
 
-        setPosition(clampedPosition);
-        positionRef.current = clampedPosition;
-
-        if (onChange) {
-          onChange({ position: clampedPosition, scale: newScale });
-        }
+      if (onChange) {
+        onChange({ position: clampedPosition, scale: newScale });
       }
     },
     [scale, productType, productView, onChange]
@@ -71,11 +79,7 @@ export const useDesignPosition = ({
   // Handle scale changes
   const handleScaleChange = useCallback(
     (newScale) => {
-      const clampedScale = Math.max(
-        DESIGN_SCALE.min,
-        Math.min(DESIGN_SCALE.max, newScale)
-      );
-
+      const clampedScale = DesignScalingManager.clampScale(newScale);
       setScale(clampedScale);
       updatePosition(position, clampedScale);
     },
@@ -84,13 +88,12 @@ export const useDesignPosition = ({
 
   // Center the design
   const centerDesign = useCallback(() => {
-    const boundaries = DESIGN_BOUNDARIES[productType][productView];
     const centerPosition = {
-      x: (boundaries.x.min + boundaries.x.max) / 2,
-      y: (boundaries.y.min + boundaries.y.max) / 2,
+      x: (bounds.x.min + bounds.x.max) / 2,
+      y: (bounds.y.min + bounds.y.max) / 2,
     };
     updatePosition(centerPosition, scale);
-  }, [productType, productView, scale, updatePosition]);
+  }, [bounds, scale, updatePosition]);
 
   // Reset to defaults
   const reset = useCallback(() => {
@@ -144,6 +147,19 @@ export const useDesignPosition = ({
     [disabled, scale, updatePosition]
   );
 
+  // Update position and scale if initialPosition or initialScale change
+  useEffect(() => {
+    if (initialPosition && initialPosition !== positionRef.current) {
+      updatePosition(initialPosition, scale);
+    }
+  }, [initialPosition, scale, updatePosition]);
+
+  useEffect(() => {
+    if (initialScale !== scale) {
+      handleScaleChange(initialScale);
+    }
+  }, [initialScale, handleScaleChange]);
+
   // Cleanup
   useEffect(() => {
     return () => {
@@ -164,6 +180,6 @@ export const useDesignPosition = ({
     updatePosition,
     centerDesign,
     reset,
-    boundaries: DESIGN_BOUNDARIES[productType][productView],
+    bounds,
   };
 };

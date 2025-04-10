@@ -1,11 +1,13 @@
 import React, { useCallback } from 'react';
-import { 
-  PRODUCT_TYPES, 
-  AVAILABLE_TYPES, 
+import {
+  PRODUCT_TYPES,
+  AVAILABLE_TYPES,
   getAvailableColorsForProduct,
   getAvailableViews,
-  DEFAULT_PRODUCT_CONFIG 
-} from '../ProductApproval/constants/productConfig';
+  DEFAULT_PRODUCT_CONFIG,
+  validateDesignPosition,
+} from "../ProductApproval/constants/productConfig";
+import { DesignScalingManager } from "../../../utils/designScaling";
 
 const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabled }) => {
   const defaultProductType = 'hoodie';
@@ -16,14 +18,29 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
       if (!editedProduct || disabled) return;
 
       const availableColors = getAvailableColorsForProduct(type);
+
+      // Preserve position when changing product type if possible
+      let newPosition;
+      if (editedProduct.DesignPosition) {
+        // When changing product type, try to maintain relative position
+        newPosition = DesignScalingManager.clampPosition(
+          editedProduct.DesignPosition,
+          type,
+          "front"
+        );
+      } else {
+        newPosition = DESIGN_CONFIG.position.default;
+      }
+
       const newProduct = {
         ...editedProduct,
         ProductType: type,
         ProductColor: availableColors[0]?.value || "white",
         ProductView: "front",
-        // Preserve existing scale and position if they exist
+        // Preserve scale
         DesignScale: editedProduct.DesignScale || 0.8,
-        // Keep existing DesignPosition - don't reset it
+        // Use normalized position
+        DesignPosition: newPosition,
       };
       onUpdate(newProduct);
     },
@@ -34,10 +51,10 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
     (color) => {
       if (!editedProduct || disabled) return;
 
+      // Only update color, preserve all other attributes
       onUpdate({
         ...editedProduct,
         ProductColor: color,
-        // Don't reset position or scale when changing color
       });
     },
     [editedProduct, onUpdate, disabled]
@@ -47,16 +64,32 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
     (view) => {
       if (!editedProduct || disabled) return;
 
+      // When changing view, translate position appropriately
+      let newPosition;
+      if (editedProduct.DesignPosition) {
+        // Normalize position between views (front/back)
+        newPosition = DesignScalingManager.normalizePosition(
+          editedProduct.DesignPosition,
+          editedProduct.ProductView || "front",
+          view,
+          editedProduct.ProductType
+        );
+      } else {
+        newPosition = DESIGN_CONFIG.position.default;
+      }
+
       const newProduct = {
         ...editedProduct,
         ProductView: view,
-        // Don't reset position or scale when changing view
+        // Preserve scale
+        DesignScale: editedProduct.DesignScale || 0.8,
+        // Update position for the new view
+        DesignPosition: newPosition,
       };
       onUpdate(newProduct);
     },
     [editedProduct, onUpdate, disabled]
   );
-
 
   // Add null checks and default values
   const availableColors = getAvailableColorsForProduct(currentProductType);
