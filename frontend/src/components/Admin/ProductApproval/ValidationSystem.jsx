@@ -22,107 +22,128 @@ const ValidationSystem = ({ product, onValidationChange }) => {
   const validationResults = useMemo(() => {
     return {
       design: {
-        label: 'Design Validation',
+        label: "Design Validation",
         checks: [
           {
-            id: 'designImage',
-            label: 'Design image is present',
+            id: "designImage",
+            label: "Design image is present",
             isValid: !!product?.designImage,
-            severity: 'error',
-            message: 'Design image is required'
+            severity: "error",
+            message: "Design image is required",
           },
           {
-            id: 'designPosition',
-            label: 'Design position is valid',
-            isValid: product?.DesignPosition && 
-                    product.DesignPosition.x >= 20 && 
-                    product.DesignPosition.x <= 80 && 
-                    product.DesignPosition.y >= 15 && 
-                    product.DesignPosition.y <= 45,
-            severity: 'error',
-            message: 'Design must be positioned within the safe area'
+            id: "DesignPosition",
+            label: "Design position is valid",
+            isValid:
+              product?.DesignPosition &&
+              product.DesignPosition.x >= 20 &&
+              product.DesignPosition.x <= 80 &&
+              product.DesignPosition.y >= 15 &&
+              product.DesignPosition.y <= 45,
+            severity: "error",
+            message: "Design must be positioned within the safe area",
           },
           {
-            id: 'designScale',
-            label: 'Design scale is appropriate',
-            isValid: product.DesignScale && 
-                    product.DesignScale >= 0.3 && 
-                    product.DesignScale <= 2,
-            severity: 'error',
-            message: 'Design scale must be between 30% and 200%'
-          }
-        ]
+            id: "DesignScale",
+            label: "Design scale is appropriate",
+            isValid:
+              product.DesignScale &&
+              product.DesignScale >= 0.3 &&
+              product.DesignScale <= 2,
+            severity: "error",
+            message: "Design scale must be between 30% and 200%",
+          },
+        ],
       },
       content: {
-        label: 'Content Validation',
+        label: "Content Validation",
         checks: [
           {
-            id: 'title',
-            label: 'Design title',
+            id: "title",
+            label: "Design title",
             isValid: !!product.DesignTitle && product.DesignTitle.length >= 3,
-            severity: 'error',
-            message: 'Title must be at least 3 characters long'
+            severity: "error",
+            message: "Title must be at least 3 characters long",
           },
           {
-            id: 'description',
-            label: 'Product description',
+            id: "description",
+            label: "Product description",
             isValid: !!product.Description && product.Description.length >= 10,
-            severity: 'error',
-            message: 'Description must be at least 10 characters long'
+            severity: "error",
+            message: "Description must be at least 10 characters long",
           },
           {
-            id: 'mainTags',
-            label: 'Main tags',
+            id: "mainTags",
+            label: "Main tags",
             isValid: product.mainTags && product.mainTags.length >= 2,
-            severity: 'error',
-            message: 'At least 2 main tags are required'
+            severity: "error",
+            message: "At least 2 main tags are required",
           },
           {
-            id: 'designTags',
-            label: 'Design tags',
+            id: "designTags",
+            label: "Design tags",
             isValid: product.Designtags && product.Designtags.length >= 1,
-            severity: 'warning',
-            message: 'At least 1 design tag is recommended'
-          }
-        ]
+            severity: "warning",
+            message: "At least 1 design tag is recommended",
+          },
+        ],
       },
       pricing: {
-        label: 'Pricing Validation',
+        label: "Pricing Validation",
         checks: [
           {
-            id: 'basePrice',
-            label: 'Base price requirement',
-            isValid: (product?.originalPrice || 0) >= (productConfig?.basePrice || DEFAULT_PRODUCT_CONFIG.basePrice),
-            severity: 'error',
-            message: `Price must be at least ${productConfig?.basePrice || DEFAULT_PRODUCT_CONFIG.basePrice} THB`
+            id: "basePrice",
+            label: "Base price requirement",
+            isValid:
+              (product?.originalPrice || 0) >=
+              (productConfig?.basePrice || DEFAULT_PRODUCT_CONFIG.basePrice),
+            severity: "error",
+            message: `Price must be at least ${
+              productConfig?.basePrice || DEFAULT_PRODUCT_CONFIG.basePrice
+            } THB`,
           },
           {
-            id: 'margin',
-            label: 'Profit margin',
-            isValid: product?.originalPrice ? 
-              ((product.originalPrice - (productConfig?.productionCost || DEFAULT_PRODUCT_CONFIG.productionCost)) / product.originalPrice) >= 
-              (productConfig?.margins.min || DEFAULT_PRODUCT_CONFIG.margins.min) : false,
-            severity: 'error',
-            message: `Margin must be at least ${(productConfig?.margins.min || DEFAULT_PRODUCT_CONFIG.margins.min) * 100}%`
+            id: "margin",
+            label: "Profit margin",
+            isValid: product?.originalPrice
+              ? (product.originalPrice -
+                  (productConfig?.productionCost ||
+                    DEFAULT_PRODUCT_CONFIG.productionCost)) /
+                  product.originalPrice >=
+                (productConfig?.margins.min ||
+                  DEFAULT_PRODUCT_CONFIG.margins.min)
+              : false,
+            severity: "error",
+            message: `Margin must be at least ${
+              (productConfig?.margins.min ||
+                DEFAULT_PRODUCT_CONFIG.margins.min) * 100
+            }%`,
           },
           {
-            id: 'recommendedMargin',
-            label: 'Recommended margin',
-            isValid: ((product.originalPrice - productConfig.productionCost) / product.originalPrice) >= productConfig.margins.recommended,
-            severity: 'warning',
-            message: `Recommended margin is ${productConfig.margins.recommended * 100}%`
+            id: "recommendedMargin",
+            label: "Recommended margin",
+            isValid:
+              (product.originalPrice - productConfig.productionCost) /
+                product.originalPrice >=
+              productConfig.margins.recommended,
+            severity: "warning",
+            message: `Recommended margin is ${
+              productConfig.margins.recommended * 100
+            }%`,
           },
           {
-            id: 'discountPrice',
-            label: 'Discount price (if set)',
-            isValid: !product.discountPrice || 
-                    (product.discountPrice >= productConfig.basePrice && 
-                     product.discountPrice <= product.originalPrice),
-            severity: 'error',
-            message: 'Discount price must be between base price and original price'
-          }
-        ]
-      }
+            id: "discountPrice",
+            label: "Discount price (if set)",
+            isValid:
+              !product.discountPrice ||
+              (product.discountPrice >= productConfig.basePrice &&
+                product.discountPrice <= product.originalPrice),
+            severity: "error",
+            message:
+              "Discount price must be between base price and original price",
+          },
+        ],
+      },
     };
   }, [product]);
 

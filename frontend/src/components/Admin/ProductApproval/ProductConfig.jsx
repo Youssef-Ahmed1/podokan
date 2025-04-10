@@ -11,43 +11,51 @@ const ProductConfig = ({ editedProduct, onUpdate, onDesignPositionUpdate, disabl
   const defaultProductType = 'hoodie';
   const currentProductType = editedProduct?.ProductType || defaultProductType;
 
-  const handleTypeChange = useCallback((type) => {
-    if (!editedProduct || disabled) return;
+  const handleTypeChange = useCallback(
+    (type) => {
+      if (!editedProduct || disabled) return;
 
-    const availableColors = getAvailableColorsForProduct(type);
-    const newProduct = {
-      ...editedProduct, 
-      ProductType: type,
-      ProductColor: availableColors[0]?.value || 'white',
-      ProductView: 'front',
-      DesignScale: 0.8, // Set default scale to 50%
-      DesignPosition: { x: 50, y: 40} // Center position
-    };
-    onUpdate(newProduct);
-  }, [editedProduct, onUpdate, disabled]);
+      const availableColors = getAvailableColorsForProduct(type);
+      const newProduct = {
+        ...editedProduct,
+        ProductType: type,
+        ProductColor: availableColors[0]?.value || "white",
+        ProductView: "front",
+        // Preserve existing scale and position if they exist
+        DesignScale: editedProduct.DesignScale || 0.8,
+        // Keep existing DesignPosition - don't reset it
+      };
+      onUpdate(newProduct);
+    },
+    [editedProduct, onUpdate, disabled]
+  );
 
-  const handleColorChange = useCallback((color) => {
-    if (!editedProduct || disabled) return;
+  const handleColorChange = useCallback(
+    (color) => {
+      if (!editedProduct || disabled) return;
 
-    onUpdate({
-      ...editedProduct, 
-      ProductColor: color,
-      DesignPosition: { x: 50, y: 40 }, // Reset to center when changing color
-      DesignScale: 0.8 // Reset scale when changing color
-    });
-  }, [editedProduct, onUpdate, disabled]);
+      onUpdate({
+        ...editedProduct,
+        ProductColor: color,
+        // Don't reset position or scale when changing color
+      });
+    },
+    [editedProduct, onUpdate, disabled]
+  );
 
-  const handleViewChange = useCallback((view) => {
-    if (!editedProduct || disabled) return;
+  const handleViewChange = useCallback(
+    (view) => {
+      if (!editedProduct || disabled) return;
 
-    const newProduct = {
-      ...editedProduct,
-      ProductView: view,
-      DesignPosition: { x: 50, y:40 }, // Reset to center when changing view
-      DesignScale: 0.8 // Reset scale when changing view
-    };
-    onUpdate(newProduct);
-  }, [editedProduct, onUpdate, disabled]);
+      const newProduct = {
+        ...editedProduct,
+        ProductView: view,
+        // Don't reset position or scale when changing view
+      };
+      onUpdate(newProduct);
+    },
+    [editedProduct, onUpdate, disabled]
+  );
 
 
   // Add null checks and default values

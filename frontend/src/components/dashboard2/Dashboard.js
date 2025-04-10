@@ -1,7 +1,13 @@
 import React from 'react';
 import Display from '../design/display/Display';
 
-const Dashboard = ({ productType, productColor, productView, designScale, designImage }) => {
+const Dashboard = ({
+  productType,
+  productColor,
+  productView,
+  DesignScale,
+  designImage,
+}) => {
   return (
     <div className="container py-5">
       <div className="row">
@@ -11,7 +17,7 @@ const Dashboard = ({ productType, productColor, productView, designScale, design
             designImg={designImage}
             productType={productType}
             productView={productView}
-            designScale={designScale}
+            DesignScale={DesignScale}
           />
         </div>
       </div>

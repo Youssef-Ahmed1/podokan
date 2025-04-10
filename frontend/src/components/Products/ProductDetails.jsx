@@ -171,7 +171,10 @@ const ProductDetails = ({ data }) => {
             <div className="block w-full 800px:flex">
               {/* Left side - Product Images */}
               <div className="w-full 800px:w-[50%]">
-                <div className="w-[80%] mx-auto relative" style={{ aspectRatio: '3/4' }}>
+                <div
+                  className="w-[80%] mx-auto relative"
+                  style={{ aspectRatio: "3/4" }}
+                >
                   {/* Product Mockup */}
                   <img
                     src={getProductImage()}
@@ -182,28 +185,39 @@ const ProductDetails = ({ data }) => {
                       e.target.src = "";
                     }}
                   />
-                  
-{/* Design Overlay */}
-{!showBack && data?.designImage && (
-                    <div 
+
+                  {/* Design Overlay */}
+                  {!showBack && data?.designImage && (
+                    <div
                       className="absolute design-preview pointer-events-none"
                       style={{
-                        position: 'absolute',
-                        top: `${designSpecs.position.y}%`,
-                        left: `${designSpecs.position.x}%`,
-                        transform: `translate(-50%, -50%) scale(${designSpecs.scale})`,
-                        width: '200px',
-                        height: '200px',
-                        ...designStyles
+                        position: "absolute",
+                        top: `${
+                          data.DesignPosition?.y || designSpecs.position.y
+                        }%`,
+                        left: `${
+                          data.DesignPosition?.x || designSpecs.position.x
+                        }%`,
+                        transform: `translate(-50%, -50%) scale(${
+                          data.DesignScale || designSpecs.scale
+                        })`,
+                        width: "200px",
+                        height: "200px",
+                        ...designStyles,
                       }}
                     >
                       <img
-                        src={typeof data.designImage === 'string' ? data.designImage : data.designImage?.url}
+                        src={
+                          typeof data.designImage === "string"
+                            ? data.designImage
+                            : data.designImage?.url
+                        }
                         alt="Design"
                         className="w-full h-full object-contain"
                         style={{
-                          mixBlendMode: selectedColor === 'black' ? 'screen' : 'multiply',
-                          background: 'transparent'
+                          mixBlendMode:
+                            selectedColor === "black" ? "screen" : "multiply",
+                          background: "transparent",
                         }}
                         draggable="false"
                       />
@@ -216,7 +230,11 @@ const ProductDetails = ({ data }) => {
                   <button
                     className={`
                       flex-1 py-3 border-2 transition-colors
-                      ${!showBack ? "border-[#4e64df] text-[#4e64df]" : "border-gray-300 text-gray-600"}
+                      ${
+                        !showBack
+                          ? "border-[#4e64df] text-[#4e64df]"
+                          : "border-gray-300 text-gray-600"
+                      }
                     `}
                     onClick={() => setShowBack(false)}
                   >
@@ -225,7 +243,11 @@ const ProductDetails = ({ data }) => {
                   <button
                     className={`
                       flex-1 py-3 border-2 transition-colors
-                      ${showBack ? "border-[#4e64df] text-[#4e64df]" : "border-gray-300 text-gray-600"}
+                      ${
+                        showBack
+                          ? "border-[#4e64df] text-[#4e64df]"
+                          : "border-gray-300 text-gray-600"
+                      }
                     `}
                     onClick={() => setShowBack(true)}
                   >
@@ -239,10 +261,12 @@ const ProductDetails = ({ data }) => {
                 <h1 className="text-[25px] font-[600] font-Roboto text-gray-800">
                   {data.DesignTitle}
                 </h1>
-                
+
                 <div className="flex items-center mt-2">
                   <span className="text-[16px] text-gray-500 mr-2">Tag:</span>
-                  <span className="text-[16px] text-[#4e64df]">{data.Maintag}</span>
+                  <span className="text-[16px] text-[#4e64df]">
+                    {data.Maintag}
+                  </span>
                 </div>
 
                 {/* Price */}
@@ -264,7 +288,9 @@ const ProductDetails = ({ data }) => {
 
                 {/* Color Selection */}
                 <div className="mt-6">
-                  <h4 className="text-[16px] font-[600] text-gray-800 mb-3">Select Color:</h4>
+                  <h4 className="text-[16px] font-[600] text-gray-800 mb-3">
+                    Select Color:
+                  </h4>
                   <div className="flex gap-3">
                     {COLORS.map((color) => (
                       <button
@@ -272,8 +298,12 @@ const ProductDetails = ({ data }) => {
                         onClick={() => setSelectedColor(color)}
                         className={`
                           w-8 h-8 rounded-full border-2 transition-all
-                          ${color === 'white' ? 'bg-white' : 'bg-black'}
-                          ${selectedColor === color ? 'border-[#4e64df] scale-110' : 'border-gray-300'}
+                          ${color === "white" ? "bg-white" : "bg-black"}
+                          ${
+                            selectedColor === color
+                              ? "border-[#4e64df] scale-110"
+                              : "border-gray-300"
+                          }
                         `}
                         aria-label={color}
                       />
@@ -283,7 +313,9 @@ const ProductDetails = ({ data }) => {
 
                 {/* Size Selection */}
                 <div className="mt-6">
-                  <h4 className="text-[16px] font-[600] text-gray-800 mb-3">Select Size:</h4>
+                  <h4 className="text-[16px] font-[600] text-gray-800 mb-3">
+                    Select Size:
+                  </h4>
                   <div className="flex gap-3">
                     {SIZES.map((size) => (
                       <button
@@ -291,7 +323,11 @@ const ProductDetails = ({ data }) => {
                         onClick={() => setSelectedSize(size)}
                         className={`
                           w-14 h-10 border-2 rounded transition-colors
-                          ${selectedSize === size ? 'border-[#4e64df] text-[#4e64df]' : 'border-gray-300 text-gray-600'}
+                          ${
+                            selectedSize === size
+                              ? "border-[#4e64df] text-[#4e64df]"
+                              : "border-gray-300 text-gray-600"
+                          }
                         `}
                       >
                         {size}
@@ -302,10 +338,12 @@ const ProductDetails = ({ data }) => {
 
                 {/* Quantity */}
                 <div className="mt-6">
-                  <h4 className="text-[16px] font-[600] text-gray-800 mb-3">Quantity:</h4>
+                  <h4 className="text-[16px] font-[600] text-gray-800 mb-3">
+                    Quantity:
+                  </h4>
                   <div className="flex items-center">
-                    <button 
-                      onClick={() => setCount(prev => Math.max(1, prev - 1))}
+                    <button
+                      onClick={() => setCount((prev) => Math.max(1, prev - 1))}
                       className="w-8 h-8 border rounded-l flex items-center justify-center text-gray-600"
                     >
                       -
@@ -313,8 +351,8 @@ const ProductDetails = ({ data }) => {
                     <span className="w-12 h-8 border-t border-b flex items-center justify-center">
                       {count}
                     </span>
-                    <button 
-                      onClick={() => setCount(prev => prev + 1)}
+                    <button
+                      onClick={() => setCount((prev) => prev + 1)}
                       className="w-8 h-8 border rounded-r flex items-center justify-center text-gray-600"
                     >
                       +
@@ -330,7 +368,7 @@ const ProductDetails = ({ data }) => {
                   >
                     Add to Cart
                   </button>
-                  
+
                   <button
                     onClick={handleWishlist}
                     className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
@@ -353,15 +391,51 @@ const ProductDetails = ({ data }) => {
                     {showShare && (
                       <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg shadow-xl z-10 border border-gray-200">
                         {[
-                          { platform: 'whatsapp', icon: FaWhatsapp, color: 'text-green-500' },
-                          { platform: 'facebook', icon: FaFacebook, color: 'text-blue-600' },
-                          { platform: 'twitter', icon: FaTwitter, color: 'text-blue-400' },
-                          { platform: 'instagram', icon: FaInstagram, color: 'text-pink-600' },
-                          { platform: 'telegram', icon: FaTelegram, color: 'text-blue-500' },
-                          { platform: 'snapchat', icon: FaSnapchat, color: 'text-yellow-400' },
-                          { platform: 'pinterest', icon: FaPinterest, color: 'text-red-600' },
-                          { platform: 'linkedin', icon: FaLinkedin, color: 'text-blue-800' },
-                          { platform: 'copy', icon: IoCopy, color: 'text-gray-600' }
+                          {
+                            platform: "whatsapp",
+                            icon: FaWhatsapp,
+                            color: "text-green-500",
+                          },
+                          {
+                            platform: "facebook",
+                            icon: FaFacebook,
+                            color: "text-blue-600",
+                          },
+                          {
+                            platform: "twitter",
+                            icon: FaTwitter,
+                            color: "text-blue-400",
+                          },
+                          {
+                            platform: "instagram",
+                            icon: FaInstagram,
+                            color: "text-pink-600",
+                          },
+                          {
+                            platform: "telegram",
+                            icon: FaTelegram,
+                            color: "text-blue-500",
+                          },
+                          {
+                            platform: "snapchat",
+                            icon: FaSnapchat,
+                            color: "text-yellow-400",
+                          },
+                          {
+                            platform: "pinterest",
+                            icon: FaPinterest,
+                            color: "text-red-600",
+                          },
+                          {
+                            platform: "linkedin",
+                            icon: FaLinkedin,
+                            color: "text-blue-800",
+                          },
+                          {
+                            platform: "copy",
+                            icon: IoCopy,
+                            color: "text-gray-600",
+                          },
                         ].map(({ platform, icon: Icon, color }) => (
                           <button
                             key={platform}
@@ -382,8 +456,12 @@ const ProductDetails = ({ data }) => {
                 {/* Description */}
                 {data.Description && (
                   <div className="mt-8">
-                    <h4 className="text-[16px] font-[600] text-gray-800 mb-2">Description:</h4>
-                    <p className="text-gray-600 leading-relaxed">{data.Description}</p>
+                    <h4 className="text-[16px] font-[600] text-gray-800 mb-2">
+                      Description:
+                    </h4>
+                    <p className="text-gray-600 leading-relaxed">
+                      {data.Description}
+                    </p>
                   </div>
                 )}
               </div>

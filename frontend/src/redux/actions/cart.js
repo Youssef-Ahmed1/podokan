@@ -2,7 +2,7 @@
 export const addTocart = (data) => async (dispatch, getState) => {
   try {
     const { cart } = getState().cart;
-    
+
     // Create standardized cart item with all necessary fields
     const cartItem = {
       _id: data._id,
@@ -20,14 +20,14 @@ export const addTocart = (data) => async (dispatch, getState) => {
       discountPrice: data.discountPrice,
       originalPrice: data.originalPrice,
       DesignScale: data.DesignScale || 0.8,
-      DesignPosition: data.DesignPosition || { x: 50, y: 40 }
+      DesignPosition: data.DesignPosition || { x: 50, y: 40 },
     };
 
     // Check for existing item with same ID, size, and color
     const existingItemIndex = cart.findIndex(
-      item => 
-        item._id === cartItem._id && 
-        item.selectedSize === cartItem.selectedSize && 
+      (item) =>
+        item._id === cartItem._id &&
+        item.selectedSize === cartItem.selectedSize &&
         item.selectedColor === cartItem.selectedColor
     );
 
@@ -36,16 +36,17 @@ export const addTocart = (data) => async (dispatch, getState) => {
     if (existingItemIndex !== -1) {
       // Update existing item
       updatedCart = [...cart];
-      const newQuantity = updatedCart[existingItemIndex].quantity + cartItem.quantity;
-      
+      const newQuantity =
+        updatedCart[existingItemIndex].quantity + cartItem.quantity;
+
       if (newQuantity > cartItem.stock) {
         throw new Error("Not enough stock available");
       }
-      
+
       updatedCart[existingItemIndex] = {
         ...updatedCart[existingItemIndex],
         quantity: newQuantity,
-        qty: newQuantity
+        qty: newQuantity,
       };
     } else {
       // Add new item
@@ -54,7 +55,7 @@ export const addTocart = (data) => async (dispatch, getState) => {
 
     dispatch({
       type: "addToCart",
-      payload: cartItem
+      payload: cartItem,
     });
 
     localStorage.setItem("cartItems", JSON.stringify(updatedCart));
