@@ -132,13 +132,13 @@ router.post("/create-product",
       });
 
       // Parse design position and tags
-      let designPosition = { x: 50, y: 40 };
+      let DesignPosition = { x: 50, y: 40 };
       try {
-        if (req.body.designPosition) {
-          designPosition = JSON.parse(req.body.designPosition);
+        if (req.body.DesignPosition) {
+          DesignPosition = JSON.parse(req.body.DesignPosition);
         }
       } catch (e) {
-        console.error('Error parsing designPosition:', e);
+        console.error("Error parsing DesignPosition:", e);
       }
 
       let designTags = [];
@@ -176,18 +176,18 @@ router.post("/create-product",
         Designtags: designTags,
         ProductType: req.body.ProductType,
         ProductColor: req.body.ProductColor,
-        ProductView: req.body.ProductView || 'front',
-        DesignScale: parseFloat(req.body.DesignScale) || 0.8 ,
-        designPosition,
+        ProductView: req.body.ProductView || "front",
+        DesignScale: parseFloat(req.body.DesignScale) || 0.8,
+        DesignPosition,
         shopId: req.seller._id,
         shop: req.seller._id,
         designImage: {
           public_id: result.public_id,
-          url: result.secure_url
+          url: result.secure_url,
         },
         availableColors: [req.body.ProductColor],
-        status: 'pending',
-        createdBy: req.seller._id
+        status: "pending",
+        createdBy: req.seller._id,
       };
 
       // Create product

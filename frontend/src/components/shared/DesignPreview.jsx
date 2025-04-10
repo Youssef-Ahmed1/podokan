@@ -40,9 +40,11 @@ const DesignPreview = forwardRef(({
             disabled={disabled}
             className={`
               flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors
-              ${disabled 
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-50 text-blue-600 hover:bg-blue-100 active:bg-blue-200'}
+              ${
+                disabled
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-blue-50 text-blue-600 hover:bg-blue-100 active:bg-blue-200"
+              }
             `}
           >
             <HiRefresh className="w-4 h-4 mr-2" />
@@ -53,11 +55,13 @@ const DesignPreview = forwardRef(({
             disabled={disabled}
             className={`
               flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors
-              ${disabled 
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : showGridLines
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}
+              ${
+                disabled
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : showGridLines
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+              }
             `}
           >
             <HiViewGrid className="w-4 h-4 mr-2" />
@@ -69,15 +73,15 @@ const DesignPreview = forwardRef(({
           <div className="flex items-center space-x-2 w-full sm:w-auto">
             <label className="text-sm text-gray-600">Scale:</label>
             <input
-  type="range"
-  min={DESIGN_CONSTRAINTS.scale.min}
-  max={DESIGN_CONSTRAINTS.scale.max}
-  step={0.01}
-  value={scale}
-  onChange={(e) => onScaleChange(parseFloat(e.target.value))}
-  disabled={disabled}
-  className="w-full sm:w-32 h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer"
-/>
+              type="range"
+              min={DESIGN_CONSTRAINTS.scale.min}
+              max={DESIGN_CONSTRAINTS.scale.max}
+              step={0.01}
+              value={scale}
+              onChange={(e) => onScaleChange(parseFloat(e.target.value))}
+              disabled={disabled}
+              className="w-full sm:w-32 h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer"
+            />
 
             <span className="text-sm text-gray-600 min-w-[3ch]">
               {Math.round(scale * 100)}%
@@ -87,12 +91,12 @@ const DesignPreview = forwardRef(({
       </div>
 
       {/* Preview Area */}
-      <div 
+      <div
         ref={ref}
         className="relative w-full aspect-[3/4] bg-gray-50"
         onMouseDown={!disabled ? onDragStart : undefined}
         style={{
-          cursor: disabled ? 'default' : isDragging ? 'grabbing' : 'grab'
+          cursor: disabled ? "default" : isDragging ? "grabbing" : "grab",
         }}
       >
         {/* Background Mockup */}
@@ -101,7 +105,7 @@ const DesignPreview = forwardRef(({
           src={mockupUrl}
           alt={`${product.ProductType} mockup`}
           className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300
-            ${mockupLoaded ? 'opacity-100' : 'opacity-0'}`}
+            ${mockupLoaded ? "opacity-100" : "opacity-0"}`}
           onLoad={() => setMockupLoaded(true)}
           onError={() => setMockupError(true)}
           draggable="false"
@@ -110,23 +114,27 @@ const DesignPreview = forwardRef(({
         {/* Design Image */}
         {product.designImage && mockupLoaded && (
           <div
-  className={`absolute design-container select-none ${
-    isDragging ? '' : 'transition-transform duration-200'
-  }`}
-  style={{
-    left: `${position.x}%`,
-    top: `${position.y}%`,
-    transform: `translate(-50%, -50%) scale(${scale})`,
-    width: '30%', // Use percentage instead of fixed pixels
-    maxWidth: '30vh', // Prevent getting too large on tall screens
-    aspectRatio: '1', // Maintain square aspect ratio
-    opacity: isOutOfBounds ? 0.5 : 1,
-    zIndex: isDragging ? 10 : 1,
-    pointerEvents: disabled ? 'none' : 'auto'
-  }}
->
+            className={`absolute design-container select-none ${
+              isDragging ? "" : "transition-transform duration-200"
+            }`}
+            style={{
+              left: `${position.x}%`,
+              top: `${position.y}%`,
+              transform: `translate(-50%, -50%) scale(${scale})`,
+              width: "30%",
+              maxWidth: "30vh",
+              aspectRatio: "1",
+              opacity: isOutOfBounds ? 0.5 : 1,
+              zIndex: isDragging ? 10 : 1,
+              pointerEvents: disabled ? "none" : "auto",
+            }}
+          >
             <img
-              src={typeof product.designImage === 'string' ? product.designImage : product.designImage.url}
+              src={
+                typeof product.designImage === "string"
+                  ? product.designImage
+                  : product.designImage.url
+              }
               alt="Design"
               className="w-full h-full object-contain pointer-events-none"
               draggable="false"
@@ -154,7 +162,7 @@ const DesignPreview = forwardRef(({
               left: `${bounds.x?.[0] || 0}%`,
               top: `${bounds.y?.[0] || 0}%`,
               width: `${(bounds.x?.[1] || 100) - (bounds.x?.[0] || 0)}%`,
-              height: `${(bounds.y?.[1] || 100) - (bounds.y?.[0] || 0)}%`
+              height: `${(bounds.y?.[1] || 100) - (bounds.y?.[0] || 0)}%`,
             }}
           />
         )}

@@ -331,9 +331,9 @@ const CreateProduct = () => {
     ProductType: "hoodie",
     ProductColor: "white",
     ProductView: "front",
-    DesignScale: 0.8,
-    designPosition: { x: 50, y: 40 },
-    availableColors: ["white" , "black"]
+    DesignScale: DESIGN_CONFIG.scale.default,
+    DesignPosition: DESIGN_CONFIG.position.default,
+    availableColors: ["white", "black"],
   });
 
   const [designFile, setDesignFile] = useState({
@@ -342,7 +342,7 @@ const CreateProduct = () => {
     originalFile: null,
     compressionStats: null,
     error: null,
-    isCompressing: false
+    isCompressing: false,
   });
   const {
     position,
@@ -350,12 +350,12 @@ const CreateProduct = () => {
     updatePosition,
     updateScale,
     isOutOfBounds,
-    handleDragStart
+    handleDragStart,
   } = useDesignPosition({
     initialPosition: DESIGN_CONFIG.position.default,
     initialScale: DESIGN_CONFIG.scale.default,
     productType: formState.ProductType,
-    productView: formState.ProductView
+    productView: formState.ProductView,
   });
 
   const FormField = useCallback(({ name, value, onChange, error }) => {
@@ -377,9 +377,10 @@ const CreateProduct = () => {
               value={value}
               onChange={(e) => onChange(name, e.target.value)}
               className={`block w-full pl-10 py-2 sm:text-sm rounded-md
-                ${error 
-                  ? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500' 
-                  : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                ${
+                  error
+                    ? "border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                 }`}
               placeholder={config.placeholder}
               rows={4}
@@ -391,221 +392,246 @@ const CreateProduct = () => {
               value={value}
               onChange={(e) => onChange(name, e.target.value)}
               className={`block w-full pl-10 pr-3 py-2 sm:text-sm rounded-md
-                ${error 
-                  ? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500' 
-                  : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                ${
+                  error
+                    ? "border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                 }`}
               placeholder={config.placeholder}
             />
           )}
         </div>
-        {error && (
-          <p className="mt-2 text-sm text-red-600">
-            {error}
-          </p>
-        )}
+        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
       </div>
     );
   }, []);
 
-  
+  const handleFieldChange = useCallback(
+    (fieldName, value) => {
+      setFormState((prev) => ({
+        ...prev,
+        [fieldName]: value,
+      }));
+      if (validationErrors[fieldName]) {
+        setValidationErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[fieldName];
+          return newErrors;
+        });
+      }
+    },
+    [validationErrors]
+  );
 
-  const handleFieldChange = useCallback((fieldName, value) => {
-    setFormState(prev => ({
-      ...prev,
-      [fieldName]: value
-    }));
-    if (validationErrors[fieldName]) {
-      setValidationErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[fieldName];
-        return newErrors;
-      });
-    }
-  }, [validationErrors]);
-
-  const checkBoundariesAndUpdate = (position, productType, setIsDesignVisible, setFormState) => {
+  const checkBoundariesAndUpdate = (
+    position,
+    productType,
+    setIsDesignVisible,
+    setFormState
+  ) => {
     const boundaries = BOUNDARY_LIMITS[productType];
     if (!boundaries) return false;
-  
+
     // Add small buffer for strict enforcement
     const buffer = 2; // 2% buffer zone
-    
-    const isWithinBounds = 
-      position.x >= (boundaries.left - buffer) && 
-      position.x <= (boundaries.right + buffer) && 
-      position.y >= (boundaries.top - buffer) && 
-      position.y <= (boundaries.bottom + buffer);
-  
+
+    const isWithinBounds =
+      position.x >= boundaries.left - buffer &&
+      position.x <= boundaries.right + buffer &&
+      position.y >= boundaries.top - buffer &&
+      position.y <= boundaries.bottom + buffer;
+
     // If outside bounds, snap to nearest valid position
     const newPosition = {
       x: Math.max(boundaries.left, Math.min(boundaries.right, position.x)),
-      y: Math.max(boundaries.top, Math.min(boundaries.bottom, position.y))
+      y: Math.max(boundaries.top, Math.min(boundaries.bottom, position.y)),
     };
-  
+
     setIsDesignVisible(isWithinBounds);
-    
-    setFormState(prev => ({
+
+    setFormState((prev) => ({
       ...prev,
-      designPosition: isWithinBounds ? position : newPosition
+      DesignPosition: isWithinBounds ? position : newPosition,
     }));
-  
+
     return isWithinBounds;
   };
-  
 
-  const handleDesignDrag = useCallback((e) => {
-    if (!mockupContainerRef.current || !isDragging) return;
-  
-    const rect = mockupContainerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-  
-    requestAnimationFrame(() => {
-      const newPosition = { x, y };
-      const boundaries = BOUNDARY_LIMITS[formState.ProductType];
-      
-      if (boundaries) {
-        // Add strict boundary checking
-        const isWithinBounds = checkBoundariesAndUpdate(
-          newPosition, 
-          formState.ProductType, 
-          setIsDesignVisible, 
-          setFormState
-        );
-  
-        if (!isWithinBounds) {
-          // Add visual feedback for out-of-bounds
-          if (designPreviewRef.current) {
-            designPreviewRef.current.style.opacity = '0.5';
-            designPreviewRef.current.style.filter = 'grayscale(50%)';
-          }
-        } else {
-          if (designPreviewRef.current) {
-            designPreviewRef.current.style.opacity = '1';
-            designPreviewRef.current.style.filter = 'none';
+  const handleDesignDrag = useCallback(
+    (e) => {
+      if (!mockupContainerRef.current || !isDragging) return;
+
+      const rect = mockupContainerRef.current.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+      requestAnimationFrame(() => {
+        const newPosition = { x, y };
+        const boundaries = BOUNDARY_LIMITS[formState.ProductType];
+
+        if (boundaries) {
+          // Add strict boundary checking
+          const isWithinBounds = checkBoundariesAndUpdate(
+            newPosition,
+            formState.ProductType,
+            setIsDesignVisible,
+            setFormState
+          );
+
+          if (!isWithinBounds) {
+            // Add visual feedback for out-of-bounds
+            if (designPreviewRef.current) {
+              designPreviewRef.current.style.opacity = "0.5";
+              designPreviewRef.current.style.filter = "grayscale(50%)";
+            }
+          } else {
+            if (designPreviewRef.current) {
+              designPreviewRef.current.style.opacity = "1";
+              designPreviewRef.current.style.filter = "none";
+            }
           }
         }
-      }
-    });
-  }, [isDragging, formState.ProductType]);
-
+      });
+    },
+    [isDragging, formState.ProductType]
+  );
 
   const BoundaryGuides = ({ productType }) => {
     const boundaries = BOUNDARY_LIMITS[productType];
-    
+
     return (
       <div className="absolute inset-0 pointer-events-none">
         {/* Safe area rectangle */}
-        <div 
+        <div
           className="absolute border-2 border-blue-500 border-dashed opacity-30"
           style={{
             top: `${boundaries.top}%`,
             left: `${boundaries.left}%`,
             right: `${100 - boundaries.right}%`,
-            bottom: `${100 - boundaries.bottom}%`
+            bottom: `${100 - boundaries.bottom}%`,
           }}
         />
-        
+
         {/* Add corner markers */}
-        <div className="absolute w-2 h-2 bg-blue-500 rounded-full"
-          style={{ top: `${boundaries.top}%`, left: `${boundaries.left}%` }} />
-        <div className="absolute w-2 h-2 bg-blue-500 rounded-full"
-          style={{ top: `${boundaries.top}%`, right: `${100 - boundaries.right}%` }} />
-        <div className="absolute w-2 h-2 bg-blue-500 rounded-full"
-          style={{ bottom: `${100 - boundaries.bottom}%`, left: `${boundaries.left}%` }} />
-        <div className="absolute w-2 h-2 bg-blue-500 rounded-full"
-          style={{ bottom: `${100 - boundaries.bottom}%`, right: `${100 - boundaries.right}%` }} />
+        <div
+          className="absolute w-2 h-2 bg-blue-500 rounded-full"
+          style={{ top: `${boundaries.top}%`, left: `${boundaries.left}%` }}
+        />
+        <div
+          className="absolute w-2 h-2 bg-blue-500 rounded-full"
+          style={{
+            top: `${boundaries.top}%`,
+            right: `${100 - boundaries.right}%`,
+          }}
+        />
+        <div
+          className="absolute w-2 h-2 bg-blue-500 rounded-full"
+          style={{
+            bottom: `${100 - boundaries.bottom}%`,
+            left: `${boundaries.left}%`,
+          }}
+        />
+        <div
+          className="absolute w-2 h-2 bg-blue-500 rounded-full"
+          style={{
+            bottom: `${100 - boundaries.bottom}%`,
+            right: `${100 - boundaries.right}%`,
+          }}
+        />
       </div>
     );
   };
 
+  const handleDesignUpload = useCallback(
+    async (file) => {
+      try {
+        if (!file) return;
 
-  const handleDesignUpload = useCallback(async (file) => {
-    try {
-      if (!file) return;
-
-      if (file.size > 20 * 1024 * 1024) {
-        toast.error("File size exceeds 20MB limit");
-        return;
-      }
-
-      if (file.type !== "image/png") {
-        toast.error("Please upload only PNG files");
-        return;
-      }
-
-      setIsLoading(true);
-      setDesignFile(prev => ({ ...prev, isCompressing: true }));
-      
-      if (compressionTimeoutRef.current) {
-        clearTimeout(compressionTimeoutRef.current);
-      }
-
-      let progress = 0;
-      const progressInterval = setInterval(() => {
-        progress += 5;
-        if (progress <= 90) {
-          setCompressionProgress(progress);
+        if (file.size > 20 * 1024 * 1024) {
+          toast.error("File size exceeds 20MB limit");
+          return;
         }
-      }, 500);
 
-      const compressionResult = await compressDesign(file);
-      clearInterval(progressInterval);
-      setCompressionProgress(100);
+        if (file.type !== "image/png") {
+          toast.error("Please upload only PNG files");
+          return;
+        }
 
-      const previewUrl = await createDesignPreview(compressionResult.file, formState.ProductColor);
-      const hasTransparency = await checkTransparency(compressionResult.file);
-      
-      const qualityScore = calculateDesignQualityScore({
-        dpi: compressionResult.dpi,
-        compressedSize: compressionResult.compressedSize,
-        width: compressionResult.width,
-        height: compressionResult.height,
-        hasTransparency
-      });
+        setIsLoading(true);
+        setDesignFile((prev) => ({ ...prev, isCompressing: true }));
 
-      setDesignFile({
-        preview: previewUrl,
-        file: compressionResult.file,
-        originalFile: file,
-        compressionStats: compressionResult,
-        error: null,
-        isCompressing: false
-      });
+        if (compressionTimeoutRef.current) {
+          clearTimeout(compressionTimeoutRef.current);
+        }
 
-      setDesignQualityScore(qualityScore);
-      setDesignStats(compressionResult);
-      setShowRequirements(false);
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+          progress += 5;
+          if (progress <= 90) {
+            setCompressionProgress(progress);
+          }
+        }, 500);
 
-      setValidationErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors.design;
-        return newErrors;
-      });
+        const compressionResult = await compressDesign(file);
+        clearInterval(progressInterval);
+        setCompressionProgress(100);
 
-      toast.success(
-        `Design optimized: ${(file.size / (1024 * 1024)).toFixed(2)}MB → ` +
-        `${(compressionResult.compressedSize / 1024).toFixed(2)}KB`
-      );
+        const previewUrl = await createDesignPreview(
+          compressionResult.file,
+          formState.ProductColor
+        );
+        const hasTransparency = await checkTransparency(compressionResult.file);
 
-      if (qualityScore.score < 80) {
-        toast.info("Check design quality details for optimization tips.");
+        const qualityScore = calculateDesignQualityScore({
+          dpi: compressionResult.dpi,
+          compressedSize: compressionResult.compressedSize,
+          width: compressionResult.width,
+          height: compressionResult.height,
+          hasTransparency,
+        });
+
+        setDesignFile({
+          preview: previewUrl,
+          file: compressionResult.file,
+          originalFile: file,
+          compressionStats: compressionResult,
+          error: null,
+          isCompressing: false,
+        });
+
+        setDesignQualityScore(qualityScore);
+        setDesignStats(compressionResult);
+        setShowRequirements(false);
+
+        setValidationErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.design;
+          return newErrors;
+        });
+
+        toast.success(
+          `Design optimized: ${(file.size / (1024 * 1024)).toFixed(2)}MB → ` +
+            `${(compressionResult.compressedSize / 1024).toFixed(2)}KB`
+        );
+
+        if (qualityScore.score < 80) {
+          toast.info("Check design quality details for optimization tips.");
+        }
+      } catch (error) {
+        console.error("Design upload error:", error);
+        setDesignFile((prev) => ({
+          ...prev,
+          error: error.message,
+          isCompressing: false,
+        }));
+        toast.error("Failed to process design. Please try a different file.");
+      } finally {
+        setIsLoading(false);
+        setCompressionProgress(0);
       }
-
-    } catch (error) {
-      console.error("Design upload error:", error);
-      setDesignFile(prev => ({
-        ...prev,
-        error: error.message,
-        isCompressing: false
-      }));
-      toast.error("Failed to process design. Please try a different file.");
-    } finally {
-      setIsLoading(false);
-      setCompressionProgress(0);
-    }
-  }, [formState.ProductColor]);
+    },
+    [formState.ProductColor]
+  );
 
   const handleDrag = useCallback((e) => {
     e.preventDefault();
@@ -617,79 +643,100 @@ const CreateProduct = () => {
     }
   }, []);
 
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      handleDesignUpload(file);
-    }
-  }, [handleDesignUpload]);
+  const handleDrop = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragActive(false);
 
+      const file = e.dataTransfer.files?.[0];
+      if (file) {
+        handleDesignUpload(file);
+      }
+    },
+    [handleDesignUpload]
+  );
 
-  const handleScaleChange = useCallback((newScale) => {
-    setIsScaling(true);
-    lastScaleRef.current = formState.DesignScale;
-    setFormState(prev => ({ ...prev, DesignScale: newScale }));
-    setTimeout(() => setIsScaling(false), 300);
-  }, [formState.DesignScale]);
+  const handleScaleChange = useCallback(
+    (newScale) => {
+      setIsScaling(true);
+      lastScaleRef.current = formState.DesignScale;
+      setFormState((prev) => ({ ...prev, DesignScale: newScale }));
+      setTimeout(() => setIsScaling(false), 300);
+    },
+    [formState.DesignScale]
+  );
 
-
-  
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
-  
+
     try {
       setIsSubmitting(true);
-  
+
       // Verify tokens exist
-      const token = localStorage.getItem('token');
-      const sellerToken = localStorage.getItem('seller_token');
-  
+      const token = localStorage.getItem("token");
+      const sellerToken = localStorage.getItem("seller_token");
+
       if (!token || !sellerToken) {
         toast.error("Please login again to continue");
         navigate("/login");
         return;
       }
-  
+
       const formData = new FormData();
-      
+
       if (designFile.file) {
-        formData.append('designImage', designFile.file);
+        formData.append("designImage", designFile.file);
       }
-  
-      formData.append('DesignTitle', formState.DesignTitle);
-      formData.append('Description', formState.Description);
-      formData.append('Maintag', formState.Maintag);
-      formData.append('Designtags', JSON.stringify(formState.Designtags.split(',').map(tag => tag.trim()).filter(Boolean)));
-      formData.append('ProductType', formState.ProductType);
-      formData.append('ProductColor', formState.ProductColor);
-      formData.append('ProductView', formState.ProductView);
-      formData.append('DesignScale', formState.DesignScale.toString());
-      formData.append('designPosition', JSON.stringify(formState.designPosition));
-      formData.append('availableColors', JSON.stringify([formState.ProductColor]));
-  
+
+      formData.append("DesignTitle", formState.DesignTitle);
+      formData.append("Description", formState.Description);
+      formData.append("Maintag", formState.Maintag);
+      formData.append(
+        "Designtags",
+        JSON.stringify(
+          formState.Designtags.split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
+        )
+      );
+      formData.append("ProductType", formState.ProductType);
+      formData.append("ProductColor", formState.ProductColor);
+      formData.append("ProductView", formState.ProductView);
+      formData.append("DesignScale", formState.DesignScale.toString());
+      formData.append(
+        "DesignPosition",
+        JSON.stringify(formState.DesignPosition)
+      );
+      formData.append(
+        "availableColors",
+        JSON.stringify([formState.ProductColor])
+      );
+
       const response = await dispatch(createProduct(formData));
 
       if (response.success) {
         toast.success("Product created successfully");
         navigate("/dashboard");
       }
-  
     } catch (error) {
       console.error("Submit error:", error);
-      
-      if (error.message === "Please login as a seller to create products" || 
-          error.response?.status === 401) {
+
+      if (
+        error.message === "Please login as a seller to create products" ||
+        error.response?.status === 401
+      ) {
         toast.error("Please login again to continue");
         navigate("/login");
         return;
       }
-      
-      toast.error(error.response?.data?.message || error.message || "Failed to create product");
+
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to create product"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -717,7 +764,7 @@ const CreateProduct = () => {
   return (
     <div className="w-[90%] 800px:w-[90%] bg-white shadow h-[80vh] rounded-[4px] p-3 overflow-y-scroll">
       <style>
-      {`
+        {`
   .design-preview {
     transition: transform 0.2s ease-out, opacity 0.2s ease-out;
     mix-blend-mode: multiply;  /* Add this */
@@ -785,7 +832,6 @@ const CreateProduct = () => {
                 </div>
 
                 {/* Pricing */}
-                
               </div>
             </div>
 
@@ -803,13 +849,17 @@ const CreateProduct = () => {
                   <select
                     name="ProductType"
                     value={formState.ProductType}
-                    onChange={(e) => handleFieldChange('ProductType', e.target.value)}
+                    onChange={(e) =>
+                      handleFieldChange("ProductType", e.target.value)
+                    }
                     className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3
                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     disabled={isSubmitting}
                   >
                     {Object.entries(PRODUCT_TYPES).map(([value, { label }]) => (
-                      <option key={value} value={value}>{label}</option>
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -824,11 +874,13 @@ const CreateProduct = () => {
                       <button
                         key={value}
                         type="button"
-                        onClick={() => handleFieldChange('ProductColor', value)}
+                        onClick={() => handleFieldChange("ProductColor", value)}
                         className={`w-8 h-8 rounded-full border-2 transition-all
-                          ${formState.ProductColor === value 
-                            ? 'border-blue-500 scale-110' 
-                            : 'border-gray-300 hover:border-blue-300'}`}
+                          ${
+                            formState.ProductColor === value
+                              ? "border-blue-500 scale-110"
+                              : "border-gray-300 hover:border-blue-300"
+                          }`}
                         style={{ backgroundColor: option.hex }}
                         disabled={isSubmitting}
                       >
@@ -862,14 +914,16 @@ const CreateProduct = () => {
                           <li>Recommended DPI: 300 or higher</li>
                         </ul>
                       </div>
-                      
+
                       <div className="bg-green-50 p-4 rounded-lg">
                         <h4 className="font-semibold text-green-800 mb-2">
                           Design Guidelines
                         </h4>
                         <ul className="list-disc list-inside text-green-700 space-y-2">
                           <li>Keep important elements within safe area</li>
-                          <li>Use high contrast colors for better visibility</li>
+                          <li>
+                            Use high contrast colors for better visibility
+                          </li>
                           <li>Avoid very thin lines (minimum 1px width)</li>
                           <li>Test your design on different backgrounds</li>
                         </ul>
@@ -881,7 +935,11 @@ const CreateProduct = () => {
                   <div
                     className={`
                       relative border-2 border-dashed rounded-lg p-8 transition-all
-                      ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}
+                      ${
+                        dragActive
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-300"
+                      }
                       hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer
                       group
                     `}
@@ -889,22 +947,26 @@ const CreateProduct = () => {
                     onDragLeave={handleDrag}
                     onDragOver={handleDrag}
                     onDrop={handleDrop}
-                    onClick={() => document.getElementById('design-upload').click()}
+                    onClick={() =>
+                      document.getElementById("design-upload").click()
+                    }
                   >
                     {/* Upload Content */}
                     <div className="text-center space-y-4">
                       <div className="relative inline-block">
-                        <AiOutlineCloudUpload 
+                        <AiOutlineCloudUpload
                           className="mx-auto h-16 w-16 text-blue-400 
-                          group-hover:text-blue-500 transition-colors" 
+                          group-hover:text-blue-500 transition-colors"
                         />
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-20 h-20 border-4 border-blue-500 border-dashed 
+                          <div
+                            className="w-20 h-20 border-4 border-blue-500 border-dashed 
                             rounded-full animate-spin opacity-0 group-hover:opacity-100 
-                            transition-opacity" />
+                            transition-opacity"
+                          />
                         </div>
                       </div>
-                      
+
                       <div>
                         <p className="text-lg font-medium text-gray-700 group-hover:text-gray-900">
                           Drop your design here or click to browse
@@ -928,8 +990,10 @@ const CreateProduct = () => {
 
                     {/* Compression Progress Overlay */}
                     {designFile.isCompressing && (
-                      <div className="absolute inset-0 bg-white/90 flex items-center 
-                        justify-center flex-col space-y-4">
+                      <div
+                        className="absolute inset-0 bg-white/90 flex items-center 
+                        justify-center flex-col space-y-4"
+                      >
                         <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-blue-500 transition-all duration-300"
@@ -954,10 +1018,14 @@ const CreateProduct = () => {
                 <div className="space-y-6">
                   {/* Design Preview */}
                   <div className="relative">
-                    <div 
-                        ref={mockupContainerRef}
-                        className={`relative w-full aspect-square bg-gray-100 rounded-lg 
-                          overflow-hidden shadow-inner ${formState.ProductColor === 'black' ? 'dark-product' : ''}`}
+                    <div
+                      ref={mockupContainerRef}
+                      className={`relative w-full aspect-square bg-gray-100 rounded-lg 
+                          overflow-hidden shadow-inner ${
+                            formState.ProductColor === "black"
+                              ? "dark-product"
+                              : ""
+                          }`}
                       onMouseMove={handleDesignDrag}
                       onMouseDown={() => setIsDragging(true)}
                       onMouseUp={() => setIsDragging(false)}
@@ -977,16 +1045,18 @@ const CreateProduct = () => {
                       {/* Design Overlay */}
                       <div
                         ref={designPreviewRef}
-                        className={`design-preview absolute ${isScaling ? 'scaling' : ''}
-                          ${!isDesignVisible ? 'outside' : ''}`}
+                        className={`design-preview absolute ${
+                          isScaling ? "scaling" : ""
+                        }
+                          ${!isDesignVisible ? "outside" : ""}`}
                         style={{
-                          position: 'absolute',
-                          top: `${formState.designPosition.y}%`,
-                          left: `${formState.designPosition.x}%`,
+                          position: "absolute",
+                          top: `${formState.DesignPosition.y}%`,
+                          left: `${formState.DesignPosition.x}%`,
                           transform: `translate(-50%, -50%) scale(${formState.DesignScale})`,
-                          width: '200px',
-                          height: '200px',
-                          cursor: isDragging ? 'grabbing' : 'grab',
+                          width: "200px",
+                          height: "200px",
+                          cursor: isDragging ? "grabbing" : "grab",
                         }}
                       >
                         <img
@@ -996,18 +1066,30 @@ const CreateProduct = () => {
                           draggable="false"
                         />
                       </div>
-                      {showGuides && <BoundaryGuides productType={formState.ProductType} />}
+                      {showGuides && (
+                        <BoundaryGuides productType={formState.ProductType} />
+                      )}
                       {/* Design Guides */}
                       {showGuides && (
                         <div className="absolute inset-0 pointer-events-none">
-                          <div 
+                          <div
                             className="border-2 border-blue-500 border-dashed opacity-30"
                             style={{
-                              position: 'absolute',
-                              top: `${BOUNDARY_LIMITS[formState.ProductType].top}%`,
-                              left: `${BOUNDARY_LIMITS[formState.ProductType].left}%`,
-                              right: `${100 - BOUNDARY_LIMITS[formState.ProductType].right}%`,
-                              bottom: `${100 - BOUNDARY_LIMITS[formState.ProductType].bottom}%`
+                              position: "absolute",
+                              top: `${
+                                BOUNDARY_LIMITS[formState.ProductType].top
+                              }%`,
+                              left: `${
+                                BOUNDARY_LIMITS[formState.ProductType].left
+                              }%`,
+                              right: `${
+                                100 -
+                                BOUNDARY_LIMITS[formState.ProductType].right
+                              }%`,
+                              bottom: `${
+                                100 -
+                                BOUNDARY_LIMITS[formState.ProductType].bottom
+                              }%`,
                             }}
                           />
                         </div>
@@ -1031,22 +1113,26 @@ const CreateProduct = () => {
                             transition-colors duration-200 flex items-center gap-2"
                         >
                           <BiRuler />
-                          {showGuides ? 'Hide Guides' : 'Show Guides'}
+                          {showGuides ? "Hide Guides" : "Show Guides"}
                         </button>
 
                         <button
                           type="button"
-                          onClick={() => setFormState(prev => ({
-                            ...prev,
-                            ProductView: prev.ProductView === "front" ? "back" : "front"
-                          }))}
+                          onClick={() =>
+                            setFormState((prev) => ({
+                              ...prev,
+                              ProductView:
+                                prev.ProductView === "front" ? "back" : "front",
+                            }))
+                          }
                           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 
                             rounded-md hover:bg-blue-700 transition-colors duration-200
                             flex items-center gap-2"
                           disabled={isSubmitting}
                         >
                           <BiMove />
-                          Switch to {formState.ProductView === "front" ? "Back" : "Front"}
+                          Switch to{" "}
+                          {formState.ProductView === "front" ? "Back" : "Front"}
                         </button>
 
                         <button
@@ -1057,7 +1143,7 @@ const CreateProduct = () => {
                               file: null,
                               originalFile: null,
                               compressionStats: null,
-                              error: null
+                              error: null,
                             });
                             setDesignQualityScore(null);
                             setShowRequirements(true);
@@ -1078,12 +1164,18 @@ const CreateProduct = () => {
                   {designQualityScore && (
                     <div className="space-y-4 bg-white p-4 rounded-lg shadow-md">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-800">Design Quality Score</h3>
-                        <span className={`text-lg font-bold ${
-                          designQualityScore.score > 80 ? 'text-green-500' : 
-                          designQualityScore.score > 60 ? 'text-yellow-500' : 
-                          'text-red-500'
-                        }`}>
+                        <h3 className="font-semibold text-gray-800">
+                          Design Quality Score
+                        </h3>
+                        <span
+                          className={`text-lg font-bold ${
+                            designQualityScore.score > 80
+                              ? "text-green-500"
+                              : designQualityScore.score > 60
+                              ? "text-yellow-500"
+                              : "text-red-500"
+                          }`}
+                        >
                           {designQualityScore.score}/100
                         </span>
                       </div>
@@ -1091,12 +1183,14 @@ const CreateProduct = () => {
                       {/* Quality Feedback Messages */}
                       <div className="space-y-2">
                         {designQualityScore.feedback.map((item, index) => (
-                          <div 
-                            key={index} 
+                          <div
+                            key={index}
                             className={`text-sm p-2 rounded flex items-start ${
-                              item.type === 'error' ? 'bg-red-50 text-red-700' : 
-                              item.type === 'warning' ? 'bg-yellow-50 text-yellow-700' : 
-                              'bg-blue-50 text-blue-700'
+                              item.type === "error"
+                                ? "bg-red-50 text-red-700"
+                                : item.type === "warning"
+                                ? "bg-yellow-50 text-yellow-700"
+                                : "bg-blue-50 text-blue-700"
                             }`}
                           >
                             <AiOutlineInfoCircle className="mt-0.5 mr-2 flex-shrink-0" />
@@ -1116,7 +1210,10 @@ const CreateProduct = () => {
                         <div className="bg-gray-50 p-2 rounded">
                           <span className="text-gray-600">Size: </span>
                           <span className="font-medium">
-                            {(designQualityScore.details.size / 1024).toFixed(2)}KB
+                            {(designQualityScore.details.size / 1024).toFixed(
+                              2
+                            )}
+                            KB
                           </span>
                         </div>
                         <div className="bg-gray-50 p-2 rounded">
@@ -1128,7 +1225,9 @@ const CreateProduct = () => {
                         <div className="bg-gray-50 p-2 rounded">
                           <span className="text-gray-600">Transparency: </span>
                           <span className="font-medium">
-                            {designQualityScore.details.transparency ? "Yes" : "No"}
+                            {designQualityScore.details.transparency
+                              ? "Yes"
+                              : "No"}
                           </span>
                         </div>
                       </div>
@@ -1142,7 +1241,7 @@ const CreateProduct = () => {
             <div className="flex justify-end space-x-4 mt-6">
               <button
                 type="button"
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate("/dashboard")}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white 
                   border border-gray-300 rounded-md hover:bg-gray-50 
                   transition-colors duration-200"
@@ -1150,25 +1249,27 @@ const CreateProduct = () => {
               >
                 Cancel
               </button>
-              
+
               <button
                 type="submit"
                 disabled={isSubmitting || !designFile.file}
                 className={`px-6 py-2 text-sm font-medium text-white rounded-md 
                   transition-all duration-200 ${
-                  isSubmitting || !designFile.file
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700'
-                }`}
+                    isSubmitting || !designFile.file
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }`}
               >
                 {isSubmitting ? (
                   <div className="flex items-center">
-                    <div className="animate-spin mr-2 h-4 w-4 border-2 border-white 
-                      border-t-transparent rounded-full" />
+                    <div
+                      className="animate-spin mr-2 h-4 w-4 border-2 border-white 
+                      border-t-transparent rounded-full"
+                    />
                     Creating Product...
                   </div>
                 ) : (
-                  'Create Product'
+                  "Create Product"
                 )}
               </button>
             </div>
