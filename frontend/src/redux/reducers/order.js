@@ -87,7 +87,6 @@ export const orderReducer = (state = initialState, action) => {
       const adminPayload = action.payload;
       return {
         ...state,
-        isLoading: false,
         adminOrders: Array.isArray(adminPayload?.orders)
           ? adminPayload.orders
           : [],

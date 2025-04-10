@@ -4,8 +4,7 @@ import axios from "axios";
 import { v4 as uuidv4 } from "uuid"; // For unique fallback IDs
 import { toast } from "react-toastify";
 // --- Configuration ---
-// ** Access Cloudinary Name from Frontend Environment Variable **
-//    Ensure you have REACT_APP_CLOUDINARY_NAME=dkot9tyjm in your .env file for React
+
 const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_NAME;
 
 if (!CLOUDINARY_CLOUD_NAME) {
@@ -21,7 +20,7 @@ if (!CLOUDINARY_CLOUD_NAME) {
 
 // Base URL construction using the cloud name
 const BASE_CLOUDINARY_URL = `https://res.cloudinary.com/${
-  CLOUDINARY_CLOUD_NAME || "YOUR_CLOUD_NAME_PLACEHOLDER"
+  CLOUDINARY_CLOUD_NAME || "REACT_APP_CLOUDINARY_NAME"
 }/image/upload`;
 
 // Mapping product types (lowercase, hyphenated) to Cloudinary folder names
