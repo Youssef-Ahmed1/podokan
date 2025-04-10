@@ -185,84 +185,85 @@ export const getAllOrdersOfShop = () => (dispatch) =>
     errorMessagePrefix: "Get Seller Orders Error",
   });
 
-export const getAllOrdersOfAdmin =
-  (page = 1, limit = 15) =>
-  (dispatch) =>
+  export const getAllOrdersOfAdmin =
+    (page = 1, limit = 15) =>
+    (dispatch) =>
+      handleApiRequest({
+        dispatch,
+        requestType: ORDER_ACTIONS.GET_ADMIN_REQUEST,
+        successType: ORDER_ACTIONS.GET_ADMIN_SUCCESS,
+        failType: ORDER_ACTIONS.GET_ADMIN_FAIL,
+        finallyType: ORDER_ACTIONS.GET_ADMIN_FINALLY,
+        apiCall: () =>
+          axios.get(`${server}/admin/all-orders?page=${page}&limit=${limit}`, {
+            withCredentials: true,
+          }),
+        errorMessagePrefix: "Get Admin Orders Error",
+      });
+
+  export const getOrderDetails = (orderId) => (dispatch) =>
     handleApiRequest({
       dispatch,
-      requestType: ORDER_ACTIONS.GET_ADMIN_REQUEST,
-      successType: ORDER_ACTIONS.GET_ADMIN_SUCCESS,
-      failType: ORDER_ACTIONS.GET_ADMIN_FAIL,
-      finallyType: ORDER_ACTIONS.GET_ADMIN_FINALLY,
+      requestType: ORDER_ACTIONS.GET_DETAIL_REQUEST,
+      successType: ORDER_ACTIONS.GET_DETAIL_SUCCESS,
+      failType: ORDER_ACTIONS.GET_DETAIL_FAIL,
+      finallyType: ORDER_ACTIONS.GET_DETAIL_FINALLY,
       apiCall: () =>
-        axios.get(
-          `${server}/order/admin/all-orders?page=${page}&limit=${limit}`,
-          { withCredentials: true }
-        ),
-      errorMessagePrefix: "Get Admin Orders Error",
+        axios.get(`${server}/order/get-order/${orderId}`, {
+          withCredentials: true,
+        }),
+      errorMessagePrefix: "Get Order Details Error",
     });
 
-export const getOrderDetails = (orderId) => (dispatch) =>
-  handleApiRequest({
-    dispatch,
-    requestType: ORDER_ACTIONS.GET_DETAIL_REQUEST,
-    successType: ORDER_ACTIONS.GET_DETAIL_SUCCESS,
-    failType: ORDER_ACTIONS.GET_DETAIL_FAIL,
-    finallyType: ORDER_ACTIONS.GET_DETAIL_FINALLY,
-    apiCall: () =>
-      axios.get(`${server}/order/get-order/${orderId}`, {
-        withCredentials: true,
-      }),
-    errorMessagePrefix: "Get Order Details Error",
-  });
+  export const adminUpdateOrderStatus = (orderId, status) => (dispatch) =>
+    handleApiRequest({
+      dispatch,
+      requestType: ORDER_ACTIONS.ADMIN_UPDATE_STATUS_REQUEST,
+      successType: ORDER_ACTIONS.ADMIN_UPDATE_STATUS_SUCCESS,
+      failType: ORDER_ACTIONS.ADMIN_UPDATE_STATUS_FAIL,
+      finallyType: ORDER_ACTIONS.ADMIN_UPDATE_STATUS_FINALLY,
+      apiCall: () =>
+        axios.put(
+          `${server}/admin/update-status/${orderId}`,
+          { status },
+          { withCredentials: true }
+        ),
+      successMessage: `Order status updated to ${status}.`,
+      errorMessagePrefix: "Admin Update Status Error",
+    });
 
-export const adminUpdateOrderStatus = (orderId, status) => (dispatch) =>
-  handleApiRequest({
-    dispatch,
-    requestType: ORDER_ACTIONS.ADMIN_UPDATE_STATUS_REQUEST,
-    successType: ORDER_ACTIONS.ADMIN_UPDATE_STATUS_SUCCESS,
-    failType: ORDER_ACTIONS.ADMIN_UPDATE_STATUS_FAIL,
-    finallyType: ORDER_ACTIONS.ADMIN_UPDATE_STATUS_FINALLY,
-    apiCall: () =>
-      axios.put(
-        `${server}/order/admin/update-status/${orderId}`,
-        { status },
-        { withCredentials: true }
-      ),
-    successMessage: `Order status updated to ${status}.`,
-    errorMessagePrefix: "Admin Update Status Error",
-  });
+  export const sellerUpdateRefundStatus = (orderId, status) => (dispatch) =>
+    handleApiRequest({
+      dispatch,
+      requestType: ORDER_ACTIONS.SELLER_UPDATE_REFUND_REQUEST,
+      successType: ORDER_ACTIONS.SELLER_UPDATE_REFUND_SUCCESS,
+      failType: ORDER_ACTIONS.SELLER_UPDATE_REFUND_FAIL,
+      finallyType: ORDER_ACTIONS.SELLER_UPDATE_REFUND_FINALLY,
+      apiCall: () =>
+        axios.put(
+          `${server}/order/accept-refund/${orderId}`,
+          { status },
+          { withCredentials: true }
+        ),
+      successMessage: `Refund status updated to ${status}.`,
+      errorMessagePrefix: "Seller Refund Update Error",
+    });
 
-export const sellerUpdateRefundStatus = (orderId, status) => (dispatch) =>
-  handleApiRequest({
-    dispatch,
-    requestType: ORDER_ACTIONS.SELLER_UPDATE_REFUND_REQUEST,
-    successType: ORDER_ACTIONS.SELLER_UPDATE_REFUND_SUCCESS,
-    failType: ORDER_ACTIONS.SELLER_UPDATE_REFUND_FAIL,
-    finallyType: ORDER_ACTIONS.SELLER_UPDATE_REFUND_FINALLY,
-    apiCall: () =>
-      axios.put(
-        `${server}/order/accept-refund/${orderId}`,
-        { status },
-        { withCredentials: true }
-      ),
-    successMessage: `Refund status updated to ${status}.`,
-    errorMessagePrefix: "Seller Refund Update Error",
-  });
 
-export const adminGetDesignDataForDownload = (orderId, itemId) => (dispatch) =>
-  handleApiRequest({
-    dispatch,
-    requestType: ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_REQUEST,
-    successType: ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_SUCCESS,
-    failType: ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_FAIL,
-    finallyType: ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_FINALLY,
-    apiCall: () =>
-      axios.get(`${server}/order/download-design/${orderId}/${itemId}`, {
-        withCredentials: true,
-      }),
-    errorMessagePrefix: "Download Design Data Error",
-  }).then((data) => data);
+  export const adminGetDesignDataForDownload =
+    (orderId, itemId) => (dispatch) =>
+      handleApiRequest({
+        dispatch,
+        requestType: ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_REQUEST,
+        successType: ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_SUCCESS,
+        failType: ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_FAIL,
+        finallyType: ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_FINALLY,
+        apiCall: () =>
+          axios.get(`${server}/download-design/${orderId}/${itemId}`, {
+            withCredentials: true,
+          }),
+        errorMessagePrefix: "Download Design Data Error",
+      }).then((data) => data);
 
 export const clearErrors = () => (dispatch) => {
   dispatch({ type: ORDER_ACTIONS.CLEAR_ERRORS });
