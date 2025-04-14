@@ -175,9 +175,6 @@ export const orderReducer = (state = initialState, action) => {
     case "order/sseUpdate":
       const sseUpdatedOrder = action.payload;
       if (!sseUpdatedOrder?._id) return state;
-      console.log(
-        `Reducer: Handling SSE update for order ${sseUpdatedOrder._id}`
-      );
       return {
         ...state,
         adminOrders: updateOrderInList(state.adminOrders, sseUpdatedOrder),

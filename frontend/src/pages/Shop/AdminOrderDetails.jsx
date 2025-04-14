@@ -149,6 +149,25 @@ const AdminOrderDetails = () => {
     fetchOrderData();
   }, [fetchOrderData]);
 
+  // Debug logging to identify data issues
+  useEffect(() => {
+    if (order) {
+      console.log("Admin Order Details - Order data:", {
+        orderId: order._id,
+        hasUserData: !!order.user,
+        userName: order.user?.name || "MISSING",
+        cartItems: order.cart?.length || 0,
+        hasAllItemFields: order.cart?.every(
+          (item) =>
+            item.DesignTitle &&
+            item.ProductType &&
+            item.ProductColor &&
+            item.size
+        ),
+      });
+    }
+  }, [order]);
+
   useEffect(() => {
     if (reduxError) {
       toast.error(`Error: ${reduxError}`);
@@ -191,6 +210,7 @@ const AdminOrderDetails = () => {
       })
       .catch((err) => {
         console.error("Design download failed:", err);
+        toast.error(`Download failed: ${err.message || "Unknown error"}`);
       })
       .finally(() => {
         setDownloadingItemId(null);

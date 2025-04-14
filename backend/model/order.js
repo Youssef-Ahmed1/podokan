@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { Schema } = mongoose;
 const { ORDER_STATUSES } = require("../constants/orderStatuses");
 
 const orderItemSchema = new mongoose.Schema(
@@ -25,9 +24,10 @@ const orderItemSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Item price is required."],
       min: [0, "Price cannot be negative."],
+      default: 0,
     },
     designImage: {
-      public_id: { type: String, trim: true },
+      public_id: { type: String, trim: true, default: null },
       url: {
         type: String,
         required: [true, "Item design image URL is required."],
@@ -38,11 +38,13 @@ const orderItemSchema = new mongoose.Schema(
       type: String,
       required: [true, "Item design title is required."],
       trim: true,
+      default: "Untitled Design",
     },
     ProductType: {
       type: String,
       required: [true, "Item product type is required."],
       trim: true,
+      default: "Unknown",
     },
     ProductColor: {
       type: String,
@@ -128,17 +130,6 @@ const orderSchema = new mongoose.Schema(
       required: [true, "Order total price is required."],
       default: 0,
       min: 0,
-      validate: {
-        validator: function (v) {
-          const calculatedTotal =
-            (this.subtotal || 0) + (this.shippingCost || 0);
-          return Math.abs(v - calculatedTotal) < 0.01;
-        },
-        message: (props) =>
-          `TotalPrice (${props.value}) validation failed. Expected ~${
-            (this.subtotal || 0) + (this.shippingCost || 0)
-          } based on subtotal and shippingCost.`,
-      },
     },
     status: {
       type: String,
@@ -176,21 +167,22 @@ orderSchema.index({ status: 1, createdAt: -1 });
 orderSchema.index({ createdAt: -1 });
 
 orderSchema.pre("save", function (next) {
-  // Always recalculate subtotal before any save, based on current cart
+  // Always recalculate subtotal based on current cart
   this.subtotal = this.cart.reduce(
     (sum, item) => sum + (item.price || 0) * (item.qty || 1),
     0
   );
 
-  // Ensure shippingCost is valid, use address.shippingPrice or default as fallback if needed
+  // Ensure shippingCost is valid
   this.shippingCost =
     typeof this.shippingCost === "number" && this.shippingCost >= 0
       ? this.shippingCost
       : this.shippingAddress?.shippingPrice ?? 50;
 
-  // Always recalculate totalPrice based on current subtotal and shippingCost
+  // Always recalculate totalPrice
   this.totalPrice = this.subtotal + this.shippingCost;
 
+  // Add initial status history entry if new order
   if (this.isNew && (!this.statusHistory || this.statusHistory.length === 0)) {
     const userIdStr = this.user?._id ? `user:${this.user._id}` : "system";
     this.statusHistory = [
