@@ -56,6 +56,7 @@ const handleApiRequest = async ({
         data.message || `API request indicated failure for ${requestType}`
       );
     }
+    
     let payload;
     if (
       successType === ORDER_ACTIONS.GET_DETAIL_SUCCESS ||
@@ -86,6 +87,15 @@ const handleApiRequest = async ({
           `API response format error for ${successType}. Missing 'orders' array.`
         );
       }
+
+      // Log user orders data for debugging
+      if (successType === ORDER_ACTIONS.GET_USER_SUCCESS) {
+        console.log(`User orders payload:`, {
+          count: Array.isArray(payload) ? payload.length : 0,
+          fromCache: data.fromCache || false,
+        });
+      }
+
       payload = Array.isArray(payload) ? payload : [];
     } else if (successType === ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_SUCCESS) {
       payload = data?.designData;
@@ -101,6 +111,7 @@ const handleApiRequest = async ({
     } else {
       payload = data;
     }
+    
     dispatch({ type: successType, payload });
     if (successMessage) {
       toast.success(successMessage);
@@ -124,12 +135,14 @@ const handleApiRequest = async ({
     } else {
       message = error.message || message;
     }
+    
     console.error(
       `${errorMessagePrefix} (${requestType}):`,
       message,
       "\nFull Error:",
       error.response || error
     );
+    
     dispatch({ type: failType, payload: message });
     if (error.response?.status !== 401) {
       toast.error(message);

@@ -10,103 +10,89 @@ const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
 const { ORDER_STATUSES } = require("../constants/orderStatuses");
 
-// Cache configuration (adjust TTL as needed)
+// Cache configuration 
 const orderCache = new NodeCache({
-  stdTTL: 300, // Default TTL 5 minutes
-  checkperiod: 120, // Check for expired keys every 2 minutes
-  useClones: false, // Store direct references (faster, but mutable)
+  stdTTL: 300,
+  checkperiod: 120,
+  useClones: false,
 });
 
-// Cache keys definition for better management
+// Cache keys definition
 const CACHE_KEYS = {
-  ADMIN_ORDERS_PAGE: (page, limit) => `admin_orders_p${page}_l${limit}`, // Key includes page/limit
+  ADMIN_ORDERS_PAGE: (page, limit) => `admin_orders_p${page}_l${limit}`,
   USER_ORDERS: (userId) => `user_orders_${userId}`,
   SELLER_ORDERS: (sellerId) => `seller_orders_${sellerId}`,
   ORDER_DETAIL: (orderId) => `order_detail_${orderId}`,
 };
 
-// --- Helper Functions ---
+// Helper Functions
 const isValidObjectId = (id) => id && mongoose.Types.ObjectId.isValid(id);
 
-// Clears all admin paginated caches (use when any order changes)
 const clearAdminOrderPageCaches = () => {
   const adminKeys = orderCache
     .keys()
     .filter((k) => k.startsWith("admin_orders_p"));
   if (adminKeys.length > 0) {
-    // console.log("Clearing Admin Order page caches:", adminKeys);
     orderCache.del(adminKeys);
   }
 };
 
-// Clears specific caches related to an order, user, and sellers
 const clearRelevantOrderCaches = (orderId, userId, involvedSellerIds = []) => {
   const keysToDelete = new Set();
-  clearAdminOrderPageCaches(); // Always clear paginated admin cache
+  clearAdminOrderPageCaches();
 
   if (orderId) keysToDelete.add(CACHE_KEYS.ORDER_DETAIL(orderId.toString()));
   if (userId) keysToDelete.add(CACHE_KEYS.USER_ORDERS(userId.toString()));
 
-  // Ensure seller IDs are valid strings before adding
   involvedSellerIds.forEach((id) => {
     if (id && typeof id === "string") {
       keysToDelete.add(CACHE_KEYS.SELLER_ORDERS(id));
     } else if (id?._id) {
-      // Handle potential object IDs
       keysToDelete.add(CACHE_KEYS.SELLER_ORDERS(id._id.toString()));
     }
   });
 
   const keysArray = Array.from(keysToDelete);
   if (keysArray.length > 0) {
-    // console.log("Clearing specific caches:", keysArray);
     orderCache.del(keysArray);
   }
 };
 
-// Updates product stock (negative quantityChange decreases stock)
 const updateProductStock = async (productId, quantityChange) => {
   if (!isValidObjectId(productId) || typeof quantityChange !== "number") {
     console.warn(
       `Invalid stock update input: P=${productId}, Qty=${quantityChange}`
     );
-    return; // Don't proceed with invalid input
+    return;
   }
-  if (quantityChange === 0) return; // No change needed
+  if (quantityChange === 0) return;
 
   try {
     const product = await Product.findById(productId).select("stock name");
     if (!product) {
       console.warn(`Product ${productId} not found for stock update.`);
-      // Potentially throw an error if this is critical, or just log and continue
       return;
-      // throw new ErrorHandler(`Product ${productId} not found during stock update.`, 404);
     }
 
     const currentStock = product.stock || 0;
-    const newStock = currentStock - quantityChange; // Subtracting the quantity SOLD
+    const newStock = currentStock - quantityChange;
 
     if (newStock < 0) {
-      // This should ideally be prevented by the pre-check, but handle just in case
       console.error(
         `Stock Update Error: Insufficient stock for ${
           product.name || productId
         }. Have: ${currentStock}, Need: ${quantityChange}. Setting stock to 0.`
       );
-      // Decide action: throw error or just set stock to 0? Setting to 0 might be safer.
-      // throw new ErrorHandler(`Insufficient stock for ${product.name || productId}.`, 400);
       await Product.updateOne({ _id: productId }, { $set: { stock: 0 } });
     } else {
       await Product.updateOne(
         { _id: productId },
-        { $inc: { stock: -quantityChange } } // Use $inc for atomic update
+        { $inc: { stock: -quantityChange } }
       );
-      // console.log(`Stock updated for ${productId}: ${currentStock} -> ${newStock}`);
     }
   } catch (error) {
     console.error(`Error updating stock for Product ${productId}:`, error);
-    // Decide whether to re-throw or just log
-    throw new ErrorHandler(`Failed to update stock for ${productId}`, 500); // Re-throw for controller to handle
+    throw new ErrorHandler(`Failed to update stock for ${productId}`, 500);
   }
 };
 
@@ -115,12 +101,12 @@ const updateProductStock = async (productId, quantityChange) => {
 // --- Create Order ---
 router.post(
   "/create-order",
-  isAuthenticated, // Ensures req.user is set
+  isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     const { cart, shippingAddress, paymentInfo } = req.body;
-    const currentUser = req.user; // Get user from middleware
+    const currentUser = req.user;
 
-    // --- Basic Input Validation ---
+    // Basic Input Validation
     if (!currentUser?._id) {
       return next(new ErrorHandler("User authentication is invalid.", 401));
     }
@@ -131,7 +117,7 @@ router.post(
       !shippingAddress?.address1 ||
       !shippingAddress.city ||
       !shippingAddress.country ||
-      !shippingAddress.phoneNumber // Make phone required
+      !shippingAddress.phoneNumber
     ) {
       return next(
         new ErrorHandler(
@@ -141,10 +127,9 @@ router.post(
       );
     }
 
-    // --- Stock Pre-check (Before attempting creation) ---
+    // Stock Pre-check
     try {
       for (const item of cart) {
-        // Validate item structure early
         const missing = [];
         if (!item.shopId || !isValidObjectId(item.shopId))
           missing.push("shopId");
@@ -164,15 +149,14 @@ router.post(
           );
         }
 
-        // Check stock only if productId is valid
         if (item.productId && isValidObjectId(item.productId)) {
           const product = await Product.findById(item.productId)
             .select("stock name")
-            .lean(); // Use lean for performance
+            .lean();
           if (!product) {
             throw new ErrorHandler(
               `Product reference invalid for item "${item.DesignTitle}". Cannot verify stock.`,
-              404 // Or 400, depending on how you treat missing product links
+              404
             );
           }
           if ((product.stock || 0) < item.qty) {
@@ -183,38 +167,36 @@ router.post(
               400
             );
           }
-        } else {
-          // console.log(`Item "${item.DesignTitle}" has no valid productId, skipping stock check.`);
         }
       }
     } catch (validationOrStockError) {
-      return next(validationOrStockError); // Pass the specific error
+      return next(validationOrStockError);
     }
 
-    // --- Group Cart Items by Shop ---
+    // Group Cart Items by Shop
     const shopItemsMap = new Map();
     cart.forEach((item) => {
       const shopIdStr = item.shopId.toString();
       if (!shopItemsMap.has(shopIdStr)) shopItemsMap.set(shopIdStr, []);
-      // Push only necessary validated fields for the order item schema
+
+      // Push with all validated fields for complete order data
       shopItemsMap.get(shopIdStr).push({
         productId:
           item.productId && isValidObjectId(item.productId)
             ? item.productId
             : null,
-        qty: item.qty,
-        shopId: item.shopId, // Keep as ObjectId
-        price: item.price,
+        qty: item.qty || 1,
+        shopId: item.shopId,
+        price: item.price || 0,
         designImage: {
           public_id: item.designImage.public_id || null,
           url: item.designImage.url,
         },
-        DesignTitle: item.DesignTitle,
-        ProductType: item.ProductType,
-        ProductColor: item.ProductColor,
-        size: item.size,
+        DesignTitle: item.DesignTitle || "Untitled Design",
+        ProductType: item.ProductType || "Unknown Type",
+        ProductColor: item.ProductColor || "White",
+        size: item.size || "One Size",
         designSpecs: item.designSpecs || {
-          // Provide defaults if missing
           positionX: 50,
           positionY: 50,
           scale: 1,
@@ -223,41 +205,37 @@ router.post(
       });
     });
 
-    // --- Process Order Creation per Shop ---
     const shippingCostPerSellerOrder =
       typeof shippingAddress.shippingPrice === "number" &&
       shippingAddress.shippingPrice >= 0
         ? shippingAddress.shippingPrice
-        : 50; // Default shipping if not provided or invalid
+        : 50;
 
     const createdOrders = [];
     const orderPromises = [];
     const stockUpdateErrors = [];
-    const involvedSellerIds = Array.from(shopItemsMap.keys()); // Collect seller IDs for cache clearing
+    const involvedSellerIds = Array.from(shopItemsMap.keys());
 
     for (const [shopIdStr, shopItems] of shopItemsMap.entries()) {
-      // Calculate subtotal and total for this specific shop's order portion
       const subtotal = shopItems.reduce(
         (acc, item) => acc + (item.price || 0) * (item.qty || 1),
         0
       );
-      const total = subtotal + shippingCostPerSellerOrder; // Assuming flat shipping per sub-order
+      const total = subtotal + shippingCostPerSellerOrder;
 
       const orderData = {
-        cart: shopItems, // Items for this specific shop
+        cart: shopItems,
         shippingAddress: {
-          // Use validated shipping address parts
           address1: shippingAddress.address1,
           address2: shippingAddress.address2 || "",
           city: shippingAddress.city,
           country: shippingAddress.country,
           postalCode: shippingAddress.postalCode || "",
           phoneNumber: shippingAddress.phoneNumber,
-          shippingPrice: shippingCostPerSellerOrder, // Store the cost applied to this part
+          shippingPrice: shippingCostPerSellerOrder,
         },
-        shippingCost: shippingCostPerSellerOrder, // Total shipping for this part
+        shippingCost: shippingCostPerSellerOrder,
         user: {
-          // Use authenticated user's details
           _id: currentUser._id,
           name: currentUser.name,
           email: currentUser.email,
@@ -265,30 +243,25 @@ router.post(
         subtotal: subtotal,
         totalPrice: total,
         paymentInfo: paymentInfo || {
-          // Default payment info if not provided
           type: "Cash On Delivery",
           status: "Processing",
         },
-        status: ORDER_STATUSES.PROCESSING, // Initial status
-        // statusHistory will be added by pre-save hook
+        status: ORDER_STATUSES.PROCESSING,
       };
 
-      // Add order creation to promises array
       orderPromises.push(
         Order.create(orderData)
           .then(async (order) => {
-            createdOrders.push(order); // Add successfully created order
-            // --- Update Stock AFTER Order is Successfully Created ---
+            createdOrders.push(order);
             for (const item of order.cart) {
               if (item.productId) {
                 try {
-                  await updateProductStock(item.productId, item.qty); // Pass positive qty (means sold)
+                  await updateProductStock(item.productId, item.qty);
                 } catch (stockError) {
                   console.error(
                     `Stock update failed for order ${order._id}, product ${item.productId}:`,
                     stockError.message
                   );
-                  // Log the error but allow order creation to succeed overall
                   stockUpdateErrors.push({
                     orderId: order._id,
                     productId: item.productId,
@@ -303,7 +276,6 @@ router.post(
               `Failed to create order part for shop ${shopIdStr}:`,
               creationError
             );
-            // Throw a specific error to be caught by Promise.all catch block
             throw new ErrorHandler(
               `Order creation failed for shop ${shopIdStr}: ${creationError.message}`,
               500
@@ -312,11 +284,9 @@ router.post(
       );
     }
 
-    // --- Finalize Batch Creation ---
     try {
-      await Promise.all(orderPromises); // Wait for all order parts to be created/stock updated
+      await Promise.all(orderPromises);
 
-      // Clear relevant caches only after successful creation
       clearRelevantOrderCaches(
         null,
         currentUser._id.toString(),
@@ -328,14 +298,11 @@ router.post(
           "Order created successfully, but with some stock update issues:",
           stockUpdateErrors
         );
-        // Optionally notify admin or take other actions
       }
 
       res.status(201).json({ success: true, orders: createdOrders });
     } catch (error) {
       console.error("Error processing order creation batch:", error);
-      // If any part failed, potentially rollback or log (complex)
-      // For now, return the error that caused Promise.all to reject
       return next(
         error instanceof ErrorHandler
           ? error
@@ -348,16 +315,13 @@ router.post(
 // --- Get User Orders ---
 router.get(
   "/get-user-orders",
-  isAuthenticated, // Ensures req.user is set
+  isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     const userId = req.user._id.toString();
     const cacheKey = CACHE_KEYS.USER_ORDERS(userId);
     const cachedOrders = orderCache.get(cacheKey);
 
-    // ** Disable cache for testing if needed **
-    // if (cachedOrders && process.env.NODE_ENV !== 'development') { // Example: only use cache in prod
     if (cachedOrders) {
-      // console.log(`[Cache Hit] User orders for ${userId}`);
       return res.json({
         success: true,
         orders: cachedOrders,
@@ -366,14 +330,33 @@ router.get(
       });
     }
 
-    // console.log(`[Cache Miss] Fetching user orders for ${userId} from DB`);
-    const orders = await Order.find({ "user._id": req.user._id })
-      .sort({ createdAt: -1 }) // Sort by newest first
-      .lean(); // Use lean for read-only performance
+    // Convert ObjectId to string for consistent comparison
+    const orders = await Order.find({ "user._id": userId })
+      .sort({ createdAt: -1 })
+      .lean();
 
-    orderCache.set(cacheKey, orders); // Cache the results
+    // Debug log for empty orders result
+    if (orders.length === 0) {
+      console.log(`No orders found for user ID: ${userId}`);
 
-    // Set cache control headers to prevent intermediate caching if needed for user orders too
+      // Check if any orders exist for troubleshooting
+      const anyOrders = await Order.countDocuments();
+      console.log(`Total orders in system: ${anyOrders}`);
+
+      // Sample order user IDs to detect format issues
+      const sampleOrders = await Order.find().limit(3).select("user").lean();
+
+      console.log(
+        "Sample order user IDs:",
+        sampleOrders.map((o) => ({
+          userIdInOrder: o.user?._id?.toString(),
+          userIdType: o.user?._id ? typeof o.user._id : "missing",
+        }))
+      );
+    }
+
+    orderCache.set(cacheKey, orders);
+
     res.setHeader(
       "Cache-Control",
       "no-store, no-cache, must-revalidate, private"
@@ -388,7 +371,7 @@ router.get(
 // --- Get Single Order Details (User or Admin) ---
 router.get(
   "/get-order/:id",
-  isAuthenticated, // Requires login (user or admin)
+  isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     const { id } = req.params;
     if (!isValidObjectId(id)) {
@@ -419,7 +402,6 @@ router.get(
         );
       }
 
-      // Set cache control headers here as well if disabling caching generally
       res.setHeader(
         "Cache-Control",
         "no-store, no-cache, must-revalidate, private"
@@ -430,14 +412,10 @@ router.get(
       res.json({ success: true, order: orderData, fromCache });
     };
 
-    // ** Disable cache for testing if needed **
-    // if (cachedOrder && process.env.NODE_ENV !== 'development') {
     if (cachedOrder) {
-      // console.log(`[Cache Hit] Order detail for ${id}`);
       return checkAuthAndRespond(cachedOrder, true);
     }
 
-    // console.log(`[Cache Miss] Fetching order detail for ${id} from DB`);
     const order = await Order.findById(id).lean();
 
     if (order) {
@@ -447,7 +425,6 @@ router.get(
     checkAuthAndRespond(order, false);
   })
 );
-
 // --- Get Seller Orders ---
 router.get(
   "/get-seller-orders",
@@ -691,10 +668,8 @@ router.get(
   })
 );
 
-// --- Get All Orders (Admin - PAGINATED) ---
-// FIX 1: Changed route to match frontend expectations
 router.get(
-  "/admin-all-orders", // Changed from "/admin/all-orders" to match frontend
+  "/admin-all-orders",
   isAuthenticated,
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
@@ -705,12 +680,8 @@ router.get(
     try {
       // Fetch total count and paginated orders concurrently
       const [totalOrders, orders] = await Promise.all([
-        Order.countDocuments(), // Count all orders
-        Order.find() // Find orders for the page
-          .sort({ createdAt: -1 }) // Sort by newest first
-          .skip(skip)
-          .limit(limit)
-          .lean(), // Use lean for read-only
+        Order.countDocuments(),
+        Order.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
       ]);
 
       // Add logging to debug user data issues
@@ -725,19 +696,17 @@ router.get(
 
       const totalPages = Math.ceil(totalOrders / limit);
 
-      // **** ADD CACHE CONTROL HEADERS ****
       res.setHeader(
         "Cache-Control",
         "no-store, no-cache, must-revalidate, private"
       );
       res.setHeader("Pragma", "no-cache");
       res.setHeader("Expires", "0");
-      // ***********************************
 
       res.json({
         success: true,
-        orders, // Orders for the current page
-        totalOrders, // Total count for pagination calculation
+        orders,
+        totalOrders,
         currentPage: page,
         totalPages,
         limit,
@@ -799,7 +768,7 @@ router.delete(
 // --- Admin Update Order Status ---
 // FIX 2: Changed route to match frontend expectations
 router.put(
-  "/admin-update-status/:id", // Changed from "/admin/update-status/:id" to match frontend
+  "/admin-update-status/:id",
   isAuthenticated,
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
@@ -855,7 +824,7 @@ router.put(
     });
 
     try {
-      const updatedOrder = await order.save({ validateBeforeSave: false }); // Keep workaround for now
+      const updatedOrder = await order.save();
       const involvedSellers = [
         ...new Set(order.cart.map((i) => i.shopId?.toString()).filter(Boolean)),
       ];
@@ -871,7 +840,7 @@ router.put(
       });
     } catch (e) {
       console.error(
-        `Admin status update save error (Order ${id}, Status ${newStatus}) (Validation Bypassed):`,
+        `Admin status update save error (Order ${id}, Status ${newStatus}):`,
         e
       );
       return next(
@@ -880,7 +849,6 @@ router.put(
     }
   })
 );
-
 // --- Admin Update Order Item Details ---
 router.put(
   "/update-item-details/:orderId/:itemId",

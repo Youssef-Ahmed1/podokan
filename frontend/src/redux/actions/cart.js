@@ -1,4 +1,3 @@
-// add to cart
 export const addTocart = (data) => async (dispatch, getState) => {
   try {
     const { cart } = getState().cart;
@@ -6,29 +5,36 @@ export const addTocart = (data) => async (dispatch, getState) => {
     // Create standardized cart item with all necessary fields
     const cartItem = {
       _id: data._id,
-      DesignTitle: data.DesignTitle,
-      designImage: data.designImage?.url || data.designImage,
-      ProductType: data.ProductType,
-      selectedColor: data.selectedColor,
-      selectedSize: data.selectedSize,
+      DesignTitle: data.DesignTitle || "Untitled Design",
+      designImage: {
+        public_id: data.designImage?.public_id || null,
+        url: data.designImage?.url || data.designImage || "",
+      },
+      ProductType: data.ProductType || "Unknown Type",
+      ProductColor: data.selectedColor || "White",
+      size: data.selectedSize || "One Size",
       quantity: data.quantity || 1,
       qty: data.quantity || 1, // Add this for compatibility
       stock: data.stock || 100,
       shopId: data.shopId,
       shop: data.shop,
-      price: data.discountPrice || data.originalPrice,
-      discountPrice: data.discountPrice,
-      originalPrice: data.originalPrice,
-      DesignScale: data.DesignScale || 0.8,
-      DesignPosition: data.DesignPosition || { x: 50, y: 40 },
+      price: data.discountPrice || data.originalPrice || 0,
+      discountPrice: data.discountPrice || 0,
+      originalPrice: data.originalPrice || 0,
+      designSpecs: {
+        positionX: data.DesignPosition?.x || 50,
+        positionY: data.DesignPosition?.y || 50,
+        scale: data.DesignScale || 1,
+        rotation: data.DesignRotation || 0,
+      },
     };
 
     // Check for existing item with same ID, size, and color
     const existingItemIndex = cart.findIndex(
       (item) =>
         item._id === cartItem._id &&
-        item.selectedSize === cartItem.selectedSize &&
-        item.selectedColor === cartItem.selectedColor
+        item.size === cartItem.size &&
+        item.ProductColor === cartItem.ProductColor
     );
 
     let updatedCart;
@@ -64,13 +70,4 @@ export const addTocart = (data) => async (dispatch, getState) => {
     console.error("Add to cart error:", error);
     return { success: false, message: error.message };
   }
-};
-// remove from cart
-export const removeFromCart = (data) => async (dispatch, getState) => {
-  dispatch({
-    type: "removeFromCart",
-    payload: data._id,
-  });
-  localStorage.setItem("cartItems", JSON.stringify(getState().cart.cart));
-  return data;
 };
