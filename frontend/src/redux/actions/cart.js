@@ -1,3 +1,4 @@
+// add to cart
 export const addTocart = (data) => async (dispatch, getState) => {
   try {
     const { cart } = getState().cart;
@@ -70,4 +71,13 @@ export const addTocart = (data) => async (dispatch, getState) => {
     console.error("Add to cart error:", error);
     return { success: false, message: error.message };
   }
+};
+
+export const removeFromCart = (data) => async (dispatch, getState) => {
+  dispatch({
+    type: "removeFromCart",
+    payload: data._id,
+  });
+  localStorage.setItem("cartItems", JSON.stringify(getState().cart.cart));
+  return data;
 };
