@@ -90,11 +90,7 @@ const orderSchema = new mongoose.Schema(
         required: [true, "Shipping city is required."],
         trim: true,
       },
-      country: {
-        type: String,
-        required: [true, "Shipping country is required."],
-        trim: true,
-      },
+
       postalCode: { type: String, trim: true, default: "" },
       phoneNumber: {
         type: String,

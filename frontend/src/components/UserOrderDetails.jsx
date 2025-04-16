@@ -295,7 +295,6 @@ const UserOrderDetails = () => {
               </p>
               <p>
                 {currentOrder.shippingAddress?.city || "(No city)"},{" "}
-                {currentOrder.shippingAddress?.country || "(No country)"}{" "}
                 {currentOrder.shippingAddress?.postalCode || ""}
               </p>
               <p className="flex items-center pt-1 gap-1.5">

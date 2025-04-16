@@ -390,7 +390,6 @@ const AdminOrderDetails = () => {
             </p>
             <p>
               {order.shippingAddress?.city || "(Missing!)"},{" "}
-              {order.shippingAddress?.country || "(Missing!)"}{" "}
               {order.shippingAddress?.postalCode}
             </p>
             <p className="mt-1 flex items-center gap-1.5 text-gray-600">
@@ -407,11 +406,7 @@ const AdminOrderDetails = () => {
                 (Warning: City missing)
               </p>
             )}
-            {!order.shippingAddress?.country && (
-              <p className="text-red-500 text-xs mt-1">
-                (Warning: Country missing)
-              </p>
-            )}
+
             {!order.shippingAddress?.phoneNumber && (
               <p className="text-red-500 text-xs mt-1">
                 (Warning: Phone number missing)

@@ -404,7 +404,6 @@ const OrderDetails = () => {
                 </p>
                 <p className="text-gray-800">
                   {order.shippingAddress?.city || ""},{" "}
-                  {order.shippingAddress?.country || ""}{" "}
                   {order.shippingAddress?.postalCode || ""}
                 </p>
                 <p className="text-gray-600 mt-1 flex items-center gap-1.5">
