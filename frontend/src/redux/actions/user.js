@@ -158,13 +158,14 @@ export const updateUserInformation =
 
 // update user address
 export const updateUserAddress =
-  (city, address1, address2, zipCode, addressType) => async (dispatch) => {
+  (country, city, address1, address2, zipCode, addressType) =>
+  async (dispatch) => {
     try {
       dispatch({ type: "updateUserAddressRequest" });
 
       const { data } = await axios.put(
         `${server}/user/update-user-addresses`,
-        { city, address1, address2, zipCode, addressType },
+        { country, city, address1, address2, zipCode, addressType },
         { withCredentials: true }
       );
 
@@ -182,52 +183,55 @@ export const updateUserAddress =
       });
     }
   };
-  export const login = (email, password) => async (dispatch) => {
-    try {
-      dispatch({ type: "LoginRequest" });
-  
-      const { data } = await axios.post(
-        `${server}/user/login-user`,
-        { email, password }
-      );
-  
-      localStorage.setItem('token', data.token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-  
-      dispatch({ 
-        type: "LoginSuccess", 
-        payload: data.user 
-      });
-    } catch (error) {
-      dispatch({
-        type: "LoginFail",
-        payload: error.response?.data?.message || "Login failed"
-      });
-    }
-  };
-  export const logout = () => async (dispatch) => {
-    try {
-      localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
-      
-      await axios.get(`${server}/user/logout`);
-      
-      dispatch({ type: "LogoutSuccess" });
-    } catch (error) {
-      dispatch({
-        type: "LogoutFail",
-        payload: error.response?.data?.message || "Logout failed"
-      });
-    }
-  };
+export const login = (email, password) => async (dispatch) => {
+  try {
+    dispatch({ type: "LoginRequest" });
+
+    const { data } = await axios.post(`${server}/user/login-user`, {
+      email,
+      password,
+    });
+
+    localStorage.setItem("token", data.token);
+    axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
+
+    dispatch({
+      type: "LoginSuccess",
+      payload: data.user,
+    });
+  } catch (error) {
+    dispatch({
+      type: "LoginFail",
+      payload: error.response?.data?.message || "Login failed",
+    });
+  }
+};
+export const logout = () => async (dispatch) => {
+  try {
+    localStorage.removeItem("token");
+    delete axios.defaults.headers.common["Authorization"];
+
+    await axios.get(`${server}/user/logout`);
+
+    dispatch({ type: "LogoutSuccess" });
+  } catch (error) {
+    dispatch({
+      type: "LogoutFail",
+      payload: error.response?.data?.message || "Logout failed",
+    });
+  }
+};
 // delete user address
 export const deleteUserAddress = (id) => async (dispatch) => {
   try {
     dispatch({ type: "deleteUserAddressRequest" });
 
-    const { data } = await axios.delete(`${server}/user/delete-user-address/${id}`, {
-      withCredentials: true,
-    });
+    const { data } = await axios.delete(
+      `${server}/user/delete-user-address/${id}`,
+      {
+        withCredentials: true,
+      }
+    );
 
     dispatch({
       type: "deleteUserAddressSuccess",
@@ -243,7 +247,7 @@ export const deleteUserAddress = (id) => async (dispatch) => {
     });
   }
 };
-//.
+
 // get all users --- admin
 export const getAllUsers = () => async (dispatch) => {
   try {

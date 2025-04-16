@@ -52,9 +52,9 @@ const orderItemSchema = new mongoose.Schema(
       default: "White",
       trim: true,
     },
-    Size: {
+    size: {
       type: String,
-      required: [true, "Item Size is required."],
+      required: [true, "Item size is required."],
       default: "One Size",
       trim: true,
     },
@@ -90,7 +90,11 @@ const orderSchema = new mongoose.Schema(
         required: [true, "Shipping city is required."],
         trim: true,
       },
-
+      country: {
+        type: String,
+        required: [true, "Shipping country is required."],
+        trim: true,
+      },
       postalCode: { type: String, trim: true, default: "" },
       phoneNumber: {
         type: String,

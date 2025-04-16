@@ -76,7 +76,7 @@ class DesignProcessor {
   static async createProductMockup(
     designImageUrl,
     productType,
-    ProductColor,
+    productColor,
     designSpecs
   ) {
     return new Promise(async (resolve, reject) => {
@@ -84,7 +84,7 @@ class DesignProcessor {
         console.log("Creating mockup with:", {
           designImageUrl,
           productType,
-          ProductColor,
+          productColor,
           designSpecs,
         });
 
@@ -98,7 +98,7 @@ class DesignProcessor {
         // 3. Generate template URL
         const templateUrl = this.getProductTemplateUrl(
           productType,
-          ProductColor
+          productColor
         );
         console.log(`Using template URL: ${templateUrl}`);
 

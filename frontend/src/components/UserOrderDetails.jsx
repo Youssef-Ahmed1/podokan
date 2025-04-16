@@ -78,7 +78,7 @@ const UserOrderDetails = () => {
   if (!currentOrder && !isDetailLoading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <Info Size={48} className="mx-auto text-orange-400 mb-4" />
+        <Info size={48} className="mx-auto text-orange-400 mb-4" />
         <h2 className="text-2xl font-bold text-gray-900">
           Order Details Unavailable
         </h2>
@@ -91,7 +91,7 @@ const UserOrderDetails = () => {
           to="/profile"
           className="inline-flex items-center mt-6 text-blue-600 hover:underline"
         >
-          <ArrowLeft Size={16} className="mr-1" /> Back to My Orders
+          <ArrowLeft size={16} className="mr-1" /> Back to My Orders
         </Link>
       </div>
     );
@@ -113,7 +113,7 @@ const UserOrderDetails = () => {
             className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium group"
           >
             <ArrowLeft
-              Size={18}
+              size={18}
               className="mr-1 group-hover:-translate-x-1 transition-transform"
             />
             Back to My Orders
@@ -129,7 +129,7 @@ const UserOrderDetails = () => {
             <div>
               <h2 className="text-lg md:text-xl font-semibold text-gray-800 flex items-center gap-2">
                 <ShoppingBag
-                  Size={20}
+                  size={20}
                   className="text-blue-600 flex-shrink-0"
                 />
                 Order #{currentOrder._id?.slice(-8) || "N/A"}
@@ -178,7 +178,7 @@ const UserOrderDetails = () => {
                   to={`/user/track/order/${currentOrder._id}`}
                   className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
                 >
-                  <Truck Size={16} className="mr-1.5" /> Track Shipment
+                  <Truck size={16} className="mr-1.5" /> Track Shipment
                 </Link>
               </div>
             )}
@@ -216,7 +216,7 @@ const UserOrderDetails = () => {
                     } flex-col`}
                   >
                     <AlertTriangle
-                      Size={24}
+                      size={24}
                       title={
                         item.designImage?.url
                           ? "Image Load Error"
@@ -258,7 +258,7 @@ const UserOrderDetails = () => {
                     <span className="font-medium text-gray-700">
                       Size:{" "}
                       <span className="font-normal text-gray-600">
-                        {item.Size || "N/A"}
+                        {item.size || "N/A"}
                       </span>
                     </span>
                   </div>
@@ -282,7 +282,7 @@ const UserOrderDetails = () => {
           {/* Shipping Address */}
           <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
             <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <MapPin className="text-blue-600 flex-shrink-0" Size={18} />
+              <MapPin className="text-blue-600 flex-shrink-0" size={18} />
               Shipping Address
             </h3>
             <div className="text-sm text-gray-700 space-y-1">
@@ -295,10 +295,11 @@ const UserOrderDetails = () => {
               </p>
               <p>
                 {currentOrder.shippingAddress?.city || "(No city)"},{" "}
+                {currentOrder.shippingAddress?.country || "(No country)"}{" "}
                 {currentOrder.shippingAddress?.postalCode || ""}
               </p>
               <p className="flex items-center pt-1 gap-1.5">
-                <Phone Size={14} className="text-gray-500 flex-shrink-0" />
+                <Phone size={14} className="text-gray-500 flex-shrink-0" />
                 {currentOrder.shippingAddress?.phoneNumber ||
                   "(No phone number)"}
               </p>
@@ -307,7 +308,7 @@ const UserOrderDetails = () => {
           {/* Payment Information */}
           <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
             <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <CreditCard className="text-blue-600 flex-shrink-0" Size={18} />
+              <CreditCard className="text-blue-600 flex-shrink-0" size={18} />
               Payment Information
             </h3>
             <div className="space-y-2 text-sm">
@@ -370,7 +371,7 @@ const UserOrderDetails = () => {
           currentOrder.statusHistory.length > 0 && (
             <div className="mt-6 bg-white rounded-lg shadow-sm p-5 border border-gray-100">
               <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <Clock className="text-blue-600 flex-shrink-0" Size={18} />
+                <Clock className="text-blue-600 flex-shrink-0" size={18} />
                 Order History
               </h3>
               <div className="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
