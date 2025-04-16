@@ -690,9 +690,7 @@ const Address = () => {
       toast.error("Fill required fields!");
       return;
     }
-    dispatch(
-      updateUserAddress(country, city, address1, address2, zipCode, addressType)
-    );
+    dispatch(updateUserAddress(city, address1, address2, zipCode, addressType));
     setOpen(false);
     resetForm();
   };
