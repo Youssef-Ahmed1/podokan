@@ -253,7 +253,7 @@ const AdminDashboardOrders = () => {
         align: "center",
         headerAlign: "center",
         renderCell: (params) => (
-          <Link to={`/admin/order/${params.id}`} title="View Details">
+          <Link to={`/admin/order/${params.row._id}`} title="View Details">
             <IconButton size="small">
               <Eye className="text-blue-600 hover:text-blue-800" />
             </IconButton>
