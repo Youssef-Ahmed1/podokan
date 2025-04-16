@@ -81,8 +81,8 @@ const ProfileSidebar = ({ setActive, active }) => {
             className="flex items-center cursor-pointer w-full px-2 py-2 rounded-md hover:bg-gray-50 transition-colors"
             onClick={item.onClick}
           >
-            <item.icon 
-              size={20} 
+            <item.icon
+              Size={20}
               className={active === item.id ? "text-red-500" : "text-gray-600"}
             />
             <span
@@ -107,7 +107,7 @@ const ProfileSidebar = ({ setActive, active }) => {
               onClick={() => setActive(8)}
             >
               <MdOutlineAdminPanelSettings
-                size={20}
+                Size={20}
                 className={active === 8 ? "text-red-500" : "text-gray-600"}
               />
               <span
@@ -130,10 +130,7 @@ const ProfileSidebar = ({ setActive, active }) => {
           className="flex items-center cursor-pointer w-full px-2 py-2 rounded-md hover:bg-gray-50 transition-colors mt-4"
           onClick={logoutHandler}
         >
-          <AiOutlineLogin 
-            size={20} 
-            className="text-gray-600"
-          />
+          <AiOutlineLogin Size={20} className="text-gray-600" />
           <span className="pl-3 text-gray-700 800px:block hidden font-medium">
             Log out
           </span>

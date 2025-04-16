@@ -143,7 +143,7 @@ class DesignScalingManager {
     };
   }
 
-  // Method for consistent positioning across different view sizes
+  // Method for consistent positioning across different view Sizes
   static normalizePosition(position, fromView, toView, productType = "hoodie") {
     const fromBoundaries =
       DESIGN_CONFIG.position.boundaries[productType]?.[fromView];

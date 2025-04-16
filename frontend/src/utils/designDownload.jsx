@@ -365,7 +365,7 @@ export class DesignDownloader {
       "itemId",
       "specs.type",
       "specs.color",
-      "specs.size",
+      "specs.Size",
       "specs.position",
     ];
 
@@ -402,7 +402,7 @@ export class DesignDownloader {
           title: productTitle || "Untitled",
           type: specs.type,
           color: specs.color,
-          size: specs.size,
+          Size: specs.Size,
         },
         design: { sourceUrl: imageUrl, specifications: specs.position },
         pricing: price || {},
@@ -518,7 +518,7 @@ export class DesignDownloader {
           const specs = {
             type: item.ProductType || "N/A",
             color: item.ProductColor || "N/A",
-            size: item.size || "N/A",
+            Size: item.Size || "N/A",
             position: item.designSpecs || {
               positionX: 50,
               positionY: 50,

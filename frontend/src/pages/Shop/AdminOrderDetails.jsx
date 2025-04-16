@@ -76,7 +76,7 @@ const StatusUpdateModal = ({
           value={newStatus || ""}
           onChange={(e) => setNewStatus(e.target.value)}
           fullWidth
-          size="small"
+          Size="small"
           disabled={isUpdating}
           displayEmpty
         >
@@ -98,9 +98,9 @@ const StatusUpdateModal = ({
           disabled={isUpdating || newStatus === currentStatus}
           startIcon={
             isUpdating ? (
-              <CircularProgress size={20} color="inherit" />
+              <CircularProgress Size={20} color="inherit" />
             ) : (
-              <Save size={16} />
+              <Save Size={16} />
             )
           }
         >
@@ -159,7 +159,7 @@ const AdminOrderDetails = () => {
             item.DesignTitle &&
             item.ProductType &&
             item.ProductColor &&
-            item.size
+            item.Size
         ),
       });
     }
@@ -237,10 +237,10 @@ const AdminOrderDetails = () => {
       <div className="p-6 text-center max-w-2xl mx-auto min-h-[60vh] flex flex-col justify-center items-center">
         {reduxError && (
           <div className="bg-red-50 p-4 rounded-lg text-red-700 mb-4 flex items-center justify-center gap-2 shadow-sm border border-red-200">
-            <AlertTriangle size={20} /> <span>{reduxError}</span>
+            <AlertTriangle Size={20} /> <span>{reduxError}</span>
           </div>
         )}
-        <Info size={48} className="mx-auto text-gray-400 mb-4" />
+        <Info Size={48} className="mx-auto text-gray-400 mb-4" />
         <h2 className="text-2xl font-bold mb-2">Order Details Unavailable</h2>
         <p className="text-gray-600 mb-4">
           {reduxError
@@ -251,7 +251,7 @@ const AdminOrderDetails = () => {
           to="/admin-orders"
           className="text-blue-600 hover:underline inline-flex items-center"
         >
-          <ArrowLeft size={16} className="mr-1" /> Back to Orders List
+          <ArrowLeft Size={16} className="mr-1" /> Back to Orders List
         </Link>
       </div>
     );
@@ -270,7 +270,7 @@ const AdminOrderDetails = () => {
           className="inline-flex items-center text-blue-600 hover:text-blue-800 group text-sm font-medium"
         >
           <ArrowLeft
-            size={18}
+            Size={18}
             className="mr-1 group-hover:-translate-x-1 transition-transform"
           />{" "}
           Back to Orders List
@@ -282,7 +282,7 @@ const AdminOrderDetails = () => {
           title="Refresh Order Details"
         >
           <RefreshCw
-            size={18}
+            Size={18}
             className={
               isDetailLoading || isUpdating || isDownloading
                 ? "animate-spin"
@@ -296,7 +296,7 @@ const AdminOrderDetails = () => {
         <div className="flex flex-col md:flex-row justify-between items-start gap-4">
           <div>
             <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-              <ShoppingBag size={24} className="text-blue-600" /> Order #
+              <ShoppingBag Size={24} className="text-blue-600" /> Order #
               {order._id?.slice(-8) || "N/A"}
             </h1>
             <p className="text-gray-500 text-sm mt-1">
@@ -337,7 +337,7 @@ const AdminOrderDetails = () => {
               disabled={isUpdating}
               className="w-full md:w-auto px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium flex items-center justify-center transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
             >
-              <Edit size={14} className="mr-1.5" /> Update Status
+              <Edit Size={14} className="mr-1.5" /> Update Status
             </button>
           </div>
         </div>
@@ -346,7 +346,7 @@ const AdminOrderDetails = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="bg-white rounded-lg shadow p-5 border border-gray-100">
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-            <UserIcon size={18} className="text-blue-600" /> Customer Details
+            <UserIcon Size={18} className="text-blue-600" /> Customer Details
           </h2>
           {order.user ? (
             <div className="space-y-1 text-sm">
@@ -371,7 +371,7 @@ const AdminOrderDetails = () => {
             </div>
           ) : (
             <div className="bg-yellow-50 p-3 rounded-md text-yellow-700 border border-yellow-200">
-              <AlertTriangle size={18} className="inline-block mr-1" />
+              <AlertTriangle Size={18} className="inline-block mr-1" />
               Customer data is missing for this order. This may be a data
               integrity issue.
             </div>
@@ -379,7 +379,7 @@ const AdminOrderDetails = () => {
         </div>
         <div className="bg-white rounded-lg shadow p-5 border border-gray-100">
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-            <MapPin size={18} className="text-blue-600" /> Shipping Address
+            <MapPin Size={18} className="text-blue-600" /> Shipping Address
           </h2>
           <div className="space-y-1 text-sm">
             <p>
@@ -393,7 +393,7 @@ const AdminOrderDetails = () => {
               {order.shippingAddress?.postalCode}
             </p>
             <p className="mt-1 flex items-center gap-1.5 text-gray-600">
-              <Phone size={14} />{" "}
+              <Phone Size={14} />{" "}
               {order.shippingAddress?.phoneNumber || "(Missing!)"}
             </p>
             {!order.shippingAddress?.address1 && (
@@ -436,7 +436,7 @@ const AdminOrderDetails = () => {
                     />
                   ) : (
                     <div className="text-center text-red-500 p-2">
-                      <AlertTriangle size={32} title="Design URL Missing!" />
+                      <AlertTriangle Size={32} title="Design URL Missing!" />
                       <p className="text-xs mt-1">No Image URL</p>
                     </div>
                   )}
@@ -461,7 +461,7 @@ const AdminOrderDetails = () => {
                       Color: {item.ProductColor || "N/A"}
                     </span>
                     <span className="px-1.5 py-0.5 bg-gray-100 rounded border">
-                      Size: {item.size || "N/A"}
+                      Size: {item.Size || "N/A"}
                     </span>
                     <span className="px-1.5 py-0.5 bg-gray-100 rounded border">
                       Qty: {item.qty || 1}
@@ -529,7 +529,7 @@ const AdminOrderDetails = () => {
                       {isDownloading && downloadingItemId === item._id ? (
                         <>
                           <CircularProgress
-                            size={14}
+                            Size={14}
                             color="inherit"
                             sx={{ mr: 1 }}
                           />{" "}
@@ -537,7 +537,7 @@ const AdminOrderDetails = () => {
                         </>
                       ) : (
                         <>
-                          <Download size={14} className="mr-1" /> Download Pkg
+                          <Download Size={14} className="mr-1" /> Download Pkg
                         </>
                       )}
                     </button>
@@ -546,7 +546,7 @@ const AdminOrderDetails = () => {
                       className="w-full md:w-auto px-3 py-1.5 bg-gray-300 text-gray-600 rounded text-sm flex items-center justify-center cursor-not-allowed"
                       title="Print file generation not available"
                     >
-                      <Printer size={14} className="mr-1" /> Print File (N/A)
+                      <Printer Size={14} className="mr-1" /> Print File (N/A)
                     </button>
                   </div>
                 </div>
@@ -559,7 +559,7 @@ const AdminOrderDetails = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="bg-white rounded-lg shadow p-5 border border-gray-100">
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-            <CreditCard size={18} className="text-blue-600" /> Financial Summary
+            <CreditCard Size={18} className="text-blue-600" /> Financial Summary
           </h2>
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
@@ -609,7 +609,7 @@ const AdminOrderDetails = () => {
         </div>
         <div className="bg-white rounded-lg shadow p-5 border border-gray-100">
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-            <Clock size={18} className="text-blue-600" /> Order History
+            <Clock Size={18} className="text-blue-600" /> Order History
           </h2>
           <div className="space-y-3 max-h-60 overflow-y-auto text-sm pr-2 custom-scrollbar">
             {order.statusHistory?.length > 0 ? (

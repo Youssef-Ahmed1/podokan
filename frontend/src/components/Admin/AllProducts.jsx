@@ -142,7 +142,7 @@ const AllProducts = () => {
           <IconButton
             component={Link}
             to={`/product/${params.row.id}`}
-            size="small"
+            Size="small"
             title="Preview"
           >
             <AiOutlineEye className="text-blue-600" />
@@ -151,14 +151,14 @@ const AllProducts = () => {
             <>
               <IconButton
                 onClick={() => handleApproveReject(params.row.id, "public")}
-                size="small"
+                Size="small"
                 title="Approve"
               >
                 <CheckCircle className="text-green-600" />
               </IconButton>
               <IconButton
                 onClick={() => handleApproveReject(params.row.id, "rejected")}
-                size="small"
+                Size="small"
                 title="Reject"
               >
                 <XCircle className="text-orange-600" />
@@ -167,7 +167,7 @@ const AllProducts = () => {
           )}
           <IconButton
             onClick={() => handleDelete(params.row.id)}
-            size="small"
+            Size="small"
             title="Delete"
           >
             <AiOutlineDelete className="text-red-600" />

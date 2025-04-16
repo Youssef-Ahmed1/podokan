@@ -78,7 +78,7 @@ const AllSellers = () => {
         <IconButton
           component={Link}
           to={`/shop/preview/${params.id}`}
-          size="small"
+          Size="small"
           title="Preview Shop"
         >
           <AiOutlineEye className="text-blue-600" />
@@ -95,7 +95,7 @@ const AllSellers = () => {
       renderCell: (params) => (
         <IconButton
           onClick={() => handleDeleteClick(params.id)}
-          size="small"
+          Size="small"
           title="Delete Seller"
         >
           <AiOutlineDelete className="text-red-600" />

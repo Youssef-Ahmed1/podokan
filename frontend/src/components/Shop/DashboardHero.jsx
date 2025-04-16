@@ -118,7 +118,7 @@ const DashboardHero = () => {
           <IconButton
             component={Link}
             to={`/order/${params.id}`}
-            size="small"
+            Size="small"
             title="View Order"
           >
             <AiOutlineArrowRight className="text-blue-600" />
@@ -160,7 +160,7 @@ const DashboardHero = () => {
         <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
           <div className="flex items-center mb-1">
             <div className="p-2 bg-green-100 rounded-full mr-3">
-              <AiOutlineMoneyCollect size={24} className="text-green-600" />
+              <AiOutlineMoneyCollect Size={24} className="text-green-600" />
             </div>
             <div>
               <h4 className="text-sm font-medium text-gray-500">
@@ -181,7 +181,7 @@ const DashboardHero = () => {
         <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
           <div className="flex items-center mb-1">
             <div className="p-2 bg-purple-100 rounded-full mr-3">
-              <MdBorderClear size={24} className="text-purple-600" />
+              <MdBorderClear Size={24} className="text-purple-600" />
             </div>
             <div>
               <h4 className="text-sm font-medium text-gray-500">
@@ -200,7 +200,7 @@ const DashboardHero = () => {
         <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
           <div className="flex items-center mb-1">
             <div className="p-2 bg-blue-100 rounded-full mr-3">
-              <MdOutlineShoppingBag size={24} className="text-blue-600" />
+              <MdOutlineShoppingBag Size={24} className="text-blue-600" />
             </div>
             <div>
               <h4 className="text-sm font-medium text-gray-500">

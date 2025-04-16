@@ -106,7 +106,7 @@ const ProductCard = ({ data }) => {
           {/* Product Images with Animation */}
           <AnimatePresence mode="wait">
             <motion.div
-              key={isHovered ? 'mockup' : 'design'}
+              key={isHovered ? "mockup" : "design"}
               initial={{ opacity: 0, scale: 1.1 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
@@ -117,7 +117,7 @@ const ProductCard = ({ data }) => {
                 // Mockup with Design Overlay
                 <div className="relative w-full h-full">
                   <img
-                    src={getMockupUrl('white', 'front')}
+                    src={getMockupUrl("white", "front")}
                     className="w-full h-full object-cover"
                     alt={data.name}
                     onLoad={() => setIsLoading(false)}
@@ -171,7 +171,7 @@ const ProductCard = ({ data }) => {
                   </span>
                 )}
               </motion.div>
-              
+
               <div className="flex gap-2">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -180,9 +180,9 @@ const ProductCard = ({ data }) => {
                   className="p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30"
                 >
                   {isInWishlist ? (
-                    <AiFillHeart className="text-red-500" size={20} />
+                    <AiFillHeart className="text-red-500" Size={20} />
                   ) : (
-                    <AiOutlineHeart className="text-white" size={20} />
+                    <AiOutlineHeart className="text-white" Size={20} />
                   )}
                 </motion.button>
 
@@ -192,16 +192,19 @@ const ProductCard = ({ data }) => {
                   onClick={handleAddToCart}
                   className="p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30"
                 >
-                  <AiOutlineShoppingCart className={isInCart ? "text-blue-500" : "text-white"} size={20} />
+                  <AiOutlineShoppingCart
+                    className={isInCart ? "text-blue-500" : "text-white"}
+                    Size={20}
+                  />
                 </motion.button>
-                
+
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={handleShare}
                   className="p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30"
                 >
-                  <IoMdShare className="text-white" size={20} />
+                  <IoMdShare className="text-white" Size={20} />
                 </motion.button>
               </div>
             </div>
@@ -210,11 +213,16 @@ const ProductCard = ({ data }) => {
           {/* Sale Badge */}
           {data.discountPrice && (
             <motion.div
-              initial={{ x: '100%' }}
+              initial={{ x: "100%" }}
               animate={{ x: 0 }}
               className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium"
             >
-              {Math.round(((data.originalPrice - data.discountPrice) / data.originalPrice) * 100)}% OFF
+              {Math.round(
+                ((data.originalPrice - data.discountPrice) /
+                  data.originalPrice) *
+                  100
+              )}
+              % OFF
             </motion.div>
           )}
         </div>
@@ -224,9 +232,7 @@ const ProductCard = ({ data }) => {
           <h3 className="text-gray-800 text-lg font-medium truncate">
             {data.name}
           </h3>
-          <p className="text-gray-500 text-sm mt-1">
-            by {data.shop?.name}
-          </p>
+          <p className="text-gray-500 text-sm mt-1">by {data.shop?.name}</p>
         </div>
       </Link>
     </motion.div>

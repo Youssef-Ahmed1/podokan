@@ -52,7 +52,7 @@ function CustomNoRowsOverlay({ message = "No orders found." }) {
         p: 2,
       }}
     >
-      <Package size={48} style={{ color: "#9ca3af", marginBottom: "1rem" }} />
+      <Package Size={48} style={{ color: "#9ca3af", marginBottom: "1rem" }} />
       <Typography variant="body1" color="textSecondary">
         {message}
       </Typography>
@@ -207,7 +207,7 @@ const AdminDashboardOrders = () => {
             onChange={(e) =>
               handleStatusUpdate(params.id, e.target.value, params.value)
             }
-            size="small"
+            Size="small"
             variant="outlined"
             disabled={isUpdating}
             fullWidth
@@ -243,7 +243,7 @@ const AdminDashboardOrders = () => {
         headerAlign: "center",
         renderCell: (params) => (
           <Link to={`/admin/order/${params.id}`} title="View Details">
-            <IconButton size="small">
+            <IconButton Size="small">
               <Eye className="text-blue-600 hover:text-blue-800" />
             </IconButton>
           </Link>
@@ -272,7 +272,7 @@ const AdminDashboardOrders = () => {
               title="Refresh Current Page Data"
             >
               <RefreshCw
-                size={18}
+                Size={18}
                 className={isLoading || isUpdating ? "animate-spin" : ""}
               />
             </button>
@@ -281,7 +281,7 @@ const AdminDashboardOrders = () => {
             <div className="relative flex-grow">
               <Search
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
+                Size={18}
               />
               <input
                 type="text"
@@ -294,7 +294,7 @@ const AdminDashboardOrders = () => {
             <Select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              size="small"
+              Size="small"
               sx={{
                 minWidth: 180,
                 height: "42px",
@@ -314,7 +314,7 @@ const AdminDashboardOrders = () => {
           </div>
           {error && !isLoading && (
             <p className="text-red-500 text-sm mt-3 p-2 bg-red-50 border border-red-200 rounded flex items-center gap-2">
-              <AlertTriangle size={16} /> Failed to load orders: {error}
+              <AlertTriangle Size={16} /> Failed to load orders: {error}
             </p>
           )}
         </div>

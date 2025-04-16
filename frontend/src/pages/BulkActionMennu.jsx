@@ -14,13 +14,13 @@ const BulkActionMenu = ({
       <span className="text-sm text-gray-600">
         {selectedOrders.length} orders selected
       </span>
-      
+
       <button
         onClick={onDownload}
         disabled={isLoading || selectedOrders.length === 0}
         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
       >
-        <Download size={16} />
+        <Download Size={16} />
         Download Designs
       </button>
 
@@ -29,7 +29,7 @@ const BulkActionMenu = ({
         disabled={isLoading || selectedOrders.length === 0}
         className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
       >
-        <FileSpreadsheet size={16} />
+        <FileSpreadsheet Size={16} />
         Export to CSV
       </button>
 
@@ -45,7 +45,7 @@ const BulkActionMenu = ({
           <option value="Delivered">Delivered</option>
           <option value="Cancelled">Cancelled</option>
         </select>
-        {isLoading && <RefreshCw className="animate-spin" size={20} />}
+        {isLoading && <RefreshCw className="animate-spin" Size={20} />}
       </div>
     </div>
   );

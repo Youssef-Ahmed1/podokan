@@ -138,7 +138,7 @@ router.post(
         if (!item.DesignTitle) missing.push("DesignTitle");
         if (!item.ProductType) missing.push("ProductType");
         if (!item.ProductColor) missing.push("ProductColor");
-        if (!item.size) missing.push("size");
+        if (!item.Size) missing.push("Size");
         if (missing.length > 0) {
           throw new ErrorHandler(
             `Item "${
@@ -194,7 +194,7 @@ router.post(
         DesignTitle: item.DesignTitle || "Untitled Design",
         ProductType: item.ProductType || "Unknown Type",
         ProductColor: item.ProductColor || "White",
-        size: item.size || "One Size",
+        Size: item.Size || "One Size",
         designSpecs: item.designSpecs || {
           positionX: 50,
           positionY: 50,
@@ -854,16 +854,16 @@ router.put(
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     const { orderId, itemId } = req.params;
-    const { ProductColor, size } = req.body;
+    const { ProductColor, Size } = req.body;
     const adminId = req.user._id.toString();
 
     if (!isValidObjectId(orderId) || !isValidObjectId(itemId)) {
       return next(new ErrorHandler("Invalid Order or Item ID format.", 400));
     }
-    if (ProductColor === undefined && size === undefined) {
+    if (ProductColor === undefined && Size === undefined) {
       return next(
         new ErrorHandler(
-          "No update data provided (require ProductColor or size).",
+          "No update data provided (require ProductColor or Size).",
           400
         )
       );
@@ -894,11 +894,11 @@ router.put(
       itemUpdated = true;
     }
 
-    if (size !== undefined && size !== itemToUpdate.size) {
+    if (Size !== undefined && Size !== itemToUpdate.Size) {
       detailsLog += `${itemUpdated ? "," : ""} Size='${
-        itemToUpdate.size
-      }'->'${size}'`;
-      itemToUpdate.size = size.trim();
+        itemToUpdate.Size
+      }'->'${Size}'`;
+      itemToUpdate.Size = Size.trim();
       itemUpdated = true;
     }
 
@@ -1013,7 +1013,7 @@ router.get(
       specs: {
         type: item.ProductType || "N/A",
         color: item.ProductColor || "N/A",
-        size: item.size || "N/A",
+        Size: item.Size || "N/A",
         position: {
           positionX: item.designSpecs?.positionX ?? 50,
           positionY: item.designSpecs?.positionY ?? 50,

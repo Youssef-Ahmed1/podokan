@@ -136,7 +136,7 @@ const AllOrders = () => {
               title="Refresh Orders"
             >
               <RefreshCw
-                size={18}
+                Size={18}
                 className={isLoading ? "animate-spin" : ""}
               />
             </button>
@@ -147,7 +147,7 @@ const AllOrders = () => {
             <div className="relative flex-grow">
               <Search
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
+                Size={18}
               />
               <input
                 type="text"
@@ -198,7 +198,7 @@ const AllOrders = () => {
           {/* Case 1: Error and no orders loaded ever */}
           {!isLoading && error && shopOrders.length === 0 && (
             <div className="p-6 text-center bg-red-50 rounded-lg border border-red-200">
-              <Frown size={48} className="mx-auto text-red-400 mb-4" />
+              <Frown Size={48} className="mx-auto text-red-400 mb-4" />
               <h2 className="text-xl font-semibold text-red-700 mb-2">
                 Failed to Load Orders
               </h2>
@@ -208,14 +208,14 @@ const AllOrders = () => {
                 disabled={isLoading}
                 className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center mx-auto hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
-                <RefreshCw size={16} className="mr-2" /> Retry
+                <RefreshCw Size={16} className="mr-2" /> Retry
               </button>
             </div>
           )}
           {/* Case 2: No error, but no orders found for the seller */}
           {!isLoading && !error && shopOrders.length === 0 && (
             <div className="p-6 text-center bg-blue-50 rounded-lg border border-blue-100">
-              <Package size={48} className="mx-auto text-blue-400 mb-4" />
+              <Package Size={48} className="mx-auto text-blue-400 mb-4" />
               <h2 className="text-xl font-semibold text-gray-700 mb-2">
                 No Orders Yet
               </h2>
@@ -227,7 +227,7 @@ const AllOrders = () => {
                 disabled={isLoading}
                 className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center mx-auto hover:bg-blue-600 disabled:opacity-50 transition-colors"
               >
-                <RefreshCw size={16} className="mr-2" /> Refresh
+                <RefreshCw Size={16} className="mr-2" /> Refresh
               </button>
             </div>
           )}
@@ -236,7 +236,7 @@ const AllOrders = () => {
             shopOrders.length > 0 &&
             filteredOrders.length === 0 && (
               <div className="p-6 text-center bg-white rounded-lg shadow border border-gray-200">
-                <Info size={48} className="mx-auto text-gray-400 mb-4" />
+                <Info Size={48} className="mx-auto text-gray-400 mb-4" />
                 <h2 className="text-xl font-semibold text-gray-700 mb-2">
                   No Matching Orders
                 </h2>
@@ -272,7 +272,7 @@ const AllOrders = () => {
                         className="hover:underline"
                       >
                         <h3 className="text-md font-semibold text-gray-800 inline-flex items-center gap-1.5">
-                          <Package size={16} className="text-gray-500" /> Order
+                          <Package Size={16} className="text-gray-500" /> Order
                           #{order._id.slice(-8)}
                         </h3>
                       </Link>
@@ -304,7 +304,7 @@ const AllOrders = () => {
                       {/* View Details Button */}
                       <Link to={`/order/${order._id}`}>
                         <button className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-md flex items-center hover:bg-blue-700 transition-colors">
-                          <Eye size={14} className="mr-1" /> View Details
+                          <Eye Size={14} className="mr-1" /> View Details
                         </button>
                       </Link>
                     </div>
@@ -341,7 +341,7 @@ const AllOrders = () => {
                               </p>
                               <p className="text-gray-500 truncate">
                                 {item.ProductType} - {item.ProductColor} -{" "}
-                                {item.size}
+                                {item.Size}
                               </p>
                               <p className="text-gray-600 mt-0.5">
                                 Qty: {item.qty} × EGP{" "}
@@ -376,7 +376,7 @@ const AllOrders = () => {
               disabled={currentPage === 1}
               className="px-3 py-1 rounded bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 flex items-center transition-colors"
             >
-              <ArrowLeft size={14} className="mr-1" /> Prev
+              <ArrowLeft Size={14} className="mr-1" /> Prev
             </button>
             <span className="text-gray-600 px-2">
               Page {currentPage} of {totalPages}
@@ -386,7 +386,7 @@ const AllOrders = () => {
               disabled={currentPage === totalPages}
               className="px-3 py-1 rounded bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 flex items-center transition-colors"
             >
-              Next <ArrowRight size={14} className="ml-1" />
+              Next <ArrowRight Size={14} className="ml-1" />
             </button>
           </div>
         )}

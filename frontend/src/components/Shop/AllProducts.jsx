@@ -24,7 +24,7 @@ const AllProducts = () => {
 
   const loadProducts = useCallback(() => {
     if (seller?._id) {
-      // Pass page number (1-based for API) and page size
+      // Pass page number (1-based for API) and page Size
       dispatch(
         getAllProductsShop(
           seller._id,
@@ -115,14 +115,14 @@ const AllProducts = () => {
             <IconButton
               component={Link}
               to={`/product/${p.id}`}
-              size="small"
+              Size="small"
               title="Preview"
             >
               <AiOutlineEye className="text-blue-600" />
             </IconButton>
             <IconButton
               onClick={() => handleDelete(p.id)}
-              size="small"
+              Size="small"
               title="Delete"
             >
               <AiOutlineDelete className="text-red-600" />

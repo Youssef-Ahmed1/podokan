@@ -99,14 +99,14 @@ const TrackOrderPage = () => {
   if (!orderData && !isLoading) {
     return (
       <div className="w-full h-[80vh] flex flex-col justify-center items-center p-4">
-        <Info size={48} className="text-gray-400 mb-4" />
+        <Info Size={48} className="text-gray-400 mb-4" />
         <h1 className="text-xl font-semibold">Order Not Found</h1>
         <p className="text-gray-500 mt-2">No tracking for this ID.</p>
         <Link
           to="/profile"
           className="mt-4 text-blue-600 hover:underline flex items-center"
         >
-          <ArrowLeft size={16} className="mr-1" /> Back
+          <ArrowLeft Size={16} className="mr-1" /> Back
         </Link>
       </div>
     );
@@ -127,14 +127,14 @@ const TrackOrderPage = () => {
             to="/profile"
             className="text-sm text-blue-600 hover:underline flex items-center"
           >
-            <ArrowLeft size={14} className="mr-0.5" /> Orders
+            <ArrowLeft Size={14} className="mr-0.5" /> Orders
           </Link>
         </div>
         <div
           className={`flex items-center p-4 rounded-lg bg-${statusInfo.color}-50 border border-${statusInfo.color}-200 mb-6`}
         >
           <div className={`mr-3 text-${statusInfo.color}-600`}>
-            {React.cloneElement(statusInfo.icon, { size: 24 })}
+            {React.cloneElement(statusInfo.icon, { Size: 24 })}
           </div>
           <p className={`text-md font-semibold text-${statusInfo.color}-800`}>
             {statusInfo.message}

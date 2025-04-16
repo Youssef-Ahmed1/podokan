@@ -52,9 +52,9 @@ const orderItemSchema = new mongoose.Schema(
       default: "White",
       trim: true,
     },
-    size: {
+    Size: {
       type: String,
-      required: [true, "Item size is required."],
+      required: [true, "Item Size is required."],
       default: "One Size",
       trim: true,
     },

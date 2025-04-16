@@ -105,7 +105,7 @@ const AllEvents = () => {
             <IconButton
               component={Link}
               to={`/product/${params.id}?isEvent=true`}
-              size="small"
+              Size="small"
               title="Preview Event Product"
             >
               <AiOutlineEye className="text-blue-600" />
@@ -123,7 +123,7 @@ const AllEvents = () => {
         renderCell: (params) => (
           <IconButton
             onClick={() => handleDelete(params.id)}
-            size="small"
+            Size="small"
             title="Delete Event"
           >
             <AiOutlineDelete className="text-red-600" />

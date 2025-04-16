@@ -111,13 +111,13 @@ const handleSubmit = async (e) => {
                 {visible ? (
                   <AiOutlineEye
                     className="absolute right-2 top-2 cursor-pointer"
-                    size={25}
+                    Size={25}
                     onClick={() => setVisible(false)}
                   />
                 ) : (
                   <AiOutlineEyeInvisible
                     className="absolute right-2 top-2 cursor-pointer"
-                    size={25}
+                    Size={25}
                     onClick={() => setVisible(true)}
                   />
                 )}
@@ -152,7 +152,7 @@ const handleSubmit = async (e) => {
                 type="submit"
                 disabled={loading}
                 className={`group relative w-full h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 ${
-                  loading ? 'opacity-50 cursor-not-allowed' : ''
+                  loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
                 {loading ? (
@@ -160,7 +160,7 @@ const handleSubmit = async (e) => {
                     <div className="h-5 w-5 border-t-2 border-b-2 border-white rounded-full animate-spin" />
                   </div>
                 ) : (
-                  'Submit'
+                  "Submit"
                 )}
               </button>
             </div>

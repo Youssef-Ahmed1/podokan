@@ -10,7 +10,7 @@ const DesignEditor = () => {
     setDesignPosition({ x: d.x, y: d.y });
   };
 
-  const handleResizeStop = (e, direction, ref, delta, position) => {
+  const handleReSizeStop = (e, direction, ref, delta, position) => {
     setDesignPosition({ x: position.x, y: position.y });
     setDesignSize({ width: ref.style.width, height: ref.style.height });
   };
@@ -19,10 +19,10 @@ const DesignEditor = () => {
     <div className="design_div" style={{ position: "relative" }}>
       <Rnd
         ref={designRef}
-        size={designSize}
+        Size={designSize}
         position={DesignPosition}
         onDragStop={handleDragStop}
-        onResizeStop={handleResizeStop}
+        onReSizeStop={handleReSizeStop}
         bounds="parent"
         enableResizing={true}
       >

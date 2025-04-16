@@ -253,7 +253,7 @@ const CreateEvent = () => {
           />
           <div className="w-full flex items-center flex-wrap">
             <label htmlFor="upload">
-              <AiOutlinePlusCircle size={30} className="mt-3" color="#555" />
+              <AiOutlinePlusCircle Size={30} className="mt-3" color="#555" />
             </label>
             {images &&
               images.map((i) => (

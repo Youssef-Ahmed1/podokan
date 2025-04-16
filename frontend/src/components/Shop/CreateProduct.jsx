@@ -71,16 +71,20 @@ const FORM_FIELDS = {
 
 
 const calculateDPI = (width, height) => {
-  const PRINT_SIZE = 12;
-  return Math.min(width, height) / PRINT_SIZE;
+  const PRINT_Size = 12;
+  return Math.min(width, height) / PRINT_Size;
 };
 
-const getMockupUrl = (productType = 'hoodie', color = 'white', view = 'front') => {
+const getMockupUrl = (
+  productType = "hoodie",
+  color = "white",
+  view = "front"
+) => {
   const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/";
   const config = PRODUCT_TYPES[productType]?.mockupConfig;
-  
+
   if (!config) return "";
-  
+
   const filename = config.getFilename(color, view);
   return `${baseUrl}${config.version}/${config.folder}/${filename}.png`;
 };
@@ -88,15 +92,15 @@ const getMockupUrl = (productType = 'hoodie', color = 'white', view = 'front') =
 const compressDesign = async (file) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
     img.onload = async () => {
       try {
         let { width, height } = img;
         const MAX_DIMENSION = 4000;
-        const TARGET_SIZE = 500 * 1024;
-        
+        const TARGET_Size = 500 * 1024;
+
         if (Math.max(width, height) > MAX_DIMENSION) {
           const ratio = MAX_DIMENSION / Math.max(width, height);
           width *= ratio;
@@ -106,36 +110,38 @@ const compressDesign = async (file) => {
         canvas.width = width;
         canvas.height = height;
         ctx.drawImage(img, 0, 0, width, height);
-        
+
         let quality = 1.0;
         let blob;
-        
+
         do {
-          blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', quality));
+          blob = await new Promise((resolve) =>
+            canvas.toBlob(resolve, "image/png", quality)
+          );
           quality -= 0.1;
-        } while (blob.size > TARGET_SIZE && quality > 0.3);
+        } while (blob.Size > TARGET_Size && quality > 0.3);
 
         const dpi = calculateDPI(width, height);
-        
+
         const compressedFile = new File([blob], file.name, {
-          type: 'image/png',
-          lastModified: Date.now()
+          type: "image/png",
+          lastModified: Date.now(),
         });
 
         resolve({
           file: compressedFile,
-          compressedSize: blob.size,
+          compressedSize: blob.Size,
           width,
           height,
           quality: quality * 100,
-          dpi
+          dpi,
         });
       } catch (error) {
         reject(error);
       }
     };
 
-    img.onerror = () => reject(new Error('Failed to load image'));
+    img.onerror = () => reject(new Error("Failed to load image"));
     img.src = URL.createObjectURL(file);
   });
 };
@@ -215,8 +221,11 @@ const calculateDesignQualityScore = (imageInfo) => {
     });
   }
 
-  const sizeScore = Math.min(30, (Math.min(imageInfo.compressedSize, 500000) / 500000) * 30);
-  score -= (30 - sizeScore);
+  const SizeScore = Math.min(
+    30,
+    (Math.min(imageInfo.compressedSize, 500000) / 500000) * 30
+  );
+  score -= 30 - SizeScore;
   if (imageInfo.compressedSize > 500000) {
     feedback.push({
       type: 'info',
@@ -247,10 +256,10 @@ const calculateDesignQualityScore = (imageInfo) => {
     feedback,
     details: {
       dpi: imageInfo.dpi,
-      size: imageInfo.compressedSize,
+      Size: imageInfo.compressedSize,
       dimensions: `${imageInfo.width}x${imageInfo.height}`,
-      transparency: imageInfo.hasTransparency
-    }
+      transparency: imageInfo.hasTransparency,
+    },
   };
 };
 
@@ -270,7 +279,7 @@ const ScaleControl = ({ scale, onChange, disabled }) => (
           className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50
             transition-colors duration-200"
         >
-          <AiOutlineMinusCircle size={20} />
+          <AiOutlineMinusCircle Size={20} />
         </button>
         <button
           type="button"
@@ -279,7 +288,7 @@ const ScaleControl = ({ scale, onChange, disabled }) => (
           className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50
             transition-colors duration-200"
         >
-          <AiOutlinePlusCircle size={20} />
+          <AiOutlinePlusCircle Size={20} />
         </button>
       </div>
     </div>
@@ -547,8 +556,8 @@ const CreateProduct = () => {
       try {
         if (!file) return;
 
-        if (file.size > 20 * 1024 * 1024) {
-          toast.error("File size exceeds 20MB limit");
+        if (file.Size > 20 * 1024 * 1024) {
+          toast.error("File Size exceeds 20MB limit");
           return;
         }
 
@@ -610,7 +619,7 @@ const CreateProduct = () => {
         });
 
         toast.success(
-          `Design optimized: ${(file.size / (1024 * 1024)).toFixed(2)}MB → ` +
+          `Design optimized: ${(file.Size / (1024 * 1024)).toFixed(2)}MB → ` +
             `${(compressionResult.compressedSize / 1024).toFixed(2)}KB`
         );
 
@@ -909,7 +918,7 @@ const CreateProduct = () => {
                         </h4>
                         <ul className="list-disc list-inside text-blue-700 space-y-2">
                           <li>File format: PNG with transparent background</li>
-                          <li>Maximum file size: 20MB (will be optimized)</li>
+                          <li>Maximum file Size: 20MB (will be optimized)</li>
                           <li>Recommended dimensions: 1000px to 4000px</li>
                           <li>Recommended DPI: 300 or higher</li>
                         </ul>
@@ -1211,7 +1220,7 @@ const CreateProduct = () => {
                         <div className="bg-gray-50 p-2 rounded">
                           <span className="text-gray-600">Size: </span>
                           <span className="font-medium">
-                            {(designQualityScore.details.size / 1024).toFixed(
+                            {(designQualityScore.details.Size / 1024).toFixed(
                               2
                             )}
                             KB
