@@ -40,7 +40,6 @@ function CustomLoadingOverlay() {
     </Box>
   );
 }
-
 function CustomNoRowsOverlay({ message = "No orders found." }) {
   return (
     <Box
@@ -131,41 +130,32 @@ const AdminDashboardOrders = () => {
     });
   }, [adminOrders, searchTerm, filterStatus]);
 
-  const handleStatusUpdate = useCallback(
-    (orderId, newStatus, currentStatus) => {
-      if (newStatus === currentStatus || isUpdating) return;
-
-      dispatch(adminUpdateOrderStatus(orderId, newStatus))
-        .then(() => {
-          toast.success(`Order status updated to ${newStatus}`);
-        })
-        .catch((err) => {
-          console.error("Status update error:", err);
-          // Error is already handled by the action through toast
-        });
-    },
-    [dispatch, isUpdating]
-  );
+  const handleStatusUpdate = (orderId, newStatus, currentStatus) => {
+    if (newStatus === currentStatus || isUpdating) return;
+    dispatch(adminUpdateOrderStatus(orderId, newStatus)).catch(() => {});
+  };
 
   const handlePaginationModelChange = (newModel) => {
     setPaginationModel(newModel);
   };
 
   const rows = useMemo(() => {
-    return (Array.isArray(adminOrders) ? adminOrders : []).map((order) => {
-      // Ensure each order has a valid id for DataGrid
-      if (!order._id) {
-        console.warn("Order without ID found:", order);
+    return (Array.isArray(adminOrders) ? adminOrders : []).map((o, index) => {
+      // Enhanced logging to identify user data issues
+      if (!o.user || !o.user.name) {
+        console.warn(
+          `[AdminDashboardOrders] Order at index ${index} is missing user data:`,
+          { id: o._id, hasUser: !!o.user, userData: o.user }
+        );
       }
 
       return {
-        id: order._id || `unknown-${Math.random().toString(36).substr(2, 9)}`,
-        _id: order._id, // keep original _id for reference
-        date: order.createdAt || new Date().toISOString(),
-        customer: order.user?.name || "Unknown Customer",
-        itemsQty: Array.isArray(order.cart) ? order.cart.length : 0,
-        total: typeof order.totalPrice === "number" ? order.totalPrice : 0,
-        status: order.status || "Unknown",
+        id: o._id || `unknown-${index}`,
+        date: o.createdAt || new Date().toISOString(),
+        customer: o.user?.name || "Unknown Customer",
+        itemsQty: Array.isArray(o.cart) ? o.cart.length : 0,
+        total: typeof o.totalPrice === "number" ? o.totalPrice : 0,
+        status: o.status || "Unknown",
       };
     });
   }, [adminOrders]);
@@ -176,14 +166,14 @@ const AdminDashboardOrders = () => {
         field: "id",
         headerName: "ID",
         width: 100,
-        renderCell: (params) => `#${params.row._id?.slice(-6) || "N/A"}`,
+        renderCell: (params) => `#${params.value?.slice(-6) || "N/A"}`,
       },
       {
         field: "date",
         headerName: "Date",
         width: 110,
         type: "date",
-        valueGetter: (params) => (params.value ? new Date(params.value) : null),
+        valueGetter: (value) => (value ? new Date(value) : null),
         renderCell: (params) =>
           params.value ? format(params.value, "PP") : "N/A",
       },
@@ -203,8 +193,7 @@ const AdminDashboardOrders = () => {
         type: "number",
         align: "right",
         headerAlign: "right",
-        valueFormatter: (params) =>
-          `EGP ${Number(params.value || 0).toFixed(2)}`,
+        valueFormatter: (value) => `EGP ${Number(value || 0).toFixed(2)}`,
       },
       {
         field: "status",
@@ -216,7 +205,7 @@ const AdminDashboardOrders = () => {
           <Select
             value={params.value || ""}
             onChange={(e) =>
-              handleStatusUpdate(params.row._id, e.target.value, params.value)
+              handleStatusUpdate(params.id, e.target.value, params.value)
             }
             size="small"
             variant="outlined"
@@ -253,7 +242,7 @@ const AdminDashboardOrders = () => {
         align: "center",
         headerAlign: "center",
         renderCell: (params) => (
-          <Link to={`/admin/order/${params.row._id}`} title="View Details">
+          <Link to={`/admin/order/${params.id}`} title="View Details">
             <IconButton size="small">
               <Eye className="text-blue-600 hover:text-blue-800" />
             </IconButton>
@@ -261,7 +250,7 @@ const AdminDashboardOrders = () => {
         ),
       },
     ],
-    [isUpdating, handleStatusUpdate]
+    [isUpdating]
   );
 
   if (isLoading && adminOrders.length === 0 && adminTotalOrders === 0) {
@@ -333,11 +322,7 @@ const AdminDashboardOrders = () => {
         <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
           <Box sx={{ height: "70vh", width: "100%" }}>
             <DataGrid
-              rows={
-                filteredOrdersForCurrentPage.length > 0
-                  ? filteredOrdersForCurrentPage
-                  : rows
-              }
+              rows={rows}
               columns={columns}
               rowCount={adminTotalOrders || 0}
               loading={isLoading || isUpdating}
@@ -347,7 +332,6 @@ const AdminDashboardOrders = () => {
               onPaginationModelChange={handlePaginationModelChange}
               disableRowSelectionOnClick
               autoHeight={false}
-              getRowId={(row) => row.id}
               slots={{
                 loadingOverlay: CustomLoadingOverlay,
                 noRowsOverlay: () => (
