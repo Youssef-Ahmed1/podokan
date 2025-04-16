@@ -116,11 +116,12 @@ router.post(
     if (
       !shippingAddress?.address1 ||
       !shippingAddress.city ||
+      !shippingAddress.country ||
       !shippingAddress.phoneNumber
     ) {
       return next(
         new ErrorHandler(
-          "Shipping address incomplete (Address 1, City,  Phone required).",
+          "Shipping address incomplete (Address 1, City, Country, Phone required).",
           400
         )
       );
@@ -138,7 +139,7 @@ router.post(
         if (!item.DesignTitle) missing.push("DesignTitle");
         if (!item.ProductType) missing.push("ProductType");
         if (!item.ProductColor) missing.push("ProductColor");
-        if (!item.Size) missing.push("Size");
+        if (!item.size) missing.push("size");
         if (missing.length > 0) {
           throw new ErrorHandler(
             `Item "${
@@ -194,7 +195,7 @@ router.post(
         DesignTitle: item.DesignTitle || "Untitled Design",
         ProductType: item.ProductType || "Unknown Type",
         ProductColor: item.ProductColor || "White",
-        Size: item.Size || "One Size",
+        size: item.size || "One Size",
         designSpecs: item.designSpecs || {
           positionX: 50,
           positionY: 50,
@@ -228,6 +229,7 @@ router.post(
           address1: shippingAddress.address1,
           address2: shippingAddress.address2 || "",
           city: shippingAddress.city,
+          country: shippingAddress.country,
           postalCode: shippingAddress.postalCode || "",
           phoneNumber: shippingAddress.phoneNumber,
           shippingPrice: shippingCostPerSellerOrder,
@@ -854,16 +856,16 @@ router.put(
   isAdmin,
   catchAsyncErrors(async (req, res, next) => {
     const { orderId, itemId } = req.params;
-    const { ProductColor, Size } = req.body;
+    const { ProductColor, size } = req.body;
     const adminId = req.user._id.toString();
 
     if (!isValidObjectId(orderId) || !isValidObjectId(itemId)) {
       return next(new ErrorHandler("Invalid Order or Item ID format.", 400));
     }
-    if (ProductColor === undefined && Size === undefined) {
+    if (ProductColor === undefined && size === undefined) {
       return next(
         new ErrorHandler(
-          "No update data provided (require ProductColor or Size).",
+          "No update data provided (require ProductColor or size).",
           400
         )
       );
@@ -894,11 +896,11 @@ router.put(
       itemUpdated = true;
     }
 
-    if (Size !== undefined && Size !== itemToUpdate.Size) {
+    if (size !== undefined && size !== itemToUpdate.size) {
       detailsLog += `${itemUpdated ? "," : ""} Size='${
-        itemToUpdate.Size
-      }'->'${Size}'`;
-      itemToUpdate.Size = Size.trim();
+        itemToUpdate.size
+      }'->'${size}'`;
+      itemToUpdate.size = size.trim();
       itemUpdated = true;
     }
 
@@ -1013,7 +1015,7 @@ router.get(
       specs: {
         type: item.ProductType || "N/A",
         color: item.ProductColor || "N/A",
-        Size: item.Size || "N/A",
+        size: item.size || "N/A",
         position: {
           positionX: item.designSpecs?.positionX ?? 50,
           positionY: item.designSpecs?.positionY ?? 50,
