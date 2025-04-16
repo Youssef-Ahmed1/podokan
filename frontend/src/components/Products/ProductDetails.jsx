@@ -39,7 +39,7 @@ const ProductDetails = ({ data }) => {
     position: { x: 50, y: 40 },
     scale: 0.8,
     productType: data?.ProductType || "hoodie",
-    productColor: data?.ProductColor || "white",
+    ProductColor: data?.ProductColor || "white",
     productView: "front",
   };
 
@@ -47,7 +47,7 @@ const ProductDetails = ({ data }) => {
   const designStyles = DesignScalingManager.getDesignStyles(
     designSpecs.position,
     designSpecs.scale,
-    designSpecs.productColor,
+    designSpecs.ProductColor,
     designSpecs.productView
   );
 

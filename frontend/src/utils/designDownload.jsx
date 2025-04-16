@@ -155,8 +155,8 @@ export class DesignDownloader {
     });
   }
 
-  static getProductTemplateUrl(productType, productColor) {
-    if (!productType || !productColor) {
+  static getProductTemplateUrl(productType, ProductColor) {
+    if (!productType || !ProductColor) {
       throw new Error(
         "Product type and color are required to get template URL."
       );
@@ -164,7 +164,7 @@ export class DesignDownloader {
 
     // Normalize keys
     const typeKey = productType.toLowerCase().replace(/\s+/g, "-");
-    const colorKey = productColor.toLowerCase().replace(/\s+/g, "-");
+    const colorKey = ProductColor.toLowerCase().replace(/\s+/g, "-");
 
     const folder = TEMPLATE_FOLDERS[typeKey];
     if (!folder) {
@@ -198,13 +198,13 @@ export class DesignDownloader {
   static async createProductMockup(
     designImageUrl,
     productType,
-    productColor,
+    ProductColor,
     designSpecs
   ) {
     if (
       !designImageUrl ||
       !productType ||
-      !productColor ||
+      !ProductColor ||
       designSpecs?.positionX == null ||
       designSpecs?.positionY == null
     ) {
@@ -223,7 +223,7 @@ export class DesignDownloader {
       // Get the URL for the FRONT template
       templateImageUrl = DesignDownloader.getProductTemplateUrl(
         productType,
-        productColor
+        ProductColor
       );
     } catch (e) {
       throw new ImageProcessingError(
