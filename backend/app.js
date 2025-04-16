@@ -62,7 +62,7 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 // Cookie Parser (for accessing `req.cookies`)
 app.use(cookieParser());
 
-// Response Compression (Reduces size of responses like JSON, HTML)
+// Response Compression (Reduces Size of responses like JSON, HTML)
 app.use(compression());
 
 // --- API Routes ---

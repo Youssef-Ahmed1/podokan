@@ -13,7 +13,7 @@ export const addTocart = (data) => async (dispatch, getState) => {
       },
       ProductType: data.ProductType || "Unknown Type",
       ProductColor: data.selectedColor || "White",
-      size: data.selectedSize || "One Size",
+      Size: data.selectedSize || "One Size",
       quantity: data.quantity || 1,
       qty: data.quantity || 1, // Add this for compatibility
       stock: data.stock || 100,
@@ -30,11 +30,11 @@ export const addTocart = (data) => async (dispatch, getState) => {
       },
     };
 
-    // Check for existing item with same ID, size, and color
+    // Check for existing item with same ID, Size, and color
     const existingItemIndex = cart.findIndex(
       (item) =>
         item._id === cartItem._id &&
-        item.size === cartItem.size &&
+        item.Size === cartItem.Size &&
         item.ProductColor === cartItem.ProductColor
     );
 

@@ -153,7 +153,7 @@ const AllCoupons = () => {
       renderCell: (params) => (
         <IconButton
           onClick={() => handleDelete(params.id)}
-          size="small"
+          Size="small"
           title="Delete"
         >
           <AiOutlineDelete className="text-red-600" />
@@ -230,7 +230,7 @@ const AllCoupons = () => {
                     onChange={(e) => setName(e.target.value)}
                     required
                     fullWidth
-                    size="small"
+                    Size="small"
                   />
                   <TextField
                     label="Discount %"
@@ -239,7 +239,7 @@ const AllCoupons = () => {
                     onChange={(e) => setValue(e.target.value)}
                     required
                     fullWidth
-                    size="small"
+                    Size="small"
                     InputProps={{ inputProps: { min: 1, max: 100 } }}
                   />
                   <TextField
@@ -248,7 +248,7 @@ const AllCoupons = () => {
                     value={minAmount}
                     onChange={(e) => setMinAmount(e.target.value)}
                     fullWidth
-                    size="small"
+                    Size="small"
                     InputProps={{ inputProps: { min: 0 } }}
                   />
                   <TextField
@@ -257,10 +257,10 @@ const AllCoupons = () => {
                     value={maxAmount}
                     onChange={(e) => setMaxAmount(e.target.value)}
                     fullWidth
-                    size="small"
+                    Size="small"
                     InputProps={{ inputProps: { min: 0 } }}
                   />
-                  <FormControl fullWidth size="small">
+                  <FormControl fullWidth Size="small">
                     <InputLabel>Selected Product (Optional)</InputLabel>
                     <Select
                       value={selectedProducts}

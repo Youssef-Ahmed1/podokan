@@ -176,12 +176,12 @@ const OrderDetails = () => {
         {/* Display local fetch error */}
         {localError && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg text-center shadow-sm mb-4 max-w-md">
-            <AlertTriangle size={32} className="mx-auto mb-2 text-red-500" />
+            <AlertTriangle Size={32} className="mx-auto mb-2 text-red-500" />
             <p className="font-semibold">Error Loading Order</p>
             <p className="text-sm mt-1">{localError}</p>
           </div>
         )}
-        {!localError && <Info size={48} className="text-gray-400 mb-4" />}
+        {!localError && <Info Size={48} className="text-gray-400 mb-4" />}
 
         <p className="text-xl text-gray-600 mt-4">
           {localError
@@ -192,7 +192,7 @@ const OrderDetails = () => {
           to="/dashboard-orders"
           className="mt-6 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-5 rounded-lg inline-flex items-center transition-colors"
         >
-          <ArrowLeft size={16} className="mr-1" /> Back to Orders List
+          <ArrowLeft Size={16} className="mr-1" /> Back to Orders List
         </Link>
       </div>
     );
@@ -213,7 +213,7 @@ const OrderDetails = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
-            <ShoppingBag size={30} className="text-blue-600 flex-shrink-0" />
+            <ShoppingBag Size={30} className="text-blue-600 flex-shrink-0" />
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
                 Order Details
@@ -228,7 +228,7 @@ const OrderDetails = () => {
               to="/dashboard-orders"
               className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center transition-colors"
             >
-              <ArrowLeft size={16} className="mr-1" /> Order List
+              <ArrowLeft Size={16} className="mr-1" /> Order List
             </Link>
             <button
               onClick={fetchOrderDetails}
@@ -237,7 +237,7 @@ const OrderDetails = () => {
               title="Refresh Details"
             >
               <RefreshCw
-                size={18}
+                Size={18}
                 className={isLoading || isRefundUpdating ? "animate-spin" : ""}
               />
             </button>
@@ -294,7 +294,7 @@ const OrderDetails = () => {
           </h2>
           {sellerItems.length === 0 ? ( // Should not happen if backend filter works, but good fallback
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-yellow-800 text-sm flex items-center gap-2">
-              <Info size={18} /> No items from your shop found in this order
+              <Info Size={18} /> No items from your shop found in this order
               record.
             </div>
           ) : (
@@ -314,7 +314,7 @@ const OrderDetails = () => {
                       />
                     ) : (
                       <Package
-                        size={24}
+                        Size={24}
                         className="text-gray-400"
                         title="No Image"
                       />
@@ -327,7 +327,7 @@ const OrderDetails = () => {
                     </h5>
                     <p className="text-xs text-gray-500 mt-0.5">
                       Type: {item.ProductType || "N/A"} | Color:{" "}
-                      {item.ProductColor || "N/A"} | Size: {item.size || "N/A"}
+                      {item.ProductColor || "N/A"} | Size: {item.Size || "N/A"}
                     </p>
                     <p className="text-sm text-gray-700 mt-1">
                       Quantity: {item.qty || 1}
@@ -386,7 +386,7 @@ const OrderDetails = () => {
               {/* Customer Info */}
               <div>
                 <h4 className="font-medium text-gray-600 mb-1 flex items-center gap-1.5">
-                  <UserIcon size={14} /> Customer
+                  <UserIcon Size={14} /> Customer
                 </h4>
                 <p className="text-gray-800">{order.user?.name || "N/A"}</p>
                 <p className="text-gray-600 text-xs">
@@ -396,7 +396,7 @@ const OrderDetails = () => {
               {/* Shipping Address */}
               <div>
                 <h4 className="font-medium text-gray-600 mb-1 flex items-center gap-1.5">
-                  <MapPin size={14} /> Shipping Address
+                  <MapPin Size={14} /> Shipping Address
                 </h4>
                 <p className="text-gray-800">
                   {order.shippingAddress?.address1 || ""}{" "}
@@ -407,14 +407,14 @@ const OrderDetails = () => {
                   {order.shippingAddress?.postalCode || ""}
                 </p>
                 <p className="text-gray-600 mt-1 flex items-center gap-1.5">
-                  <Phone size={12} />{" "}
+                  <Phone Size={12} />{" "}
                   {order.shippingAddress?.phoneNumber || "N/A"}
                 </p>
               </div>
               {/* Payment Details */}
               <div className="md:col-span-2 mt-2 pt-3 border-t border-gray-100">
                 <h4 className="font-medium text-gray-600 mb-1 flex items-center gap-1.5">
-                  <CreditCard size={14} /> Payment Details
+                  <CreditCard Size={14} /> Payment Details
                 </h4>
                 <div className="flex justify-between">
                   <span>Payment Method:</span>
@@ -451,7 +451,7 @@ const OrderDetails = () => {
         {order.status === ORDER_STATUSES.PROCESSING_REFUND && (
           <div className="mt-6 bg-white rounded-lg shadow p-5 border border-yellow-300">
             <h3 className="text-lg font-semibold text-yellow-800 mb-3 flex items-center gap-2">
-              <AlertTriangle size={18} /> Action Required: Refund Request
+              <AlertTriangle Size={18} /> Action Required: Refund Request
             </h3>
             <p className="text-sm text-gray-700 mb-4">
               The customer has requested a refund for this order. Please review
@@ -462,7 +462,7 @@ const OrderDetails = () => {
                 value={refundStatus} // Controlled by local state `refundStatus`
                 onChange={(e) => setRefundStatus(e.target.value)}
                 displayEmpty
-                size="small"
+                Size="small"
                 fullWidth // Take full width on smaller screens
                 disabled={isRefundUpdating} // Disable while update is in progress
                 sx={{ minWidth: 180, height: "40px", flexGrow: 1 }} // Allow dropdown to grow
@@ -491,9 +491,9 @@ const OrderDetails = () => {
                 }
                 startIcon={
                   isRefundUpdating ? (
-                    <CircularProgress size={20} color="inherit" />
+                    <CircularProgress Size={20} color="inherit" />
                   ) : (
-                    <Save size={16} />
+                    <Save Size={16} />
                   )
                 }
                 sx={{ height: "40px", minWidth: "160px", flexShrink: 0 }} // Prevent button shrinking

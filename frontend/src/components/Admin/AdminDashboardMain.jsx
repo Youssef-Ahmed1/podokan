@@ -51,7 +51,7 @@ function CustomNoRowsOverlay({ message = "No data available." }) {
         p: 2,
       }}
     >
-      <Package size={48} style={{ color: "#9ca3af", marginBottom: "1rem" }} />
+      <Package Size={48} style={{ color: "#9ca3af", marginBottom: "1rem" }} />
       <Typography variant="body1" color="textSecondary">
         {message}
       </Typography>
@@ -219,7 +219,7 @@ const AdminDashboardMain = () => {
           params // Link to the detailed admin order view
         ) => (
           <Link to={`/admin/order/${params.id}`} title="View Details">
-            <IconButton size="small">
+            <IconButton Size="small">
               <Eye className="text-blue-600 hover:text-blue-800 transition-colors" />
             </IconButton>
           </Link>
@@ -255,7 +255,7 @@ const AdminDashboardMain = () => {
           title="Refresh Data"
         >
           <RefreshCw
-            size={18}
+            Size={18}
             className={
               isLoading ? "animate-spin text-blue-600" : "text-gray-600"
             } // Spin icon while loading
@@ -271,7 +271,7 @@ const AdminDashboardMain = () => {
           {" "}
           {/* Adjusted padding/gap */}
           <div className="p-3 bg-green-100 rounded-full">
-            <AiOutlineMoneyCollect size={24} className="text-green-600" />
+            <AiOutlineMoneyCollect Size={24} className="text-green-600" />
           </div>
           <div>
             <h4 className="text-sm font-medium text-gray-500">
@@ -288,7 +288,7 @@ const AdminDashboardMain = () => {
             {" "}
             {/* Added margin */}
             <div className="p-3 bg-blue-100 rounded-full">
-              <MdPeopleOutline size={24} className="text-blue-600" />
+              <MdPeopleOutline Size={24} className="text-blue-600" />
             </div>
             <div>
               <h4 className="text-sm font-medium text-gray-500">
@@ -296,7 +296,7 @@ const AdminDashboardMain = () => {
               </h4>
               <h5 className="text-xl font-semibold text-gray-800">
                 {sellersLoading ? (
-                  <CircularProgress size={20} />
+                  <CircularProgress Size={20} />
                 ) : (
                   dashboardStats.totalSellers
                 )}
@@ -316,7 +316,7 @@ const AdminDashboardMain = () => {
             {" "}
             {/* Added margin */}
             <div className="p-3 bg-purple-100 rounded-full">
-              <MdBorderClear size={24} className="text-purple-600" />
+              <MdBorderClear Size={24} className="text-purple-600" />
             </div>
             <div>
               <h4 className="text-sm font-medium text-gray-500">
@@ -324,7 +324,7 @@ const AdminDashboardMain = () => {
               </h4>
               <h5 className="text-xl font-semibold text-gray-800">
                 {ordersLoading && totalOrdersCountFromState === 0 ? (
-                  <CircularProgress size={20} />
+                  <CircularProgress Size={20} />
                 ) : (
                   dashboardStats.totalOrders
                 )}
@@ -352,7 +352,7 @@ const AdminDashboardMain = () => {
           <DataGrid
             rows={latestOrdersRows} // Use the rows generated from the first page fetch
             columns={columns}
-            pageSizeOptions={[10]} // Keep fixed size for dashboard view
+            pageSizeOptions={[10]} // Keep fixed Size for dashboard view
             paginationModel={{ page: 0, pageSize: 10 }} // Reflects the data fetched
             rowCount={latestOrdersRows.length} // Row count is just the latest orders shown here
             paginationMode="client" // Pagination handled client-side for this small slice

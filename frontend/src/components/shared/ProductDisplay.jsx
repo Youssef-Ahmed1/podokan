@@ -18,7 +18,7 @@ const ProductDisplay = ({ data }) => {
     designImage,
     DesignScale = 1, // Default scale if not provided
     colors = ["white", "black"], // Default colors
-    sizes = ["S", "M", "L", "XL", "2XL"], // Default sizes
+    Sizes = ["S", "M", "L", "XL", "2XL"], // Default Sizes
   } = data;
 
   const [selectedColor, setSelectedColor] = useState(colors[0]);
@@ -84,7 +84,7 @@ const ProductDisplay = ({ data }) => {
             <div
               className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
               style={{
-                width: `${DesignScale * 40}%`, // Base size multiplied by scale
+                width: `${DesignScale * 40}%`, // Base Size multiplied by scale
                 height: `${DesignScale * 40}%`,
               }}
             >
@@ -159,17 +159,17 @@ const ProductDisplay = ({ data }) => {
         <div>
           <h3 className="text-sm font-medium text-gray-900">Size</h3>
           <div className="mt-2 grid grid-cols-5 gap-2">
-            {sizes.map((size) => (
+            {Sizes.map((Size) => (
               <button
-                key={size}
-                onClick={() => setSelectedSize(size)}
+                key={Size}
+                onClick={() => setSelectedSize(Size)}
                 className={`py-2 text-sm font-medium rounded-md ${
-                  selectedSize === size
+                  selectedSize === Size
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-900 hover:bg-gray-200"
                 }`}
               >
-                {size}
+                {Size}
               </button>
             ))}
           </div>

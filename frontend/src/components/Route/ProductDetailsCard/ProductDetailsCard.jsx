@@ -40,7 +40,7 @@ const ProductDetailsCard = ({ data }) => {
     }
 
     if (!selectedSize) {
-      toast.error("Please select a size!");
+      toast.error("Please select a Size!");
       return;
     }
 
@@ -84,21 +84,21 @@ const ProductDetailsCard = ({ data }) => {
             <div className="w-full relative">
               <img
                 src={`/products/${data.ProductType.toLowerCase()}/${selectedColor.toLowerCase()}/${
-                  showBack ? 'back' : 'front'
+                  showBack ? "back" : "front"
                 }.png`}
-                alt={`${data.DesignTitle} ${showBack ? 'back' : 'front'} view`}
+                alt={`${data.DesignTitle} ${showBack ? "back" : "front"} view`}
                 className="w-full h-auto"
               />
               {/* Design overlay only on front view */}
               {!showBack && data.designImage && (
-                <div 
+                <div
                   className="absolute"
                   style={{
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
                     width: `${(data.DesignScale || 1) * 40}%`,
-                    height: 'auto'
+                    height: "auto",
                   }}
                 >
                   <img
@@ -155,7 +155,12 @@ const ProductDetailsCard = ({ data }) => {
                     ${data.originalPrice}
                   </span>
                   <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                    {Math.round(((data.originalPrice - data.discountPrice) / data.originalPrice) * 100)}% OFF
+                    {Math.round(
+                      ((data.originalPrice - data.discountPrice) /
+                        data.originalPrice) *
+                        100
+                    )}
+                    % OFF
                   </span>
                 </>
               )}
@@ -163,13 +168,9 @@ const ProductDetailsCard = ({ data }) => {
 
             {/* Stock Status */}
             {!isInStock ? (
-              <div className="mt-4 text-red-600 font-medium">
-                Out of Stock
-              </div>
+              <div className="mt-4 text-red-600 font-medium">Out of Stock</div>
             ) : stockWarning ? (
-              <div className="mt-4 text-orange-600">
-                Only a few items left!
-              </div>
+              <div className="mt-4 text-orange-600">Only a few items left!</div>
             ) : null}
 
             {/* Color Selection */}
@@ -181,9 +182,9 @@ const ProductDetailsCard = ({ data }) => {
                     key={color}
                     onClick={() => handleColorChange(color)}
                     className={`w-8 h-8 rounded-full border-2 ${
-                      selectedColor === color 
-                        ? 'border-[#f63b60]' 
-                        : 'border-gray-200'
+                      selectedColor === color
+                        ? "border-[#f63b60]"
+                        : "border-gray-200"
                     }`}
                     style={{ backgroundColor: color.toLowerCase() }}
                   />
@@ -195,17 +196,17 @@ const ProductDetailsCard = ({ data }) => {
             <div className="mt-6">
               <h3 className="text-sm font-medium text-gray-900">Size</h3>
               <div className="mt-2 grid grid-cols-5 gap-2">
-                {["S", "M", "L", "XL", "2XL"].map((size) => (
+                {["S", "M", "L", "XL", "2XL"].map((Size) => (
                   <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
+                    key={Size}
+                    onClick={() => setSelectedSize(Size)}
                     className={`py-2 text-sm font-medium rounded-md ${
-                      selectedSize === size
-                        ? 'bg-[#f63b60] text-white'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      selectedSize === Size
+                        ? "bg-[#f63b60] text-white"
+                        : "bg-gray-100 text-gray-900 hover:bg-gray-200"
                     }`}
                   >
-                    {size}
+                    {Size}
                   </button>
                 ))}
               </div>
@@ -224,7 +225,9 @@ const ProductDetailsCard = ({ data }) => {
                 <input
                   type="number"
                   value={quantity}
-                  onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
+                  onChange={(e) =>
+                    handleQuantityChange(parseInt(e.target.value) || 1)
+                  }
                   className="w-16 text-center border rounded-md"
                   min="1"
                   max={999999 - data.sold_out}
@@ -246,19 +249,19 @@ const ProductDetailsCard = ({ data }) => {
               disabled={!canPurchase || !isInStock}
               className={`w-full py-3 mt-6 rounded-lg font-medium ${
                 !canPurchase || !isInStock
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-[#f63b60] hover:bg-[#f63b60]/90 text-white'
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#f63b60] hover:bg-[#f63b60]/90 text-white"
               }`}
             >
-              {!canPurchase 
-                ? 'Not Available' 
-                : !isInStock 
-                ? 'Out of Stock' 
-                : 'Add to Cart'}
+              {!canPurchase
+                ? "Not Available"
+                : !isInStock
+                ? "Out of Stock"
+                : "Add to Cart"}
             </motion.button>
 
             {/* Product Status Messages */}
-            {data.status === 'rejected' && data.rejectionReason && (
+            {data.status === "rejected" && data.rejectionReason && (
               <div className="mt-4 p-4 bg-red-50 rounded-lg">
                 <h4 className="text-red-800 font-medium">Rejection Reason:</h4>
                 <p className="text-red-600 mt-1">{data.rejectionReason}</p>

@@ -51,7 +51,7 @@ const ProductDetails = ({ data }) => {
     designSpecs.productView
   );
 
-  const SIZES = ["S", "M", "L", "XL", "2XL"];
+  const SizeS = ["S", "M", "L", "XL", "2XL"];
   const COLORS = data?.availableColors || ["white", "black"];
 
   useEffect(() => {
@@ -129,7 +129,7 @@ const ProductDetails = ({ data }) => {
 
   const addToCartHandler = () => {
     if (!selectedSize) {
-      toast.error("Please select a size!");
+      toast.error("Please select a Size!");
       return;
     }
 
@@ -309,20 +309,20 @@ const ProductDetails = ({ data }) => {
                     Select Size:
                   </h4>
                   <div className="flex gap-3">
-                    {SIZES.map((size) => (
+                    {SizeS.map((Size) => (
                       <button
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
+                        key={Size}
+                        onClick={() => setSelectedSize(Size)}
                         className={`
                           w-14 h-10 border-2 rounded transition-colors
                           ${
-                            selectedSize === size
+                            selectedSize === Size
                               ? "border-[#4e64df] text-[#4e64df]"
                               : "border-gray-300 text-gray-600"
                           }
                         `}
                       >
-                        {size}
+                        {Size}
                       </button>
                     ))}
                   </div>

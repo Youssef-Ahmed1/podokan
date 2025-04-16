@@ -183,13 +183,13 @@ const ShopCreate = () => {
                 {visible ? (
                   <AiOutlineEye
                     className="absolute right-2 top-2 cursor-pointer"
-                    size={25}
+                    Size={25}
                     onClick={() => setVisible(false)}
                   />
                 ) : (
                   <AiOutlineEyeInvisible
                     className="absolute right-2 top-2 cursor-pointer"
-                    size={25}
+                    Size={25}
                     onClick={() => setVisible(true)}
                   />
                 )}

@@ -125,7 +125,7 @@ const AllWithdraw = () => {
         params.row.status === "Processing" ? (
           <IconButton
             onClick={() => handleOpen(params.row)}
-            size="small"
+            Size="small"
             title="Update Status"
           >
             <BsPencil className="text-blue-600" />
@@ -186,7 +186,7 @@ const AllWithdraw = () => {
             <p className="text-sm mb-4">
               Amount: EGP {withdrawData?.amount?.toFixed(2)}
             </p>
-            <FormControl fullWidth size="small">
+            <FormControl fullWidth Size="small">
               <InputLabel>Status</InputLabel>
               <Select
                 value={withdrawStatus}

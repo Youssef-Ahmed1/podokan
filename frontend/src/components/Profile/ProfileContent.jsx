@@ -131,7 +131,7 @@ const ProfileInfo = () => {
           <IconButton
             component="label"
             htmlFor="avatar-input"
-            size="small"
+            Size="small"
             sx={{
               position: "absolute",
               bottom: 5,
@@ -142,7 +142,7 @@ const ProfileInfo = () => {
             }}
             disabled={avatarLoading}
           >
-            {avatarLoading ? <Loader size={20} /> : <AiOutlineCamera />}{" "}
+            {avatarLoading ? <Loader Size={20} /> : <AiOutlineCamera />}{" "}
             <input
               type="file"
               id="avatar-input"
@@ -169,7 +169,7 @@ const ProfileInfo = () => {
             onChange={(e) => setName(e.target.value)}
             required
             fullWidth
-            size="small"
+            Size="small"
           />
           <TextField
             label="Email Address"
@@ -178,7 +178,7 @@ const ProfileInfo = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
             fullWidth
-            size="small"
+            Size="small"
           />
           <TextField
             label="Phone Number"
@@ -186,7 +186,7 @@ const ProfileInfo = () => {
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
             fullWidth
-            size="small"
+            Size="small"
           />
           <TextField
             label="Current Password to Update"
@@ -195,7 +195,7 @@ const ProfileInfo = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
             fullWidth
-            size="small"
+            Size="small"
             helperText="Required to save changes"
           />
           <Button
@@ -287,7 +287,7 @@ const AllOrders = () => {
           <IconButton
             component={Link}
             to={`/user/order/${p.id}`}
-            size="small"
+            Size="small"
             title="View"
           >
             <AiOutlineEye className="text-blue-600" />
@@ -411,7 +411,7 @@ const AllRefundOrders = () => {
           <IconButton
             component={Link}
             to={`/user/order/${p.id}`}
-            size="small"
+            Size="small"
             title="View"
           >
             <AiOutlineEye className="text-blue-600" />
@@ -528,7 +528,7 @@ const TrackOrder = () => {
           <IconButton
             component={Link}
             to={`/user/track/order/${p.id}`}
-            size="small"
+            Size="small"
             title="Track"
           >
             <MdTrackChanges className="text-blue-600" />
@@ -623,7 +623,7 @@ const ChangePassword = () => {
           onChange={(e) => setOldPassword(e.target.value)}
           required
           fullWidth
-          size="small"
+          Size="small"
         />
         <TextField
           label="New Password"
@@ -632,7 +632,7 @@ const ChangePassword = () => {
           onChange={(e) => setNewPassword(e.target.value)}
           required
           fullWidth
-          size="small"
+          Size="small"
         />
         <TextField
           label="Confirm New Password"
@@ -641,7 +641,7 @@ const ChangePassword = () => {
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
           fullWidth
-          size="small"
+          Size="small"
         />
         <Button
           type="submit"
@@ -742,7 +742,7 @@ const Address = () => {
             <div className="pl-4">
               <IconButton
                 onClick={() => handleDelete(item)}
-                size="small"
+                Size="small"
                 title="Delete"
               >
                 <AiOutlineDelete className="cursor-pointer text-red-500" />
@@ -776,7 +776,7 @@ const Address = () => {
             dividers
             sx={{ display: "flex", flexDirection: "column", gap: 2 }}
           >
-            <FormControl fullWidth size="small" required>
+            <FormControl fullWidth Size="small" required>
               <InputLabel>Country</InputLabel>
               <Select
                 value={country}
@@ -790,7 +790,7 @@ const Address = () => {
                 ))}
               </Select>
             </FormControl>
-            <FormControl fullWidth size="small" disabled={!country}>
+            <FormControl fullWidth Size="small" disabled={!country}>
               <InputLabel>City/State</InputLabel>
               <Select
                 value={city}
@@ -810,23 +810,23 @@ const Address = () => {
               onChange={(e) => setAddress1(e.target.value)}
               required
               fullWidth
-              size="small"
+              Size="small"
             />
             <TextField
               label="Address Line 2 (Optional)"
               value={address2}
               onChange={(e) => setAddress2(e.target.value)}
               fullWidth
-              size="small"
+              Size="small"
             />
             <TextField
               label="Zip/Postal Code (Optional)"
               value={zipCode}
               onChange={(e) => setZipCode(e.target.value)}
               fullWidth
-              size="small"
+              Size="small"
             />
-            <FormControl fullWidth size="small" required>
+            <FormControl fullWidth Size="small" required>
               <InputLabel>Address Type</InputLabel>
               <Select
                 value={addressType}

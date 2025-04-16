@@ -75,7 +75,7 @@ const AllUsers = () => {
       renderCell: (params) => (
         <IconButton
           onClick={() => handleDeleteClick(params.id)}
-          size="small"
+          Size="small"
           title="Delete User"
         >
           <AiOutlineDelete className="text-red-600" />

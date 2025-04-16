@@ -41,7 +41,7 @@ function CustomNoRowsOverlay({ message = "No data available." }) {
         p: 2,
       }}
     >
-      <Package size={48} style={{ color: "#9ca3af", marginBottom: "1rem" }} />
+      <Package Size={48} style={{ color: "#9ca3af", marginBottom: "1rem" }} />
       <Typography variant="body1" color="textSecondary">
         {message}
       </Typography>
@@ -159,7 +159,7 @@ const AllRefundOrders = () => {
           <IconButton
             component={Link}
             to={`/order/${params.id}`}
-            size="small"
+            Size="small"
             title="View Order Details"
           >
             <Eye className="text-blue-600 hover:text-blue-800" />
@@ -201,7 +201,7 @@ const AllRefundOrders = () => {
             className="p-1.5 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50 transition-colors"
             title="Refresh Refunds"
           >
-            <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
+            <RefreshCw Size={16} className={isLoading ? "animate-spin" : ""} />
           </button>
         </div>
         <Box sx={{ height: 600, width: "100%" }}>
