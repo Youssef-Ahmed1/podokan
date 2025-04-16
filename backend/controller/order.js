@@ -116,12 +116,11 @@ router.post(
     if (
       !shippingAddress?.address1 ||
       !shippingAddress.city ||
-      !shippingAddress.country ||
       !shippingAddress.phoneNumber
     ) {
       return next(
         new ErrorHandler(
-          "Shipping address incomplete (Address 1, City, Country, Phone required).",
+          "Shipping address incomplete (Address 1, City,  Phone required).",
           400
         )
       );
@@ -229,7 +228,6 @@ router.post(
           address1: shippingAddress.address1,
           address2: shippingAddress.address2 || "",
           city: shippingAddress.city,
-          country: shippingAddress.country,
           postalCode: shippingAddress.postalCode || "",
           phoneNumber: shippingAddress.phoneNumber,
           shippingPrice: shippingCostPerSellerOrder,
