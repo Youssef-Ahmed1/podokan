@@ -393,7 +393,7 @@ const [select, setSelect] = useState(3);
                 <div className="w-full 800px:w-[40%] h-screen 800px:h-[80vh] bg-white rounded-[5px] shadow flex flex-col justify-center p-8 relative overflow-y-scroll">
                   <div className="w-full flex justify-end p-3">
                     <RxCross1
-                      Size={30}
+                      size={30}
                       className="cursor-pointer absolute top-3 right-3"
                       onClick={() => setOpen(false)}
                     />
