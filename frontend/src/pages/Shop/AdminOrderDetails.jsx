@@ -30,17 +30,15 @@ import { DesignDownloader } from "../../utils/designDownload";
 import Loader from "../../components/Layout/Loader";
 import { ORDER_STATUSES } from "../../constants/orderStatuses";
 import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
   Select,
   MenuItem,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   CircularProgress,
-  Box,
-  Typography,
-  IconButton,
 } from "@mui/material";
 
 const StatusUpdateModal = ({
@@ -112,7 +110,6 @@ const StatusUpdateModal = ({
     </Dialog>
   );
 };
-
 const AdminOrderDetails = () => {
   const {
     order,
