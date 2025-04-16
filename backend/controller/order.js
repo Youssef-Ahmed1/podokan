@@ -210,7 +210,7 @@ router.post(
       shippingAddress.shippingPrice >= 0
         ? shippingAddress.shippingPrice
         : 50;
-
+    //.
     const createdOrders = [];
     const orderPromises = [];
     const stockUpdateErrors = [];
