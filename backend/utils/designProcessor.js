@@ -27,7 +27,7 @@ class DesignProcessor {
 
   // Get product template path based on type and color
   // DesignProcessor.js - Replace getProductTemplatePath method
-  static getProductTemplatePath(productType, productColor) {
+  static getProductTemplatePath(productType, ProductColor) {
     // Base Cloudinary URL for templates
     const cloudinaryBaseUrl =
       "https://res.cloudinary.com/dkot9tyjm/image/upload";
@@ -35,8 +35,8 @@ class DesignProcessor {
     // Normalize product type and color
     const type = (productType || "hoodie").toLowerCase();
     const color =
-      productColor && productColor !== "N/A"
-        ? productColor.toLowerCase()
+      ProductColor && ProductColor !== "N/A"
+        ? ProductColor.toLowerCase()
         : "white";
 
     // Determine folder and filename pattern based on product type
@@ -76,7 +76,7 @@ class DesignProcessor {
   static async createProductMockup(
     designImageUrl,
     productType,
-    productColor,
+    ProductColor,
     designSpecs
   ) {
     return new Promise(async (resolve, reject) => {
@@ -84,7 +84,7 @@ class DesignProcessor {
         console.log("Creating mockup with:", {
           designImageUrl,
           productType,
-          productColor,
+          ProductColor,
           designSpecs,
         });
 
@@ -98,7 +98,7 @@ class DesignProcessor {
         // 3. Generate template URL
         const templateUrl = this.getProductTemplateUrl(
           productType,
-          productColor
+          ProductColor
         );
         console.log(`Using template URL: ${templateUrl}`);
 

@@ -79,7 +79,7 @@ class DesignScalingManager {
   static getConsistentContainerStyles(
     position,
     scale,
-    productColor,
+    ProductColor,
     productType,
     view,
     isAdminPreview = false
@@ -100,7 +100,7 @@ class DesignScalingManager {
     const clampedScale = this.clampScale(scale);
 
     // Get the appropriate blend mode based on product color
-    const blendMode = DESIGN_CONFIG.blendModes[productColor] || "normal";
+    const blendMode = DESIGN_CONFIG.blendModes[ProductColor] || "normal";
 
     return {
       position: "absolute",
@@ -119,7 +119,7 @@ class DesignScalingManager {
   static getDesignStyles(
     position,
     scale,
-    productColor,
+    ProductColor,
     productType,
     view = "front",
     isPreview = false
@@ -128,7 +128,7 @@ class DesignScalingManager {
       container: this.getConsistentContainerStyles(
         position,
         scale,
-        productColor,
+        ProductColor,
         productType,
         view,
         isPreview

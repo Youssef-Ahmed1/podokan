@@ -141,35 +141,35 @@ const compressDesign = async (file) => {
 };
 
 
-const createDesignPreview = async (file, productColor) => {
+const createDesignPreview = async (file, ProductColor) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         canvas.width = img.width;
         canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        
+        const ctx = canvas.getContext("2d");
+
         // Clear any background
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
+
         // Only add white background for dark products
-        if (['black'].includes(productColor)) {
-          ctx.fillStyle = 'white';
+        if (["black"].includes(ProductColor)) {
+          ctx.fillStyle = "white";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
-        
+
         ctx.drawImage(img, 0, 0);
-        
+
         // Ensure PNG with transparency
-        resolve(canvas.toDataURL('image/png'));
+        resolve(canvas.toDataURL("image/png"));
       };
-      img.onerror = () => reject(new Error('Failed to load image'));
+      img.onerror = () => reject(new Error("Failed to load image"));
       img.src = e.target.result;
     };
-    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.onerror = () => reject(new Error("Failed to read file"));
     reader.readAsDataURL(file);
   });
 };
