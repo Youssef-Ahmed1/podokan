@@ -39,15 +39,9 @@ const ProductDetails = ({ data }) => {
   const designSpecs = data?.designSpecs || {
     position: { x: 50, y: 40 },
     scale: 0.8,
-<<<<<<< HEAD
     productType: data?.ProductType || "hoodie",
-    ProductColor: data?.ProductColor || "white",
+    productColor: data?.ProductColor || "white",
     productView: "front",
-=======
-    productType: data?.ProductType || 'hoodie',
-    productColor: data?.ProductColor || 'white',
-    productView: 'front'
->>>>>>> parent of efd3bbfc (save)
   };
 
   // Update design overlay styles

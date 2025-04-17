@@ -79,7 +79,7 @@
   },
   "scripts": {
     "start": "pm2 start server.js --name podokan --watch --max-memory-restart 300M --restart-delay 3000",
-    "build": "GENERATE_SOURCEMAP=false node --max_old_space_Size=4096 node_modules/.bin/react-scripts build",
+    "build": "GENERATE_SOURCEMAP=false node--max-old-space-size=4096 node_modules/.bin/react-scripts build",
     "test": "react-scripts test",
     "build:analyze": "source-map-explorer 'build/static/js/*.js'",
     "eject": "react-scripts eject",
