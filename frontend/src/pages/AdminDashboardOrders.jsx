@@ -40,7 +40,6 @@ function CustomLoadingOverlay() {
     </Box>
   );
 }
-
 function CustomNoRowsOverlay({ message = "No orders found." }) {
   return (
     <Box
@@ -131,19 +130,10 @@ const AdminDashboardOrders = () => {
     });
   }, [adminOrders, searchTerm, filterStatus]);
 
-  const handleStatusUpdate = useCallback(
-    (orderId, newStatus, currentStatus) => {
-      if (newStatus === currentStatus || isUpdating) return;
-      dispatch(adminUpdateOrderStatus(orderId, newStatus))
-        .then(() => {
-          toast.success(`Order status updated to ${newStatus}`);
-        })
-        .catch(() => {
-          // Error handled by the Redux action
-        });
-    },
-    [dispatch, isUpdating]
-  );
+  const handleStatusUpdate = (orderId, newStatus, currentStatus) => {
+    if (newStatus === currentStatus || isUpdating) return;
+    dispatch(adminUpdateOrderStatus(orderId, newStatus)).catch(() => {});
+  };
 
   const handlePaginationModelChange = (newModel) => {
     setPaginationModel(newModel);
@@ -260,7 +250,7 @@ const AdminDashboardOrders = () => {
         ),
       },
     ],
-    [isUpdating, handleStatusUpdate]
+    [isUpdating]
   );
 
   if (isLoading && adminOrders.length === 0 && adminTotalOrders === 0) {
@@ -332,11 +322,7 @@ const AdminDashboardOrders = () => {
         <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
           <Box sx={{ height: "70vh", width: "100%" }}>
             <DataGrid
-              rows={
-                filteredOrdersForCurrentPage.length > 0
-                  ? filteredOrdersForCurrentPage
-                  : rows
-              }
+              rows={rows}
               columns={columns}
               rowCount={adminTotalOrders || 0}
               loading={isLoading || isUpdating}

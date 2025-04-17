@@ -1,36 +1,37 @@
+// /home/user/podokan/frontend/src/components/Products/ProductDetails.jsx
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addTocart } from "../../redux/actions/cart";
-import {
-  addToWishlist,
-  removeFromWishlist,
-} from "../../redux/actions/wishlist";
+import { addToWishlist, removeFromWishlist } from "../../redux/actions/wishlist";
 import { toast } from "react-toastify";
 import styles from "../../styles/styles";
-import { AiFillHeart, AiOutlineHeart, AiOutlineShareAlt } from "react-icons/ai";
-import {
-  FaFacebook,
-  FaTwitter,
-  FaPinterest,
-  FaLinkedin,
-  FaInstagram,
-  FaTelegram,
+import { 
+  AiFillHeart, 
+  AiOutlineHeart, 
+  AiOutlineShareAlt 
+} from "react-icons/ai";
+import { 
+  FaFacebook, 
+  FaTwitter, 
+  FaPinterest, 
+  FaLinkedin, 
+  FaInstagram, 
+  FaTelegram, 
   FaSnapchat,
-  FaWhatsapp,
+  FaWhatsapp
 } from "react-icons/fa";
 import { IoCopy } from "react-icons/io5";
-import { DesignScalingManager } from "../../utils/designScaling";
+import { DesignScalingManager } from '../../utils/designScaling';
+
 
 const ProductDetails = ({ data }) => {
   const dispatch = useDispatch();
   const { wishlist } = useSelector((state) => state.wishlist);
-
+  
   const [count, setCount] = useState(1);
   const [click, setClick] = useState(false);
   const [selectedSize, setSelectedSize] = useState("");
-  const [selectedColor, setSelectedColor] = useState(
-    data?.ProductColor || "white"
-  );
+  const [selectedColor, setSelectedColor] = useState(data?.ProductColor || "white");
   const [showBack, setShowBack] = useState(false);
   const [showShare, setShowShare] = useState(false);
 
@@ -38,9 +39,15 @@ const ProductDetails = ({ data }) => {
   const designSpecs = data?.designSpecs || {
     position: { x: 50, y: 40 },
     scale: 0.8,
+<<<<<<< HEAD
     productType: data?.ProductType || "hoodie",
     ProductColor: data?.ProductColor || "white",
     productView: "front",
+=======
+    productType: data?.ProductType || 'hoodie',
+    productColor: data?.ProductColor || 'white',
+    productView: 'front'
+>>>>>>> parent of efd3bbfc (save)
   };
 
   // Update design overlay styles
@@ -64,10 +71,9 @@ const ProductDetails = ({ data }) => {
 
   const getProductImage = () => {
     try {
-      const baseUrl =
-        "https://res.cloudinary.com/dkot9tyjm/image/upload/v1728392918";
-      const productType = data?.ProductType?.toLowerCase() || "hoodie";
-      const view = showBack ? "back" : "front";
+      const baseUrl = "https://res.cloudinary.com/dkot9tyjm/image/upload/v1728392918";
+      const productType = data?.ProductType?.toLowerCase() || 'hoodie';
+      const view = showBack ? 'back' : 'front';
       return `${baseUrl}/${productType}s/${productType}-${selectedColor.toLowerCase()}-${view}.png`;
     } catch (error) {
       console.error("Error getting product image:", error);
@@ -90,41 +96,41 @@ const ProductDetails = ({ data }) => {
   const handleShare = (platform) => {
     const text = encodeURIComponent(`Check out ${data.DesignTitle}!`);
     const url = encodeURIComponent(window.location.href);
-
-    let shareUrl = "";
+    
+    let shareUrl = '';
     switch (platform) {
-      case "facebook":
+      case 'facebook':
         shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
         break;
-      case "twitter":
+      case 'twitter':
         shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
         break;
-      case "whatsapp":
+      case 'whatsapp':
         shareUrl = `https://wa.me/?text=${text}%20${url}`;
         break;
-      case "telegram":
+      case 'telegram':
         shareUrl = `https://t.me/share/url?url=${url}&text=${text}`;
         break;
-      case "pinterest":
+      case 'pinterest':
         shareUrl = `https://pinterest.com/pin/create/button/?url=${url}&description=${text}`;
         break;
-      case "linkedin":
+      case 'linkedin':
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
         break;
-      case "instagram":
+      case 'instagram':
         shareUrl = `https://instagram.com/share?url=${url}`;
         break;
-      case "snapchat":
+      case 'snapchat':
         shareUrl = `https://www.snapchat.com/share?url=${url}`;
         break;
-      case "copy":
+      case 'copy':
         navigator.clipboard.writeText(window.location.href);
         toast.success("Link copied to clipboard!");
         return;
       default:
         return;
     }
-    window.open(shareUrl, "_blank", "width=600,height=400");
+    window.open(shareUrl, '_blank', 'width=600,height=400');
   };
 
   const addToCartHandler = () => {
@@ -132,17 +138,11 @@ const ProductDetails = ({ data }) => {
       toast.error("Please select a Size!");
       return;
     }
-
-    // Standardized approach to design image handling
-    const designImageUrl =
-      typeof data.designImage === "string"
-        ? data.designImage
-        : data.designImage?.url;
-
+    
     const cartItem = {
       _id: data._id,
       DesignTitle: data.DesignTitle,
-      designImage: designImageUrl, // Standardized image URL handling
+      designImage: data.designImage?.url || data.designImage,
       ProductType: data.ProductType,
       selectedColor: selectedColor,
       selectedSize: selectedSize,
@@ -156,17 +156,18 @@ const ProductDetails = ({ data }) => {
       // Include design specifications
       DesignScale: designSpecs.scale,
       DesignPosition: designSpecs.position,
-      ProductView: designSpecs.productView,
+      ProductView: designSpecs.productView
     };
 
     const result = dispatch(addTocart(cartItem));
-
+    
     if (result.success) {
       toast.success("Added to cart successfully!");
     } else {
       toast.error(result.message || "Failed to add to cart");
     }
   };
+
 
   return (
     <div className="bg-white">
