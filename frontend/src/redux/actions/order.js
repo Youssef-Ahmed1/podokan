@@ -227,6 +227,7 @@ export const getOrderDetails = (orderId) => (dispatch) =>
     errorMessagePrefix: "Get Order Details Error",
   });
 
+// Fixed route for admin update order status
 export const adminUpdateOrderStatus = (orderId, status) => (dispatch) =>
   handleApiRequest({
     dispatch,

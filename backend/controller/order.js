@@ -210,7 +210,7 @@ router.post(
       shippingAddress.shippingPrice >= 0
         ? shippingAddress.shippingPrice
         : 50;
-    //.
+
     const createdOrders = [];
     const orderPromises = [];
     const stockUpdateErrors = [];
@@ -312,7 +312,7 @@ router.post(
   })
 );
 
-// --- Get User Orders ---
+// --- Get User Orders --- [FIXED]
 router.get(
   "/get-user-orders",
   isAuthenticated,
@@ -330,8 +330,18 @@ router.get(
       });
     }
 
-    // Convert ObjectId to string for consistent comparison
-    const orders = await Order.find({ "user._id": userId })
+    // FIX: Changed the query to use $in with both string and ObjectId
+    // to handle potential format inconsistencies
+    const orders = await Order.find({
+      $or: [
+        { "user._id": userId },
+        {
+          "user._id": mongoose.Types.ObjectId.isValid(userId)
+            ? new mongoose.Types.ObjectId(userId)
+            : null,
+        },
+      ],
+    })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -393,7 +403,10 @@ router.get(
         return next(new ErrorHandler("Authentication error.", 500));
       }
 
-      const isOwner = orderData.user._id.toString() === req.user._id.toString();
+      // FIX: More robust comparison
+      const userIdStr = req.user._id.toString();
+      const orderUserIdStr = orderData.user?._id?.toString() || "";
+      const isOwner = userIdStr === orderUserIdStr;
       const isAdminUser = (req.user.role || "").toLowerCase() === "admin";
 
       if (!isOwner && !isAdminUser) {
@@ -425,6 +438,7 @@ router.get(
     checkAuthAndRespond(order, false);
   })
 );
+
 // --- Get Seller Orders ---
 router.get(
   "/get-seller-orders",
@@ -435,11 +449,7 @@ router.get(
     const cachedData = orderCache.get(cacheKey);
     const cacheTTLms = 120 * 1000; // Cache seller orders for 2 minutes
 
-    // ** Disable cache for testing if needed **
-    // if (cachedData && (Date.now() - (cachedData.timestamp || 0) < cacheTTLms) && process.env.NODE_ENV !== 'development') {
     if (cachedData && Date.now() - (cachedData.timestamp || 0) < cacheTTLms) {
-      // console.log(`[Cache Hit] Seller orders for ${sellerId}`);
-      // Set cache control headers even for cache hit if needed downstream
       res.setHeader(
         "Cache-Control",
         "no-store, no-cache, must-revalidate, private"
@@ -454,14 +464,26 @@ router.get(
       });
     }
 
-    // console.log(`[Cache Miss] Fetching seller orders for ${sellerId} from DB`);
-    const dbOrders = await Order.find({ "cart.shopId": req.seller._id })
+    // FIX: Improved query to handle ObjectId vs string comparisons
+    const dbOrders = await Order.find({
+      "cart.shopId": {
+        $in: [
+          sellerId,
+          mongoose.Types.ObjectId.isValid(sellerId)
+            ? new mongoose.Types.ObjectId(sellerId)
+            : null,
+        ],
+      },
+    })
       .sort({ createdAt: -1 })
       .lean();
 
     const sellerOrders = dbOrders.map((order) => ({
       ...order,
-      cart: order.cart.filter((item) => item.shopId?.toString() === sellerId),
+      cart: order.cart.filter((item) => {
+        const itemShopId = item.shopId?.toString() || "";
+        return itemShopId === sellerId;
+      }),
     }));
 
     orderCache.set(cacheKey, { data: sellerOrders, timestamp: Date.now() });
@@ -636,10 +658,7 @@ router.get(
     const cacheKey = CACHE_KEYS.ORDER_DETAIL(id);
     const cachedOrder = orderCache.get(cacheKey);
 
-    // ** Disable cache for testing if needed **
-    // if (cachedOrder && process.env.NODE_ENV !== 'development') {
     if (cachedOrder) {
-      // Set cache control headers even for cache hit
       res.setHeader(
         "Cache-Control",
         "no-store, no-cache, must-revalidate, private"
@@ -765,8 +784,7 @@ router.delete(
   })
 );
 
-// --- Admin Update Order Status ---
-// FIX 2: Changed route to match frontend expectations
+// --- Admin Update Order Status --- [FIXED]
 router.put(
   "/admin-update-status/:id",
   isAuthenticated,
@@ -816,11 +834,16 @@ router.put(
       }
     }
 
+    // Ensure the statusHistory array exists
+    if (!Array.isArray(order.statusHistory)) {
+      order.statusHistory = [];
+    }
+
     order.statusHistory.push({
       status: newStatus,
       updatedBy: `admin:${adminId}`,
       timestamp: new Date(),
-      details: `Admin changed status from '${previousStatus}' to '${newStatus}'.`,
+      details: `Admin changed status: ${previousStatus} -> ${newStatus}.`,
     });
 
     try {
@@ -849,6 +872,7 @@ router.put(
     }
   })
 );
+
 // --- Admin Update Order Item Details ---
 router.put(
   "/update-item-details/:orderId/:itemId",
@@ -910,6 +934,11 @@ router.put(
         message: "No changes detected for the item.",
         order,
       });
+    }
+
+    // Ensure statusHistory array exists
+    if (!Array.isArray(order.statusHistory)) {
+      order.statusHistory = [];
     }
 
     order.statusHistory.push({
@@ -992,9 +1021,9 @@ router.get(
           status: order.status,
           updatedBy: `admin:${adminId}`,
           timestamp: new Date(),
-          details: `Admin requested design download package for item: ${
+          details: `Admin DL requested for item: ${
             item.DesignTitle || "Untitled"
-          } (ID: ${itemId}).`,
+          } (${itemId}).`,
         },
       },
     })

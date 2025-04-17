@@ -161,6 +161,7 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Ensure proper indexing for efficient queries
 orderSchema.index({ "user._id": 1, createdAt: -1 });
 orderSchema.index({ "cart.shopId": 1, createdAt: -1 });
 orderSchema.index({ status: 1, createdAt: -1 });
@@ -193,6 +194,11 @@ orderSchema.pre("save", function (next) {
         details: "Order created.",
       },
     ];
+  }
+
+  // Ensure statusHistory is always an array
+  if (!Array.isArray(this.statusHistory)) {
+    this.statusHistory = [];
   }
 
   next();
