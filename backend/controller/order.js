@@ -10,14 +10,12 @@ const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
 const { ORDER_STATUSES } = require("../constants/orderStatuses");
 
-// Cache configuration 
 const orderCache = new NodeCache({
   stdTTL: 300,
   checkperiod: 120,
   useClones: false,
 });
 
-// Cache keys definition
 const CACHE_KEYS = {
   ADMIN_ORDERS_PAGE: (page, limit) => `admin_orders_p${page}_l${limit}`,
   USER_ORDERS: (userId) => `user_orders_${userId}`,
@@ -25,7 +23,6 @@ const CACHE_KEYS = {
   ORDER_DETAIL: (orderId) => `order_detail_${orderId}`,
 };
 
-// Helper Functions
 const isValidObjectId = (id) => id && mongoose.Types.ObjectId.isValid(id);
 
 const clearAdminOrderPageCaches = () => {
@@ -34,27 +31,39 @@ const clearAdminOrderPageCaches = () => {
     .filter((k) => k.startsWith("admin_orders_p"));
   if (adminKeys.length > 0) {
     orderCache.del(adminKeys);
+    console.log("[Cache] Cleared admin order page caches:", adminKeys);
   }
 };
 
 const clearRelevantOrderCaches = (orderId, userId, involvedSellerIds = []) => {
   const keysToDelete = new Set();
+
   clearAdminOrderPageCaches();
 
-  if (orderId) keysToDelete.add(CACHE_KEYS.ORDER_DETAIL(orderId.toString()));
-  if (userId) keysToDelete.add(CACHE_KEYS.USER_ORDERS(userId.toString()));
+  if (orderId && isValidObjectId(orderId))
+    keysToDelete.add(CACHE_KEYS.ORDER_DETAIL(orderId.toString()));
+  if (userId && isValidObjectId(userId))
+    keysToDelete.add(CACHE_KEYS.USER_ORDERS(userId.toString()));
 
   involvedSellerIds.forEach((id) => {
-    if (id && typeof id === "string") {
-      keysToDelete.add(CACHE_KEYS.SELLER_ORDERS(id));
-    } else if (id?._id) {
-      keysToDelete.add(CACHE_KEYS.SELLER_ORDERS(id._id.toString()));
+    const sellerIdString = id?._id
+      ? id._id.toString()
+      : typeof id === "string" && isValidObjectId(id)
+      ? id
+      : null;
+    if (sellerIdString) {
+      keysToDelete.add(CACHE_KEYS.SELLER_ORDERS(sellerIdString));
     }
   });
 
   const keysArray = Array.from(keysToDelete);
   if (keysArray.length > 0) {
     orderCache.del(keysArray);
+    console.log("[Cache] Cleared relevant caches:", keysArray);
+  } else {
+    console.log(
+      "[Cache] No specific order/user/seller caches needed clearing beyond admin pages."
+    );
   }
 };
 
@@ -65,7 +74,7 @@ const updateProductStock = async (productId, quantityChange) => {
     );
     return;
   }
-  if (quantityChange === 0) return;
+  if (quantityChange <= 0) return;
 
   try {
     const product = await Product.findById(productId).select("stock name");
@@ -83,22 +92,22 @@ const updateProductStock = async (productId, quantityChange) => {
           product.name || productId
         }. Have: ${currentStock}, Need: ${quantityChange}. Setting stock to 0.`
       );
-      await Product.updateOne({ _id: productId }, { $set: { stock: 0 } });
+      await Product.findByIdAndUpdate(productId, { $set: { stock: 0 } });
     } else {
-      await Product.updateOne(
-        { _id: productId },
-        { $inc: { stock: -quantityChange } }
+      await Product.findByIdAndUpdate(productId, {
+        $inc: { stock: -quantityChange },
+      });
+      console.log(
+        `Stock updated for ${
+          product.name || productId
+        }: ${currentStock} -> ${newStock}`
       );
     }
   } catch (error) {
     console.error(`Error updating stock for Product ${productId}:`, error);
-    throw new ErrorHandler(`Failed to update stock for ${productId}`, 500);
   }
 };
 
-// === ROUTES ===
-
-// --- Create Order ---
 router.post(
   "/create-order",
   isAuthenticated,
@@ -106,8 +115,7 @@ router.post(
     const { cart, shippingAddress, paymentInfo } = req.body;
     const currentUser = req.user;
 
-    // Basic Input Validation
-    if (!currentUser?._id) {
+    if (!currentUser?._id || !isValidObjectId(currentUser._id)) {
       return next(new ErrorHandler("User authentication is invalid.", 401));
     }
     if (!Array.isArray(cart) || cart.length === 0) {
@@ -127,7 +135,6 @@ router.post(
       );
     }
 
-    // Stock Pre-check
     try {
       for (const item of cart) {
         const missing = [];
@@ -154,12 +161,10 @@ router.post(
             .select("stock name")
             .lean();
           if (!product) {
-            throw new ErrorHandler(
-              `Product reference invalid for item "${item.DesignTitle}". Cannot verify stock.`,
-              404
+            console.warn(
+              `Product reference invalid for item "${item.DesignTitle}". Skipping stock check.`
             );
-          }
-          if ((product.stock || 0) < item.qty) {
+          } else if ((product.stock || 0) < item.qty) {
             throw new ErrorHandler(
               `Insufficient stock for "${product.name}". Available: ${
                 product.stock || 0
@@ -173,13 +178,11 @@ router.post(
       return next(validationOrStockError);
     }
 
-    // Group Cart Items by Shop
     const shopItemsMap = new Map();
     cart.forEach((item) => {
       const shopIdStr = item.shopId.toString();
       if (!shopItemsMap.has(shopIdStr)) shopItemsMap.set(shopIdStr, []);
 
-      // Push with all validated fields for complete order data
       shopItemsMap.get(shopIdStr).push({
         productId:
           item.productId && isValidObjectId(item.productId)
@@ -189,8 +192,8 @@ router.post(
         shopId: item.shopId,
         price: item.price || 0,
         designImage: {
-          public_id: item.designImage.public_id || null,
-          url: item.designImage.url,
+          public_id: item.designImage?.public_id || null,
+          url: item.designImage?.url,
         },
         DesignTitle: item.DesignTitle || "Untitled Design",
         ProductType: item.ProductType || "Unknown Type",
@@ -259,7 +262,7 @@ router.post(
                   await updateProductStock(item.productId, item.qty);
                 } catch (stockError) {
                   console.error(
-                    `Stock update failed for order ${order._id}, product ${item.productId}:`,
+                    `Stock update failed post-order creation for order ${order._id}, product ${item.productId}:`,
                     stockError.message
                   );
                   stockUpdateErrors.push({
@@ -312,16 +315,26 @@ router.post(
   })
 );
 
-// --- Get User Orders --- [FIXED]
 router.get(
   "/get-user-orders",
   isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
-    const userId = req.user._id.toString();
-    const cacheKey = CACHE_KEYS.USER_ORDERS(userId);
+    if (!req.user?._id || !isValidObjectId(req.user._id)) {
+      return next(new ErrorHandler("Invalid user authentication.", 401));
+    }
+    const userId = req.user._id;
+    const userIdString = userId.toString();
+    const cacheKey = CACHE_KEYS.USER_ORDERS(userIdString);
     const cachedOrders = orderCache.get(cacheKey);
 
     if (cachedOrders) {
+      console.log(`[Cache Hit] User orders for ${userIdString}`);
+      res.setHeader(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, private"
+      );
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
       return res.json({
         success: true,
         orders: cachedOrders,
@@ -330,39 +343,17 @@ router.get(
       });
     }
 
-    // FIX: Changed the query to use $in with both string and ObjectId
-    // to handle potential format inconsistencies
-    const orders = await Order.find({
-      $or: [
-        { "user._id": userId },
-        {
-          "user._id": mongoose.Types.ObjectId.isValid(userId)
-            ? new mongoose.Types.ObjectId(userId)
-            : null,
-        },
-      ],
-    })
+    console.log(
+      `[Cache Miss] Fetching user orders for ${userIdString} from DB using ObjectId: ${userId}`
+    );
+    const orders = await Order.find({ "user._id": userId })
       .sort({ createdAt: -1 })
       .lean();
 
-    // Debug log for empty orders result
     if (orders.length === 0) {
-      console.log(`No orders found for user ID: ${userId}`);
-
-      // Check if any orders exist for troubleshooting
-      const anyOrders = await Order.countDocuments();
-      console.log(`Total orders in system: ${anyOrders}`);
-
-      // Sample order user IDs to detect format issues
-      const sampleOrders = await Order.find().limit(3).select("user").lean();
-
-      console.log(
-        "Sample order user IDs:",
-        sampleOrders.map((o) => ({
-          userIdInOrder: o.user?._id?.toString(),
-          userIdType: o.user?._id ? typeof o.user._id : "missing",
-        }))
-      );
+      console.log(`No orders found for user ID: ${userIdString}.`);
+      const totalOrders = await Order.countDocuments();
+      console.log(`Total orders in system: ${totalOrders}`);
     }
 
     orderCache.set(cacheKey, orders);
@@ -378,7 +369,6 @@ router.get(
   })
 );
 
-// --- Get Single Order Details (User or Admin) ---
 router.get(
   "/get-order/:id",
   isAuthenticated,
@@ -403,11 +393,11 @@ router.get(
         return next(new ErrorHandler("Authentication error.", 500));
       }
 
-      // FIX: More robust comparison
-      const userIdStr = req.user._id.toString();
-      const orderUserIdStr = orderData.user?._id?.toString() || "";
-      const isOwner = userIdStr === orderUserIdStr;
-      const isAdminUser = (req.user.role || "").toLowerCase() === "admin";
+      const userId = req.user._id.toString();
+      const orderUserId = orderData.user?._id?.toString();
+
+      const isOwner = orderUserId === userId;
+      const isAdminUser = req.user.role?.toLowerCase() === "admin";
 
       if (!isOwner && !isAdminUser) {
         return next(
@@ -426,9 +416,11 @@ router.get(
     };
 
     if (cachedOrder) {
+      console.log(`[Cache Hit] Order detail for ${id}`);
       return checkAuthAndRespond(cachedOrder, true);
     }
 
+    console.log(`[Cache Miss] Fetching order detail for ${id} from DB`);
     const order = await Order.findById(id).lean();
 
     if (order) {
@@ -439,17 +431,21 @@ router.get(
   })
 );
 
-// --- Get Seller Orders ---
 router.get(
   "/get-seller-orders",
-  isSeller, // Ensures req.seller is set and active/approved
+  isSeller,
   catchAsyncErrors(async (req, res, next) => {
-    const sellerId = req.seller._id.toString();
-    const cacheKey = CACHE_KEYS.SELLER_ORDERS(sellerId);
+    if (!req.seller?._id || !isValidObjectId(req.seller._id)) {
+      return next(new ErrorHandler("Invalid seller authentication.", 401));
+    }
+    const sellerId = req.seller._id;
+    const sellerIdString = sellerId.toString();
+    const cacheKey = CACHE_KEYS.SELLER_ORDERS(sellerIdString);
     const cachedData = orderCache.get(cacheKey);
-    const cacheTTLms = 120 * 1000; // Cache seller orders for 2 minutes
+    const cacheTTLms = 120 * 1000;
 
     if (cachedData && Date.now() - (cachedData.timestamp || 0) < cacheTTLms) {
+      console.log(`[Cache Hit] Seller orders for ${sellerIdString}`);
       res.setHeader(
         "Cache-Control",
         "no-store, no-cache, must-revalidate, private"
@@ -464,26 +460,18 @@ router.get(
       });
     }
 
-    // FIX: Improved query to handle ObjectId vs string comparisons
-    const dbOrders = await Order.find({
-      "cart.shopId": {
-        $in: [
-          sellerId,
-          mongoose.Types.ObjectId.isValid(sellerId)
-            ? new mongoose.Types.ObjectId(sellerId)
-            : null,
-        ],
-      },
-    })
+    console.log(
+      `[Cache Miss] Fetching seller orders for ${sellerIdString} from DB`
+    );
+    const dbOrders = await Order.find({ "cart.shopId": sellerId })
       .sort({ createdAt: -1 })
       .lean();
 
     const sellerOrders = dbOrders.map((order) => ({
       ...order,
-      cart: order.cart.filter((item) => {
-        const itemShopId = item.shopId?.toString() || "";
-        return itemShopId === sellerId;
-      }),
+      cart: order.cart.filter(
+        (item) => item.shopId?.toString() === sellerIdString
+      ),
     }));
 
     orderCache.set(cacheKey, { data: sellerOrders, timestamp: Date.now() });
@@ -504,59 +492,15 @@ router.get(
   })
 );
 
-// --- Get Single Order Details (Seller) ---
-router.get(
-  "/get-seller-order/:id",
-  isSeller, // Ensures req.seller is set
-  catchAsyncErrors(async (req, res, next) => {
-    const { id } = req.params;
-    const sellerId = req.seller._id.toString();
-
-    if (!isValidObjectId(id)) {
-      return next(new ErrorHandler("Invalid Order ID format.", 400));
-    }
-
-    // No caching implemented here yet, direct fetch
-    const order = await Order.findById(id).lean();
-
-    if (!order) {
-      return next(new ErrorHandler("Order not found.", 404));
-    }
-
-    const sellerItemsInCart = order.cart.filter(
-      (item) => item.shopId?.toString() === sellerId
-    );
-
-    if (sellerItemsInCart.length === 0) {
-      return next(
-        new ErrorHandler(
-          "Order found, but it contains no items associated with your shop.",
-          403
-        )
-      );
-    }
-
-    res.setHeader(
-      "Cache-Control",
-      "no-store, no-cache, must-revalidate, private"
-    );
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
-
-    res.json({
-      success: true,
-      order: { ...order, cart: sellerItemsInCart },
-    });
-  })
-);
-
-// --- Seller Action: Update Refund Status ---
 router.put(
   "/accept-refund/:id",
-  isSeller, // Ensures req.seller is set
+  isSeller,
   catchAsyncErrors(async (req, res, next) => {
     const { id } = req.params;
-    const { status: newStatus } = req.body; // The requested new status
+    const { status: newStatus } = req.body;
+    if (!req.seller?._id || !isValidObjectId(req.seller._id)) {
+      return next(new ErrorHandler("Invalid seller authentication.", 401));
+    }
     const sellerId = req.seller._id.toString();
 
     if (!isValidObjectId(id)) {
@@ -567,10 +511,10 @@ router.put(
       ORDER_STATUSES.REFUND_APPROVED,
       ORDER_STATUSES.REFUND_REJECTED,
     ];
-    if (!allowedStatuses.includes(newStatus)) {
+    if (!newStatus || !allowedStatuses.includes(newStatus)) {
       return next(
         new ErrorHandler(
-          `Invalid status provided. Must be one of: ${allowedStatuses.join(
+          `Invalid or missing status provided. Must be one of: ${allowedStatuses.join(
             ", "
           )}.`,
           400
@@ -579,7 +523,6 @@ router.put(
     }
 
     const order = await Order.findById(id);
-
     if (!order) {
       return next(new ErrorHandler("Order not found.", 404));
     }
@@ -618,7 +561,8 @@ router.put(
 
     try {
       const updatedOrder = await order.save();
-      clearRelevantOrderCaches(id, order.user?._id?.toString(), [sellerId]);
+      clearRelevantOrderCaches(id, order.user?._id, [sellerId]);
+
       res.json({
         success: true,
         message: `Refund status successfully updated to '${newStatus}'.`,
@@ -642,51 +586,6 @@ router.put(
   })
 );
 
-// === ADMIN ROUTES ===
-
-// --- Get Single Order Details (Admin) ---
-router.get(
-  "/admin/order/:id",
-  isAuthenticated,
-  isAdmin,
-  catchAsyncErrors(async (req, res, next) => {
-    const { id } = req.params;
-    if (!isValidObjectId(id)) {
-      return next(new ErrorHandler("Invalid Order ID format.", 400));
-    }
-
-    const cacheKey = CACHE_KEYS.ORDER_DETAIL(id);
-    const cachedOrder = orderCache.get(cacheKey);
-
-    if (cachedOrder) {
-      res.setHeader(
-        "Cache-Control",
-        "no-store, no-cache, must-revalidate, private"
-      );
-      res.setHeader("Pragma", "no-cache");
-      res.setHeader("Expires", "0");
-      return res.json({ success: true, order: cachedOrder, fromCache: true });
-    }
-
-    const order = await Order.findById(id).lean();
-
-    if (!order) {
-      return next(new ErrorHandler("Order not found.", 404));
-    }
-
-    orderCache.set(cacheKey, order);
-
-    res.setHeader(
-      "Cache-Control",
-      "no-store, no-cache, must-revalidate, private"
-    );
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
-
-    res.json({ success: true, order, fromCache: false });
-  })
-);
-
 router.get(
   "/admin-all-orders",
   isAuthenticated,
@@ -696,20 +595,28 @@ router.get(
     const limit = parseInt(req.query.limit) || 15;
     const skip = (page - 1) * limit;
 
+    console.log(`[Admin API] Fetching orders page ${page}, limit ${limit}`);
     try {
-      // Fetch total count and paginated orders concurrently
       const [totalOrders, orders] = await Promise.all([
         Order.countDocuments(),
-        Order.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+        Order.find()
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .select("-__v")
+          .lean(),
       ]);
 
-      // Add logging to debug user data issues
       if (orders.length > 0) {
-        console.log(`[Admin API] First order sample:`, {
-          _id: orders[0]._id,
-          hasUserData: !!orders[0].user,
-          userName: orders[0].user?.name || "MISSING",
-          userEmail: orders[0].user?.email || "MISSING",
+        const sample = orders[0];
+        console.log(`[Admin API] First order sample (Page ${page}):`, {
+          _id: sample._id,
+          status: sample.status,
+          createdAt: sample.createdAt,
+          hasUserData: !!sample.user,
+          userName: sample.user?.name || "MISSING",
+          userEmail: sample.user?.email || "MISSING",
+          cartItemCount: sample.cart?.length || 0,
         });
       }
 
@@ -746,45 +653,6 @@ router.get(
   })
 );
 
-// --- Delete Order (Admin) ---
-router.delete(
-  "/admin/delete/:id",
-  isAuthenticated,
-  isAdmin,
-  catchAsyncErrors(async (req, res, next) => {
-    const { id } = req.params;
-    if (!isValidObjectId(id)) {
-      return next(new ErrorHandler("Invalid Order ID format.", 400));
-    }
-
-    const order = await Order.findById(id).select("user cart");
-    if (!order) {
-      return next(new ErrorHandler("Order not found.", 404));
-    }
-
-    const userId = order.user?._id?.toString();
-    const involvedSellers = [
-      ...new Set(order.cart.map((i) => i.shopId?.toString()).filter(Boolean)),
-    ];
-
-    const result = await Order.deleteOne({ _id: id });
-
-    if (result.deletedCount === 0) {
-      console.error(
-        `Admin delete failed for order ${id}, but order was found initially.`
-      );
-      return next(new ErrorHandler("Order deletion failed unexpectedly.", 500));
-    }
-
-    clearRelevantOrderCaches(id, userId, involvedSellers);
-
-    res
-      .status(200)
-      .json({ success: true, message: "Order deleted successfully." });
-  })
-);
-
-// --- Admin Update Order Status --- [FIXED]
 router.put(
   "/admin-update-status/:id",
   isAuthenticated,
@@ -806,16 +674,27 @@ router.put(
       return next(new ErrorHandler("Invalid Order ID format.", 400));
     }
 
+    console.log(`[Admin API] Attempting findById for update: Order ${id}`);
     const order = await Order.findById(id);
+
     if (!order) {
+      console.error(
+        `[Admin API] Update failed: Order ${id} not found via findById.`
+      );
       return next(new ErrorHandler("Order not found.", 404));
     }
+    console.log(
+      `[Admin API] Found order ${id} for status update. Current status: ${order.status}`
+    );
 
     if (order.status === newStatus) {
+      console.log(
+        `[Admin API] Status for order ${id} is already '${newStatus}'. No update needed.`
+      );
       return res.json({
         success: true,
         message: `Order status is already '${newStatus}'. No update needed.`,
-        order,
+        order: order,
       });
     }
 
@@ -831,31 +710,30 @@ router.put(
         order.paymentInfo.status = "Succeeded";
         if (!order.paidAt) order.paidAt = new Date();
         order.markModified("paymentInfo");
+        console.log(
+          `[Admin API] Marked COD payment as Succeeded for order ${id}`
+        );
       }
-    }
-
-    // Ensure the statusHistory array exists
-    if (!Array.isArray(order.statusHistory)) {
-      order.statusHistory = [];
     }
 
     order.statusHistory.push({
       status: newStatus,
       updatedBy: `admin:${adminId}`,
       timestamp: new Date(),
-      details: `Admin changed status: ${previousStatus} -> ${newStatus}.`,
+      details: `Admin changed status from '${previousStatus}' to '${newStatus}'.`,
     });
 
     try {
       const updatedOrder = await order.save();
+      console.log(
+        `[Admin API] Successfully updated status for order ${id} to '${newStatus}'`
+      );
+
       const involvedSellers = [
         ...new Set(order.cart.map((i) => i.shopId?.toString()).filter(Boolean)),
       ];
-      clearRelevantOrderCaches(
-        id,
-        order.user?._id?.toString(),
-        involvedSellers
-      );
+      clearRelevantOrderCaches(id, order.user?._id, involvedSellers);
+
       res.json({
         success: true,
         message: `Order status updated to '${newStatus}'.`,
@@ -873,110 +751,6 @@ router.put(
   })
 );
 
-// --- Admin Update Order Item Details ---
-router.put(
-  "/update-item-details/:orderId/:itemId",
-  isAuthenticated,
-  isAdmin,
-  catchAsyncErrors(async (req, res, next) => {
-    const { orderId, itemId } = req.params;
-    const { ProductColor, size } = req.body;
-    const adminId = req.user._id.toString();
-
-    if (!isValidObjectId(orderId) || !isValidObjectId(itemId)) {
-      return next(new ErrorHandler("Invalid Order or Item ID format.", 400));
-    }
-    if (ProductColor === undefined && size === undefined) {
-      return next(
-        new ErrorHandler(
-          "No update data provided (require ProductColor or size).",
-          400
-        )
-      );
-    }
-
-    const order = await Order.findById(orderId);
-    if (!order) {
-      return next(new ErrorHandler("Order not found.", 404));
-    }
-
-    const itemIndex = order.cart.findIndex(
-      (item) => item._id?.toString() === itemId
-    );
-    if (itemIndex === -1) {
-      return next(new ErrorHandler("Item not found within this order.", 404));
-    }
-
-    let detailsLog = "Admin updated item details:";
-    let itemUpdated = false;
-    const itemToUpdate = order.cart[itemIndex];
-
-    if (
-      ProductColor !== undefined &&
-      ProductColor !== itemToUpdate.ProductColor
-    ) {
-      detailsLog += ` Color='${itemToUpdate.ProductColor}'->'${ProductColor}'`;
-      itemToUpdate.ProductColor = ProductColor.trim();
-      itemUpdated = true;
-    }
-
-    if (size !== undefined && size !== itemToUpdate.size) {
-      detailsLog += `${itemUpdated ? "," : ""} Size='${
-        itemToUpdate.size
-      }'->'${size}'`;
-      itemToUpdate.size = size.trim();
-      itemUpdated = true;
-    }
-
-    if (!itemUpdated) {
-      return res.json({
-        success: true,
-        message: "No changes detected for the item.",
-        order,
-      });
-    }
-
-    // Ensure statusHistory array exists
-    if (!Array.isArray(order.statusHistory)) {
-      order.statusHistory = [];
-    }
-
-    order.statusHistory.push({
-      status: order.status,
-      updatedBy: `admin:${adminId}`,
-      timestamp: new Date(),
-      details: `${detailsLog} (Item ID: ${itemId})`,
-    });
-    order.markModified("cart");
-
-    try {
-      const updatedOrder = await order.save({ validateBeforeSave: false }); // Keep workaround
-      const involvedSellers = [
-        ...new Set(order.cart.map((i) => i.shopId?.toString()).filter(Boolean)),
-      ];
-      clearRelevantOrderCaches(
-        orderId,
-        order.user?._id?.toString(),
-        involvedSellers
-      );
-      res.json({
-        success: true,
-        message: "Order item details updated successfully.",
-        order: updatedOrder,
-      });
-    } catch (e) {
-      console.error(
-        `Item detail update save error (Order ${orderId}, Item ${itemId}):`,
-        e
-      );
-      return next(
-        new ErrorHandler(`Failed to save item detail update: ${e.message}`, 500)
-      );
-    }
-  })
-);
-
-// --- Admin Get Design Data for Download ---
 router.get(
   "/download-design/:orderId/:itemId",
   isAuthenticated,
@@ -1014,7 +788,6 @@ router.get(
       );
     }
 
-    // Log download request async
     Order.findByIdAndUpdate(orderId, {
       $push: {
         statusHistory: {
@@ -1069,6 +842,44 @@ router.get(
     res.setHeader("Expires", "0");
 
     res.json({ success: true, designData: payload });
+  })
+);
+
+router.delete(
+  "/admin/delete/:id",
+  isAuthenticated,
+  isAdmin,
+  catchAsyncErrors(async (req, res, next) => {
+    const { id } = req.params;
+    if (!isValidObjectId(id)) {
+      return next(new ErrorHandler("Invalid Order ID format.", 400));
+    }
+
+    const order = await Order.findById(id).select("user cart");
+    if (!order) {
+      return next(new ErrorHandler("Order not found.", 404));
+    }
+
+    const userId = order.user?._id;
+    const involvedSellers = [
+      ...new Set(order.cart.map((i) => i.shopId?.toString()).filter(Boolean)),
+    ];
+
+    const result = await Order.deleteOne({ _id: id });
+
+    if (result.deletedCount === 0) {
+      console.error(
+        `Admin delete failed for order ${id}, but order was found initially.`
+      );
+      return next(new ErrorHandler("Order deletion failed unexpectedly.", 500));
+    }
+
+    console.log(`[Admin API] Deleted order ${id}`);
+    clearRelevantOrderCaches(id, userId, involvedSellers);
+
+    res
+      .status(200)
+      .json({ success: true, message: "Order deleted successfully." });
   })
 );
 

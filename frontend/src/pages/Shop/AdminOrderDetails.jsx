@@ -1,3 +1,4 @@
+// File: frontend/src/components/Admin/AdminOrderDetails.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, Link, useNavigate } from "react-router-dom";
@@ -17,6 +18,7 @@ import {
   Save,
   RefreshCw,
   Printer,
+  Loader as LoaderIcon,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
@@ -41,6 +43,7 @@ import {
   Box,
   Typography,
   IconButton,
+  Tooltip,
 } from "@mui/material";
 
 const StatusUpdateModal = ({
@@ -62,8 +65,6 @@ const StatusUpdateModal = ({
   const handleUpdateClick = () => {
     if (newStatus !== currentStatus) {
       onUpdate(newStatus);
-    } else {
-      onClose();
     }
   };
 
@@ -97,7 +98,7 @@ const StatusUpdateModal = ({
           onClick={handleUpdateClick}
           variant="contained"
           color="primary"
-          disabled={isUpdating || newStatus === currentStatus}
+          disabled={isUpdating || newStatus === currentStatus || !newStatus}
           startIcon={
             isUpdating ? (
               <CircularProgress size={20} color="inherit" />
@@ -125,8 +126,10 @@ const AdminOrderDetails = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams();
+
   const [downloadingItemId, setDownloadingItemId] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
+
   const isAdmin = user?.role?.toLowerCase() === "admin";
 
   const fetchOrderData = useCallback(() => {
@@ -136,11 +139,12 @@ const AdminOrderDetails = () => {
       navigate("/admin/dashboard");
       return;
     }
-    if (id) {
+    if (id && id !== "undefined") {
+      console.log(`Fetching details for Order ID: ${id}`);
       dispatch(getOrderDetails(id));
     } else {
-      console.error("Order ID missing in AdminOrderDetails.");
-      toast.error("Order ID is missing.");
+      console.error("Order ID missing or invalid in AdminOrderDetails.");
+      toast.error("Order ID is missing or invalid.");
       navigate("/admin-orders");
     }
   }, [dispatch, id, isAdmin, navigate]);
@@ -149,72 +153,78 @@ const AdminOrderDetails = () => {
     fetchOrderData();
   }, [fetchOrderData]);
 
-  // Debug logging to identify data issues
   useEffect(() => {
     if (order) {
-      console.log("Admin Order Details - Order data:", {
+      console.log("Admin Order Details - Rendered with Order data:", {
         orderId: order._id,
+        status: order.status,
         hasUserData: !!order.user,
         userName: order.user?.name || "MISSING",
-        cartItems: order.cart?.length || 0,
-        hasAllItemFields: order.cart?.every(
-          (item) =>
-            item.DesignTitle &&
-            item.ProductType &&
-            item.ProductColor &&
-            item.size
-        ),
+        userEmail: order.user?.email || "MISSING",
+        cartItemsCount: order.cart?.length || 0,
+        hasValidCart: Array.isArray(order.cart),
+        hasAllItemFields:
+          order.cart?.every(
+            (item) =>
+              item &&
+              item._id &&
+              item.DesignTitle &&
+              item.ProductType &&
+              item.ProductColor &&
+              item.size &&
+              item.price != null &&
+              item.qty
+          ) ?? false,
       });
     }
   }, [order]);
 
   useEffect(() => {
     if (reduxError) {
-      toast.error(`Error: ${reduxError}`);
+      if (!isDetailLoading) {
+        toast.error(`Error: ${reduxError}`);
+      }
       if (
         reduxError.toLowerCase().includes("not found") ||
-        reduxError.toLowerCase().includes("forbidden")
+        reduxError.toLowerCase().includes("forbidden") ||
+        reduxError.toLowerCase().includes("invalid order id")
       ) {
         navigate("/admin-orders");
       }
       dispatch(clearErrors());
     }
-    return () => {
-      if (reduxError) dispatch(clearErrors());
-    };
-  }, [reduxError, dispatch, navigate]);
+  }, [reduxError, dispatch, navigate, isDetailLoading]);
 
-  const handleDownloadDesignClick = (item) => {
-    if (!item?._id || isDownloading || !order?._id || downloadingItemId) return;
+  const handleDownloadDesignClick = async (item) => {
+    if (!item?._id || !order?._id || isDownloading || downloadingItemId) return;
+
     if (!item.designImage?.url) {
       toast.error(
         "Cannot download: Design image URL is missing for this item."
       );
       return;
     }
+
     setDownloadingItemId(item._id);
-    toast.info(`Preparing download package for item ${item._id.slice(-6)}...`);
-    dispatch(adminGetDesignDataForDownload(order._id, item._id))
-      .then((designData) => {
-        if (!designData) {
-          throw new Error(
-            "Failed to retrieve necessary data for download preparation."
-          );
-        }
-        return DesignDownloader.downloadSingleDesign(designData);
-      })
-      .then(() => {
-        toast.success(
-          `Download package initiated for item ${item._id.slice(-6)}!`
+    toast.info(`Preparing download package for item...`);
+
+    try {
+      const designData = await dispatch(
+        adminGetDesignDataForDownload(order._id, item._id)
+      );
+      if (!designData) {
+        throw new Error(
+          "Failed to retrieve necessary data for download preparation."
         );
-      })
-      .catch((err) => {
-        console.error("Design download failed:", err);
-        toast.error(`Download failed: ${err.message || "Unknown error"}`);
-      })
-      .finally(() => {
-        setDownloadingItemId(null);
-      });
+      }
+      await DesignDownloader.downloadSingleDesign(designData);
+      toast.success(`Download package initiated for item!`);
+    } catch (err) {
+      console.error("Design download failed:", err);
+      toast.error(`Download failed: ${err.message || "Unknown error"}`);
+    } finally {
+      setDownloadingItemId(null);
+    }
   };
 
   const handleUpdateStatusSubmit = (selectedStatus) => {
@@ -222,6 +232,7 @@ const AdminOrderDetails = () => {
       setShowStatusModal(false);
       return;
     }
+
     dispatch(adminUpdateOrderStatus(order._id, selectedStatus))
       .then(() => {
         setShowStatusModal(false);
@@ -231,11 +242,14 @@ const AdminOrderDetails = () => {
       });
   };
 
-  if (isDetailLoading) {
+  if (isDetailLoading && !order) {
     return <Loader />;
   }
 
-  if ((!order && !isDetailLoading) || (reduxError && !order)) {
+  if (
+    (!order && !isDetailLoading) ||
+    (reduxError && !order && !isDetailLoading)
+  ) {
     return (
       <div className="p-6 text-center max-w-2xl mx-auto min-h-[60vh] flex flex-col justify-center items-center">
         {reduxError && (
@@ -248,7 +262,7 @@ const AdminOrderDetails = () => {
         <p className="text-gray-600 mb-4">
           {reduxError
             ? "An error occurred while loading details."
-            : `Could not load details for Order ID: ${id}. It may not exist.`}
+            : `Could not load details for Order ID: ${id}. It may not exist or access was denied.`}
         </p>
         <Link
           to="/admin-orders"
@@ -260,10 +274,12 @@ const AdminOrderDetails = () => {
     );
   }
 
-  const cartItems = order.cart || [];
-  const subtotal = order.subtotal ?? 0;
-  const shipping = order.shippingCost ?? 0;
-  const total = order.totalPrice ?? subtotal + shipping;
+  const safeOrder = order || {};
+  const cartItems = Array.isArray(safeOrder.cart) ? safeOrder.cart : [];
+  const subtotal = safeOrder.subtotal ?? 0;
+  const shipping = safeOrder.shippingCost ?? 0;
+  const total = safeOrder.totalPrice ?? subtotal + shipping;
+  const currentStatus = safeOrder.status || "Unknown";
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto font-sans bg-gray-50 min-h-screen">
@@ -275,37 +291,38 @@ const AdminOrderDetails = () => {
           <ArrowLeft
             size={18}
             className="mr-1 group-hover:-translate-x-1 transition-transform"
-          />{" "}
+          />
           Back to Orders List
         </Link>
-        <button
-          onClick={fetchOrderData}
-          disabled={isDetailLoading || isUpdating || isDownloading}
-          className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50"
-          title="Refresh Order Details"
-        >
-          <RefreshCw
-            size={18}
-            className={
-              isDetailLoading || isUpdating || isDownloading
-                ? "animate-spin"
-                : ""
-            }
-          />
-        </button>
+        <Tooltip title="Refresh Order Details">
+          <IconButton
+            onClick={fetchOrderData}
+            disabled={isDetailLoading || isUpdating || isDownloading}
+            size="small"
+            sx={{
+              bgcolor: "primary.lighter",
+              "&:hover": { bgcolor: "primary.light" },
+            }}
+          >
+            <RefreshCw
+              size={18}
+              className={isDetailLoading ? "animate-spin" : ""}
+            />
+          </IconButton>
+        </Tooltip>
       </div>
 
       <div className="bg-white rounded-lg shadow p-5 mb-6 border border-gray-200">
         <div className="flex flex-col md:flex-row justify-between items-start gap-4">
           <div>
             <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-              <ShoppingBag size={24} className="text-blue-600" /> Order #
-              {order._id?.slice(-8) || "N/A"}
+              <ShoppingBag size={24} className="text-blue-600" />
+              Order #{safeOrder._id?.slice(-8) || "N/A"}
             </h1>
             <p className="text-gray-500 text-sm mt-1">
               Placed:{" "}
-              {order.createdAt
-                ? format(new Date(order.createdAt), "PP 'at' p")
+              {safeOrder.createdAt
+                ? format(new Date(safeOrder.createdAt), "PP 'at' p")
                 : "N/A"}
             </p>
             <p className="text-gray-500 text-sm">
@@ -320,28 +337,36 @@ const AdminOrderDetails = () => {
               <span className="text-sm text-gray-600">Status:</span>
               <span
                 className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  order.status === "Processing"
+                  currentStatus === ORDER_STATUSES.PROCESSING
                     ? "bg-blue-100 text-blue-800"
-                    : order.status === "Delivered"
+                    : currentStatus === ORDER_STATUSES.DELIVERED
                     ? "bg-green-100 text-green-800"
-                    : order.status === "Cancelled" ||
-                      order.status === "Refund Rejected"
+                    : currentStatus === ORDER_STATUSES.CANCELLED ||
+                      currentStatus === ORDER_STATUSES.REFUND_REJECTED
                     ? "bg-red-100 text-red-800"
-                    : order.status?.includes("Refund")
+                    : currentStatus?.includes("Refund")
                     ? "bg-yellow-100 text-yellow-800"
                     : "bg-gray-100 text-gray-800"
                 }`}
               >
-                {order.status || "N/A"}
+                {currentStatus}
               </span>
             </div>
-            <button
+            <Button
               onClick={() => setShowStatusModal(true)}
-              disabled={isUpdating}
-              className="w-full md:w-auto px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium flex items-center justify-center transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
+              disabled={isUpdating || !safeOrder._id}
+              variant="contained"
+              size="small"
+              startIcon={
+                isUpdating ? (
+                  <LoaderIcon size={16} className="animate-spin" />
+                ) : (
+                  <Edit size={14} />
+                )
+              }
             >
-              <Edit size={14} className="mr-1.5" /> Update Status
-            </button>
+              {isUpdating ? "Updating..." : "Update Status"}
+            </Button>
           </div>
         </div>
       </div>
@@ -351,32 +376,31 @@ const AdminOrderDetails = () => {
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
             <UserIcon size={18} className="text-blue-600" /> Customer Details
           </h2>
-          {order.user ? (
+          {safeOrder.user ? (
             <div className="space-y-1 text-sm">
               <p>
                 <strong className="text-gray-600 w-20 inline-block">
                   Name:
                 </strong>{" "}
-                {order.user.name || "(No name provided)"}
+                {safeOrder.user.name || "(No name provided)"}
               </p>
               <p>
                 <strong className="text-gray-600 w-20 inline-block">
                   Email:
                 </strong>{" "}
-                {order.user.email || "(No email provided)"}
+                {safeOrder.user.email || "(No email provided)"}
               </p>
               <p>
                 <strong className="text-gray-600 w-20 inline-block">
                   User ID:
                 </strong>{" "}
-                {order.user._id || "N/A"}
+                {safeOrder.user._id || "N/A"}
               </p>
             </div>
           ) : (
-            <div className="bg-yellow-50 p-3 rounded-md text-yellow-700 border border-yellow-200">
-              <AlertTriangle size={18} className="inline-block mr-1" />
-              Customer data is missing for this order. This may be a data
-              integrity issue.
+            <div className="bg-yellow-50 p-3 rounded-md text-yellow-700 border border-yellow-200 flex items-center gap-2">
+              <AlertTriangle size={18} />
+              <span>Customer data is missing for this order.</span>
             </div>
           )}
         </div>
@@ -384,43 +408,52 @@ const AdminOrderDetails = () => {
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
             <MapPin size={18} className="text-blue-600" /> Shipping Address
           </h2>
-          <div className="space-y-1 text-sm">
-            <p>
-              {order.shippingAddress?.address1 || "(Missing!)"}
-              {order.shippingAddress?.address2
-                ? `, ${order.shippingAddress.address2}`
-                : ""}
-            </p>
-            <p>
-              {order.shippingAddress?.city || "(Missing!)"},{" "}
-              {order.shippingAddress?.country || "(Missing!)"}{" "}
-              {order.shippingAddress?.postalCode}
-            </p>
-            <p className="mt-1 flex items-center gap-1.5 text-gray-600">
-              <Phone size={14} />{" "}
-              {order.shippingAddress?.phoneNumber || "(Missing!)"}
-            </p>
-            {!order.shippingAddress?.address1 && (
-              <p className="text-red-500 text-xs mt-1">
-                (Warning: Address Line 1 missing)
+          {safeOrder.shippingAddress ? (
+            <div className="space-y-1 text-sm">
+              <p>
+                {safeOrder.shippingAddress.address1 ||
+                  "(Missing Address Line 1)"}
+                {safeOrder.shippingAddress.address2
+                  ? `, ${safeOrder.shippingAddress.address2}`
+                  : ""}
               </p>
-            )}
-            {!order.shippingAddress?.city && (
-              <p className="text-red-500 text-xs mt-1">
-                (Warning: City missing)
+              <p>
+                {safeOrder.shippingAddress.city || "(Missing City)"},{" "}
+                {safeOrder.shippingAddress.country || "(Missing Country)"}{" "}
+                {safeOrder.shippingAddress.postalCode || ""}
               </p>
-            )}
-            {!order.shippingAddress?.country && (
-              <p className="text-red-500 text-xs mt-1">
-                (Warning: Country missing)
+              <p className="mt-1 flex items-center gap-1.5 text-gray-600">
+                <Phone size={14} />{" "}
+                {safeOrder.shippingAddress.phoneNumber ||
+                  "(Missing Phone Number)"}
               </p>
-            )}
-            {!order.shippingAddress?.phoneNumber && (
-              <p className="text-red-500 text-xs mt-1">
-                (Warning: Phone number missing)
-              </p>
-            )}
-          </div>
+              {!safeOrder.shippingAddress.address1 && (
+                <p className="text-red-500 text-xs mt-1">
+                  (Warning: Address Line 1 missing)
+                </p>
+              )}
+              {!safeOrder.shippingAddress.city && (
+                <p className="text-red-500 text-xs mt-1">
+                  (Warning: City missing)
+                </p>
+              )}
+              {!safeOrder.shippingAddress.country && (
+                <p className="text-red-500 text-xs mt-1">
+                  (Warning: Country missing)
+                </p>
+              )}
+              {!safeOrder.shippingAddress.phoneNumber && (
+                <p className="text-red-500 text-xs mt-1">
+                  (Warning: Phone number missing)
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="bg-yellow-50 p-3 rounded-md text-yellow-700 border border-yellow-200 flex items-center gap-2">
+              <AlertTriangle size={18} />
+              <span>Shipping address data is missing.</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -429,138 +462,130 @@ const AdminOrderDetails = () => {
           Items ({cartItems.length})
         </h2>
         <div className="space-y-4">
-          {cartItems.map((item, index) => (
-            <div
-              key={item._id || `item-${index}`}
-              className="bg-white rounded-lg shadow p-4 border border-gray-100"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
-                <div className="md:col-span-2 aspect-square bg-gray-100 rounded-md flex items-center justify-center overflow-hidden border">
-                  {item.designImage?.url ? (
-                    <img
-                      src={item.designImage.url}
-                      alt={item.DesignTitle || "Design"}
-                      className="max-w-full max-h-full object-contain"
-                    />
-                  ) : (
-                    <div className="text-center text-red-500 p-2">
-                      <AlertTriangle size={32} title="Design URL Missing!" />
-                      <p className="text-xs mt-1">No Image URL</p>
-                    </div>
-                  )}
-                </div>
-                <div className="md:col-span-6">
-                  <h3 className="text-md font-semibold">
-                    {item.DesignTitle || "(No Title)"}
-                  </h3>
-                  <p className="text-xs text-gray-500">
-                    Item ID: {item._id || "N/A"}
-                  </p>
-                  {!item.designImage?.url && (
-                    <p className="text-red-500 text-xs mt-1">
-                      (Warning: Design URL missing! Download/Print unavailable.)
-                    </p>
-                  )}
-                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
-                    <span className="px-1.5 py-0.5 bg-gray-100 rounded border">
-                      Type: {item.ProductType || "N/A"}
-                    </span>
-                    <span className="px-1.5 py-0.5 bg-gray-100 rounded border">
-                      Color: {item.ProductColor || "N/A"}
-                    </span>
-                    <span className="px-1.5 py-0.5 bg-gray-100 rounded border">
-                      Size: {item.size || "N/A"}
-                    </span>
-                    <span className="px-1.5 py-0.5 bg-gray-100 rounded border">
-                      Qty: {item.qty || 1}
-                    </span>
+          {cartItems.length > 0 ? (
+            cartItems.map((item, index) => (
+              <div
+                key={item._id || `item-${index}`}
+                className="bg-white rounded-lg shadow p-4 border border-gray-100"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                  <div className="md:col-span-2 aspect-square bg-gray-100 rounded-md flex items-center justify-center overflow-hidden border">
+                    {item.designImage?.url ? (
+                      <img
+                        src={item.designImage.url}
+                        alt={item.DesignTitle || "Design"}
+                        className="max-w-full max-h-full object-contain"
+                        onError={(e) => {
+                          e.currentTarget.src = "/placeholder.png";
+                        }}
+                      />
+                    ) : (
+                      <div className="text-center text-red-500 p-2">
+                        <AlertTriangle size={32} title="Design URL Missing!" />
+                        <p className="text-xs mt-1">No Image URL</p>
+                      </div>
+                    )}
                   </div>
-                  <details className="mt-3 text-xs cursor-pointer group">
-                    <summary className="font-medium text-gray-600 hover:text-black list-none flex items-center group-open:mb-1">
-                      Design Specs{" "}
-                      <span className="ml-1 transform group-open:rotate-90 transition-transform">
-                        →
+                  <div className="md:col-span-6">
+                    <h3 className="text-md font-semibold">
+                      {item.DesignTitle || "(No Title)"}
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      Item ID: {item._id || "N/A"}
+                    </p>
+                    {!item.designImage?.url && (
+                      <p className="text-red-500 text-xs mt-1">
+                        (Warning: Design URL missing! Download unavailable.)
+                      </p>
+                    )}
+                    <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                      <span className="px-1.5 py-0.5 bg-gray-100 rounded border">
+                        Type: {item.ProductType || "N/A"}
                       </span>
-                    </summary>
-                    <div className="mt-1 bg-gray-50 p-2 rounded border text-gray-700">
-                      Position X:{" "}
-                      <span className="font-mono">
-                        {item.designSpecs?.positionX ?? "?"}%
+                      <span className="px-1.5 py-0.5 bg-gray-100 rounded border">
+                        Color: {item.ProductColor || "N/A"}
                       </span>
-                      <br />
-                      Position Y:{" "}
-                      <span className="font-mono">
-                        {item.designSpecs?.positionY ?? "?"}%
+                      <span className="px-1.5 py-0.5 bg-gray-100 rounded border">
+                        Size: {item.size || "N/A"}
                       </span>
-                      <br />
-                      Scale:{" "}
-                      <span className="font-mono">
-                        {item.designSpecs?.scale ?? "?"}x
-                      </span>
-                      <br />
-                      Rotation:{" "}
-                      <span className="font-mono">
-                        {item.designSpecs?.rotation ?? "?"}°
+                      <span className="px-1.5 py-0.5 bg-gray-100 rounded border">
+                        Qty: {item.qty || 1}
                       </span>
                     </div>
-                  </details>
-                </div>
-                <div className="md:col-span-4 text-left md:text-right">
-                  <p className="text-sm text-gray-600">
-                    Unit Price: EGP {(item.price ?? 0).toFixed(2)}
-                  </p>
-                  <p className="text-md font-semibold mt-1">
-                    Item Total: EGP{" "}
-                    {((item.price || 0) * (item.qty || 1)).toFixed(2)}
-                  </p>
-                  <div className="mt-4 flex flex-col md:items-end gap-2">
-                    <button
-                      onClick={() => handleDownloadDesignClick(item)}
-                      disabled={
-                        !item.designImage?.url ||
-                        isDownloading ||
-                        downloadingItemId === item._id
-                      }
-                      className={`w-full md:w-auto px-3 py-1.5 rounded text-sm flex items-center justify-center transition-colors ${
-                        !item.designImage?.url ||
-                        isDownloading ||
-                        downloadingItemId === item._id
-                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                          : "bg-blue-600 hover:bg-blue-700 text-white"
-                      }`}
-                      title={
-                        !item.designImage?.url
-                          ? "Design URL missing"
-                          : "Download Design Package"
-                      }
-                    >
-                      {isDownloading && downloadingItemId === item._id ? (
-                        <>
-                          <CircularProgress
-                            size={14}
-                            color="inherit"
-                            sx={{ mr: 1 }}
-                          />{" "}
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <Download size={14} className="mr-1" /> Download Pkg
-                        </>
-                      )}
-                    </button>
-                    <button
-                      disabled
-                      className="w-full md:w-auto px-3 py-1.5 bg-gray-300 text-gray-600 rounded text-sm flex items-center justify-center cursor-not-allowed"
-                      title="Print file generation not available"
-                    >
-                      <Printer size={14} className="mr-1" /> Print File (N/A)
-                    </button>
+                    <details className="mt-3 text-xs cursor-pointer group">
+                      <summary className="font-medium text-gray-600 hover:text-black list-none flex items-center group-open:mb-1">
+                        Design Specs{" "}
+                        <span className="ml-1 transform group-open:rotate-90 transition-transform">
+                          →
+                        </span>
+                      </summary>
+                      <div className="mt-1 bg-gray-50 p-2 rounded border text-gray-700 font-mono">
+                        X: {item.designSpecs?.positionX ?? "?"}%, Y:{" "}
+                        {item.designSpecs?.positionY ?? "?"}% <br />
+                        Scale: {item.designSpecs?.scale ?? "?"}x, Rot:{" "}
+                        {item.designSpecs?.rotation ?? "?"}°
+                      </div>
+                    </details>
+                  </div>
+                  <div className="md:col-span-4 text-left md:text-right">
+                    <p className="text-sm text-gray-600">
+                      Unit Price: EGP {(item.price ?? 0).toFixed(2)}
+                    </p>
+                    <p className="text-md font-semibold mt-1">
+                      Item Total: EGP{" "}
+                      {((item.price || 0) * (item.qty || 1)).toFixed(2)}
+                    </p>
+                    <div className="mt-4 flex flex-col md:items-end gap-2">
+                      <Button
+                        onClick={() => handleDownloadDesignClick(item)}
+                        disabled={
+                          !item.designImage?.url ||
+                          isDownloading ||
+                          downloadingItemId === item._id
+                        }
+                        variant="contained"
+                        size="small"
+                        startIcon={
+                          isDownloading && downloadingItemId === item._id ? (
+                            <CircularProgress size={14} color="inherit" />
+                          ) : (
+                            <Download size={14} />
+                          )
+                        }
+                        fullWidth={false}
+                        sx={{ width: { xs: "100%", md: "auto" } }}
+                        title={
+                          !item.designImage?.url
+                            ? "Design URL missing"
+                            : "Download Design Package"
+                        }
+                      >
+                        {isDownloading && downloadingItemId === item._id
+                          ? "Processing..."
+                          : "Download Pkg"}
+                      </Button>
+                      <Button
+                        disabled
+                        variant="outlined"
+                        size="small"
+                        startIcon={<Printer size={14} />}
+                        fullWidth={false}
+                        sx={{ width: { xs: "100%", md: "auto" } }}
+                        title="Print file generation not available"
+                      >
+                        Print File (N/A)
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="text-center py-6 text-gray-500 bg-white rounded-lg shadow border border-gray-100">
+              <Package size={32} className="mx-auto mb-2" />
+              No items found in this order cart.
             </div>
-          ))}
+          )}
         </div>
       </div>
 
@@ -573,31 +598,31 @@ const AdminOrderDetails = () => {
             <div className="flex justify-between">
               <span className="text-gray-600">Method:</span>
               <span className="font-medium">
-                {order.paymentInfo?.type || "N/A"}
+                {safeOrder.paymentInfo?.type || "N/A"}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Status:</span>
               <span
                 className={`font-medium ${
-                  order.paymentInfo?.status?.toLowerCase() === "succeeded"
+                  safeOrder.paymentInfo?.status?.toLowerCase() === "succeeded"
                     ? "text-green-600"
                     : "text-yellow-600"
                 }`}
               >
-                {order.paymentInfo?.status || "N/A"}
+                {safeOrder.paymentInfo?.status || "N/A"}
               </span>
             </div>
-            {order.paidAt && (
+            {safeOrder.paidAt && (
               <div className="flex justify-between">
                 <span className="text-gray-600">Paid At:</span>
-                <span>{format(new Date(order.paidAt), "PPp")}</span>
+                <span>{format(new Date(safeOrder.paidAt), "PPp")}</span>
               </div>
             )}
-            {order.deliveredAt && (
+            {safeOrder.deliveredAt && (
               <div className="flex justify-between">
                 <span className="text-gray-600">Delivered At:</span>
-                <span>{format(new Date(order.deliveredAt), "PPp")}</span>
+                <span>{format(new Date(safeOrder.deliveredAt), "PPp")}</span>
               </div>
             )}
             <div className="border-t my-2"></div>
@@ -620,21 +645,23 @@ const AdminOrderDetails = () => {
             <Clock size={18} className="text-blue-600" /> Order History
           </h2>
           <div className="space-y-3 max-h-60 overflow-y-auto text-sm pr-2 custom-scrollbar">
-            {order.statusHistory?.length > 0 ? (
-              [...order.statusHistory].reverse().map((s, i) => (
+            {safeOrder.statusHistory?.length > 0 ? (
+              [...safeOrder.statusHistory].reverse().map((s, i) => (
                 <div key={i} className="flex items-start gap-2">
-                  <div className="flex flex-col items-center">
+                  <div className="flex flex-col items-center mt-1">
                     <div
-                      className={`mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                      className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
                         i === 0 ? "bg-blue-500" : "bg-gray-300"
                       }`}
                     ></div>
-                    {i < order.statusHistory.length - 1 && (
-                      <div className="w-px h-full bg-gray-200 mt-1 flex-grow"></div>
+                    {i < safeOrder.statusHistory.length - 1 && (
+                      <div className="w-px h-full bg-gray-200 mt-1 flex-grow min-h-[10px]"></div>
                     )}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-700">{s.status}</p>
+                    <p className="font-medium text-gray-700 capitalize">
+                      {s.status}
+                    </p>
                     <p className="text-xs text-gray-500">
                       {s.timestamp
                         ? format(new Date(s.timestamp), "PPp")
@@ -659,7 +686,7 @@ const AdminOrderDetails = () => {
       <StatusUpdateModal
         open={showStatusModal}
         onClose={() => setShowStatusModal(false)}
-        currentStatus={order.status || ""}
+        currentStatus={currentStatus}
         onUpdate={handleUpdateStatusSubmit}
         availableStatuses={ORDER_STATUSES}
         isUpdating={isUpdating}

@@ -1,3 +1,4 @@
+// File: frontend/src/redux/reducers/order.js
 import { ORDER_ACTIONS } from "../actions/order";
 
 const initialState = {
@@ -118,7 +119,9 @@ export const orderReducer = (state = initialState, action) => {
         ...state,
         isDetailLoading: false,
         order: isValidOrderObject ? action.payload : null,
-        error: isValidOrderObject ? null : "Received invalid order data",
+        error: isValidOrderObject
+          ? null
+          : state.error || "Received invalid order data format",
       };
     case ORDER_ACTIONS.GET_DETAIL_FAIL:
       return {
@@ -171,20 +174,6 @@ export const orderReducer = (state = initialState, action) => {
       return { ...state, isDownloading: false, downloadError: action.payload };
     case ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_FINALLY:
       return { ...state, isDownloading: false };
-
-    case "order/sseUpdate":
-      const sseUpdatedOrder = action.payload;
-      if (!sseUpdatedOrder?._id) return state;
-      return {
-        ...state,
-        adminOrders: updateOrderInList(state.adminOrders, sseUpdatedOrder),
-        shopOrders: updateOrderInList(state.shopOrders, sseUpdatedOrder),
-        orders: updateOrderInList(state.orders, sseUpdatedOrder),
-        order:
-          state.order?._id === sseUpdatedOrder._id
-            ? sseUpdatedOrder
-            : state.order,
-      };
 
     case ORDER_ACTIONS.CLEAR_ERRORS:
       return { ...state, error: null, updateError: null, downloadError: null };

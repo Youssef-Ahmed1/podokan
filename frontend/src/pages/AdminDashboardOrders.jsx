@@ -1,3 +1,4 @@
+// File: frontend/src/pages/shop/AdminDashboardOrders.jsx
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -6,11 +7,18 @@ import {
   clearErrors,
 } from "../redux/actions/order";
 import { Link } from "react-router-dom";
-import { Eye, Search, Package, RefreshCw, AlertTriangle } from "lucide-react";
+import {
+  Eye,
+  Search,
+  Package,
+  RefreshCw,
+  AlertTriangle,
+  Loader as LoaderIcon,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import Loader from "../components/Layout/Loader";
 import { format } from "date-fns";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import {
   Select,
   MenuItem,
@@ -18,6 +26,10 @@ import {
   CircularProgress,
   Typography,
   IconButton,
+  Tooltip,
+  TextField,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import { ORDER_STATUSES } from "../constants/orderStatuses";
 
@@ -27,19 +39,21 @@ function CustomLoadingOverlay() {
       sx={{
         position: "absolute",
         top: 0,
+        left: 0,
         width: "100%",
         height: "100%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         background: "rgba(255, 255, 255, 0.7)",
-        zIndex: 1,
+        zIndex: 4,
       }}
     >
       <CircularProgress />
     </Box>
   );
 }
+
 function CustomNoRowsOverlay({ message = "No orders found." }) {
   return (
     <Box
@@ -81,6 +95,7 @@ const AdminDashboardOrders = () => {
   const fetchAdminOrders = useCallback(() => {
     const apiPage = paginationModel.page + 1;
     const apiLimit = paginationModel.pageSize;
+    console.log(`Fetching admin orders: Page ${apiPage}, Limit ${apiLimit}`);
     dispatch(getAllOrdersOfAdmin(apiPage, apiLimit));
   }, [dispatch, paginationModel.page, paginationModel.pageSize]);
 
@@ -94,31 +109,29 @@ const AdminDashboardOrders = () => {
 
   useEffect(() => {
     if (error) {
-      toast.error(`Order Operation Error: ${error}`);
+      if (!isLoading) {
+        toast.error(`Order Operation Error: ${error}`);
+      }
       dispatch(clearErrors());
     }
 
-    // Check for orders with missing user data
-    if (
-      adminOrders.length > 0 &&
-      adminOrders.some((order) => !order.user?.name)
-    ) {
+    const ordersWithMissingUsers = adminOrders.filter(
+      (order) => !order?.user?.name
+    );
+    if (ordersWithMissingUsers.length > 0) {
       console.warn(
-        "Some orders are missing user data:",
-        adminOrders.filter((order) => !order.user?.name).map((o) => o._id)
+        `[AdminDashboardOrders] ${ordersWithMissingUsers.length} order(s) on this page are missing user data:`,
+        ordersWithMissingUsers.map((o) => o._id)
       );
     }
-
-    return () => {
-      if (error) dispatch(clearErrors());
-    };
-  }, [error, dispatch, adminOrders]);
+  }, [error, dispatch, adminOrders, isLoading]);
 
   const filteredOrdersForCurrentPage = useMemo(() => {
     if (!Array.isArray(adminOrders)) return [];
     return adminOrders.filter((order) => {
       if (!order?._id) return false;
       const lowerSearch = searchTerm.toLowerCase();
+
       const idMatch =
         order._id.toLowerCase().includes(lowerSearch) ||
         order._id.slice(-8).toLowerCase().includes(lowerSearch);
@@ -126,39 +139,49 @@ const AdminDashboardOrders = () => {
         order.user?.name?.toLowerCase().includes(lowerSearch) || false;
       const statusMatch =
         filterStatus === "all" || order.status === filterStatus;
+
       return (idMatch || customerMatch) && statusMatch;
     });
   }, [adminOrders, searchTerm, filterStatus]);
 
   const handleStatusUpdate = (orderId, newStatus, currentStatus) => {
-    if (newStatus === currentStatus || isUpdating) return;
-    dispatch(adminUpdateOrderStatus(orderId, newStatus)).catch(() => {});
+    if (newStatus === currentStatus || isUpdating || !orderId || !newStatus) {
+      console.log(
+        `Status update skipped for ${orderId}: New=${newStatus}, Current=${currentStatus}, Updating=${isUpdating}`
+      );
+      return;
+    }
+    console.log(
+      `Dispatching status update for ${orderId}: ${currentStatus} -> ${newStatus}`
+    );
+    dispatch(adminUpdateOrderStatus(orderId, newStatus)).catch(
+      (updateError) => {
+        console.error(`Status update failed for ${orderId}:`, updateError);
+      }
+    );
   };
 
   const handlePaginationModelChange = (newModel) => {
-    setPaginationModel(newModel);
+    console.log("Pagination change:", newModel);
+    if (
+      newModel.page !== paginationModel.page ||
+      newModel.pageSize !== paginationModel.pageSize
+    ) {
+      setPaginationModel(newModel);
+    }
   };
 
   const rows = useMemo(() => {
-    return (Array.isArray(adminOrders) ? adminOrders : []).map((o, index) => {
-      // Enhanced logging to identify user data issues
-      if (!o.user || !o.user.name) {
-        console.warn(
-          `[AdminDashboardOrders] Order at index ${index} is missing user data:`,
-          { id: o._id, hasUser: !!o.user, userData: o.user }
-        );
-      }
-
-      return {
-        id: o._id || `unknown-${index}`,
-        date: o.createdAt || new Date().toISOString(),
-        customer: o.user?.name || "Unknown Customer",
-        itemsQty: Array.isArray(o.cart) ? o.cart.length : 0,
-        total: typeof o.totalPrice === "number" ? o.totalPrice : 0,
-        status: o.status || "Unknown",
-      };
-    });
-  }, [adminOrders]);
+    return filteredOrdersForCurrentPage.map((o, index) => ({
+      id: o._id || `unknown-${index}`,
+      date: o.createdAt || null,
+      customer: o.user?.name || "Unknown Customer",
+      itemsQty: Array.isArray(o.cart) ? o.cart.length : 0,
+      total: typeof o.totalPrice === "number" ? o.totalPrice : 0,
+      status: o.status || "Unknown",
+      user: o.user,
+    }));
+  }, [filteredOrdersForCurrentPage]);
 
   const columns = useMemo(
     () => [
@@ -177,7 +200,22 @@ const AdminDashboardOrders = () => {
         renderCell: (params) =>
           params.value ? format(params.value, "PP") : "N/A",
       },
-      { field: "customer", headerName: "Customer", width: 180, flex: 1 },
+      {
+        field: "customer",
+        headerName: "Customer",
+        width: 180,
+        flex: 1,
+        renderCell: (params) => (
+          <Tooltip
+            title={`ID: ${params.row.user?._id || "N/A"}\nEmail: ${
+              params.row.user?.email || "N/A"
+            }`}
+            arrow
+          >
+            <span>{params.value}</span>
+          </Tooltip>
+        ),
+      },
       {
         field: "itemsQty",
         headerName: "Items",
@@ -214,13 +252,16 @@ const AdminDashboardOrders = () => {
             sx={{
               fontSize: "0.8rem",
               height: "35px",
-              bgcolor: "background.paper",
+              bgcolor: isUpdating ? "#f5f5f5" : "background.paper",
               ".MuiSelect-select": { py: 0.8, px: 1 },
               ".MuiOutlinedInput-notchedOutline": {
                 border: "1px solid #e0e0e0",
               },
               "&:hover .MuiOutlinedInput-notchedOutline": {
                 borderColor: "#bdbdbd",
+              },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderColor: "primary.main",
               },
               "&.Mui-disabled": { bgcolor: "#f5f5f5", opacity: 0.7 },
             }}
@@ -242,15 +283,17 @@ const AdminDashboardOrders = () => {
         align: "center",
         headerAlign: "center",
         renderCell: (params) => (
-          <Link to={`/admin/order/${params.id}`} title="View Details">
-            <IconButton size="small">
-              <Eye className="text-blue-600 hover:text-blue-800" />
-            </IconButton>
-          </Link>
+          <Tooltip title="View Order Details">
+            <Link to={`/admin/order/${params.id}`}>
+              <IconButton size="small">
+                <Eye className="text-blue-600 hover:text-blue-800" />
+              </IconButton>
+            </Link>
+          </Tooltip>
         ),
       },
     ],
-    [isUpdating]
+    [isUpdating, handleStatusUpdate]
   );
 
   if (isLoading && adminOrders.length === 0 && adminTotalOrders === 0) {
@@ -265,57 +308,74 @@ const AdminDashboardOrders = () => {
             <h1 className="text-xl md:text-2xl font-bold text-gray-800">
               Orders Management ({adminTotalOrders})
             </h1>
-            <button
-              onClick={fetchAdminOrders}
-              disabled={isLoading || isUpdating}
-              className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50"
-              title="Refresh Current Page Data"
-            >
-              <RefreshCw
-                size={18}
-                className={isLoading || isUpdating ? "animate-spin" : ""}
-              />
-            </button>
+            <Tooltip title="Refresh Current Page Data">
+              <IconButton
+                onClick={fetchAdminOrders}
+                disabled={isLoading || isUpdating}
+                size="small"
+                sx={{
+                  bgcolor: "primary.lighter",
+                  "&:hover": { bgcolor: "primary.light" },
+                }}
+              >
+                <RefreshCw
+                  size={18}
+                  className={isLoading ? "animate-spin" : ""}
+                />
+              </IconButton>
+            </Tooltip>
           </div>
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-grow">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Search ID or Customer on current page..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 text-sm outline-none"
-              />
-            </div>
-            <Select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+            <TextField
+              label="Search ID or Customer (on page)"
+              variant="outlined"
               size="small"
-              sx={{
-                minWidth: 180,
-                height: "42px",
-                bgcolor: "background.paper",
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <Search
+                    size={18}
+                    style={{ marginRight: "8px", color: "#9ca3af" }}
+                  />
+                ),
               }}
-              displayEmpty
+              sx={{ flexGrow: 1, bgcolor: "background.paper" }}
+            />
+            <FormControl
+              size="small"
+              sx={{ minWidth: 180, bgcolor: "background.paper" }}
             >
-              <MenuItem value="all">
-                <em>All Statuses</em>
-              </MenuItem>
-              {Object.values(ORDER_STATUSES).map((s) => (
-                <MenuItem key={s} value={s}>
-                  {s}
-                </MenuItem>
-              ))}
-            </Select>
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={filterStatus}
+                label="Status"
+                onChange={(e) => setFilterStatus(e.target.value)}
+              >
+                <MenuItem value="all">All Statuses</MenuItem>
+                {Object.values(ORDER_STATUSES).map((s) => (
+                  <MenuItem key={s} value={s}>
+                    {s}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </div>
           {error && !isLoading && (
-            <p className="text-red-500 text-sm mt-3 p-2 bg-red-50 border border-red-200 rounded flex items-center gap-2">
+            <Typography
+              color="error"
+              sx={{
+                mt: 2,
+                p: 1,
+                bgcolor: "error.lighter",
+                borderRadius: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
               <AlertTriangle size={16} /> Failed to load orders: {error}
-            </p>
+            </Typography>
           )}
         </div>
 
@@ -345,11 +405,19 @@ const AdminDashboardOrders = () => {
                           (searchTerm || filterStatus !== "all")
                         ? "No orders match filters on this page."
                         : rows.length === 0 && adminTotalOrders > 0
-                        ? "Processing data..."
+                        ? "No orders on this page."
                         : "No data available."
                     }
                   />
                 ),
+                toolbar: GridToolbar,
+              }}
+              slotProps={{
+                toolbar: {
+                  showQuickFilter: false,
+                  printOptions: { disableToolbarButton: true },
+                  csvOptions: { disableToolbarButton: false },
+                },
               }}
               sx={{
                 border: "none",
@@ -360,6 +428,10 @@ const AdminDashboardOrders = () => {
                 "& .MuiDataGrid-cell": { borderBottom: "1px solid #e0e0e0" },
                 "& .MuiDataGrid-footerContainer": {
                   borderTop: "1px solid #e0e0e0",
+                },
+                "& .MuiDataGrid-toolbarContainer": {
+                  padding: "8px",
+                  borderBottom: "1px solid #e0e0e0",
                 },
               }}
             />

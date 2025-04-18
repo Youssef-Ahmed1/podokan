@@ -1,3 +1,4 @@
+// File: backend/model/order.js
 const mongoose = require("mongoose");
 const { ORDER_STATUSES } = require("../constants/orderStatuses");
 
@@ -10,7 +11,7 @@ const orderItemSchema = new mongoose.Schema(
     },
     qty: {
       type: Number,
-      required: [true, "Item quantity is required."],
+      required: [true, "Item quantity (qty) is required."],
       min: [1, "Minimum quantity must be 1."],
       default: 1,
     },
@@ -44,7 +45,7 @@ const orderItemSchema = new mongoose.Schema(
       type: String,
       required: [true, "Item product type is required."],
       trim: true,
-      default: "Unknown",
+      default: "Unknown Type",
     },
     ProductColor: {
       type: String,
@@ -65,7 +66,9 @@ const orderItemSchema = new mongoose.Schema(
       rotation: { type: Number, default: 0, min: -360, max: 360 },
     },
   },
-  { _id: true }
+  {
+    _id: true,
+  }
 );
 
 const orderSchema = new mongoose.Schema(
@@ -113,7 +116,7 @@ const orderSchema = new mongoose.Schema(
       _id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true,
+        required: [true, "User ID is required for the order."],
         index: true,
       },
       name: { type: String, required: [true, "User name is required."] },
@@ -142,7 +145,7 @@ const orderSchema = new mongoose.Schema(
       index: true,
     },
     paymentInfo: {
-      id: { type: String, trim: true },
+      id: { type: String, trim: true, default: null },
       status: { type: String, default: "Processing", trim: true },
       type: { type: String, default: "Cash On Delivery", trim: true },
     },
@@ -161,46 +164,38 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Ensure proper indexing for efficient queries
 orderSchema.index({ "user._id": 1, createdAt: -1 });
 orderSchema.index({ "cart.shopId": 1, createdAt: -1 });
 orderSchema.index({ status: 1, createdAt: -1 });
 orderSchema.index({ createdAt: -1 });
 
 orderSchema.pre("save", function (next) {
-  // Always recalculate subtotal based on current cart
   this.subtotal = this.cart.reduce(
     (sum, item) => sum + (item.price || 0) * (item.qty || 1),
     0
   );
-
-  // Ensure shippingCost is valid
   this.shippingCost =
-    typeof this.shippingCost === "number" && this.shippingCost >= 0
+    typeof this.shippingAddress?.shippingPrice === "number" &&
+    this.shippingAddress.shippingPrice >= 0
+      ? this.shippingAddress.shippingPrice
+      : typeof this.shippingCost === "number" && this.shippingCost >= 0
       ? this.shippingCost
-      : this.shippingAddress?.shippingPrice ?? 50;
-
-  // Always recalculate totalPrice
+      : 50;
   this.totalPrice = this.subtotal + this.shippingCost;
 
-  // Add initial status history entry if new order
   if (this.isNew && (!this.statusHistory || this.statusHistory.length === 0)) {
-    const userIdStr = this.user?._id ? `user:${this.user._id}` : "system";
+    const userIdStr = this.user?._id
+      ? `user:${this.user._id.toString()}`
+      : "system";
     this.statusHistory = [
       {
-        status: this.status,
+        status: this.status || ORDER_STATUSES.PROCESSING,
         updatedBy: userIdStr,
         timestamp: this.createdAt || new Date(),
         details: "Order created.",
       },
     ];
   }
-
-  // Ensure statusHistory is always an array
-  if (!Array.isArray(this.statusHistory)) {
-    this.statusHistory = [];
-  }
-
   next();
 });
 
