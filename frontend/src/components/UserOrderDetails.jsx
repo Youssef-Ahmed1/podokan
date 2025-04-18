@@ -15,10 +15,10 @@ import {
   Package as PackageIcon,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { getOrderDetails, clearErrors } from "../../redux/actions/order";
-import Loader from "../Layout/Loader";
-import styles from "../../styles/styles";
-import { ORDER_STATUSES } from "../../constants/orderStatuses";
+import { getOrderDetails, clearErrors } from "../redux/actions/order";
+import Loader from "../components/Layout/Loader";
+import styles from "../styles/styles";
+import { ORDER_STATUSES } from "../constants/orderStatuses";
 
 const UserOrderDetails = () => {
   const {

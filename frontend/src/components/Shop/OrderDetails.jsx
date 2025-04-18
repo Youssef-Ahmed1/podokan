@@ -14,10 +14,10 @@ import {
   ShoppingBag,
   User as UserIcon,
 } from "lucide-react";
-import axios from "axios"; // Use axios directly for seller-specific fetch
-import { server } from "../../server"; // Adjust path
+import axios from "axios";
+import { server } from "../../server";
 import { toast } from "react-toastify";
-import Loader from "../../components/Layout/Loader"; // Adjust path
+import Loader from "../../components/Layout/Loader"; 
 import { format } from "date-fns";
 import {
   sellerUpdateRefundStatus,
