@@ -51,7 +51,7 @@ function CustomNoRowsOverlay({ message = "No data available." }) {
         p: 2,
       }}
     >
-      <Package Size={48} style={{ color: "#9ca3af", marginBottom: "1rem" }} />
+      <Package size={48} style={{ color: "#9ca3af", marginBottom: "1rem" }} />
       <Typography variant="body1" color="textSecondary">
         {message}
       </Typography>

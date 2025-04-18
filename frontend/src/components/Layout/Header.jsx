@@ -93,7 +93,7 @@ const Header = ({ activeHeading }) => {
             {/* Left Section - Menu & Logo */}
             <div className="flex items-center space-x-8">
               <GiHamburgerMenu
-                Size={40}
+                size={40}
                 className="cursor-pointer text-[#4e64df] hover:text-[#5d71e7] transition-colors"
                 onClick={() => setOpen(true)}
               />
@@ -119,7 +119,7 @@ const Header = ({ activeHeading }) => {
                   />
                   <div className="absolute right-2 top-1/2 -translate-y-1/2">
                     <AiOutlineSearch
-                      Size={24}
+                      size={24}
                       className="text-white cursor-pointer"
                     />
                   </div>
@@ -156,7 +156,7 @@ const Header = ({ activeHeading }) => {
                 onClick={() => setOpenWishlist(true)}
               >
                 <AiOutlineHeart
-                  Size={30}
+                  size={30}
                   className="text-white/80 hover:text-white transition-colors"
                 />
                 {wishlist?.length > 0 && (
@@ -171,7 +171,7 @@ const Header = ({ activeHeading }) => {
                 onClick={() => setOpenCart(true)}
               >
                 <AiOutlineShoppingCart
-                  Size={30}
+                  size={30}
                   className="text-white/80 hover:text-white transition-colors"
                 />
                 {cart?.length > 0 && (
@@ -222,7 +222,7 @@ const Header = ({ activeHeading }) => {
           {/* Left - Menu Button */}
           <button onClick={() => setOpen(true)} className="p-2 -ml-2">
             <GiHamburgerMenu
-              Size={24}
+              size={24}
               className="text-[#4e64df] hover:text-[#5d71e7] transition-colors"
             />
           </button>
@@ -256,7 +256,7 @@ const Header = ({ activeHeading }) => {
 
             <div className="relative" onClick={() => setOpenCart(true)}>
               <AiOutlineShoppingCart
-                Size={24}
+                size={24}
                 className="text-[#4e64df] hover:text-[#5d71e7] transition-colors"
               />
               {cart?.length > 0 && (
