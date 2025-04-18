@@ -1,4 +1,4 @@
-// backend/constants/orderStatuses.js
+// File: backend/constants/orderStatuses.js
 const ORDER_STATUSES = Object.freeze({
   PROCESSING: "Processing",
   TRANSFERRED: "Transferred to delivery partner",

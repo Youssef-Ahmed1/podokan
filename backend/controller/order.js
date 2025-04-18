@@ -110,7 +110,7 @@ router.post(
     if (
       !shippingAddress?.address1 ||
       !shippingAddress.city ||
-      !shippingAddress.country || // Ensure country is provided during creation
+      !shippingAddress.country ||
       !shippingAddress.phoneNumber
     ) {
       return next(
@@ -128,7 +128,7 @@ router.post(
           missing.push("shopId");
         if (item.price == null || item.price < 0) missing.push("price");
         if (!item.qty || item.qty < 1) missing.push("qty");
-        if (!item.designImage?.url) missing.push("designImage.url"); // Ensure URL is provided
+        if (!item.designImage?.url) missing.push("designImage.url");
         if (!item.DesignTitle) missing.push("DesignTitle");
         if (!item.ProductType) missing.push("ProductType");
         if (!item.ProductColor) missing.push("ProductColor");
@@ -177,7 +177,7 @@ router.post(
         price: item.price || 0,
         designImage: {
           public_id: item.designImage?.public_id || null,
-          url: item.designImage?.url, // URL should be present
+          url: item.designImage?.url,
         },
         DesignTitle: item.DesignTitle || "Untitled Design",
         ProductType: item.ProductType || "Unknown Type",
@@ -215,7 +215,7 @@ router.post(
           address1: shippingAddress.address1,
           address2: shippingAddress.address2 || "",
           city: shippingAddress.city,
-          country: shippingAddress.country, // Save country
+          country: shippingAddress.country,
           postalCode: shippingAddress.postalCode || "",
           phoneNumber: shippingAddress.phoneNumber,
           shippingPrice: shippingCostPerSellerOrder,
@@ -262,6 +262,16 @@ router.post(
               `Failed to create order part for shop ${shopIdStr}:`,
               creationError
             );
+            // Check if it's a validation error and provide clearer message
+            if (creationError.name === "ValidationError") {
+              const messages = Object.values(creationError.errors)
+                .map((err) => err.message)
+                .join(", ");
+              throw new ErrorHandler(
+                `Order validation failed for shop ${shopIdStr}: ${messages}`,
+                400
+              );
+            }
             throw new ErrorHandler(
               `Order creation failed for shop ${shopIdStr}: ${creationError.message}`,
               500
@@ -299,44 +309,17 @@ router.get(
   "/get-user-orders",
   isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
-    // --- Start Enhanced Logging ---
-    console.log("Entering /get-user-orders");
-    if (!req.user) {
-      console.error("CRITICAL: req.user is NOT populated in /get-user-orders");
-      return next(new ErrorHandler("Authentication data missing.", 500));
-    }
-    if (!req.user._id) {
-      console.error(
-        "CRITICAL: req.user._id is MISSING in /get-user-orders. User object:",
-        req.user
-      );
+    if (!req.user?._id || !isValidObjectId(req.user._id)) {
       return next(
-        new ErrorHandler("User ID missing in authentication data.", 500)
+        new ErrorHandler("User authentication error or invalid ID.", 500)
       );
     }
-    console.log("User object:", JSON.stringify(req.user));
-    console.log(
-      "User ID type:",
-      typeof req.user._id,
-      "Is ObjectId?",
-      mongoose.Types.ObjectId.isValid(req.user._id)
-    );
-    // --- End Enhanced Logging ---
-
-    const userId = req.user._id; // Should be ObjectId if middleware is correct
-    if (!isValidObjectId(userId)) {
-      console.error(
-        `CRITICAL: userId derived from req.user._id is not a valid ObjectId: ${userId}`
-      );
-      return next(new ErrorHandler("Invalid user identifier.", 500));
-    }
-
+    const userId = req.user._id;
     const userIdString = userId.toString();
     const cacheKey = CACHE_KEYS.USER_ORDERS(userIdString);
     const cachedOrders = orderCache.get(cacheKey);
 
     if (cachedOrders) {
-      console.log(`[Cache Hit] User orders for ${userIdString}`);
       res.setHeader(
         "Cache-Control",
         "no-store, no-cache, must-revalidate, private"
@@ -351,7 +334,7 @@ router.get(
       });
     }
 
-    const query = { "user._id": userId };
+    const query = { "user._id": userId }; // Use the ObjectId directly
     console.log(
       `[Cache Miss] Attempting Order.find with query: ${JSON.stringify(query)}`
     );
@@ -364,18 +347,9 @@ router.get(
 
       if (orders.length === 0) {
         const totalOrders = await Order.countDocuments();
-        console.log(`No orders found. Total orders in system: ${totalOrders}`);
-        // Double check if ANY order exists with this string ID just in case
-        const ordersWithStringId = await Order.find({
-          "user._id": userIdString,
-        })
-          .limit(1)
-          .lean();
-        if (ordersWithStringId.length > 0) {
-          console.warn(
-            "!!! Found order using STRING ID, but not ObjectId - indicates potential data inconsistency !!!"
-          );
-        }
+        console.log(
+          `No orders found for user ${userIdString}. Total orders in system: ${totalOrders}`
+        );
       }
 
       orderCache.set(cacheKey, orders);
@@ -437,10 +411,14 @@ router.get(
       res.json({ success: true, order: orderData, fromCache });
     };
 
-    if (cachedOrder) return checkAuthAndRespond(cachedOrder, true);
+    if (cachedOrder) {
+      return checkAuthAndRespond(cachedOrder, true);
+    }
 
     const order = await Order.findById(id).lean();
-    if (order) orderCache.set(cacheKey, order);
+    if (order) {
+      orderCache.set(cacheKey, order);
+    }
     checkAuthAndRespond(order, false);
   })
 );
@@ -476,12 +454,14 @@ router.get(
     const dbOrders = await Order.find({ "cart.shopId": sellerId })
       .sort({ createdAt: -1 })
       .lean();
+
     const sellerOrders = dbOrders.map((order) => ({
       ...order,
       cart: order.cart.filter(
         (item) => item.shopId?.toString() === sellerIdString
       ),
     }));
+
     orderCache.set(cacheKey, { data: sellerOrders, timestamp: Date.now() });
 
     res.setHeader(
@@ -515,6 +495,7 @@ router.put(
     const allowedStatuses = [
       ORDER_STATUSES.REFUND_APPROVED,
       ORDER_STATUSES.REFUND_REJECTED,
+      ORDER_STATUSES.REFUND_SUCCESS, // Allow setting success too
     ];
     if (!newStatus || !allowedStatuses.includes(newStatus)) {
       return next(
@@ -541,6 +522,7 @@ router.put(
         )
       );
     if (order.status !== ORDER_STATUSES.PROCESSING_REFUND) {
+      // Might need adjustment based on workflow (e.g., can approve from Approved too?)
       return next(
         new ErrorHandler(
           `Refund action failed. Order status must be '${ORDER_STATUSES.PROCESSING_REFUND}' (Current: ${order.status}).`,
@@ -555,13 +537,11 @@ router.put(
       status: newStatus,
       updatedBy: `seller:${sellerId}`,
       timestamp: new Date(),
-      details: `Seller action: Refund ${
-        newStatus === ORDER_STATUSES.REFUND_APPROVED ? "Approved" : "Rejected"
-      }. Previous status: ${previousStatus}.`,
+      details: `Seller action: Refund status set to ${newStatus}. Previous: ${previousStatus}.`,
     });
 
     try {
-      const updatedOrder = await order.save();
+      const updatedOrder = await order.save(); // Re-enable validation
       clearRelevantOrderCaches(id, order.user?._id, [sellerId]);
       res.json({
         success: true,
@@ -605,12 +585,9 @@ router.get(
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
-          .select("-__v")
-          .lean(),
+          .select("-__v") // Exclude __v field
+          .lean(), // Use lean for performance if not modifying directly
       ]);
-
-      // Reduced logging noise
-      // if (orders.length > 0) { console.log(`[Admin API] First order sample (Page ${page}):`, { ... }); }
 
       const totalPages = Math.ceil(totalOrders / limit);
       res.setHeader(
@@ -626,7 +603,7 @@ router.get(
         currentPage: page,
         totalPages,
         limit,
-        fromCache: false,
+        fromCache: false, // This endpoint doesn't use cache directly
       });
     } catch (dbError) {
       console.error(
@@ -661,10 +638,9 @@ router.put(
     if (!isValidObjectId(id))
       return next(new ErrorHandler("Invalid Order ID format.", 400));
 
-    console.log(`[Admin API] Attempting findById for update: Order ${id}`);
     let order;
     try {
-      order = await Order.findById(id);
+      order = await Order.findById(id); // Need the full Mongoose object to save
     } catch (findErr) {
       console.error(
         `[Admin API] Error during findById for order ${id}:`,
@@ -684,16 +660,6 @@ router.put(
       );
       return next(new ErrorHandler("Order not found.", 404));
     }
-    console.log(
-      `[Admin API] Found order ${id} for status update. Current status: ${order.status}`
-    );
-
-    // --- Enhanced Logging: Log the fetched object ---
-    console.log(
-      "[Admin API] Order object BEFORE status update:",
-      JSON.stringify(order.toObject(), null, 2)
-    ); // Use toObject() for plain JS object
-    // --- End Enhanced Logging ---
 
     if (order.status === newStatus) {
       return res.json({
@@ -708,13 +674,14 @@ router.put(
 
     if (newStatus === ORDER_STATUSES.DELIVERED && !order.deliveredAt) {
       order.deliveredAt = new Date();
+      // Update payment status if COD and not already succeeded
       if (
         order.paymentInfo?.type === "Cash On Delivery" &&
         order.paymentInfo.status !== "Succeeded"
       ) {
         order.paymentInfo.status = "Succeeded";
         if (!order.paidAt) order.paidAt = new Date();
-        order.markModified("paymentInfo");
+        order.markModified("paymentInfo"); // Important for nested objects
       }
     }
 
@@ -726,14 +693,7 @@ router.put(
     });
 
     try {
-      // --- DEBUG STEP: Bypass Validation (REMOVE AFTER TESTING) ---
-      const updatedOrder = await order.save({ validateBeforeSave: false });
-      // --- END DEBUG STEP ---
-
-      // --- Regular Save ---
-      // const updatedOrder = await order.save();
-      // --- End Regular Save ---
-
+      const updatedOrder = await order.save({ validateBeforeSave: true }); // ** Re-enabled validation **
       console.log(
         `[Admin API] Successfully updated status for order ${id} to '${newStatus}'`
       );
@@ -747,13 +707,11 @@ router.put(
         order: updatedOrder,
       });
     } catch (e) {
-      // Log the validation error specifically if that's the type
       if (e.name === "ValidationError") {
         console.error(
           `Admin status update VALIDATION error (Order ${id}, Status ${newStatus}):`,
           JSON.stringify(e.errors, null, 2)
         );
-        // Send specific validation messages back if possible
         const messages = Object.values(e.errors)
           .map((err) => err.message)
           .join(", ");
@@ -762,7 +720,7 @@ router.put(
             `Failed to save status update due to validation: ${messages}`,
             400
           )
-        ); // Use 400 for validation errors
+        );
       } else {
         console.error(
           `Admin status update SAVE error (Order ${id}, Status ${newStatus}):`,
@@ -788,7 +746,7 @@ router.get(
       return next(new ErrorHandler("Invalid Order or Item ID format.", 400));
     }
 
-    const order = await Order.findById(orderId).lean();
+    const order = await Order.findById(orderId).lean(); // Use lean for reading
     if (!order) return next(new ErrorHandler("Order not found.", 404));
 
     const item = order.cart.find(
@@ -810,10 +768,11 @@ router.get(
       );
     }
 
+    // Log the download request asynchronously (doesn't need to block response)
     Order.findByIdAndUpdate(orderId, {
       $push: {
         statusHistory: {
-          status: order.status,
+          status: order.status, // Log current status at time of download
           updatedBy: `admin:${adminId}`,
           timestamp: new Date(),
           details: `Admin DL requested for item: ${
@@ -822,7 +781,7 @@ router.get(
         },
       },
     })
-      .exec()
+      .exec() // Fire and forget
       .catch((err) =>
         console.error(
           `Failed to log design download request for order ${orderId}:`,
@@ -830,16 +789,17 @@ router.get(
         )
       );
 
+    // Construct the payload with all necessary details for the frontend downloader
     const payload = {
       imageUrl: designUrl,
       orderId: order._id.toString(),
       itemId: item._id.toString(),
-      orderNumber: order._id.toString().slice(-8),
+      orderNumber: order._id.toString().slice(-8), // Example order number
       productTitle: item.DesignTitle || "Untitled Design",
       specs: {
         type: item.ProductType || "N/A",
         color: item.ProductColor || "N/A",
-        size: item.size || "N/A",
+        size: item.size || "N/A", // Ensure size is included
         position: {
           positionX: item.designSpecs?.positionX ?? 50,
           positionY: item.designSpecs?.positionY ?? 50,
@@ -875,7 +835,7 @@ router.delete(
     if (!isValidObjectId(id))
       return next(new ErrorHandler("Invalid Order ID format.", 400));
 
-    const order = await Order.findById(id).select("user cart");
+    const order = await Order.findById(id).select("user cart"); // Select fields needed for cache clearing
     if (!order) return next(new ErrorHandler("Order not found.", 404));
 
     const userId = order.user?._id;

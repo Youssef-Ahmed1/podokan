@@ -66,9 +66,7 @@ const orderItemSchema = new mongoose.Schema(
       rotation: { type: Number, default: 0, min: -360, max: 360 },
     },
   },
-  {
-    _id: true,
-  }
+  { _id: true }
 );
 
 const orderSchema = new mongoose.Schema(
@@ -182,7 +180,6 @@ orderSchema.pre("save", function (next) {
       ? this.shippingCost
       : 50;
   this.totalPrice = this.subtotal + this.shippingCost;
-
   if (this.isNew && (!this.statusHistory || this.statusHistory.length === 0)) {
     const userIdStr = this.user?._id
       ? `user:${this.user._id.toString()}`

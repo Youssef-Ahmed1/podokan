@@ -8,42 +8,34 @@ export const ORDER_ACTIONS = Object.freeze({
   CREATE_SUCCESS: "order/createSuccess",
   CREATE_FAIL: "order/createFail",
   CREATE_FINALLY: "order/createFinally",
-
   GET_USER_REQUEST: "order/getUserRequest",
   GET_USER_SUCCESS: "order/getUserSuccess",
   GET_USER_FAIL: "order/getUserFail",
   GET_USER_FINALLY: "order/getUserFinally",
-
   GET_SHOP_REQUEST: "order/getShopRequest",
   GET_SHOP_SUCCESS: "order/getShopSuccess",
   GET_SHOP_FAIL: "order/getShopFail",
   GET_SHOP_FINALLY: "order/getShopFinally",
-
   GET_ADMIN_REQUEST: "order/getAdminRequest",
   GET_ADMIN_SUCCESS: "order/getAdminSuccess",
   GET_ADMIN_FAIL: "order/getAdminFail",
   GET_ADMIN_FINALLY: "order/getAdminFinally",
-
   GET_DETAIL_REQUEST: "order/getDetailRequest",
   GET_DETAIL_SUCCESS: "order/getDetailSuccess",
   GET_DETAIL_FAIL: "order/getDetailFail",
   GET_DETAIL_FINALLY: "order/getDetailFinally",
-
   ADMIN_UPDATE_STATUS_REQUEST: "order/adminUpdateStatusRequest",
   ADMIN_UPDATE_STATUS_SUCCESS: "order/adminUpdateStatusSuccess",
   ADMIN_UPDATE_STATUS_FAIL: "order/adminUpdateStatusFail",
   ADMIN_UPDATE_STATUS_FINALLY: "order/adminUpdateStatusFinally",
-
   SELLER_UPDATE_REFUND_REQUEST: "order/sellerUpdateRefundRequest",
   SELLER_UPDATE_REFUND_SUCCESS: "order/sellerUpdateRefundSuccess",
   SELLER_UPDATE_REFUND_FAIL: "order/sellerUpdateRefundFail",
   SELLER_UPDATE_REFUND_FINALLY: "order/sellerUpdateRefundFinally",
-
   DOWNLOAD_DESIGN_DATA_REQUEST: "order/downloadDesignDataRequest",
   DOWNLOAD_DESIGN_DATA_SUCCESS: "order/downloadDesignDataSuccess",
   DOWNLOAD_DESIGN_DATA_FAIL: "order/downloadDesignDataFail",
   DOWNLOAD_DESIGN_DATA_FINALLY: "order/downloadDesignDataFinally",
-
   CLEAR_ERRORS: "order/clearErrors",
 });
 
@@ -60,140 +52,70 @@ const handleApiRequest = async ({
   dispatch({ type: requestType });
   try {
     const { data } = await apiCall();
-
-    if (data.success === false) {
+    if (data.success === false)
       throw new Error(
-        data.message || `API request indicated failure for ${requestType}`
+        data.message || `API indicated failure for ${requestType}`
       );
-    }
-
     let payload;
     switch (successType) {
       case ORDER_ACTIONS.GET_DETAIL_SUCCESS:
       case ORDER_ACTIONS.ADMIN_UPDATE_STATUS_SUCCESS:
       case ORDER_ACTIONS.SELLER_UPDATE_REFUND_SUCCESS:
         payload = data?.order;
-        if (!payload || typeof payload !== "object" || !payload._id) {
-          console.error(
-            `Payload extraction failed for ${successType}. Expected valid 'order' object in data:`,
-            data
-          );
-          throw new Error(
-            `API response format error for ${successType}. Missing or invalid 'order' object.`
-          );
-        }
+        if (!payload?._id)
+          throw new Error(`Invalid 'order' object in ${successType} response.`);
         break;
-
       case ORDER_ACTIONS.GET_USER_SUCCESS:
       case ORDER_ACTIONS.GET_SHOP_SUCCESS:
         payload = data?.orders;
-        if (!Array.isArray(payload)) {
-          console.warn(
-            `Payload extraction for ${successType} received non-array. Expected 'orders' array. Data:`,
-            data
-          );
-          payload = [];
-        }
-        if (successType === ORDER_ACTIONS.GET_USER_SUCCESS) {
-          console.log(`User orders payload: `, {
-            count: payload.length,
-            fromCache: data.fromCache || false,
-          });
-        }
+        if (!Array.isArray(payload)) payload = [];
         break;
-
       case ORDER_ACTIONS.GET_ADMIN_SUCCESS:
         payload = data;
-        if (!payload || !Array.isArray(payload.orders)) {
-          console.error(
-            `Payload extraction failed for ${successType}. Expected data object with 'orders' array:`,
-            data
-          );
-          throw new Error(
-            `API response format error for ${successType}. Missing or invalid 'orders' array in response.`
-          );
-        }
+        if (!payload || !Array.isArray(payload.orders))
+          throw new Error(`Invalid admin orders response for ${successType}.`);
         break;
-
       case ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_SUCCESS:
         payload = data?.designData;
-        if (!payload || typeof payload !== "object") {
-          console.error(
-            `Payload extraction failed for ${successType}. Expected 'designData' object in data:`,
-            data
-          );
+        if (!payload || typeof payload !== "object")
           throw new Error(
-            `API response format error for ${successType}. Missing or invalid 'designData' object.`
+            `Invalid 'designData' object in ${successType} response.`
           );
-        }
         break;
-
       case ORDER_ACTIONS.CREATE_SUCCESS:
         payload = data?.orders;
-        if (!Array.isArray(payload)) {
-          console.error(
-            `Payload extraction failed for ${successType}. Expected 'orders' array in data:`,
-            data
-          );
-          throw new Error(
-            `API response format error for ${successType}. Missing or invalid 'orders' array.`
-          );
-        }
+        if (!Array.isArray(payload))
+          throw new Error(`Invalid 'orders' array in ${successType} response.`);
         break;
-
       default:
         payload = data;
     }
-
     dispatch({ type: successType, payload });
-
-    if (successMessage) {
-      toast.success(successMessage);
-    }
+    if (successMessage) toast.success(successMessage);
     return payload;
   } catch (error) {
-    let message = "An unexpected error occurred.";
+    let message = "Unexpected error.";
     let statusCode = null;
-
     if (error.response) {
       statusCode = error.response.status;
-      message =
-        error.response.data?.message ||
-        `Server Error: ${statusCode} ${error.response.statusText || ""}`;
-
-      if (statusCode === 401)
-        message = "Authentication failed. Please log in again.";
-      else if (statusCode === 403)
-        message = "Permission denied. You don't have access to this resource.";
+      message = error.response.data?.message || `Server Error: ${statusCode}`;
+      if (statusCode === 401) message = "Authentication failed.";
+      else if (statusCode === 403) message = "Permission denied.";
       else if (statusCode === 404) message = "Resource not found.";
       else if (statusCode >= 500)
-        message = `Server error (${statusCode}). Please try again later.`;
-    } else if (error.request) {
-      message =
-        "Network Error: Could not connect to the server. Please check your connection.";
-    } else {
-      message = error.message || message;
-    }
-
+        message = `Server error (${statusCode}). Try again later.`;
+    } else if (error.request) message = "Network Error. Check connection.";
+    else message = error.message || message;
     console.error(
       `${errorMessagePrefix} (${requestType}):`,
       message,
-      `\\nStatus Code: ${statusCode || "N/A"}`,
-      "\\nFull Error:",
-      error.response || error
+      `Status: ${statusCode || "N/A"}`
     );
-
     dispatch({ type: failType, payload: message });
-
-    if (statusCode !== 401) {
-      toast.error(message);
-    }
-
+    if (statusCode !== 401 && statusCode !== 404) toast.error(message); // Avoid redundant toasts
     throw error;
   } finally {
-    if (finallyType) {
-      dispatch({ type: finallyType });
-    }
+    if (finallyType) dispatch({ type: finallyType });
   }
 };
 
@@ -208,10 +130,9 @@ export const createOrder = (orderData) => (dispatch) =>
       axios.post(`${server}/order/create-order`, orderData, {
         withCredentials: true,
       }),
-    successMessage: "Order placed successfully!",
+    successMessage: "Order placed!",
     errorMessagePrefix: "Create Order Error",
-  }).then((orders) => orders);
-
+  });
 export const getAllOrdersOfUser = () => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -220,12 +141,11 @@ export const getAllOrdersOfUser = () => (dispatch) =>
     failType: ORDER_ACTIONS.GET_USER_FAIL,
     finallyType: ORDER_ACTIONS.GET_USER_FINALLY,
     apiCall: () =>
-      axios.get(`${server}/order/get-user-orders?timestamp=${Date.now()}`, {
+      axios.get(`${server}/order/get-user-orders?ts=${Date.now()}`, {
         withCredentials: true,
       }),
     errorMessagePrefix: "Get User Orders Error",
   });
-
 export const getAllOrdersOfShop = () => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -237,7 +157,6 @@ export const getAllOrdersOfShop = () => (dispatch) =>
       axios.get(`${server}/order/get-seller-orders`, { withCredentials: true }),
     errorMessagePrefix: "Get Seller Orders Error",
   });
-
 export const getAllOrdersOfAdmin =
   (page = 1, limit = 15) =>
   (dispatch) =>
@@ -254,7 +173,6 @@ export const getAllOrdersOfAdmin =
         ),
       errorMessagePrefix: "Get Admin Orders Error",
     });
-
 export const getOrderDetails = (orderId) => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -268,7 +186,6 @@ export const getOrderDetails = (orderId) => (dispatch) =>
       }),
     errorMessagePrefix: "Get Order Details Error",
   });
-
 export const adminUpdateOrderStatus = (orderId, status) => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -282,10 +199,8 @@ export const adminUpdateOrderStatus = (orderId, status) => (dispatch) =>
         { status },
         { withCredentials: true }
       ),
-    successMessage: `Order status updated to '${status}'.`,
     errorMessagePrefix: "Update Order Status Error",
   });
-
 export const sellerUpdateRefundStatus = (orderId, status) => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -302,7 +217,6 @@ export const sellerUpdateRefundStatus = (orderId, status) => (dispatch) =>
     successMessage: `Refund status updated to ${status}.`,
     errorMessagePrefix: "Seller Refund Update Error",
   });
-
 export const adminGetDesignDataForDownload = (orderId, itemId) => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -315,8 +229,6 @@ export const adminGetDesignDataForDownload = (orderId, itemId) => (dispatch) =>
         withCredentials: true,
       }),
     errorMessagePrefix: "Download Design Data Error",
-  }).then((data) => data);
-
-export const clearErrors = () => (dispatch) => {
+  }).then((data) => data); // Return data
+export const clearErrors = () => (dispatch) =>
   dispatch({ type: ORDER_ACTIONS.CLEAR_ERRORS });
-};

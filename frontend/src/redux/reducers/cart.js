@@ -1,3 +1,4 @@
+// File: frontend/src/redux/reducers/cart.js
 import { createReducer } from "@reduxjs/toolkit";
 import { CART_ACTION_TYPES } from "../actions/cart";
 

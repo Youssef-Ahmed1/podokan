@@ -5,7 +5,7 @@ import {
   getAllOrdersOfAdmin,
   adminUpdateOrderStatus,
   clearErrors,
-} from "../redux/actions/order";
+} from "../redux/actions/order"; // Adjust path
 import { Link } from "react-router-dom";
 import {
   Eye,
@@ -16,7 +16,7 @@ import {
   Loader as LoaderIcon,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import Loader from "../components/Layout/Loader";
+import Loader from "../components/Layout/Loader"; // Adjust path
 import { format } from "date-fns";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import {
@@ -31,7 +31,7 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import { ORDER_STATUSES } from "../constants/orderStatuses";
+import { ORDER_STATUSES } from "../constants/orderStatuses"; // Adjust path
 
 function CustomLoadingOverlay() {
   return (
@@ -53,7 +53,6 @@ function CustomLoadingOverlay() {
     </Box>
   );
 }
-
 function CustomNoRowsOverlay({ message = "No orders found." }) {
   return (
     <Box
@@ -84,7 +83,6 @@ const AdminDashboardOrders = () => {
     adminTotalOrders = 0,
     adminLimit = 15,
   } = useSelector((state) => state.order);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [paginationModel, setPaginationModel] = useState({
@@ -95,74 +93,51 @@ const AdminDashboardOrders = () => {
   const fetchAdminOrders = useCallback(() => {
     const apiPage = paginationModel.page + 1;
     const apiLimit = paginationModel.pageSize;
-    console.log(`Fetching admin orders: Page ${apiPage}, Limit ${apiLimit}`);
     dispatch(getAllOrdersOfAdmin(apiPage, apiLimit));
   }, [dispatch, paginationModel.page, paginationModel.pageSize]);
 
   useEffect(() => {
     fetchAdminOrders();
   }, [fetchAdminOrders]);
-
   useEffect(() => {
     setPaginationModel((prev) => ({ ...prev, pageSize: adminLimit }));
   }, [adminLimit]);
 
   useEffect(() => {
-    if (error) {
-      if (!isLoading) {
-        toast.error(`Order Operation Error: ${error}`);
-      }
+    if (error && !isLoading) {
+      toast.error(`Error: ${error}`);
       dispatch(clearErrors());
     }
+  }, [error, dispatch, isLoading]);
 
-    const ordersWithMissingUsers = adminOrders.filter(
-      (order) => !order?.user?.name
-    );
-    if (ordersWithMissingUsers.length > 0) {
-      console.warn(
-        `[AdminDashboardOrders] ${ordersWithMissingUsers.length} order(s) on this page are missing user data:`,
-        ordersWithMissingUsers.map((o) => o._id)
-      );
-    }
-  }, [error, dispatch, adminOrders, isLoading]);
-
-  const filteredOrdersForCurrentPage = useMemo(() => {
+  const filteredOrders = useMemo(() => {
     if (!Array.isArray(adminOrders)) return [];
-    return adminOrders.filter((order) => {
-      if (!order?._id) return false;
+    return adminOrders.filter((o) => {
+      if (!o?._id) return false;
       const lowerSearch = searchTerm.toLowerCase();
-
       const idMatch =
-        order._id.toLowerCase().includes(lowerSearch) ||
-        order._id.slice(-8).toLowerCase().includes(lowerSearch);
+        o._id.toLowerCase().includes(lowerSearch) ||
+        o._id.slice(-8).toLowerCase().includes(lowerSearch);
       const customerMatch =
-        order.user?.name?.toLowerCase().includes(lowerSearch) || false;
-      const statusMatch =
-        filterStatus === "all" || order.status === filterStatus;
-
-      return (idMatch || customerMatch) && statusMatch;
+        o.user?.name?.toLowerCase().includes(lowerSearch) || false;
+      const emailMatch =
+        o.user?.email?.toLowerCase().includes(lowerSearch) || false;
+      const statusMatch = filterStatus === "all" || o.status === filterStatus;
+      return (idMatch || customerMatch || emailMatch) && statusMatch;
     });
   }, [adminOrders, searchTerm, filterStatus]);
 
   const handleStatusUpdate = (orderId, newStatus, currentStatus) => {
-    if (newStatus === currentStatus || isUpdating || !orderId || !newStatus) {
-      console.log(
-        `Status update skipped for ${orderId}: New=${newStatus}, Current=${currentStatus}, Updating=${isUpdating}`
-      );
+    if (newStatus === currentStatus || isUpdating || !orderId || !newStatus)
       return;
-    }
-    console.log(
-      `Dispatching status update for ${orderId}: ${currentStatus} -> ${newStatus}`
-    );
-    dispatch(adminUpdateOrderStatus(orderId, newStatus)).catch(
-      (updateError) => {
-        console.error(`Status update failed for ${orderId}:`, updateError);
-      }
-    );
+    dispatch(adminUpdateOrderStatus(orderId, newStatus))
+      .then(() => toast.success(`Order #${orderId.slice(-6)} status updated.`))
+      .catch((err) =>
+        console.error(`Status update failed for ${orderId}:`, err)
+      ); // Error toast handled by action
   };
 
-  const handlePaginationModelChange = (newModel) => {
-    console.log("Pagination change:", newModel);
+  const handlePaginationChange = (newModel) => {
     if (
       newModel.page !== paginationModel.page ||
       newModel.pageSize !== paginationModel.pageSize
@@ -171,17 +146,19 @@ const AdminDashboardOrders = () => {
     }
   };
 
-  const rows = useMemo(() => {
-    return filteredOrdersForCurrentPage.map((o, index) => ({
-      id: o._id || `unknown-${index}`,
-      date: o.createdAt || null,
-      customer: o.user?.name || "Unknown Customer",
-      itemsQty: Array.isArray(o.cart) ? o.cart.length : 0,
-      total: typeof o.totalPrice === "number" ? o.totalPrice : 0,
-      status: o.status || "Unknown",
-      user: o.user,
-    }));
-  }, [filteredOrdersForCurrentPage]);
+  const rows = useMemo(
+    () =>
+      filteredOrders.map((o) => ({
+        id: o._id,
+        date: o.createdAt || null,
+        customer: o.user?.name || "N/A",
+        itemsQty: Array.isArray(o.cart) ? o.cart.length : 0,
+        total: typeof o.totalPrice === "number" ? o.totalPrice : 0,
+        status: o.status || "Unknown",
+        user: o.user, // Pass user object for tooltip
+      })),
+    [filteredOrders]
+  );
 
   const columns = useMemo(
     () => [
@@ -189,30 +166,29 @@ const AdminDashboardOrders = () => {
         field: "id",
         headerName: "ID",
         width: 100,
-        renderCell: (params) => `#${params.value?.slice(-6) || "N/A"}`,
+        renderCell: (p) => `#${p.value?.slice(-6) || "N/A"}`,
       },
       {
         field: "date",
         headerName: "Date",
         width: 110,
         type: "date",
-        valueGetter: (value) => (value ? new Date(value) : null),
-        renderCell: (params) =>
-          params.value ? format(params.value, "PP") : "N/A",
+        valueGetter: (v) => (v ? new Date(v) : null),
+        renderCell: (p) => (p.value ? format(p.value, "PP") : "N/A"),
       },
       {
         field: "customer",
         headerName: "Customer",
         width: 180,
         flex: 1,
-        renderCell: (params) => (
+        renderCell: (p) => (
           <Tooltip
-            title={`ID: ${params.row.user?._id || "N/A"}\nEmail: ${
-              params.row.user?.email || "N/A"
+            title={`ID: ${p.row.user?._id || "N/A"}\nEmail: ${
+              p.row.user?.email || "N/A"
             }`}
             arrow
           >
-            <span>{params.value}</span>
+            <span>{p.value}</span>
           </Tooltip>
         ),
       },
@@ -231,7 +207,7 @@ const AdminDashboardOrders = () => {
         type: "number",
         align: "right",
         headerAlign: "right",
-        valueFormatter: (value) => `EGP ${Number(value || 0).toFixed(2)}`,
+        valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
       },
       {
         field: "status",
@@ -239,12 +215,10 @@ const AdminDashboardOrders = () => {
         minWidth: 200,
         flex: 0.8,
         sortable: false,
-        renderCell: (params) => (
+        renderCell: (p) => (
           <Select
-            value={params.value || ""}
-            onChange={(e) =>
-              handleStatusUpdate(params.id, e.target.value, params.value)
-            }
+            value={p.value || ""}
+            onChange={(e) => handleStatusUpdate(p.id, e.target.value, p.value)}
             size="small"
             variant="outlined"
             disabled={isUpdating}
@@ -267,9 +241,9 @@ const AdminDashboardOrders = () => {
             }}
             MenuProps={{ PaperProps: { sx: { maxHeight: 300 } } }}
           >
-            {Object.values(ORDER_STATUSES).map((stat) => (
-              <MenuItem key={stat} value={stat} sx={{ fontSize: "0.8rem" }}>
-                {stat}
+            {Object.values(ORDER_STATUSES).map((s) => (
+              <MenuItem key={s} value={s} sx={{ fontSize: "0.8rem" }}>
+                {s}
               </MenuItem>
             ))}
           </Select>
@@ -282,9 +256,9 @@ const AdminDashboardOrders = () => {
         sortable: false,
         align: "center",
         headerAlign: "center",
-        renderCell: (params) => (
-          <Tooltip title="View Order Details">
-            <Link to={`/admin/order/${params.id}`}>
+        renderCell: (p) => (
+          <Tooltip title="Details">
+            <Link to={`/admin/order/${p.id}`}>
               <IconButton size="small">
                 <Eye className="text-blue-600 hover:text-blue-800" />
               </IconButton>
@@ -294,11 +268,10 @@ const AdminDashboardOrders = () => {
       },
     ],
     [isUpdating, handleStatusUpdate]
-  );
+  ); // isUpdating dependency ensures select is disabled correctly
 
-  if (isLoading && adminOrders.length === 0 && adminTotalOrders === 0) {
+  if (isLoading && adminOrders.length === 0 && adminTotalOrders === 0)
     return <Loader />;
-  }
 
   return (
     <div className="w-full p-4 md:p-6 min-h-screen bg-gray-100">
@@ -306,9 +279,9 @@ const AdminDashboardOrders = () => {
         <div className="mb-6 bg-white p-4 rounded-lg shadow border border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
             <h1 className="text-xl md:text-2xl font-bold text-gray-800">
-              Orders Management ({adminTotalOrders})
+              Orders ({adminTotalOrders})
             </h1>
-            <Tooltip title="Refresh Current Page Data">
+            <Tooltip title="Refresh">
               <IconButton
                 onClick={fetchAdminOrders}
                 disabled={isLoading || isUpdating}
@@ -327,7 +300,7 @@ const AdminDashboardOrders = () => {
           </div>
           <div className="flex flex-col md:flex-row gap-4">
             <TextField
-              label="Search ID or Customer (on page)"
+              label="Search ID, Customer, Email (on page)"
               variant="outlined"
               size="small"
               value={searchTerm}
@@ -374,7 +347,7 @@ const AdminDashboardOrders = () => {
                 gap: 1,
               }}
             >
-              <AlertTriangle size={16} /> Failed to load orders: {error}
+              <AlertTriangle size={16} /> Failed: {error}
             </Typography>
           )}
         </div>
@@ -389,7 +362,7 @@ const AdminDashboardOrders = () => {
               pageSizeOptions={[15, 30, 50, 100]}
               paginationModel={paginationModel}
               paginationMode="server"
-              onPaginationModelChange={handlePaginationModelChange}
+              onPaginationModelChange={handlePaginationChange}
               disableRowSelectionOnClick
               autoHeight={false}
               slots={{
@@ -400,12 +373,9 @@ const AdminDashboardOrders = () => {
                       isLoading
                         ? "Loading..."
                         : adminTotalOrders === 0
-                        ? "No orders found in the system."
-                        : rows.length === 0 &&
-                          (searchTerm || filterStatus !== "all")
-                        ? "No orders match filters on this page."
-                        : rows.length === 0 && adminTotalOrders > 0
-                        ? "No orders on this page."
+                        ? "No orders found."
+                        : rows.length === 0
+                        ? "No orders match filters on page."
                         : "No data available."
                     }
                   />
