@@ -17,10 +17,10 @@ import {
   ImageOff,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { getOrderDetails, clearErrors } from "../../redux/actions/order"; // Adjust path
-import Loader from "../../components/Layout/Loader"; // Adjust path
-import styles from "../../styles/styles"; // Adjust path
-import { ORDER_STATUSES } from "../../constants/orderStatuses"; // Adjust path
+import { getOrderDetails, clearErrors } from "../redux/actions/order"; // Adjust path
+import Loader from "../components/Layout/Loader"; // Adjust path
+import styles from "../styles/styles"; // Adjust path
+import { ORDER_STATUSES } from "../constants/orderStatuses"; // Adjust path
 
 const UserOrderDetails = () => {
   const {
