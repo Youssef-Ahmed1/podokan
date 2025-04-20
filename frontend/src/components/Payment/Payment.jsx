@@ -170,7 +170,7 @@ const Payment = () => {
 
     const orderPayload = {
       cart: orderData.cart.map((item) => {
-        console.log("Mapping item for payload:", item); // Add logging
+        console.log("Mapping item for payload:", item); 
         return {
           qty: item.qty,
           shopId: item.shopId,

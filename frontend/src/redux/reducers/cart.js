@@ -6,13 +6,15 @@ const loadInitialCart = () => {
     const storedCart = localStorage.getItem("cartItems");
     if (storedCart) {
       const parsedCart = JSON.parse(storedCart);
-      return Array.isArray(parsedCart) ? parsedCart : [];
+      if (Array.isArray(parsedCart)) {
+        return parsedCart;
+      }
     }
   } catch (error) {
     console.error("Error parsing cart items from localStorage:", error);
-    localStorage.removeItem("cartItems");
+    localStorage.removeItem("cartItems"); // Clear corrupted data
   }
-  return [];
+  return []; 
 };
 
 const cartInitialState = {
