@@ -1,11 +1,22 @@
-// File: frontend/src/redux/reducers/cart.js
 import { createReducer } from "@reduxjs/toolkit";
 import { CART_ACTION_TYPES } from "../actions/cart";
 
+const loadInitialCart = () => {
+  try {
+    const storedCart = localStorage.getItem("cartItems");
+    if (storedCart) {
+      const parsedCart = JSON.parse(storedCart);
+      return Array.isArray(parsedCart) ? parsedCart : [];
+    }
+  } catch (error) {
+    console.error("Error parsing cart items from localStorage:", error);
+    localStorage.removeItem("cartItems");
+  }
+  return [];
+};
+
 const cartInitialState = {
-  cart: localStorage.getItem("cartItems")
-    ? JSON.parse(localStorage.getItem("cartItems"))
-    : [],
+  cart: loadInitialCart(),
 };
 
 export const cartReducer = createReducer(cartInitialState, (builder) => {
@@ -13,7 +24,7 @@ export const cartReducer = createReducer(cartInitialState, (builder) => {
     if (Array.isArray(action.payload)) {
       state.cart = action.payload;
     } else {
-      console.error("UPDATE_CART received invalid payload:", action.payload);
+      console.error("UPDATE_CART received non-array payload:", action.payload);
     }
   });
 });

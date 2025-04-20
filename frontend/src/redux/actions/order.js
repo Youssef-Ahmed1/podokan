@@ -1,4 +1,3 @@
-// File: frontend/src/redux/actions/order.js
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
@@ -52,67 +51,107 @@ const handleApiRequest = async ({
   dispatch({ type: requestType });
   try {
     const { data } = await apiCall();
-    if (data.success === false)
+    if (data.success === false) {
       throw new Error(
-        data.message || `API indicated failure for ${requestType}`
+        data.message || `API request indicated failure for ${requestType}`
       );
+    }
+
     let payload;
     switch (successType) {
       case ORDER_ACTIONS.GET_DETAIL_SUCCESS:
       case ORDER_ACTIONS.ADMIN_UPDATE_STATUS_SUCCESS:
       case ORDER_ACTIONS.SELLER_UPDATE_REFUND_SUCCESS:
         payload = data?.order;
-        if (!payload?._id)
-          throw new Error(`Invalid 'order' object in ${successType} response.`);
+        if (!payload || typeof payload !== "object" || !payload._id) {
+          console.error(
+            `Payload extraction failed for ${successType}. Expected 'order' object. Data:`,
+            data
+          );
+          throw new Error(`API response format error for ${successType}.`);
+        }
         break;
       case ORDER_ACTIONS.GET_USER_SUCCESS:
       case ORDER_ACTIONS.GET_SHOP_SUCCESS:
         payload = data?.orders;
-        if (!Array.isArray(payload)) payload = [];
+        if (!Array.isArray(payload)) {
+          console.warn(
+            `Payload extraction for ${successType} received non-array. Data:`,
+            data
+          );
+          payload = [];
+        }
+        if (successType === ORDER_ACTIONS.GET_USER_SUCCESS) {
+          console.log(`User orders payload: `, {
+            count: payload.length,
+            fromCache: data.fromCache || false,
+          });
+        }
         break;
       case ORDER_ACTIONS.GET_ADMIN_SUCCESS:
         payload = data;
-        if (!payload || !Array.isArray(payload.orders))
-          throw new Error(`Invalid admin orders response for ${successType}.`);
+        if (!payload || !Array.isArray(payload.orders)) {
+          console.error(
+            `Payload extraction failed for ${successType}. Expected data with 'orders' array. Data:`,
+            data
+          );
+          throw new Error(`API response format error for ${successType}.`);
+        }
         break;
       case ORDER_ACTIONS.DOWNLOAD_DESIGN_DATA_SUCCESS:
         payload = data?.designData;
-        if (!payload || typeof payload !== "object")
-          throw new Error(
-            `Invalid 'designData' object in ${successType} response.`
+        if (!payload || typeof payload !== "object") {
+          console.error(
+            `Payload extraction failed for ${successType}. Expected 'designData' object. Data:`,
+            data
           );
+          throw new Error(`API response format error for ${successType}.`);
+        }
         break;
       case ORDER_ACTIONS.CREATE_SUCCESS:
         payload = data?.orders;
-        if (!Array.isArray(payload))
-          throw new Error(`Invalid 'orders' array in ${successType} response.`);
+        if (!Array.isArray(payload)) {
+          console.error(
+            `Payload extraction failed for ${successType}. Expected 'orders' array. Data:`,
+            data
+          );
+          throw new Error(`API response format error for ${successType}.`);
+        }
         break;
       default:
         payload = data;
     }
+
     dispatch({ type: successType, payload });
     if (successMessage) toast.success(successMessage);
     return payload;
   } catch (error) {
-    let message = "Unexpected error.";
+    let message = "An unexpected error occurred.";
     let statusCode = null;
     if (error.response) {
       statusCode = error.response.status;
-      message = error.response.data?.message || `Server Error: ${statusCode}`;
-      if (statusCode === 401) message = "Authentication failed.";
+      message =
+        error.response.data?.message ||
+        `Server Error: ${statusCode} ${error.response.statusText || ""}`;
+      if (statusCode === 401)
+        message = "Authentication failed. Please log in again.";
       else if (statusCode === 403) message = "Permission denied.";
       else if (statusCode === 404) message = "Resource not found.";
       else if (statusCode >= 500)
-        message = `Server error (${statusCode}). Try again later.`;
-    } else if (error.request) message = "Network Error. Check connection.";
-    else message = error.message || message;
+        message = `Server error (${statusCode}). Please try again.`;
+    } else if (error.request) {
+      message = "Network Error: Cannot connect to server.";
+    } else {
+      message = error.message || message;
+    }
     console.error(
       `${errorMessagePrefix} (${requestType}):`,
       message,
-      `Status: ${statusCode || "N/A"}`
+      `Status: ${statusCode || "N/A"}`,
+      error.response || error
     );
     dispatch({ type: failType, payload: message });
-    if (statusCode !== 401 && statusCode !== 404) toast.error(message); // Avoid redundant toasts
+    if (statusCode !== 401 && statusCode !== 404) toast.error(message);
     throw error;
   } finally {
     if (finallyType) dispatch({ type: finallyType });
@@ -130,9 +169,10 @@ export const createOrder = (orderData) => (dispatch) =>
       axios.post(`${server}/order/create-order`, orderData, {
         withCredentials: true,
       }),
-    successMessage: "Order placed!",
+    successMessage: "Order placed successfully!",
     errorMessagePrefix: "Create Order Error",
-  });
+  }).then((orders) => orders);
+
 export const getAllOrdersOfUser = () => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -141,11 +181,12 @@ export const getAllOrdersOfUser = () => (dispatch) =>
     failType: ORDER_ACTIONS.GET_USER_FAIL,
     finallyType: ORDER_ACTIONS.GET_USER_FINALLY,
     apiCall: () =>
-      axios.get(`${server}/order/get-user-orders?ts=${Date.now()}`, {
+      axios.get(`${server}/order/get-user-orders?timestamp=${Date.now()}`, {
         withCredentials: true,
       }),
     errorMessagePrefix: "Get User Orders Error",
   });
+
 export const getAllOrdersOfShop = () => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -154,9 +195,12 @@ export const getAllOrdersOfShop = () => (dispatch) =>
     failType: ORDER_ACTIONS.GET_SHOP_FAIL,
     finallyType: ORDER_ACTIONS.GET_SHOP_FINALLY,
     apiCall: () =>
-      axios.get(`${server}/order/get-seller-orders`, { withCredentials: true }),
+      axios.get(`${server}/order/get-seller-orders?timestamp=${Date.now()}`, {
+        withCredentials: true,
+      }),
     errorMessagePrefix: "Get Seller Orders Error",
   });
+
 export const getAllOrdersOfAdmin =
   (page = 1, limit = 15) =>
   (dispatch) =>
@@ -168,11 +212,12 @@ export const getAllOrdersOfAdmin =
       finallyType: ORDER_ACTIONS.GET_ADMIN_FINALLY,
       apiCall: () =>
         axios.get(
-          `${server}/order/admin-all-orders?page=${page}&limit=${limit}`,
+          `${server}/order/admin-all-orders?page=${page}&limit=${limit}×tamp=${Date.now()}`,
           { withCredentials: true }
         ),
       errorMessagePrefix: "Get Admin Orders Error",
     });
+
 export const getOrderDetails = (orderId) => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -181,11 +226,13 @@ export const getOrderDetails = (orderId) => (dispatch) =>
     failType: ORDER_ACTIONS.GET_DETAIL_FAIL,
     finallyType: ORDER_ACTIONS.GET_DETAIL_FINALLY,
     apiCall: () =>
-      axios.get(`${server}/order/get-order/${orderId}`, {
-        withCredentials: true,
-      }),
+      axios.get(
+        `${server}/order/get-order/${orderId}?timestamp=${Date.now()}`,
+        { withCredentials: true }
+      ),
     errorMessagePrefix: "Get Order Details Error",
   });
+
 export const adminUpdateOrderStatus = (orderId, status) => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -199,8 +246,10 @@ export const adminUpdateOrderStatus = (orderId, status) => (dispatch) =>
         { status },
         { withCredentials: true }
       ),
+    successMessage: `Order status updated to '${status}'.`,
     errorMessagePrefix: "Update Order Status Error",
   });
+
 export const sellerUpdateRefundStatus = (orderId, status) => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -217,6 +266,7 @@ export const sellerUpdateRefundStatus = (orderId, status) => (dispatch) =>
     successMessage: `Refund status updated to ${status}.`,
     errorMessagePrefix: "Seller Refund Update Error",
   });
+
 export const adminGetDesignDataForDownload = (orderId, itemId) => (dispatch) =>
   handleApiRequest({
     dispatch,
@@ -229,6 +279,7 @@ export const adminGetDesignDataForDownload = (orderId, itemId) => (dispatch) =>
         withCredentials: true,
       }),
     errorMessagePrefix: "Download Design Data Error",
-  }).then((data) => data); // Return data
+  }).then((data) => data);
+
 export const clearErrors = () => (dispatch) =>
   dispatch({ type: ORDER_ACTIONS.CLEAR_ERRORS });

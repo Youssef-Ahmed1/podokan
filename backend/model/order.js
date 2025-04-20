@@ -1,6 +1,5 @@
-// File: backend/model/order.js
 const mongoose = require("mongoose");
-const { ORDER_STATUSES } = require("../constants/orderStatuses");
+const { ORDER_STATUSES } = require("../constants/orderStatuses"); // Assuming this file exists
 
 const orderItemSchema = new mongoose.Schema(
   {
@@ -18,7 +17,7 @@ const orderItemSchema = new mongoose.Schema(
     shopId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Shop",
-      required: [true, "Item must belong to a specific Shop."],
+      required: [true, "Item must belong to a specific Shop (shopId)."],
       index: true,
     },
     price: {
@@ -106,7 +105,7 @@ const orderSchema = new mongoose.Schema(
     },
     shippingCost: {
       type: Number,
-      required: [true, "Order shipping cost is required."],
+      required: [true, "Order shipping cost calculation is required."],
       default: 50,
       min: 0,
     },
@@ -122,13 +121,13 @@ const orderSchema = new mongoose.Schema(
     },
     subtotal: {
       type: Number,
-      required: [true, "Order subtotal is required."],
+      required: [true, "Order subtotal calculation is required."],
       default: 0,
       min: 0,
     },
     totalPrice: {
       type: Number,
-      required: [true, "Order total price is required."],
+      required: [true, "Order total price calculation is required."],
       default: 0,
       min: 0,
     },
@@ -176,18 +175,17 @@ orderSchema.pre("save", function (next) {
     typeof this.shippingAddress?.shippingPrice === "number" &&
     this.shippingAddress.shippingPrice >= 0
       ? this.shippingAddress.shippingPrice
-      : typeof this.shippingCost === "number" && this.shippingCost >= 0
-      ? this.shippingCost
       : 50;
   this.totalPrice = this.subtotal + this.shippingCost;
+
   if (this.isNew && (!this.statusHistory || this.statusHistory.length === 0)) {
-    const userIdStr = this.user?._id
+    const initiator = this.user?._id
       ? `user:${this.user._id.toString()}`
       : "system";
     this.statusHistory = [
       {
         status: this.status || ORDER_STATUSES.PROCESSING,
-        updatedBy: userIdStr,
+        updatedBy: initiator,
         timestamp: this.createdAt || new Date(),
         details: "Order created.",
       },

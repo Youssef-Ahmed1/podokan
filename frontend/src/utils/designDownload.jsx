@@ -1,4 +1,3 @@
-// File: frontend/src/utils/designDownload.jsx
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import axios from "axios";
@@ -6,12 +5,8 @@ import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 
 const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_NAME;
-if (!CLOUDINARY_CLOUD_NAME) {
-  console.error("REACT_APP_CLOUDINARY_NAME missing in env!");
-  toast.error("Config Error: Cannot load templates.", { autoClose: false });
-}
 const BASE_CLOUDINARY_URL = `https://res.cloudinary.com/${
-  CLOUDINARY_CLOUD_NAME || "MISSING_CLOUD"
+  CLOUDINARY_CLOUD_NAME || "MISSING_CLOUD_NAME"
 }/image/upload`;
 
 const TEMPLATE_FOLDERS = {
@@ -19,224 +14,326 @@ const TEMPLATE_FOLDERS = {
   "t-shirt": "t-shirts",
   "long-sleeve": "long-sleeves",
 };
-const getTemplateFilenamePrefix = (type) =>
-  ({ hoodie: "hoodie", "t-shirt": "t-shirt", "long-sleeve": "longsleeves" }[
-    type
-  ] || type);
+
+const getTemplateFilenamePrefix = (typeKey) => {
+  switch (typeKey) {
+    case "hoodie":
+      return "hoodie";
+    case "t-shirt":
+      return "t-shirt";
+    case "long-sleeve":
+      return "longsleeves";
+    default:
+      return typeKey;
+  }
+};
 
 class DesignDownloadError extends Error {
-  constructor(m, c = "DL_FAILED", d = {}) {
-    super(m);
+  constructor(message, code = "DESIGN_DOWNLOAD_FAILED", details = {}) {
+    super(message);
     this.name = "DesignDownloadError";
-    this.code = c;
-    this.details = d;
+    this.code = code;
+    this.details = details;
   }
 }
+
 class ImageProcessingError extends DesignDownloadError {
-  constructor(m, s = null, u = null) {
-    super(m, "IMG_PROC_ERROR", { s, u });
-    this.status = s;
-    this.url = u;
+  constructor(message, httpStatus = null, failedUrl = null) {
+    super(message, "IMAGE_PROCESSING_ERROR", { httpStatus, failedUrl });
+    this.status = httpStatus;
+    this.url = failedUrl;
   }
 }
 
 export class DesignDownloader {
   static async fetchImageAsBlob(url) {
-    if (!url) throw new ImageProcessingError("Invalid image URL.", null, url);
+    if (!url || typeof url !== "string")
+      throw new ImageProcessingError("Invalid image URL provided.", null, url);
+    if (
+      url.startsWith(BASE_CLOUDINARY_URL) &&
+      CLOUDINARY_CLOUD_NAME === "MISSING_CLOUD_NAME"
+    ) {
+      throw new ImageProcessingError(
+        "Application misconfigured: Cloudinary name missing.",
+        null,
+        url
+      );
+    }
     try {
-      const res = await axios({
+      const response = await axios({
         url,
         method: "GET",
         responseType: "blob",
-        headers: { "Cache-Control": "no-store" },
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
         timeout: 45000,
-        validateStatus: (s) => s >= 200 && s < 300,
+        validateStatus: (status) => status >= 200 && status < 300,
         withCredentials: false,
       });
-      if (!(res.data instanceof Blob))
+      if (!(response.data instanceof Blob))
         throw new ImageProcessingError(
-          "Invalid response: expected Blob.",
-          res.status,
+          "Invalid response: expected a Blob.",
+          response.status,
           url
         );
-      return new Blob([res.data], {
-        type: res.headers["content-type"] || "image/png",
+      return new Blob([response.data], {
+        type: response.headers["content-type"] || "image/png",
       });
-    } catch (e) {
-      let m = `Fetch failed: ${e.message}`;
-      let s = e.response?.status;
-      if (axios.isCancel(e)) m = "Fetch cancelled.";
-      else if (e.code === "ECONNABORTED") m = "Fetch timed out.";
-      else if (e.response) m = `Fetch failed (${s}): ${e.message}`;
-      console.error(`fetchBlob Error (${url}):`, m, e);
-      throw new ImageProcessingError(m, s, url);
+    } catch (error) {
+      let errMsg = `Image fetch failed: ${error.message}`;
+      let status = error.response?.status;
+      if (axios.isCancel(error)) errMsg = "Image fetch cancelled.";
+      else if (error.code === "ECONNABORTED") errMsg = "Image fetch timed out.";
+      else if (error.response)
+        errMsg = `Image fetch failed (Status ${status}): ${error.message}`;
+      console.error(`fetchImageAsBlob Error (${url}):`, errMsg, error);
+      throw new ImageProcessingError(errMsg, status, url);
     }
   }
 
-  static loadImage(src) {
+  static loadImage(imageSource) {
     return new Promise((resolve, reject) => {
-      if (!src)
-        return reject(new ImageProcessingError("Missing image source."));
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      let objUrl = null;
-      img.onload = () => {
-        if (objUrl) URL.revokeObjectURL(objUrl);
-        if (img.naturalWidth === 0)
+      if (!imageSource)
+        return reject(
+          new ImageProcessingError("Cannot load image: source missing.")
+        );
+      const image = new Image();
+      image.crossOrigin = "anonymous";
+      let objectUrl = null;
+      image.onload = () => {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        if (image.naturalWidth === 0 || image.naturalHeight === 0)
           reject(
             new ImageProcessingError(
-              "Image loaded with 0 dimensions.",
+              `Image loaded but has invalid dimensions (0x0). Source: ${
+                typeof imageSource === "string" ? imageSource : "Blob"
+              }`,
               null,
-              typeof src === "string" ? src : "Blob"
+              typeof imageSource === "string" ? imageSource : "Blob Source"
             )
           );
-        else resolve(img);
+        else resolve(image);
       };
-      img.onerror = (e) => {
-        if (objUrl) URL.revokeObjectURL(objUrl);
+      image.onerror = (errorEvent) => {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        console.error("Image load error:", errorEvent);
         reject(
           new ImageProcessingError(
-            "Image load failed.",
+            `Failed to load image resource. Source: ${
+              typeof imageSource === "string" ? imageSource : "Blob"
+            }`,
             null,
-            typeof src === "string" ? src : "Blob"
+            typeof imageSource === "string" ? imageSource : "Blob Source"
           )
         );
       };
-      if (src instanceof Blob) {
-        objUrl = URL.createObjectURL(src);
-        img.src = objUrl;
-      } else if (typeof src === "string") img.src = src;
-      else reject(new ImageProcessingError("Invalid image source type."));
+      if (imageSource instanceof Blob) {
+        objectUrl = URL.createObjectURL(imageSource);
+        image.src = objectUrl;
+      } else if (typeof imageSource === "string") {
+        image.src = imageSource;
+      } else reject(new ImageProcessingError("Invalid image source type."));
     });
   }
 
-  static getProductTemplateUrl(type, color) {
-    if (!type || !color)
-      throw new Error("Type and color required for template URL.");
-    const typeKey = type.toLowerCase().replace(/\s+/g, "-");
-    const colorKey = color.toLowerCase().replace(/\s+/g, "-");
+  static getProductTemplateUrl(productType, ProductColor) {
+    if (!productType || !ProductColor)
+      throw new Error("Product type and color required for template URL.");
+    if (CLOUDINARY_CLOUD_NAME === "MISSING_CLOUD_NAME")
+      throw new Error("App misconfigured: Cloudinary name missing.");
+    const typeKey = productType.toLowerCase().replace(/\s+/g, "-");
+    const colorKey = ProductColor.toLowerCase().replace(/\s+/g, "-");
     const folder = TEMPLATE_FOLDERS[typeKey];
     if (!folder)
-      console.warn(
-        `Template folder missing for type '${typeKey}'. Using default.`
+      throw new Error(
+        `Unsupported product type for template: '${productType}'.`
       );
-    const prefix = getTemplateFilenamePrefix(typeKey);
-    const file = `${prefix}-${colorKey}-front.png`;
-    return `${BASE_CLOUDINARY_URL}/${folder || "t-shirts"}/${file}`;
+    const filenamePrefix = getTemplateFilenamePrefix(typeKey);
+    const fileName = `${filenamePrefix}-${colorKey}-front.png`;
+    const templateUrl = `${BASE_CLOUDINARY_URL}/${folder}/${fileName}`;
+    return templateUrl;
   }
 
-  static generateFileName(prefix, orderId, itemId, ext = "zip") {
-    const ts = new Date().toISOString().slice(0, 19).replace(/[:T-]/g, "");
-    const safeOId = (orderId || uuidv4())
+  static generateFileName(prefix, orderId, itemId, extension = "zip") {
+    const timestamp = new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace(/[:T-]/g, "");
+    const safeOrderId = (orderId || uuidv4())
       .toString()
       .replace(/[^a-z0-9_.-]/gi, "_");
-    const safeIId = (itemId || uuidv4())
+    const safeItemId = (itemId || uuidv4())
       .toString()
       .replace(/[^a-z0-9_.-]/gi, "_");
-    return `${prefix}_${safeOId}_${safeIId}_${ts}.${ext}`;
+    return `${prefix}_${safeOrderId}_${safeItemId}_${timestamp}.${extension}`;
   }
 
-  static async createProductMockup(designUrl, type, color, specs) {
+  static async createProductMockup(
+    designImageUrl,
+    productType,
+    ProductColor,
+    designSpecs
+  ) {
     if (
-      !designUrl ||
-      !type ||
-      !color ||
-      specs?.positionX == null ||
-      specs?.positionY == null
-    )
-      throw new ImageProcessingError("Missing params for mockup.");
-    const { scale = 1, rotation = 0, positionX: posX, positionY: posY } = specs;
-    let templateUrl;
-    try {
-      templateUrl = DesignDownloader.getProductTemplateUrl(type, color);
-    } catch (e) {
-      throw new ImageProcessingError(`Template URL error: ${e.message}`);
+      !designImageUrl ||
+      !productType ||
+      !ProductColor ||
+      designSpecs?.positionX == null ||
+      designSpecs?.positionY == null
+    ) {
+      throw new ImageProcessingError(
+        "Missing required parameters for mockup generation."
+      );
     }
-
+    const scale = designSpecs.scale ?? 1;
+    const rotation = designSpecs.rotation ?? 0;
+    const posX = designSpecs.positionX;
+    const posY = designSpecs.positionY;
+    let templateImageUrl;
+    try {
+      templateImageUrl = DesignDownloader.getProductTemplateUrl(
+        productType,
+        ProductColor
+      );
+    } catch (e) {
+      throw new ImageProcessingError(
+        `Template URL generation failed: ${e.message}`
+      );
+    }
     try {
       const [designBlob, templateBlob] = await Promise.all([
-        DesignDownloader.fetchImageAsBlob(designUrl),
-        DesignDownloader.fetchImageAsBlob(templateUrl),
+        DesignDownloader.fetchImageAsBlob(designImageUrl),
+        DesignDownloader.fetchImageAsBlob(templateImageUrl),
       ]);
       const [designImage, templateImage] = await Promise.all([
         DesignDownloader.loadImage(designBlob),
         DesignDownloader.loadImage(templateBlob),
       ]);
-
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-      if (!ctx) throw new ImageProcessingError("Canvas context error.");
+      if (!ctx) throw new ImageProcessingError("Could not get 2D context.");
       canvas.width = templateImage.naturalWidth;
       canvas.height = templateImage.naturalHeight;
       if (canvas.width === 0 || canvas.height === 0)
         throw new ImageProcessingError(
-          "Template 0 dimensions.",
+          `Template image has zero dimensions. URL: ${templateImageUrl}`,
           null,
-          templateUrl
+          templateImageUrl
         );
       ctx.drawImage(templateImage, 0, 0, canvas.width, canvas.height);
-
-      let area = { xR: 0.3, yR: 0.2, wR: 0.4, hR: 0.5 }; // Default (t-shirt)
-      const typeKey = type.toLowerCase().replace(/\s+/g, "-");
+      let printableArea = {
+        xRatio: 0.3,
+        yRatio: 0.2,
+        widthRatio: 0.4,
+        heightRatio: 0.5,
+      };
+      const typeKey = productType.toLowerCase().replace(/\s+/g, "-");
       if (typeKey === "hoodie")
-        area = { xR: 0.32, yR: 0.25, wR: 0.36, hR: 0.4 };
+        printableArea = {
+          xRatio: 0.32,
+          yRatio: 0.25,
+          widthRatio: 0.36,
+          heightRatio: 0.4,
+        };
       else if (typeKey === "long-sleeve")
-        area = { xR: 0.3, yR: 0.22, wR: 0.4, hR: 0.48 };
-
-      const areaX = canvas.width * area.xR,
-        areaY = canvas.height * area.yR;
-      const areaW = canvas.width * area.wR,
-        areaH = canvas.height * area.hR;
-      let dW = areaW * scale,
-        dH = (designImage.naturalHeight / designImage.naturalWidth) * dW;
-      if (dH > areaH * scale) {
-        dH = areaH * scale;
-        dW = (designImage.naturalWidth / designImage.naturalHeight) * dH;
+        printableArea = {
+          xRatio: 0.3,
+          yRatio: 0.22,
+          widthRatio: 0.4,
+          heightRatio: 0.48,
+        };
+      const areaX = canvas.width * printableArea.xRatio;
+      const areaY = canvas.height * printableArea.yRatio;
+      const areaW = canvas.width * printableArea.widthRatio;
+      const areaH = canvas.height * printableArea.heightRatio;
+      const targetAreaWidth = areaW * scale;
+      const targetAreaHeight = areaH * scale;
+      let designRenderWidth = targetAreaWidth;
+      let designRenderHeight =
+        (designImage.naturalHeight / designImage.naturalWidth) *
+        designRenderWidth;
+      if (designRenderHeight > targetAreaHeight) {
+        designRenderHeight = targetAreaHeight;
+        designRenderWidth =
+          (designImage.naturalWidth / designImage.naturalHeight) *
+          designRenderHeight;
       }
-      if (dW <= 0 || dH <= 0) {
-        console.warn("Mockup design size 0. Skipping draw.");
-        return new Promise((r) => canvas.toBlob((b) => r(b), "image/png"));
+      if (
+        designRenderWidth <= 0 ||
+        designRenderHeight <= 0 ||
+        !isFinite(designRenderWidth) ||
+        !isFinite(designRenderHeight)
+      ) {
+        console.warn(
+          "Calculated invalid design dimensions for mockup. Skipping draw.",
+          { designRenderWidth, designRenderHeight }
+        );
+        return new Promise((resolve, reject) =>
+          canvas.toBlob(
+            (blob) =>
+              blob
+                ? resolve(blob)
+                : reject(new ImageProcessingError("Canvas toBlob failed.")),
+            "image/png"
+          )
+        );
       }
-
-      const cX = areaX + (posX / 100) * areaW,
-        cY = areaY + (posY / 100) * areaH;
+      const drawCenterX = areaX + (posX / 100) * areaW;
+      const drawCenterY = areaY + (posY / 100) * areaH;
       ctx.save();
-      ctx.translate(cX, cY);
+      ctx.translate(drawCenterX, drawCenterY);
       ctx.rotate((rotation * Math.PI) / 180);
-      ctx.drawImage(designImage, -dW / 2, -dH / 2, dW, dH);
+      ctx.drawImage(
+        designImage,
+        -designRenderWidth / 2,
+        -designRenderHeight / 2,
+        designRenderWidth,
+        designRenderHeight
+      );
       ctx.restore();
-
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) =>
         canvas.toBlob(
-          (b) =>
-            b
-              ? resolve(b)
-              : reject(new ImageProcessingError("Canvas toBlob failed.")),
+          (blob) =>
+            blob
+              ? resolve(blob)
+              : reject(
+                  new ImageProcessingError("Canvas toBlob conversion failed.")
+                ),
           "image/png",
           0.95
-        );
-      });
+        )
+      );
     } catch (error) {
+      console.error("Mockup creation failed:", error);
       throw error instanceof DesignDownloadError
         ? error
-        : new ImageProcessingError(`Mockup error: ${error.message}`);
+        : new ImageProcessingError(
+            `Mockup generation failed: ${error.message}`
+          );
     }
   }
 
   static async downloadSingleDesign(designData) {
-    const fields = [
+    const requiredPaths = [
       "imageUrl",
       "orderId",
       "itemId",
       "specs.type",
       "specs.color",
       "specs.size",
-      "specs.position",
+      "specs.position.positionX",
+      "specs.position.positionY",
     ];
-    for (const f of fields)
-      if (f.split(".").reduce((o, k) => o?.[k], designData) == null)
-        throw new DesignDownloadError(`Missing field '${f}' in download data.`);
-
+    const checkNested = (obj, path) =>
+      path
+        .split(".")
+        .reduce((o, k) => (o && o[k] != null ? o[k] : undefined), obj);
+    for (const path of requiredPaths)
+      if (checkNested(designData, path) === undefined)
+        throw new DesignDownloadError(`Missing required field '${path}'.`);
     const zip = new JSZip();
     const {
       imageUrl,
@@ -247,7 +344,10 @@ export class DesignDownloader {
       specs,
       price,
     } = designData;
-
+    const itemIdentifier = `${productTitle || "item"}_${itemId.slice(-6)}`;
+    toast.info(`Creating ZIP package for ${itemIdentifier}...`, {
+      autoClose: 2000,
+    });
     try {
       const metadata = {
         downloadedAt: new Date().toISOString(),
@@ -266,7 +366,6 @@ export class DesignDownloader {
         pricing: price || {},
       };
       zip.file("metadata.json", JSON.stringify(metadata, null, 2));
-
       const results = await Promise.allSettled([
         DesignDownloader.fetchImageAsBlob(imageUrl).catch((e) => {
           throw new DesignDownloadError(
@@ -279,34 +378,37 @@ export class DesignDownloader {
           specs.type,
           specs.color,
           specs.position
-        ).catch((e) => ({ error: `Mockup failed: ${e.message}` })),
+        ).catch((e) => {
+          return { error: `Mockup generation failed: ${e.message}` };
+        }),
       ]);
-
-      const designRes = results[0];
-      const mockupRes = results[1];
-      if (designRes.status === "fulfilled")
-        zip.file("original_design.png", designRes.value);
-      else
+      const designResult = results[0];
+      const mockupResult = results[1];
+      if (designResult.status === "fulfilled")
+        zip.file("original_design.png", designResult.value);
+      else {
         zip.file(
           "ERROR_fetching_design.txt",
-          `Failed: ${designRes.reason?.message || "Unknown"}`
-        );
-      if (
-        mockupRes.status === "fulfilled" &&
-        mockupRes.value &&
-        !mockupRes.value.error
-      )
-        zip.file("product_mockup.png", mockupRes.value);
-      else
-        zip.file(
-          "ERROR_generating_mockup.txt",
-          `Failed: ${
-            mockupRes.status === "rejected"
-              ? mockupRes.reason?.message || "Unknown"
-              : mockupRes.value?.error || "Unknown"
+          `Failed:\nURL: ${imageUrl}\nReason: ${
+            designResult.reason?.message || "Unknown"
           }`
         );
-
+        toast.error(`Failed to fetch design for ${itemIdentifier}.`);
+      }
+      if (
+        mockupResult.status === "fulfilled" &&
+        mockupResult.value &&
+        !mockupResult.value.error
+      )
+        zip.file("product_mockup.png", mockupResult.value);
+      else {
+        const errorMsg =
+          mockupResult.status === "rejected"
+            ? mockupResult.reason?.message || "Unknown"
+            : mockupResult.value?.error || "Unknown";
+        zip.file("ERROR_generating_mockup.txt", `Failed:\nReason: ${errorMsg}`);
+        toast.warn(`Failed to generate mockup for ${itemIdentifier}.`);
+      }
       const zipBlob = await zip.generateAsync({
         type: "blob",
         compression: "DEFLATE",
@@ -316,11 +418,13 @@ export class DesignDownloader {
         zipBlob,
         DesignDownloader.generateFileName("design_pkg", orderId, itemId)
       );
+      toast.success(`Download initiated for ${itemIdentifier}!`);
       return true;
     } catch (error) {
+      console.error(`Package creation error for ${itemIdentifier}:`, error);
       throw error instanceof DesignDownloadError
         ? error
-        : new DesignDownloadError(`Package error: ${error.message}`);
+        : new DesignDownloadError(`Package creation failed: ${error.message}`);
     }
   }
 
@@ -330,128 +434,139 @@ export class DesignDownloader {
       !Array.isArray(orderData.cart) ||
       orderData.cart.length === 0
     )
-      throw new DesignDownloadError("Invalid order data for batch download.");
+      throw new DesignDownloadError("Invalid or empty order data.");
     const mainZip = new JSZip();
     const itemsFolder = mainZip.folder("order_items");
     const totalItems = orderData.cart.length;
-    const promises = [];
+    const processingPromises = [];
     const failures = [];
     let successCount = 0;
-    console.log(
-      `Batch download for order ${orderData._id} (${totalItems} items)...`
+    const orderIdentifier = `Order ${orderData._id.slice(-8)}`;
+    toast.info(
+      `Starting batch download for ${totalItems} items in ${orderIdentifier}...`
     );
-
     orderData.cart.forEach((item, index) => {
       const itemIndex = index + 1;
       const itemId = item._id || `item_${itemIndex}`;
-      promises.push(
-        (async () => {
-          const itemZip = new JSZip();
-          try {
-            const imageUrl = item.designImage?.url;
-            if (!imageUrl)
-              throw new DesignDownloadError("Missing URL.", "MISSING_URL");
-            const specs = {
-              type: item.ProductType || "N/A",
-              color: item.ProductColor || "N/A",
-              size: item.size || "N/A",
-              position:
-                item.designSpecs ||
-                {
-                  /* defaults */
-                },
-            };
-            itemZip.file(
-              "details.json",
-              JSON.stringify(
-                {
-                  itemId,
-                  index: itemIndex,
-                  title: item.DesignTitle || "Untitled",
-                  specs,
-                  qty: item.qty,
-                  price: item.price,
-                  url: imageUrl,
-                },
-                null,
-                1
-              )
-            );
-            const res = await Promise.allSettled([
-              DesignDownloader.fetchImageAsBlob(imageUrl),
-              DesignDownloader.createProductMockup(
-                imageUrl,
-                specs.type,
-                specs.color,
-                specs.position
-              ),
-            ]);
-            if (res[0].status === "fulfilled")
-              itemZip.file("design.png", res[0].value);
-            else {
-              itemZip.file(
-                "ERROR_design.txt",
-                `Fetch fail: ${res[0].reason?.message}`
-              );
-              throw new DesignDownloadError(
-                `Design fetch failed`,
-                "FETCH_FAILED",
-                { r: res[0].reason }
-              );
-            }
-            if (res[1].status === "fulfilled")
-              itemZip.file("mockup.png", res[1].value);
-            else {
-              itemZip.file(
-                "ERROR_mockup.txt",
-                `Mockup fail: ${res[1].reason?.message}`
-              );
-              failures.push({
+      const itemIdentifier = `${item.DesignTitle || "item"}_${itemId.slice(
+        -6
+      )}`;
+      const itemPromise = (async () => {
+        const itemZip = new JSZip();
+        try {
+          const imageUrl = item.designImage?.url;
+          if (!imageUrl)
+            throw new DesignDownloadError("Missing design URL.", "MISSING_URL");
+          const specs = {
+            type: item.ProductType || "N/A",
+            color: item.ProductColor || "N/A",
+            size: item.size || "N/A",
+            position: item.designSpecs || {
+              positionX: 50,
+              positionY: 50,
+              scale: 1,
+              rotation: 0,
+            },
+          };
+          itemZip.file(
+            "details.json",
+            JSON.stringify(
+              {
                 itemId,
                 index: itemIndex,
-                reason: `Mockup Fail: ${res[1].reason?.message}`,
-              });
-            }
-            const itemBlob = await itemZip.generateAsync({
-              type: "blob",
-              compression: "DEFLATE",
-              compressionOptions: { level: 1 },
-            });
-            itemsFolder.file(`item_${itemIndex}_${itemId}.zip`, itemBlob);
-            successCount++;
-          } catch (error) {
-            const reason =
-              error instanceof DesignDownloadError
-                ? `${error.code}: ${error.message}`
-                : error.message;
-            failures.push({ itemId, index: itemIndex, reason });
-            itemsFolder.file(
-              `item_${itemIndex}_${itemId}_ERROR.txt`,
-              `Fail: ${reason}\n${error.stack || ""}`
+                designTitle: item.DesignTitle || "Untitled",
+                specs,
+                qty: item.qty,
+                price: item.price,
+                sourceImageUrl: imageUrl,
+              },
+              null,
+              1
+            )
+          );
+          const itemResults = await Promise.allSettled([
+            DesignDownloader.fetchImageAsBlob(imageUrl),
+            DesignDownloader.createProductMockup(
+              imageUrl,
+              specs.type,
+              specs.color,
+              specs.position
+            ),
+          ]);
+          const designResult = itemResults[0];
+          const mockupResult = itemResults[1];
+          if (designResult.status === "fulfilled")
+            itemZip.file("design.png", designResult.value);
+          else {
+            itemZip.file(
+              "ERROR_design.txt",
+              `Fetch failed:\n${designResult.reason?.message || "Unknown"}`
+            );
+            throw new DesignDownloadError(
+              `Design fetch failed for item ${itemIndex}`,
+              "FETCH_FAILED",
+              { reason: designResult.reason }
             );
           }
-        })()
-      );
+          if (mockupResult.status === "fulfilled")
+            itemZip.file("mockup.png", mockupResult.value);
+          else {
+            itemZip.file(
+              "ERROR_mockup.txt",
+              `Mockup failed:\n${mockupResult.reason?.message || "Unknown"}`
+            );
+            console.warn(`Mockup failed for item ${itemIndex}, continuing.`);
+            failures.push({
+              itemId,
+              index: itemIndex,
+              reason: `Mockup Failed: ${
+                mockupResult.reason?.message || "Unknown"
+              }`,
+            });
+          }
+          const itemZipBlob = await itemZip.generateAsync({
+            type: "blob",
+            compression: "DEFLATE",
+            compressionOptions: { level: 1 },
+          });
+          itemsFolder.file(`item_${itemIndex}_${itemId}.zip`, itemZipBlob);
+          successCount++;
+        } catch (error) {
+          console.error(
+            `Failed to process item ${itemIndex} (ID: ${itemId}):`,
+            error
+          );
+          const reason =
+            error instanceof DesignDownloadError
+              ? `${error.code}: ${error.message}`
+              : error.message;
+          failures.push({ itemId, index: itemIndex, reason });
+          itemsFolder.file(
+            `item_${itemIndex}_${itemId}_ERROR.txt`,
+            `Processing Failed: ${reason}\n${error.stack || ""}`
+          );
+        }
+      })();
+      processingPromises.push(itemPromise);
     });
-
-    await Promise.all(promises);
+    await Promise.all(processingPromises);
     console.log(
-      `Batch finished. Success: ${successCount}, Failures: ${failures.length}`
+      `${orderIdentifier} Batch finished. Success: ${successCount}, Failures: ${failures.length}`
     );
     const summary = {
-      downloadedAt: new Date().toISOString(),
+      batchDownloadedAt: new Date().toISOString(),
       order: { id: orderData._id, totalItems },
       summary: { successes: successCount, failures: failures.length },
       failedItems: failures,
     };
     mainZip.file("batch_summary.json", JSON.stringify(summary, null, 2));
-    const mainBlob = await mainZip.generateAsync({
+    const mainZipBlob = await mainZip.generateAsync({
       type: "blob",
       compression: "DEFLATE",
       compressionOptions: { level: 6 },
     });
     saveAs(
-      mainBlob,
+      mainZipBlob,
       DesignDownloader.generateFileName(
         "batch_order",
         orderData._id,
@@ -460,10 +575,10 @@ export class DesignDownloader {
     );
     if (failures.length > 0)
       toast.warn(
-        `Batch DL completed, ${failures.length} item(s) failed. Check summary.`
+        `Batch download completed for ${orderIdentifier}, but ${failures.length} item(s) failed. Check summary/errors in ZIP.`,
+        { autoClose: 8000 }
       );
-    else
-      toast.success(`Batch DL for order ${orderData._id.slice(-8)} started!`);
+    else toast.success(`Batch download for ${orderIdentifier} initiated!`);
     return true;
   }
 }

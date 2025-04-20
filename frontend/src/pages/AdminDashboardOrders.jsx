@@ -1,22 +1,14 @@
-// File: frontend/src/pages/shop/AdminDashboardOrders.jsx
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getAllOrdersOfAdmin,
   adminUpdateOrderStatus,
   clearErrors,
-} from "../redux/actions/order"; // Adjust path
+} from "../redux/actions/order";
 import { Link } from "react-router-dom";
-import {
-  Eye,
-  Search,
-  Package,
-  RefreshCw,
-  AlertTriangle,
-  Loader as LoaderIcon,
-} from "lucide-react";
+import { Eye, Search, Package, RefreshCw, AlertTriangle } from "lucide-react";
 import { toast } from "react-toastify";
-import Loader from "../components/Layout/Loader"; // Adjust path
+import Loader from "../components/Layout/Loader";
 import { format } from "date-fns";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import {
@@ -31,7 +23,7 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import { ORDER_STATUSES } from "../constants/orderStatuses"; // Adjust path
+import { ORDER_STATUSES } from "../constants/orderStatuses";
 
 function CustomLoadingOverlay() {
   return (
@@ -53,6 +45,7 @@ function CustomLoadingOverlay() {
     </Box>
   );
 }
+
 function CustomNoRowsOverlay({ message = "No orders found." }) {
   return (
     <Box
@@ -80,6 +73,7 @@ const AdminDashboardOrders = () => {
     isLoading,
     error,
     isUpdating,
+    updateError,
     adminTotalOrders = 0,
     adminLimit = 15,
   } = useSelector((state) => state.order);
@@ -105,39 +99,51 @@ const AdminDashboardOrders = () => {
 
   useEffect(() => {
     if (error && !isLoading) {
-      toast.error(`Error: ${error}`);
+      toast.error(`Failed to load orders: ${error}`);
       dispatch(clearErrors());
     }
-  }, [error, dispatch, isLoading]);
+    if (updateError && !isUpdating) {
+      toast.error(`Failed to update order: ${updateError}`);
+      dispatch(clearErrors());
+    }
+    const ordersWithMissingUsers = adminOrders.filter(
+      (order) => !order?.user?.name
+    );
+    if (ordersWithMissingUsers.length > 0 && !isLoading) {
+      console.warn(
+        `[AdminDashboardOrders] ${ordersWithMissingUsers.length} order(s) missing customer name.`
+      );
+    }
+  }, [error, updateError, dispatch, adminOrders, isLoading, isUpdating]);
 
-  const filteredOrders = useMemo(() => {
+  const filteredOrdersForCurrentPage = useMemo(() => {
     if (!Array.isArray(adminOrders)) return [];
-    return adminOrders.filter((o) => {
-      if (!o?._id) return false;
-      const lowerSearch = searchTerm.toLowerCase();
-      const idMatch =
-        o._id.toLowerCase().includes(lowerSearch) ||
-        o._id.slice(-8).toLowerCase().includes(lowerSearch);
-      const customerMatch =
-        o.user?.name?.toLowerCase().includes(lowerSearch) || false;
-      const emailMatch =
-        o.user?.email?.toLowerCase().includes(lowerSearch) || false;
-      const statusMatch = filterStatus === "all" || o.status === filterStatus;
-      return (idMatch || customerMatch || emailMatch) && statusMatch;
+    return adminOrders.filter((order) => {
+      if (!order?._id) return false;
+      const lowerSearch = searchTerm.toLowerCase().trim();
+      const statusMatch =
+        filterStatus === "all" || order.status === filterStatus;
+      const searchMatch =
+        !lowerSearch ||
+        order._id.toLowerCase().includes(lowerSearch) ||
+        order._id.slice(-8).toLowerCase().includes(lowerSearch) ||
+        (order.user?.name || "").toLowerCase().includes(lowerSearch);
+      return searchMatch && statusMatch;
     });
   }, [adminOrders, searchTerm, filterStatus]);
 
   const handleStatusUpdate = (orderId, newStatus, currentStatus) => {
     if (newStatus === currentStatus || isUpdating || !orderId || !newStatus)
       return;
-    dispatch(adminUpdateOrderStatus(orderId, newStatus))
-      .then(() => toast.success(`Order #${orderId.slice(-6)} status updated.`))
-      .catch((err) =>
-        console.error(`Status update failed for ${orderId}:`, err)
-      ); // Error toast handled by action
+    dispatch(adminUpdateOrderStatus(orderId, newStatus)).catch((updateErr) =>
+      console.error(
+        `Direct catch: Status update failed for ${orderId}`,
+        updateErr
+      )
+    );
   };
 
-  const handlePaginationChange = (newModel) => {
+  const handlePaginationModelChange = (newModel) => {
     if (
       newModel.page !== paginationModel.page ||
       newModel.pageSize !== paginationModel.pageSize
@@ -146,49 +152,50 @@ const AdminDashboardOrders = () => {
     }
   };
 
-  const rows = useMemo(
-    () =>
-      filteredOrders.map((o) => ({
-        id: o._id,
-        date: o.createdAt || null,
-        customer: o.user?.name || "N/A",
-        itemsQty: Array.isArray(o.cart) ? o.cart.length : 0,
-        total: typeof o.totalPrice === "number" ? o.totalPrice : 0,
-        status: o.status || "Unknown",
-        user: o.user, // Pass user object for tooltip
-      })),
-    [filteredOrders]
-  );
+  const rows = useMemo(() => {
+    return filteredOrdersForCurrentPage.map((o) => ({
+      id: o._id,
+      orderIdShort: o._id?.slice(-8) || "N/A",
+      date: o.createdAt || null,
+      customer: o.user?.name || "Unknown Customer",
+      itemsQty: Array.isArray(o.cart) ? o.cart.length : 0,
+      total: typeof o.totalPrice === "number" ? o.totalPrice : 0,
+      status: o.status || "Unknown",
+      user: o.user || {},
+    }));
+  }, [filteredOrdersForCurrentPage]);
 
   const columns = useMemo(
     () => [
       {
-        field: "id",
-        headerName: "ID",
+        field: "orderIdShort",
+        headerName: "Order ID",
         width: 100,
-        renderCell: (p) => `#${p.value?.slice(-6) || "N/A"}`,
+        renderCell: (params) => `#${params.value}`,
       },
       {
         field: "date",
         headerName: "Date",
         width: 110,
         type: "date",
-        valueGetter: (v) => (v ? new Date(v) : null),
-        renderCell: (p) => (p.value ? format(p.value, "PP") : "N/A"),
+        valueGetter: (value) => (value ? new Date(value) : null),
+        renderCell: (params) =>
+          params.value ? format(params.value, "PP") : "N/A",
       },
       {
         field: "customer",
         headerName: "Customer",
         width: 180,
         flex: 1,
-        renderCell: (p) => (
+        renderCell: (params) => (
           <Tooltip
-            title={`ID: ${p.row.user?._id || "N/A"}\nEmail: ${
-              p.row.user?.email || "N/A"
+            title={`ID: ${params.row.user?._id || "N/A"}\nEmail: ${
+              params.row.user?.email || "N/A"
             }`}
             arrow
+            placement="top-start"
           >
-            <span>{p.value}</span>
+            <span>{params.value}</span>
           </Tooltip>
         ),
       },
@@ -207,7 +214,7 @@ const AdminDashboardOrders = () => {
         type: "number",
         align: "right",
         headerAlign: "right",
-        valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
+        valueFormatter: (value) => `EGP ${Number(value || 0).toFixed(2)}`,
       },
       {
         field: "status",
@@ -215,10 +222,12 @@ const AdminDashboardOrders = () => {
         minWidth: 200,
         flex: 0.8,
         sortable: false,
-        renderCell: (p) => (
+        renderCell: (params) => (
           <Select
-            value={p.value || ""}
-            onChange={(e) => handleStatusUpdate(p.id, e.target.value, p.value)}
+            value={params.value || ""}
+            onChange={(e) =>
+              handleStatusUpdate(params.id, e.target.value, params.value)
+            }
             size="small"
             variant="outlined"
             disabled={isUpdating}
@@ -226,7 +235,7 @@ const AdminDashboardOrders = () => {
             sx={{
               fontSize: "0.8rem",
               height: "35px",
-              bgcolor: isUpdating ? "#f5f5f5" : "background.paper",
+              bgcolor: isUpdating ? "#f0f0f0" : "background.paper",
               ".MuiSelect-select": { py: 0.8, px: 1 },
               ".MuiOutlinedInput-notchedOutline": {
                 border: "1px solid #e0e0e0",
@@ -241,9 +250,9 @@ const AdminDashboardOrders = () => {
             }}
             MenuProps={{ PaperProps: { sx: { maxHeight: 300 } } }}
           >
-            {Object.values(ORDER_STATUSES).map((s) => (
-              <MenuItem key={s} value={s} sx={{ fontSize: "0.8rem" }}>
-                {s}
+            {Object.values(ORDER_STATUSES).map((stat) => (
+              <MenuItem key={stat} value={stat} sx={{ fontSize: "0.8rem" }}>
+                {stat}
               </MenuItem>
             ))}
           </Select>
@@ -256,11 +265,11 @@ const AdminDashboardOrders = () => {
         sortable: false,
         align: "center",
         headerAlign: "center",
-        renderCell: (p) => (
-          <Tooltip title="Details">
-            <Link to={`/admin/order/${p.id}`}>
+        renderCell: (params) => (
+          <Tooltip title="View Order Details">
+            <Link to={`/admin/order/${params.id}`}>
               <IconButton size="small">
-                <Eye className="text-blue-600 hover:text-blue-800" />
+                <Eye size={18} className="text-blue-600 hover:text-blue-800" />
               </IconButton>
             </Link>
           </Tooltip>
@@ -268,7 +277,7 @@ const AdminDashboardOrders = () => {
       },
     ],
     [isUpdating, handleStatusUpdate]
-  ); // isUpdating dependency ensures select is disabled correctly
+  ); // Removed handleStatusUpdate from deps as it's stable now
 
   if (isLoading && adminOrders.length === 0 && adminTotalOrders === 0)
     return <Loader />;
@@ -279,9 +288,9 @@ const AdminDashboardOrders = () => {
         <div className="mb-6 bg-white p-4 rounded-lg shadow border border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
             <h1 className="text-xl md:text-2xl font-bold text-gray-800">
-              Orders ({adminTotalOrders})
+              Orders Management ({adminTotalOrders})
             </h1>
-            <Tooltip title="Refresh">
+            <Tooltip title="Refresh Current Page Data">
               <IconButton
                 onClick={fetchAdminOrders}
                 disabled={isLoading || isUpdating}
@@ -300,7 +309,7 @@ const AdminDashboardOrders = () => {
           </div>
           <div className="flex flex-col md:flex-row gap-4">
             <TextField
-              label="Search ID, Customer, Email (on page)"
+              label="Search ID or Customer (on page)"
               variant="outlined"
               size="small"
               value={searchTerm}
@@ -337,6 +346,7 @@ const AdminDashboardOrders = () => {
           {error && !isLoading && (
             <Typography
               color="error"
+              variant="body2"
               sx={{
                 mt: 2,
                 p: 1,
@@ -347,7 +357,24 @@ const AdminDashboardOrders = () => {
                 gap: 1,
               }}
             >
-              <AlertTriangle size={16} /> Failed: {error}
+              <AlertTriangle size={16} /> Failed to load orders: {error}
+            </Typography>
+          )}
+          {updateError && !isUpdating && (
+            <Typography
+              color="error"
+              variant="body2"
+              sx={{
+                mt: 2,
+                p: 1,
+                bgcolor: "error.lighter",
+                borderRadius: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <AlertTriangle size={16} /> Update failed: {updateError}
             </Typography>
           )}
         </div>
@@ -362,7 +389,7 @@ const AdminDashboardOrders = () => {
               pageSizeOptions={[15, 30, 50, 100]}
               paginationModel={paginationModel}
               paginationMode="server"
-              onPaginationModelChange={handlePaginationChange}
+              onPaginationModelChange={handlePaginationModelChange}
               disableRowSelectionOnClick
               autoHeight={false}
               slots={{
@@ -371,12 +398,15 @@ const AdminDashboardOrders = () => {
                   <CustomNoRowsOverlay
                     message={
                       isLoading
-                        ? "Loading..."
+                        ? "Loading orders..."
                         : adminTotalOrders === 0
                         ? "No orders found."
+                        : rows.length === 0 &&
+                          (searchTerm || filterStatus !== "all")
+                        ? "No orders match filters on this page."
                         : rows.length === 0
-                        ? "No orders match filters on page."
-                        : "No data available."
+                        ? "No orders for this page."
+                        : "No data."
                     }
                   />
                 ),
