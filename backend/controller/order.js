@@ -147,20 +147,24 @@ router.post(
             400
           );
         }
-
         if (item.productId && isValidObjectId(item.productId)) {
+          console.log(
+            `---> Checking Product before findById for productId: ${item.productId}`
+          );
           const product = await Product.findById(item.productId)
-            .select("stock name")
+            .select("stock DesignTitle")
             .lean();
+          console.log(`---> Product found for ID ${item.productId}:`, product);
+
           if (!product) {
             console.warn(
-              `Product reference (${item.productId}) invalid for cart item "${item.DesignTitle}". Skipping stock check.`
+              `Product reference (${item.productId}) invalid for cart item "${item.DesignTitle}". Product not found. Skipping stock check.`
             );
           } else if ((product.stock || 0) < item.qty) {
             throw new ErrorHandler(
-              `Insufficient stock for "${product.DesignTitle}". Available: ${
-                product.stock || 0
-              }, Requested: ${item.qty}.`,
+              `Insufficient stock for "${
+                product.DesignTitle || "Product (Name Missing)"
+              }". Available: ${product.stock || 0}, Requested: ${item.qty}.`,
               400
             );
           }
