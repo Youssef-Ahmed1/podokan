@@ -6,6 +6,19 @@ const VALID_VIEWS = ['front', 'back'];
 const VALID_STATUSES = ['pending', 'public', 'rejected'];
 const VALID_VISIBILITY = ['public', 'restricted'];
 
+const reviewSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  name: { type: String, required: true },
+  rating: { type: Number, required: true, min: 1, max: 5 },
+  comment: { type: String, required: true, trim: true, maxLength: 500 },
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Product",
+    required: true,
+  },
+  createdAt: { type: Date, default: Date.now },
+});
+
 const productSchema = new mongoose.Schema(
   {
     shopId: {
@@ -78,7 +91,6 @@ const productSchema = new mongoose.Schema(
       },
       default: [],
       set: function (tags) {
-        // Remove duplicates and trim each tag
         return Array.from(new Set(tags.map((tag) => tag.trim())));
       },
     },
@@ -151,7 +163,6 @@ const productSchema = new mongoose.Schema(
         },
       },
     },
-
     DesignScale: {
       type: Number,
       default: 0.8,
@@ -232,43 +243,7 @@ const productSchema = new mongoose.Schema(
           "A detailed rejection reason (min 10 characters) is required when status is 'rejected'",
       },
     },
-    reviews: [
-      {
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-          required: true,
-          validate: {
-            validator: function (v) {
-              return mongoose.Types.ObjectId.isValid(v);
-            },
-            message: "Invalid User ID format",
-          },
-        },
-        name: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        rating: {
-          type: Number,
-          required: true,
-          min: [1, "Rating must be at least 1"],
-          max: [5, "Rating cannot exceed 5"],
-        },
-        comment: {
-          type: String,
-          required: true,
-          trim: true,
-          minLength: [5, "Review comment must be at least 5 characters"],
-          maxLength: [500, "Review comment cannot exceed 500 characters"],
-        },
-        createdAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
+    reviews: [reviewSchema],
     ratings: {
       type: Number,
       default: 0,
@@ -319,33 +294,38 @@ const productSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
-// Indexes for better query performance
-productSchema.index({ DesignTitle: 'text', Description: 'text', Maintag: 'text', Designtags: 'text' });
+
+productSchema.index({
+  DesignTitle: "text",
+  Description: "text",
+  Maintag: "text",
+  Designtags: "text",
+});
 productSchema.index({ status: 1, visibility: 1 });
 productSchema.index({ shopId: 1, status: 1 });
 productSchema.index({ createdAt: -1 });
-productSchema.index({ 'reviews.rating': 1 });
+productSchema.index({ "reviews.rating": 1 });
 productSchema.index({ originalPrice: 1 });
 
-// Pre-save middleware
-productSchema.pre('save', function(next) {
+productSchema.pre("save", function (next) {
   this.lastModified = new Date();
-  
-  // Ensure availableColors includes ProductColor
+
   if (!this.availableColors.includes(this.ProductColor)) {
     this.availableColors.push(this.ProductColor);
   }
 
-  // Update ratings when reviews change
   if (this.reviews?.length > 0) {
-    this.ratings = parseFloat((this.reviews.reduce((acc, item) => item.rating + acc, 0) / 
-      this.reviews.length).toFixed(2));
+    this.ratings = parseFloat(
+      (
+        this.reviews.reduce((acc, item) => item.rating + acc, 0) /
+        this.reviews.length
+      ).toFixed(2)
+    );
   }
-  
+
   next();
 });
 
-// Virtual for discounted percentage
 productSchema.virtual('discountPercentage').get(function() {
   if (this.originalPrice && this.discountPrice) {
     return Math.round(((this.originalPrice - this.discountPrice) / this.originalPrice) * 100);
@@ -353,19 +333,16 @@ productSchema.virtual('discountPercentage').get(function() {
   return 0;
 });
 
-// Virtual for stock status
-productSchema.virtual('isInStock').get(function() {
-  return this.sold_out < 999999; // Assuming unlimited stock for digital products
+productSchema.virtual("isInStock").get(function () {
+  return this.sold_out < 999999;
 });
 
-// Method to check if product can be purchased
-productSchema.methods.canBePurchased = function() {
-  return this.status === 'public' && 
-         this.visibility === 'public' && 
-         this.isInStock;
+productSchema.methods.canBePurchased = function () {
+  return (
+    this.status === "public" && this.visibility === "public" && this.isInStock
+  );
 };
 
-// Export constants for use in other files
 const Product = mongoose.model("Product", productSchema);
 
 module.exports = {

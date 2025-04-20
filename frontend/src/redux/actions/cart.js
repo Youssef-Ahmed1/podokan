@@ -1,4 +1,3 @@
-// File: frontend/src/redux/actions/cart.js
 import { toast } from "react-toastify";
 
 export const CART_ACTION_TYPES = {
@@ -7,16 +6,14 @@ export const CART_ACTION_TYPES = {
 
 export const addTocart = (data) => async (dispatch, getState) => {
   try {
-    // --- Enhanced Initial Validation ---
     if (!data || !data._id) throw new Error("Essential item ID missing.");
     if (!data.designImage?.url)
       throw new Error("Cannot add item: Design image URL missing.");
 
     let shopIdValue = null;
-    let shopInfoForCart = { name: "Unknown Shop", _id: null }; // Default shop info
+    let shopInfoForCart = { name: "Unknown Shop", _id: null };
 
     if (data.shopId && typeof data.shopId === "object" && data.shopId._id) {
-      // Case 1: data.shopId is an object like { _id: '...', name: '...' }
       shopIdValue = data.shopId._id.toString();
       shopInfoForCart = {
         _id: shopIdValue,
@@ -30,10 +27,9 @@ export const addTocart = (data) => async (dispatch, getState) => {
           name: data.shop.name || "Unknown Shop",
         };
       } else {
-        shopInfoForCart._id = shopIdValue; // Still store the ID here
+        shopInfoForCart._id = shopIdValue;
       }
     } else if (data.shop && typeof data.shop === "object" && data.shop._id) {
-      // Case 3: data.shopId is missing/invalid, but data.shop object has _id
       shopIdValue = data.shop._id.toString();
       shopInfoForCart = {
         _id: shopIdValue,
@@ -44,7 +40,6 @@ export const addTocart = (data) => async (dispatch, getState) => {
       );
     }
 
-    // Final check - Throw error if we couldn't get a valid ID string
     if (!shopIdValue || typeof shopIdValue !== "string") {
       console.error(
         "CRITICAL: Could not determine a valid shopId string from data:",
@@ -52,7 +47,6 @@ export const addTocart = (data) => async (dispatch, getState) => {
       );
       throw new Error("Cannot add item: Shop ID is missing or invalid.");
     }
-    // --- End shopId Extraction ---
 
     const quantityToAdd = parseInt(data.quantity, 10) || 1;
     if (quantityToAdd <= 0) throw new Error("Quantity must be positive.");
@@ -69,17 +63,16 @@ export const addTocart = (data) => async (dispatch, getState) => {
       size: data.selectedSize || data.size || "One Size",
       quantity: quantityToAdd,
       qty: quantityToAdd,
-      stock: parseInt(data.stock, 10) >= 0 ? parseInt(data.stock, 10) : 100, // Default high if missing
-      shopId: shopIdValue, // <-- Use the extracted STRING ID
-      shop: shopInfoForCart, // <-- Store the object (with name/_id) for UI use
+      shopId: shopIdValue,
+      shop: shopInfoForCart,
       price: parseFloat(
         data.discountPrice != null
           ? data.discountPrice
           : data.originalPrice || 0
-      ), // Prioritize discountPrice, fallback originalPrice
+      ),
       discountPrice: parseFloat(data.discountPrice || 0),
       originalPrice: parseFloat(data.originalPrice || 0),
-      productId: data.productId || data._id, // Include productId if distinct from item _id
+      productId: data.productId || data._id,
       designSpecs: {
         positionX: data.designSpecs?.positionX ?? data.DesignPosition?.x ?? 50,
         positionY: data.designSpecs?.positionY ?? data.DesignPosition?.y ?? 50,
@@ -101,25 +94,14 @@ export const addTocart = (data) => async (dispatch, getState) => {
       updatedCart = [...cart];
       const existingItem = updatedCart[existingItemIndex];
       const newQuantity = existingItem.quantity + cartItem.quantity;
-      if (newQuantity > existingItem.stock) {
-        toast.error(
-          `Max available stock for "${cartItem.DesignTitle}" (${cartItem.size}, ${cartItem.ProductColor}) is ${existingItem.stock}.`
-        );
-        return { success: false, message: "Quantity exceeds available stock." };
-      }
+
       updatedCart[existingItemIndex] = {
         ...existingItem,
         quantity: newQuantity,
-        qty: newQuantity, // Keep if needed
+        qty: newQuantity,
       };
       toast.success(`Updated quantity for ${cartItem.DesignTitle}`);
     } else {
-      if (cartItem.quantity > cartItem.stock) {
-        toast.error(
-          `Not enough stock for "${cartItem.DesignTitle}" (${cartItem.size}, ${cartItem.ProductColor}). Max: ${cartItem.stock}.`
-        );
-        return { success: false, message: "Quantity exceeds available stock." };
-      }
       updatedCart = [...cart, cartItem];
       toast.success(`Added ${cartItem.DesignTitle} to cart`);
     }

@@ -8,7 +8,7 @@ const { Product } = require("../model/product");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
-const { ORDER_STATUSES } = require("../constants/orderStatuses"); // Assuming this file exists
+const { ORDER_STATUSES } = require("../constants/orderStatuses");
 
 const orderCache = new NodeCache({
   stdTTL: 300,
@@ -61,44 +61,6 @@ const clearRelevantOrderCaches = (orderId, userId, involvedSellerIds = []) => {
   }
 };
 
-const updateProductStock = async (productId, quantityChange) => {
-  if (!isValidObjectId(productId) || typeof quantityChange !== "number") {
-    console.warn(
-      `Invalid product ID (${productId}) or quantity (${quantityChange}) for stock update.`
-    );
-    return;
-  }
-  if (quantityChange <= 0) return;
-
-  try {
-    const product = await Product.findById(productId).select("stock name");
-    if (!product) {
-      console.warn(`Product ${productId} not found for stock update.`);
-      return;
-    }
-    const currentStock = product.stock || 0;
-    const newStock = currentStock - quantityChange;
-
-    if (newStock < 0) {
-      console.error(
-        `Stock Update Error: Insufficient stock for ${
-          product.name || productId
-        }. Available: ${currentStock}, Requested: ${quantityChange}. Setting stock to 0.`
-      );
-      await Product.findByIdAndUpdate(productId, { $set: { stock: 0 } });
-    } else {
-      await Product.findByIdAndUpdate(productId, {
-        $inc: { stock: -quantityChange },
-      });
-    }
-  } catch (error) {
-    console.error(
-      `Error updating stock for Product ${productId}:`,
-      error.message
-    );
-  }
-};
-
 router.post(
   "/create-order",
   isAuthenticated,
@@ -125,6 +87,14 @@ router.post(
         )
       );
     }
+    if (shippingAddress.country !== "Egypt") {
+      return next(
+        new ErrorHandler(
+          "Shipping is currently only available within Egypt.",
+          400
+        )
+      );
+    }
 
     try {
       for (const item of cart) {
@@ -147,35 +117,10 @@ router.post(
             400
           );
         }
-        if (item.productId && isValidObjectId(item.productId)) {
-          console.log(
-            `---> Checking Product before findById for productId: ${item.productId}`
-          );
-          const product = await Product.findById(item.productId)
-            .select("stock DesignTitle")
-            .lean();
-          console.log(`---> Product found for ID ${item.productId}:`, product);
-
-          if (!product) {
-            console.warn(
-              `Product reference (${item.productId}) invalid for cart item "${item.DesignTitle}". Product not found. Skipping stock check.`
-            );
-          } else if ((product.stock || 0) < item.qty) {
-            throw new ErrorHandler(
-              `Insufficient stock for "${
-                product.DesignTitle || "Product (Name Missing)"
-              }". Available: ${product.stock || 0}, Requested: ${item.qty}.`,
-              400
-            );
-          }
-        } else if (item.productId) {
-          console.warn(
-            `Invalid Product ID format (${item.productId}) for cart item "${item.DesignTitle}". Skipping stock check.`
-          );
-        }
       }
-    } catch (validationOrStockError) {
-      return next(validationOrStockError);
+    } catch (validationError) {
+      console.error("ERROR in validation loop:", validationError);
+      return next(validationError);
     }
 
     const shopItemsMap = new Map();
@@ -185,8 +130,16 @@ router.post(
 
       const designImageObject = {
         public_id: item.designImage?.public_id || null,
-        url: item.designImage?.url,
+        url: item.designImage?.url || null,
       };
+      if (!designImageObject.url) {
+        return next(
+          new ErrorHandler(
+            `Item "${item.DesignTitle}" is missing required design image URL.`,
+            400
+          )
+        );
+      }
 
       shopItemsMap.get(shopIdStr).push({
         productId:
@@ -218,7 +171,6 @@ router.post(
 
     const createdOrders = [];
     const orderPromises = [];
-    const stockUpdateErrors = [];
     const involvedSellerIds = Array.from(shopItemsMap.keys());
 
     for (const [shopIdStr, shopItems] of shopItemsMap.entries()) {
@@ -259,23 +211,6 @@ router.post(
         Order.create(orderData)
           .then(async (order) => {
             createdOrders.push(order);
-            for (const item of order.cart) {
-              if (item.productId) {
-                try {
-                  await updateProductStock(item.productId, item.qty);
-                } catch (stockError) {
-                  console.error(
-                    `Stock update failed post-order creation for order ${order._id}, product ${item.productId}:`,
-                    stockError.message
-                  );
-                  stockUpdateErrors.push({
-                    orderId: order._id,
-                    productId: item.productId,
-                    error: stockError.message,
-                  });
-                }
-              }
-            }
           })
           .catch((creationError) => {
             console.error(
@@ -298,13 +233,6 @@ router.post(
         currentUser._id.toString(),
         involvedSellerIds
       );
-
-      if (stockUpdateErrors.length > 0) {
-        console.warn(
-          "Order created successfully, but with some stock update issues:",
-          stockUpdateErrors
-        );
-      }
 
       res.status(201).json({
         success: true,
@@ -545,7 +473,6 @@ router.put(
 
       if (newStatus === ORDER_STATUSES.REFUND_APPROVED) {
         console.log(`REFUND APPROVED for order ${id} by seller ${sellerId}`);
-        // TODO: Add refund logic here
       }
 
       const updatedOrder = await order.save();
@@ -652,103 +579,87 @@ router.put(
     if (!isValidObjectId(id))
       return next(new ErrorHandler("Invalid Order ID format.", 400));
 
-    let order;
     try {
-      order = await Order.findById(id);
-    } catch (findErr) {
-      console.error(
-        `[Admin API] Error finding order ${id} for update:`,
-        findErr
-      );
-      return next(
-        new ErrorHandler(
-          `Database error finding order: ${findErr.message}`,
-          500
-        )
-      );
-    }
+      const order = await Order.findById(id).lean();
 
-    if (!order) return next(new ErrorHandler("Order not found.", 404));
-    if (order.status === newStatus) {
-      return res.json({
-        success: true,
-        message: `Order status is already '${newStatus}'. No update needed.`,
-        order: order.toObject(),
-      });
-    }
-
-    const previousStatus = order.status;
-    order.status = newStatus;
-
-    if (newStatus === ORDER_STATUSES.DELIVERED && !order.deliveredAt) {
-      order.deliveredAt = new Date();
-      if (
-        order.paymentInfo?.type === "Cash On Delivery" &&
-        order.paymentInfo.status !== "Succeeded"
-      ) {
-        order.paymentInfo.status = "Succeeded";
-        if (!order.paidAt) order.paidAt = new Date();
-        order.markModified("paymentInfo");
+      if (!order) return next(new ErrorHandler("Order not found.", 404));
+      if (order.status === newStatus) {
+        return res.json({
+          success: true,
+          message: `Order status is already '${newStatus}'. No update needed.`,
+          order: order,
+        });
       }
-    } else if (newStatus === ORDER_STATUSES.CANCELLED) {
-      console.warn(
-        `Order ${id} cancelled. Consider stock replenishment logic.`
+
+      const previousStatus = order.status;
+      const updateFields = { $set: {}, $push: {} };
+      updateFields.$set.status = newStatus;
+
+      if (newStatus === ORDER_STATUSES.DELIVERED && !order.deliveredAt) {
+        updateFields.$set.deliveredAt = new Date();
+        if (
+          order.paymentInfo?.type === "Cash On Delivery" &&
+          order.paymentInfo.status !== "Succeeded"
+        ) {
+          updateFields.$set["paymentInfo.status"] = "Succeeded";
+          if (!order.paidAt) updateFields.$set.paidAt = new Date();
+        }
+      } else if (newStatus === ORDER_STATUSES.CANCELLED) {
+        console.warn(
+          `Order ${id} cancelled. Consider stock replenishment logic.`
+        );
+      }
+
+      updateFields.$push.statusHistory = {
+        status: newStatus,
+        updatedBy: `admin:${adminId}`,
+        timestamp: new Date(),
+        details: `Admin changed status from '${previousStatus}' to '${newStatus}'.`,
+      };
+
+      const updatedOrderResult = await Order.findByIdAndUpdate(
+        id,
+        updateFields,
+        { new: true, runValidators: false }
       );
-      // TODO: Add stock replenishment logic here if needed
-    }
 
-    order.statusHistory.push({
-      status: newStatus,
-      updatedBy: `admin:${adminId}`,
-      timestamp: new Date(),
-      details: `Admin changed status from '${previousStatus}' to '${newStatus}'.`,
-    });
+      if (!updatedOrderResult) {
+        console.error(
+          `[Admin API] Update failed for order ${id} after initial find.`
+        );
+        return next(new ErrorHandler("Failed to update order.", 500));
+      }
 
-    try {
-      // ** REMOVED validateBeforeSave: false **
-      const updatedOrder = await order.save();
       console.log(
-        `[Admin API] Successfully saved status update for order ${id} to '${newStatus}'`
+        `[Admin API] Successfully updated status for order ${id} to '${newStatus}'`
       );
 
       const involvedSellers = [
-        ...new Set(order.cart.map((i) => i.shopId?.toString()).filter(Boolean)),
+        ...new Set(
+          updatedOrderResult.cart
+            .map((i) => i.shopId?.toString())
+            .filter(Boolean)
+        ),
       ];
-      clearRelevantOrderCaches(id, order.user?._id, involvedSellers);
+      clearRelevantOrderCaches(
+        id,
+        updatedOrderResult.user?._id,
+        involvedSellers
+      );
 
       res.json({
         success: true,
         message: `Order status updated to '${newStatus}'.`,
-        order: updatedOrder.toObject(),
+        order: updatedOrderResult.toObject(),
       });
     } catch (e) {
-      if (e.name === "ValidationError") {
-        const messages = Object.values(e.errors)
-          .map((err) => err.message)
-          .join(" ");
-        console.error(
-          `Admin status update VALIDATION error (Order ${id}, Status ${newStatus}):`,
-          messages
-        );
-        console.error(
-          "Full validation error object:",
-          JSON.stringify(e.errors, null, 2)
-        );
-        return next(
-          new ErrorHandler(
-            `Validation failed: ${messages}. Please ensure all required order fields are correct.`,
-            400
-          )
-        );
-      } else {
-        console.error(
-          `Admin status update SAVE error (Order ${id}, Status ${newStatus}):`,
-          e
-        );
-        return next(
-          new ErrorHandler(`Failed to save status update: ${e.message}`, 500)
-        );
-      }
+      console.error(
+        `Admin status update SAVE error (Order ${id}, Status ${newStatus}):`,
+        e
+      );
+      return next(
+        new ErrorHandler(`Failed to save status update: ${e.message}`, 500)
+      );
     }
   })
 );
