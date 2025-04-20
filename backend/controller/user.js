@@ -6,9 +6,12 @@ const cloudinary = require("cloudinary");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const jwt = require("jsonwebtoken");
-const sendToken = require("../utils/jwtToken"); // Standard CommonJS require
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
 const mongoose = require("mongoose");
+const sendToken = require("../utils/jwtToken");
+
+// --- DEBUG LOG ---
+console.log("DEBUG: Imported sendToken type:", typeof sendToken);
 
 router.post("/create-user", async (req, res, next) => {
   try {
@@ -54,12 +57,10 @@ router.post("/create-user", async (req, res, next) => {
         subject: "Activate your PODokan Account",
         html: `<div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px;"> <h2 style="color: #333; text-align: center;">Welcome to PODokan!</h2> <p>Hello ${userData.name},</p> <p>Thank you for registering. Please click the button below to activate your account:</p> <div style="text-align: center; margin: 25px 0;"> <a href="${activationUrl}" style="background-color: #5e72e4; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-size: 16px;">Activate Account</a> </div> <p>If the button doesn't work, copy and paste this link into your browser:</p> <p style="word-break: break-all; color: #555;">${activationUrl}</p> <p style="color: #888; font-size: 12px;">This link will expire in 5 minutes.</p> <p>Thanks,<br/>The PODokan Team</p> </div>`,
       });
-      return res
-        .status(201)
-        .json({
-          success: true,
-          message: `Activation email sent to ${userData.email}. Please check your inbox.`,
-        });
+      return res.status(201).json({
+        success: true,
+        message: `Activation email sent to ${userData.email}. Please check your inbox.`,
+      });
     } catch (error) {
       console.error("Email send error:", error);
       if (uploadedImage)
@@ -114,7 +115,7 @@ router.post(
 
       if (typeof sendToken !== "function") {
         console.error(
-          "CRITICAL: sendToken is not loaded correctly in /activation"
+          "CRITICAL: sendToken is not loaded correctly in /activation. Check import/export in user.js and jwtToken.js."
         );
         return next(
           new ErrorHandler("Internal server error during activation.", 500)
@@ -153,17 +154,15 @@ router.post(
       if (!isPasswordValid)
         return next(new ErrorHandler("Invalid credentials", 401));
 
-      // *** Check if function exists before calling ***
       if (typeof sendToken !== "function") {
-        // Log critical error and send generic response
         console.error(
-          "CRITICAL: sendToken function is not available in /login-user route. Check import/export."
+          "CRITICAL: sendToken function is not available in /login-user. Check import/export in user.js and jwtToken.js."
         );
         return next(
           new ErrorHandler("Internal server error during login process.", 500)
         );
       }
-      sendToken(user, 200, res); // Now call the function
+      sendToken(user, 200, res);
     } catch (error) {
       console.error("Login error:", error);
       return next(new ErrorHandler(error.message || "Login failed", 500));
