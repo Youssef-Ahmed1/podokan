@@ -17,7 +17,7 @@ const Checkout = () => {
   const [couponCode, setCouponCode] = useState("");
   const [couponCodeData, setCouponCodeData] = useState(null);
   const [discountPrice, setDiscountPrice] = useState(null);
-  
+  const [country, setCountry] = useState("Egypt");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,14 +25,21 @@ const Checkout = () => {
   }, []);
 
   const paymentSubmit = () => {
-    if(address1 === "" || address2 === "" || phoneNumber === "" || city === ""){
-      toast.error("Please fill in all the delivery address fields!")
-    } else{
+    if (
+      address1 === "" ||
+      address2 === "" ||
+      phoneNumber === "" ||
+      city === "" ||
+      country === ""
+    ) {
+      toast.error("Please fill in all the delivery address fields!");
+    } else {
       const shippingAddress = {
         address1,
         address2,
         phoneNumber,
         city,
+        country,
       };
 
       const orderData = {
@@ -43,7 +50,7 @@ const Checkout = () => {
         discountPrice,
         shippingAddress,
         user,
-      }
+      };
 
       // update local storage with the updated orders array
       localStorage.setItem("latestOrder", JSON.stringify(orderData));
@@ -99,22 +106,25 @@ const Checkout = () => {
     : (subTotalPrice + shipping).toFixed(2);
 
   const handleAddressSelect = (e) => {
-    const selectedAddr = user.addresses.find(addr => addr._id === e.target.value);
+    const selectedAddr = user.addresses.find(
+      (addr) => addr._id === e.target.value
+    );
     if (selectedAddr) {
       setSelectedAddress(selectedAddr._id);
       setAddress1(selectedAddr.address1);
       setAddress2(selectedAddr.address2);
       setPhoneNumber(selectedAddr.phoneNumber);
       setCity(selectedAddr.city);
+      setCountry(selectedAddr.country || "Egypt");
     } else {
       setSelectedAddress("");
       setAddress1("");
       setAddress2("");
       setPhoneNumber("");
       setCity("");
+      setCountry("Egypt");
     }
   };
-
   return (
     <div className="w-full flex flex-col items-center py-8">
       <div className="w-[90%] 1000px:w-[70%] block 800px:flex">
@@ -166,7 +176,9 @@ const ShippingInfo = ({
   phoneNumber,
   setPhoneNumber,
   selectedAddress,
-  handleAddressSelect
+  handleAddressSelect,
+  country,
+  setCountry,
 }) => {
   const cities = ["Cairo", "Alexandria", "Giza", "New Cairo", "6th of October"];
 
@@ -209,6 +221,19 @@ const ShippingInfo = ({
               className={`${styles.input} !w-[95%]`}
             />
           </div>
+          <div className="w-[50%]">
+            <label className="block pb-2">Country</label>
+            {/* You might want a select dropdown here later */}
+            <input
+              type="text"
+              required
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              className={`${styles.input}`}
+              placeholder="e.g., Egypt"
+            />
+          </div>
+
           <div className="w-[50%]">
             <label className="block pb-2">City</label>
             <select
@@ -257,11 +282,12 @@ const ShippingInfo = ({
             onChange={handleAddressSelect}
           >
             <option value="">Choose a saved address</option>
-            {user && user.addresses.map((address) => (
-              <option key={address._id} value={address._id}>
-                {address.addressType}: {address.address1}, {address.city}
-              </option>
-            ))}
+            {user &&
+              user.addresses.map((address) => (
+                <option key={address._id} value={address._id}>
+                  {address.addressType}: {address.address1}, {address.city}
+                </option>
+              ))}
           </select>
         </div>
       </form>
