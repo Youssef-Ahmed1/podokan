@@ -25,6 +25,9 @@ const userSchema = new mongoose.Schema({
     {
       country: {
         type: String,
+        required: [true, "Shipping country is required."],
+        trim: true,
+        default: "Egypt",
       },
       city: {
         type: String,

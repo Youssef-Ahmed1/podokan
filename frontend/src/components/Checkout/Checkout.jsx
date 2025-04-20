@@ -17,7 +17,6 @@ const Checkout = () => {
   const [couponCode, setCouponCode] = useState("");
   const [couponCodeData, setCouponCodeData] = useState(null);
   const [discountPrice, setDiscountPrice] = useState(null);
-  const [country, setCountry] = useState("Egypt");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,8 +28,7 @@ const Checkout = () => {
       address1 === "" ||
       address2 === "" ||
       phoneNumber === "" ||
-      city === "" ||
-      country === ""
+      city === ""
     ) {
       toast.error("Please fill in all the delivery address fields!");
     } else {
@@ -39,7 +37,7 @@ const Checkout = () => {
         address2,
         phoneNumber,
         city,
-        country,
+        country: "Egypt",
       };
 
       const orderData = {
@@ -115,14 +113,12 @@ const Checkout = () => {
       setAddress2(selectedAddr.address2);
       setPhoneNumber(selectedAddr.phoneNumber);
       setCity(selectedAddr.city);
-      setCountry(selectedAddr.country || "Egypt");
     } else {
       setSelectedAddress("");
       setAddress1("");
       setAddress2("");
       setPhoneNumber("");
       setCity("");
-      setCountry("Egypt");
     }
   };
   return (
@@ -177,8 +173,6 @@ const ShippingInfo = ({
   setPhoneNumber,
   selectedAddress,
   handleAddressSelect,
-  country,
-  setCountry,
 }) => {
   const cities = ["Cairo", "Alexandria", "Giza", "New Cairo", "6th of October"];
 
@@ -219,17 +213,6 @@ const ShippingInfo = ({
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               className={`${styles.input} !w-[95%]`}
-            />
-          </div>
-          <div className="w-[50%]">
-            <label className="block pb-2">Country</label>
-            <input
-              type="text"
-              required
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              className={`${styles.input}`}
-              placeholder="e.g., Egypt"
             />
           </div>
 

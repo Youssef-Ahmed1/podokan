@@ -94,6 +94,7 @@ const orderSchema = new mongoose.Schema(
         type: String,
         required: [true, "Shipping country is required."],
         trim: true,
+        default: "Egypt",
       },
       postalCode: { type: String, trim: true, default: "" },
       phoneNumber: {
