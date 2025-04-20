@@ -1,3 +1,9 @@
+// File: frontend/src/redux/actions/cart.js
+import { toast } from "react-toastify";
+
+export const CART_ACTION_TYPES = {
+  UPDATE_CART: "cart/updateCart",
+};
 export const addTocart = (data) => async (dispatch, getState) => {
   try {
     if (!data || !data._id || !data.shopId)
