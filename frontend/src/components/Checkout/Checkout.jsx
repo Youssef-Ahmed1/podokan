@@ -223,7 +223,6 @@ const ShippingInfo = ({
           </div>
           <div className="w-[50%]">
             <label className="block pb-2">Country</label>
-            {/* You might want a select dropdown here later */}
             <input
               type="text"
               required

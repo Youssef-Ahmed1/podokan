@@ -169,24 +169,31 @@ const Payment = () => {
     }
 
     const orderPayload = {
-        cart: orderData.cart.map(item => ({
-            _id: item._id,
-            qty: item.qty,
-            shopId: item.shopId,
-            price: Number(item.discountPrice || item.originalPrice),
-            designImage: item.designImage,
-            DesignTitle: item.DesignTitle,
-            ProductType: item.ProductType,
-            ProductColor: item.ProductColor
-        })),
-        shippingAddress: orderData.shippingAddress,
-        user: user,
-        totalPrice: Number(orderData.totalPrice),
-        paymentInfo: {
-            id: null,
-            status: "Processing",
-            type: "Cash On Delivery"
-        }
+      cart: orderData.cart.map((item) => {
+        console.log("Mapping item for payload:", item); // Add logging
+        return {
+          qty: item.qty,
+          shopId: item.shopId,
+          price: Number(
+            item.discountPrice != null ? item.discountPrice : item.originalPrice
+          ),
+          designImage: item.designImage,
+          DesignTitle: item.DesignTitle,
+          ProductType: item.ProductType,
+          ProductColor: item.ProductColor,
+          size: item.size,
+          productId: item.productId,
+          designSpecs: item.designSpecs,
+        };
+      }),
+      shippingAddress: orderData.shippingAddress,
+      user: user,
+      totalPrice: Number(orderData.totalPrice),
+      paymentInfo: {
+        id: null,
+        status: "Processing",
+        type: "Cash On Delivery",
+      },
     };
 
     const config = {
