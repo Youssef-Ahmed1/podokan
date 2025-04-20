@@ -158,7 +158,7 @@ router.post(
             );
           } else if ((product.stock || 0) < item.qty) {
             throw new ErrorHandler(
-              `Insufficient stock for "${product.name}". Available: ${
+              `Insufficient stock for "${product.DesignTitle}". Available: ${
                 product.stock || 0
               }, Requested: ${item.qty}.`,
               400
