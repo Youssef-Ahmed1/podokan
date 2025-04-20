@@ -1,13 +1,14 @@
 const express = require("express");
 const User = require("../model/user");
-const sendMail = require("../utils/sendMail"); // Corrected path if needed
+const sendMail = require("../utils/sendMail");
 const router = express.Router();
 const cloudinary = require("cloudinary");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const jwt = require("jsonwebtoken");
-const sendToken = require("../utils/jwtToken"); // Corrected path if needed
-const { isAuthenticated, isAdmin } = require("../middleware/auth"); // Corrected path if needed
+const sendToken = require("../utils/jwtToken"); // Correctly import sendToken
+const { isAuthenticated, isAdmin } = require("../middleware/auth");
+const mongoose = require("mongoose"); // Import mongoose
 
 router.post("/create-user", async (req, res, next) => {
   try {
@@ -45,7 +46,7 @@ router.post("/create-user", async (req, res, next) => {
     const activationToken = createActivationToken(userData);
     const activationUrl = `${
       process.env.FRONTEND_URL || "https://testpodokan.store"
-    }/activation/${activationToken}`; // Use env var for frontend URL
+    }/activation/${activationToken}`;
 
     try {
       await sendMail({
@@ -101,12 +102,25 @@ router.post(
       if (!name || !email || !password || !avatar)
         return next(new ErrorHandler("Token data incomplete", 400));
 
-      let user = await User.findOne({ email });
+      let user = await User.findOne({ email: email.toLowerCase() }); // Ensure consistent casing check
       if (user) return next(new ErrorHandler("User already exists", 400));
 
-      user = await User.create({ name, email, avatar, password });
+      user = await User.create({
+        name,
+        email: email.toLowerCase(),
+        avatar,
+        password,
+      });
 
-      // *** Use sendToken here ***
+      // *** Ensure sendToken is called correctly ***
+      if (typeof sendToken !== "function") {
+        console.error(
+          "CRITICAL: sendToken is not loaded correctly in /activation"
+        );
+        return next(
+          new ErrorHandler("Internal server error during activation.", 500)
+        );
+      }
       sendToken(user, 201, res);
     } catch (error) {
       if (
@@ -140,10 +154,19 @@ router.post(
       if (!isPasswordValid)
         return next(new ErrorHandler("Invalid credentials", 401));
 
-      // *** Use sendToken here ***
-      sendToken(user, 200, res);
+      // *** Ensure sendToken is called correctly ***
+      if (typeof sendToken !== "function") {
+        console.error(
+          "CRITICAL: sendToken is not loaded correctly in /login-user"
+        );
+        return next(
+          new ErrorHandler("Internal server error during login.", 500)
+        );
+      }
+      sendToken(user, 200, res); // Call the imported function
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Login error:", error); // Log the actual error
+      // Pass error to the central error handler
       return next(new ErrorHandler(error.message || "Login failed", 500));
     }
   })
@@ -154,7 +177,6 @@ router.get(
   isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      // req.user is populated by isAuthenticated middleware
       const user = await User.findById(req.user._id).select("-password");
       if (!user) return next(new ErrorHandler("User not found", 404));
       res.status(200).json({ success: true, user });
@@ -169,10 +191,10 @@ router.get(
   "/logout",
   catchAsyncErrors(async (req, res, next) => {
     try {
-      // Use AuthUtils to get standard cookie options for clearing
-      const AuthUtils = require("../utils/authUtils"); // Assuming path
+      const AuthUtils = require("../utils/authUtils");
+      // Clear the user token cookie
       res.cookie("token", "", {
-        ...AuthUtils.getCookieOptions(),
+        ...AuthUtils.getCookieOptions("user"),
         expires: new Date(0),
       });
       res
@@ -198,7 +220,6 @@ router.put(
           )
         );
 
-      // Find user by ID from token, select password for comparison
       const user = await User.findById(req.user.id).select("+password");
       if (!user) return next(new ErrorHandler("User not found", 404));
 
@@ -206,7 +227,6 @@ router.put(
       if (!isPasswordValid)
         return next(new ErrorHandler("Incorrect password", 401));
 
-      // Check if email is changing and if the new email already exists
       if (email.toLowerCase() !== user.email) {
         const emailExists = await User.findOne({ email: email.toLowerCase() });
         if (emailExists)
@@ -215,13 +235,11 @@ router.put(
       }
 
       user.name = name.trim();
-      user.phoneNumber = phoneNumber || user.phoneNumber; // Update only if provided
+      user.phoneNumber = phoneNumber || user.phoneNumber;
       await user.save();
 
-      // Exclude password from response
       const userResponse = user.toObject();
       delete userResponse.password;
-
       res.status(200).json({ success: true, user: userResponse });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -237,19 +255,15 @@ router.put(
       if (!req.body.avatar || typeof req.body.avatar !== "string") {
         return next(new ErrorHandler("Avatar data missing or invalid", 400));
       }
-
       let existsUser = await User.findById(req.user.id);
       if (!existsUser) return next(new ErrorHandler("User not found", 404));
 
-      // Destroy old avatar if it exists
       if (existsUser.avatar && existsUser.avatar.public_id) {
-        const imageId = existsUser.avatar.public_id;
         await cloudinary.v2.uploader
-          .destroy(imageId)
+          .destroy(existsUser.avatar.public_id)
           .catch((err) => console.error("Failed to destroy old avatar:", err));
       }
 
-      // Upload new avatar
       const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
         folder: "avatars",
         width: 150,
@@ -261,10 +275,8 @@ router.put(
       };
       await existsUser.save();
 
-      // Exclude password from response
       const userResponse = existsUser.toObject();
       delete userResponse.password;
-
       res.status(200).json({ success: true, user: userResponse });
     } catch (error) {
       console.error("Avatar update error:", error);
@@ -283,8 +295,7 @@ router.put(
       const user = await User.findById(req.user.id);
       if (!user) return next(new ErrorHandler("User not found", 404));
 
-      const { _id, addressType, ...addressData } = req.body; // Separate ID and type from data
-
+      const { _id, addressType, ...addressData } = req.body;
       if (
         !addressType ||
         !addressData.country ||
@@ -300,12 +311,10 @@ router.put(
       }
 
       const addressIndex = user.addresses.findIndex(
-        (a) => a._id.toString() === _id
-      );
+        (a) => a._id && _id && a._id.toString() === _id.toString()
+      ); // Safe comparison
 
       if (addressIndex > -1) {
-        // Update existing address
-        // Check if changing type conflicts with another existing address
         if (addressType !== user.addresses[addressIndex].addressType) {
           const typeExists = user.addresses.some(
             (a, i) => i !== addressIndex && a.addressType === addressType
@@ -315,13 +324,11 @@ router.put(
               new ErrorHandler(`${addressType} address already exists`, 400)
             );
         }
-        // Update fields - Mongoose handles this update within the array
         Object.assign(user.addresses[addressIndex], {
           addressType,
           ...addressData,
         });
       } else {
-        // Add new address
         const typeExists = user.addresses.some(
           (a) => a.addressType === addressType
         );
@@ -329,11 +336,10 @@ router.put(
           return next(
             new ErrorHandler(`${addressType} address already exists`, 400)
           );
-        user.addresses.push({ addressType, ...addressData }); // Add the new address object
+        user.addresses.push({ addressType, ...addressData });
       }
 
       await user.save();
-      // Exclude password from response
       const userResponse = user.toObject();
       delete userResponse.password;
       res.status(200).json({ success: true, user: userResponse });
@@ -357,9 +363,7 @@ router.delete(
         { _id: userId },
         { $pull: { addresses: { _id: addressId } } }
       );
-
       if (result.modifiedCount === 0) {
-        // Could mean user not found or address not found
         const userExists = await User.findById(userId);
         if (!userExists) return next(new ErrorHandler("User not found", 404));
         return next(
@@ -367,7 +371,7 @@ router.delete(
         );
       }
 
-      const user = await User.findById(userId).select("-password"); // Get updated user
+      const user = await User.findById(userId).select("-password");
       res.status(200).json({ success: true, user });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -383,10 +387,7 @@ router.put(
       const { oldPassword, newPassword, confirmPassword } = req.body;
       if (!oldPassword || !newPassword || !confirmPassword) {
         return next(
-          new ErrorHandler(
-            "Please provide old password, new password, and confirm password",
-            400
-          )
+          new ErrorHandler("Please provide all password fields", 400)
         );
       }
 
@@ -402,7 +403,7 @@ router.put(
       if (newPassword.length < 6)
         return next(
           new ErrorHandler("Password must be at least 6 characters", 400)
-        ); // Add length check
+        );
 
       user.password = newPassword;
       await user.save();
@@ -423,10 +424,8 @@ router.get(
       const userId = req.params.id;
       if (!mongoose.Types.ObjectId.isValid(userId))
         return next(new ErrorHandler("Invalid user ID", 400));
-
-      const user = await User.findById(userId).select("-password"); // Exclude password
+      const user = await User.findById(userId).select("-password");
       if (!user) return next(new ErrorHandler("User not found", 404));
-
       res.status(200).json({ success: true, user });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -443,7 +442,6 @@ router.get(
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 20;
       const skip = (page - 1) * limit;
-
       const [totalUsers, users] = await Promise.all([
         User.countDocuments(),
         User.find()
@@ -453,14 +451,15 @@ router.get(
           .limit(limit)
           .lean(),
       ]);
-
-      res.status(200).json({
-        success: true,
-        users,
-        currentPage: page,
-        totalPages: Math.ceil(totalUsers / limit),
-        totalUsers,
-      });
+      res
+        .status(200)
+        .json({
+          success: true,
+          users,
+          currentPage: page,
+          totalPages: Math.ceil(totalUsers / limit),
+          totalUsers,
+        });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
@@ -476,21 +475,14 @@ router.delete(
       const userId = req.params.id;
       if (!mongoose.Types.ObjectId.isValid(userId))
         return next(new ErrorHandler("Invalid user ID", 400));
-
       const user = await User.findById(userId);
       if (!user) return next(new ErrorHandler("User not found", 404));
-
-      // Consider deleting avatar from Cloudinary
       if (user.avatar && user.avatar.public_id) {
         await cloudinary.v2.uploader
           .destroy(user.avatar.public_id)
-          .catch((err) =>
-            console.error("Failed to delete user avatar from Cloudinary:", err)
-          );
+          .catch((err) => console.error("Failed to delete user avatar:", err));
       }
-
       await User.findByIdAndDelete(userId);
-
       res
         .status(200)
         .json({ success: true, message: "User deleted successfully" });

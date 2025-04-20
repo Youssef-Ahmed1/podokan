@@ -16,44 +16,42 @@ const allowedOrigins = (
         "https://testpodokan.store,https://www.testpodokan.store"
       ) // Default includes both www and non-www
         .split(",")
-        .map((origin) => origin.trim().replace(/\/$/, ""))
+        .map((origin) => origin.trim().replace(/\/$/, "")) // Normalize and remove trailing slash
     : ["http://localhost:3000"]
 ) // Development origins
-  .filter(Boolean);
+  .filter(Boolean); // Remove empty entries if any
+
+console.log("Allowed CORS Origins:", allowedOrigins); // Log allowed origins for verification
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin OR from whitelisted origins
+    // Allow requests with no origin (like mobile apps or curl requests) OR from whitelisted origins
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.warn(
-        `CORS Error: Origin '${origin}' not allowed. Allowed: ${allowedOrigins.join(
-          ", "
-        )}`
-      );
+      console.warn(`CORS Error: Origin '${origin}' not allowed.`);
       // Pass an error to the callback for disallowed origins
       callback(new Error(`Origin '${origin}' not permitted by CORS policy.`));
     }
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Seller-Authorization"],
-  exposedHeaders: ["Authorization", "Seller-Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "Seller-Authorization"], // Ensure these match frontend requests
+  exposedHeaders: ["Authorization", "Seller-Authorization"], // Allow frontend to read these response headers
 };
 app.use(cors(corsOptions));
 
 // --- Security Middleware ---
 app.use(
   helmet({
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: false, // Consider configuring CSP properly later
     crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginResourcePolicy: { policy: "cross-origin" }, // Allows loading resources (like Cloudinary images)
   })
 );
 
 // --- Other Middleware ---
-app.use(morgan("dev")); // Request logging
+app.use(morgan("dev"));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser());
@@ -93,9 +91,9 @@ if (process.env.NODE_ENV === "production") {
     `Production mode: Serving static files from ${frontendBuildPath}`
   );
   app.use(express.static(frontendBuildPath));
-  app.get("/health", (req, res) => res.status(200).send("OK")); // Health check
+  app.get("/health", (req, res) => res.status(200).send("OK"));
   app.get("*", (req, res, next) => {
-    if (req.originalUrl.startsWith("/api/")) return next(); // Skip API routes
+    if (req.originalUrl.startsWith("/api/")) return next();
     const indexPath = path.resolve(frontendBuildPath, "index.html");
     res.sendFile(indexPath, (err) => {
       if (err) {
@@ -115,6 +113,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // --- Error Handling ---
+// This should be AFTER all routes and middleware that might call next(err)
 app.use(ErrorHandler);
 
 // --- Process Event Handlers ---
@@ -125,11 +124,12 @@ process.on("uncaughtException", (err) => {
 });
 process.on("unhandledRejection", (err) => {
   console.error("UNHANDLED REJECTION! Shutting down...");
-  console.error(err);
+  console.error(err); // Log the actual rejected value/error
   process.exit(1);
 });
 process.on("SIGTERM", () => {
   console.log("SIGTERM RECEIVED. Shutting down gracefully...");
+  // Add any cleanup logic here (e.g., close database connections)
   process.exit(0);
 });
 
