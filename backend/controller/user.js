@@ -6,9 +6,9 @@ const cloudinary = require("cloudinary");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const jwt = require("jsonwebtoken");
-const sendToken = require("../utils/jwtToken"); // Correctly import sendToken
+const sendToken = require("../utils/jwtToken"); // Standard CommonJS require
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
-const mongoose = require("mongoose"); // Import mongoose
+const mongoose = require("mongoose");
 
 router.post("/create-user", async (req, res, next) => {
   try {
@@ -102,7 +102,7 @@ router.post(
       if (!name || !email || !password || !avatar)
         return next(new ErrorHandler("Token data incomplete", 400));
 
-      let user = await User.findOne({ email: email.toLowerCase() }); // Ensure consistent casing check
+      let user = await User.findOne({ email: email.toLowerCase() });
       if (user) return next(new ErrorHandler("User already exists", 400));
 
       user = await User.create({
@@ -112,7 +112,6 @@ router.post(
         password,
       });
 
-      // *** Ensure sendToken is called correctly ***
       if (typeof sendToken !== "function") {
         console.error(
           "CRITICAL: sendToken is not loaded correctly in /activation"
@@ -154,19 +153,19 @@ router.post(
       if (!isPasswordValid)
         return next(new ErrorHandler("Invalid credentials", 401));
 
-      // *** Ensure sendToken is called correctly ***
+      // *** Check if function exists before calling ***
       if (typeof sendToken !== "function") {
+        // Log critical error and send generic response
         console.error(
-          "CRITICAL: sendToken is not loaded correctly in /login-user"
+          "CRITICAL: sendToken function is not available in /login-user route. Check import/export."
         );
         return next(
-          new ErrorHandler("Internal server error during login.", 500)
+          new ErrorHandler("Internal server error during login process.", 500)
         );
       }
-      sendToken(user, 200, res); // Call the imported function
+      sendToken(user, 200, res); // Now call the function
     } catch (error) {
-      console.error("Login error:", error); // Log the actual error
-      // Pass error to the central error handler
+      console.error("Login error:", error);
       return next(new ErrorHandler(error.message || "Login failed", 500));
     }
   })
@@ -192,7 +191,6 @@ router.get(
   catchAsyncErrors(async (req, res, next) => {
     try {
       const AuthUtils = require("../utils/authUtils");
-      // Clear the user token cookie
       res.cookie("token", "", {
         ...AuthUtils.getCookieOptions("user"),
         expires: new Date(0),
@@ -312,7 +310,7 @@ router.put(
 
       const addressIndex = user.addresses.findIndex(
         (a) => a._id && _id && a._id.toString() === _id.toString()
-      ); // Safe comparison
+      );
 
       if (addressIndex > -1) {
         if (addressType !== user.addresses[addressIndex].addressType) {
