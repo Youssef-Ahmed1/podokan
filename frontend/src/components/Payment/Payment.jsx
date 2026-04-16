@@ -37,23 +37,23 @@ const Payment = () => {
 
   const createOrder = (data, actions) => {
     return actions.order
-      .create({
-        purchase_units: [
-          {
-            description: "Sunflower",
-            amount: {
-              currency_code: "USD",
-              value: orderData?.totalPrice,
+        .create({
+            purchase_units: [
+                {
+                    description: "Sunflower",
+                    amount: {
+                        currency_code: "EGP",
+                        value: orderData?.totalPrice,
+                    },
+                },
+            ],
+            application_context: {
+                shipping_preference: "NO_SHIPPING",
             },
-          },
-        ],
-        application_context: {
-          shipping_preference: "NO_SHIPPING",
-        },
-      })
-      .then((orderID) => {
-        return orderID;
-      });
+        })
+        .then((orderID) => {
+            return orderID;
+        });
   };
 
   const order = {
@@ -170,7 +170,7 @@ const Payment = () => {
 
     const orderPayload = {
       cart: orderData.cart.map((item) => {
-        console.log("Mapping item for payload:", item); 
+        console.log("Mapping item for payload:", item);
         return {
           qty: item.qty,
           shopId: item.shopId,
@@ -206,9 +206,9 @@ const Payment = () => {
     try {
         console.log("Sending order data:", orderPayload);
         const { data } = await axios.post(
-            `${server}/order/create-order`, 
-            orderPayload, 
-            config
+            `${server}/order/create-order`,
+            orderPayload,
+            config,
         );
 
         if (data.success) {
@@ -220,50 +220,48 @@ const Payment = () => {
     } catch (error) {
         console.error("Order creation error:", error.response?.data);
         toast.error(
-            error.response?.data?.message || 
-            error.response?.data?.errors?.[0]?.msg || 
-            "Failed to create order"
+            error.response?.data?.message ||
+                error.response?.data?.errors?.[0]?.msg ||
+                "Failed to create order",
         );
     }
 };
   const PaymentInfo = ({
-    user,
-    open,
-    setOpen,
-    onApprove,
-    createOrder,
-    paymentHandler,
-    cashOnDeliveryHandler,
+      user,
+      open,
+      setOpen,
+      onApprove,
+      createOrder,
+      paymentHandler,
+      cashOnDeliveryHandler,
   }) => {
-   
-  
-  return (
-    <div className="w-full flex flex-col items-center py-8">
-      <div className="w-[90%] 1000px:w-[70%] block 800px:flex">
-        <div className="w-full 800px:w-[65%]">
-          <PaymentInfo
-            user={user}
-            open={open}
-            setOpen={setOpen}
-            onApprove={onApprove}
-            createOrder={createOrder}
-            paymentHandler={paymentHandler}
-            cashOnDeliveryHandler={cashOnDeliveryHandler}
-          />
-        </div>
-        <div className="w-full 800px:w-[35%] 800px:mt-0 mt-8">
-          <CartData orderData={orderData} />
-        </div>
-      </div>
-    </div>
-  );
-};
+      return (
+          <div className="w-full flex flex-col items-center py-8">
+              <div className="w-[90%] 1000px:w-[70%] block 800px:flex">
+                  <div className="w-full 800px:w-[65%]">
+                      <PaymentInfo
+                          user={user}
+                          open={open}
+                          setOpen={setOpen}
+                          onApprove={onApprove}
+                          createOrder={createOrder}
+                          paymentHandler={paymentHandler}
+                          cashOnDeliveryHandler={cashOnDeliveryHandler}
+                      />
+                  </div>
+                  <div className="w-full 800px:w-[35%] 800px:mt-0 mt-8">
+                      <CartData orderData={orderData} />
+                  </div>
+              </div>
+          </div>
+      );
+  };
 
 const [select, setSelect] = useState(3);
   return (
-    <div className="w-full 800px:w-[95%] bg-[#fff] rounded-md p-5 pb-8">
-      {/* select buttons */}
-      {/* <div>
+      <div className="w-full 800px:w-[95%] bg-[#fff] rounded-md p-5 pb-8">
+          {/* select buttons */}
+          {/* <div>
         <div className="flex w-full pb-5 border-b mb-2">
           <div
             className="w-[25px] h-[25px] rounded-full bg-transparent border-[3px] border-[#1d1a1ab4] relative flex items-center justify-center"
@@ -408,7 +406,7 @@ const [select, setSelect] = useState(3);
                     <PayPalScriptProvider
                       options={{
                         "client-id":
-                          "Aczac4Ry9_QA1t4c7TKH9UusH3RTe6onyICPoCToHG10kjlNdI-qwobbW9JAHzaRQwFMn2-k660853jn",
+                          "REACT_APP_PAYPAL_CLIENT_ID",
                       }}
                     >
                       <PayPalButtons
@@ -424,37 +422,37 @@ const [select, setSelect] = useState(3);
         ) : null}
       </div> */}
 
-      <br />
-      {/* cash on delivery */}
-      <div>
-        <div className="flex w-full pb-5 border-b mb-2">
-          <div
-            className="w-[25px] h-[25px] rounded-full bg-transparent border-[3px] border-[#1d1a1ab4] relative flex items-center justify-center"
-            onClick={() => setSelect(3)}
-          >
-            {select === 3 ? (
-              <div className="w-[13px] h-[13px] bg-[#1d1a1acb] rounded-full" />
-            ) : null}
-          </div>
-          <h4 className="text-[18px] pl-2 font-[600] text-[#000000b1]">
-            Cash on Delivery
-          </h4>
-        </div>
+          <br />
+          {/* cash on delivery */}
+          <div>
+              <div className="flex w-full pb-5 border-b mb-2">
+                  <div
+                      className="w-[25px] h-[25px] rounded-full bg-transparent border-[3px] border-[#1d1a1ab4] relative flex items-center justify-center"
+                      onClick={() => setSelect(3)}
+                  >
+                      {select === 3 ? (
+                          <div className="w-[13px] h-[13px] bg-[#1d1a1acb] rounded-full" />
+                      ) : null}
+                  </div>
+                  <h4 className="text-[18px] pl-2 font-[600] text-[#000000b1]">
+                      Cash on Delivery
+                  </h4>
+              </div>
 
-        {/* cash on delivery */}
-        {select === 3 ? (
-          <div className="w-full flex">
-            <form className="w-full" onSubmit={cashOnDeliveryHandler}>
-              <input
-                type="submit"
-                value="Confirm"
-                className={`${styles.button} !bg-[#f63b60] text-[#fff] h-[45px] rounded-[5px] cursor-pointer text-[18px] font-[600]`}
-              />
-            </form>
+              {/* cash on delivery */}
+              {select === 3 ? (
+                  <div className="w-full flex">
+                      <form className="w-full" onSubmit={cashOnDeliveryHandler}>
+                          <input
+                              type="submit"
+                              value="Confirm"
+                              className={`${styles.button} !bg-[#f63b60] text-[#fff] h-[45px] rounded-[5px] cursor-pointer text-[18px] font-[600]`}
+                          />
+                      </form>
+                  </div>
+              ) : null}
           </div>
-        ) : null}
       </div>
-    </div>
   );
 };
 

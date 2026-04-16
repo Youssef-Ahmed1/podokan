@@ -95,12 +95,12 @@ export const userReducer = createReducer(initialState, (builder) => {
 export const loadUser = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadUserRequest" });
-    
+
     const { data } = await axios.get(`${server}/user/getuser`);
-    
-    dispatch({ 
-      type: "LoadUserSuccess", 
-      payload: data.user 
+
+    dispatch({
+        type: "LoadUserSuccess",
+        payload: data.user,
     });
   } catch (error) {
     dispatch({
@@ -113,19 +113,18 @@ export const loadUser = () => async (dispatch) => {
 export const loadSeller = () => async (dispatch) => {
   try {
     dispatch({ type: "LoadSellerRequest" });
-    
-    const sellerToken = localStorage.getItem('seller_token');
+
     const config = {
       headers: {
         'Seller-Authorization': sellerToken ? `Bearer ${sellerToken}` : '',
       }
     };
-    
+
     const { data } = await axios.get(`${server}/shop/getSeller`, config);
-    
-    dispatch({ 
-      type: "LoadSellerSuccess", 
-      payload: data.seller 
+
+    dispatch({
+        type: "LoadSellerSuccess",
+        payload: data.seller,
     });
   } catch (error) {
     dispatch({
@@ -192,7 +191,6 @@ export const login = (email, password) => async (dispatch) => {
       password,
     });
 
-    localStorage.setItem("token", data.token);
     axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
 
     dispatch({
@@ -208,17 +206,16 @@ export const login = (email, password) => async (dispatch) => {
 };
 export const logout = () => async (dispatch) => {
   try {
-    localStorage.removeItem("token");
-    delete axios.defaults.headers.common["Authorization"];
+      delete axios.defaults.headers.common["Authorization"];
 
-    await axios.get(`${server}/user/logout`);
+      await axios.get(`${server}/user/logout`);
 
-    dispatch({ type: "LogoutSuccess" });
+      dispatch({ type: "LogoutSuccess" });
   } catch (error) {
-    dispatch({
-      type: "LogoutFail",
-      payload: error.response?.data?.message || "Logout failed",
-    });
+      dispatch({
+          type: "LogoutFail",
+          payload: error.response?.data?.message || "Logout failed",
+      });
   }
 };
 // delete user address

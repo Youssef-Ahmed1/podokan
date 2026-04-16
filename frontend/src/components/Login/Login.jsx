@@ -14,20 +14,20 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const { data } = await axios.post(
         `${server}/user/login-user`,
         { email, password },
         { withCredentials: true }
       );
-  
+
       if (data.success) {
-        localStorage.setItem('token', data.token);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-        toast.success("Login successful!");
-        navigate("/");
-        window.location.reload();
+          axios.defaults.headers.common["Authorization"] =
+              `Bearer ${data.token}`;
+          toast.success("Login successful!");
+          navigate("/");
+          window.location.reload();
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Login failed");

@@ -76,50 +76,47 @@ axios.defaults.withCredentials = true; // Send cookies globally
 
 // Request Interceptor (Adds Tokens)
 axios.interceptors.request.use(
-  (config) => {
-    const userToken = localStorage.getItem("token");
-    const sellerToken = localStorage.getItem("seller_token");
+    (config) => {
+        // Define API paths that require the Seller token more precisely
+        const sellerApiPrefixes = [
+            "/api/v2/shop/", // Covers shop creation, login, activation, loading seller data
+            "/api/v2/product/", // Covers seller product actions
+            "/api/v2/event/", // Covers seller event actions
+            "/api/v2/coupon/", // Covers seller coupon actions
+            "/api/v2/order/get-seller", // Covers getting seller orders/details
+            "/api/v2/order/accept-refund", // Seller refund action
+            "/api/v2/withdraw/", // Seller withdrawal actions
+            "/api/v2/message/", // Seller message actions (if applicable)
+            // Add other seller-specific base paths if needed
+        ];
 
-    // Define API paths that require the Seller token more precisely
-    const sellerApiPrefixes = [
-      "/api/v2/shop/", // Covers shop creation, login, activation, loading seller data
-      "/api/v2/product/", // Covers seller product actions
-      "/api/v2/event/", // Covers seller event actions
-      "/api/v2/coupon/", // Covers seller coupon actions
-      "/api/v2/order/get-seller", // Covers getting seller orders/details
-      "/api/v2/order/accept-refund", // Seller refund action
-      "/api/v2/withdraw/", // Seller withdrawal actions
-      "/api/v2/message/", // Seller message actions (if applicable)
-      // Add other seller-specific base paths if needed
-    ];
+        const isAdminRequest = config.url?.startsWith("/api/v2/order/admin/"); // Specific admin order routes
+        const isSellerRequest =
+            config.url &&
+            sellerApiPrefixes.some((prefix) => config.url.startsWith(prefix));
 
-    const isAdminRequest = config.url?.startsWith("/api/v2/order/admin/"); // Specific admin order routes
-    const isSellerRequest =
-      config.url &&
-      sellerApiPrefixes.some((prefix) => config.url.startsWith(prefix));
+        // Clear existing auth headers first
+        delete config.headers["Authorization"];
+        delete config.headers["Seller-Authorization"];
 
-    // Clear existing auth headers first
-    delete config.headers["Authorization"];
-    delete config.headers["Seller-Authorization"];
+        // Apply correct token based on route type priority (Seller > User)
+        // Admin routes use the standard User token (assuming admin logs in as a user)
+        if (isSellerRequest && sellerToken) {
+            config.headers["Seller-Authorization"] = `Bearer ${sellerToken}`;
+            // console.log(`[Axios Req] Using Seller Token for: ${config.url}`);
+        } else if (userToken && !isSellerRequest) {
+            // Apply user token if it's not a seller-specific request OR if it's an admin request
+            config.headers["Authorization"] = `Bearer ${userToken}`;
+            // console.log(`[Axios Req] Using User Token for: ${config.url}`);
+        } else if (!userToken && !isSellerRequest) {
+            // console.log(`[Axios Req] No token available for non-seller route: ${config.url}`);
+        } else if (!sellerToken && isSellerRequest) {
+            // console.warn(`[Axios Req] Seller token missing for seller route: ${config.url}`);
+        }
 
-    // Apply correct token based on route type priority (Seller > User)
-    // Admin routes use the standard User token (assuming admin logs in as a user)
-    if (isSellerRequest && sellerToken) {
-      config.headers["Seller-Authorization"] = `Bearer ${sellerToken}`;
-      // console.log(`[Axios Req] Using Seller Token for: ${config.url}`);
-    } else if (userToken && !isSellerRequest) {
-      // Apply user token if it's not a seller-specific request OR if it's an admin request
-      config.headers["Authorization"] = `Bearer ${userToken}`;
-      // console.log(`[Axios Req] Using User Token for: ${config.url}`);
-    } else if (!userToken && !isSellerRequest) {
-      // console.log(`[Axios Req] No token available for non-seller route: ${config.url}`);
-    } else if (!sellerToken && isSellerRequest) {
-      // console.warn(`[Axios Req] Seller token missing for seller route: ${config.url}`);
-    }
-
-    return config;
-  },
-  (error) => Promise.reject(error)
+        return config;
+    },
+    (error) => Promise.reject(error),
 );
 
 // Response Interceptor (Handles 401 Unauthorized)
@@ -147,7 +144,6 @@ axios.interceptors.response.use(
         `Axios Interceptor (401): ${message} (URL: ${originalRequest.url})`
       );
 
-      localStorage.removeItem(tokenKey); 
 
       if (!toast.isActive(toastId)) {
         toast.error(message, { toastId });
@@ -182,7 +178,7 @@ axios.interceptors.response.use(
         }
       }, 500);
 
-   
+
     }
 
     return Promise.reject(error);
