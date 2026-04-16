@@ -20,15 +20,13 @@ const sendShopToken = (shop, statusCode, res) => {
 
     // console.log(`[sendShopToken] Setting cookie 'seller_token' for shop ${shopData._id}`);
 
-    res
-      .status(statusCode)
-      .cookie("seller_token", token, cookieOptions) // Set the 'seller_token' cookie
-      // Optional: Include token in response body
-      .json({
-        success: true,
-        token: token,
-        seller: shopData, // Send sanitized shop data (password removed by AuthUtils)
-      });
+    res.status(statusCode)
+        .cookie("seller_token", token, cookieOptions) // Set the 'seller_token' cookie
+        // Optional: Include token in response body
+        .json({
+            success: true,
+            seller: shopData, // Send sanitized shop data (password removed by AuthUtils)
+        });
   } catch (error) {
     console.error("[sendShopToken Utility Error]:", error);
     // Send a generic server error response
