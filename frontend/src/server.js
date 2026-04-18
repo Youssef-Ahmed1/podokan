@@ -1,2 +1,2 @@
-export const server = "https://testpodokan.store/api/v2";
-export const backend_url = "https://testpodokan.store";
+export const server = REACT_APP_SERVER;
+export const backend_url = REACT_APP_BACKEND_URL;

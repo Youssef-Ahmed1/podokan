@@ -1,16 +1,16 @@
 const express = require("express");
-const fs = require('fs').promises; 
+const fs = require("fs").promises;
 var http = require('http');
 const path = require('path');
 const { isSeller, isAuthenticated, isAdmin } = require("../middleware/auth");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const router = express.Router();
-const { 
-    Product, 
+const {
+    Product,
     VALID_COLORS,
     VALID_PRODUCT_TYPES,
     VALID_VIEWS,
-    VALID_STATUSES
+    VALID_STATUSES,
 } = require("../model/product");
 const Order = require("../model/order");
 const Shop = require("../model/shop");
@@ -39,41 +39,41 @@ const validateProductData = [
     .trim()
     .isLength({ min: 3, max: 100 })
     .withMessage('Design title must be between 3 and 100 characters'),
-  
+
   body('Description')
     .trim()
     .isLength({ min: 10, max: 1000 })
     .withMessage('Description must be between 10 and 1000 characters'),
-  
+
   body('Maintag')
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('Main tag must be between 2 and 50 characters'),
-  
+
   body('ProductType')
     .isIn(VALID_PRODUCT_TYPES)
     .withMessage(`Product type must be one of: ${VALID_PRODUCT_TYPES.join(', ')}`),
-  
+
   body('ProductColor')
     .isIn(VALID_COLORS)
     .withMessage(`Product color must be one of: ${VALID_COLORS.join(', ')}`),
-  
+
   body('ProductView')
     .optional()
     .isIn(['front', 'back'])
     .withMessage('Product view must be either front or back'),
-  
+
   body('DesignScale')
     .optional()
     .isFloat({ min: 0.5, max: 1.2 })
     .withMessage('Design scale must be between 0.5 and 1.2 '),
-  
+
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ 
-        success: false, 
-        errors: errors.array() 
+      return res.status(400).json({
+          success: false,
+          errors: errors.array(),
       });
     }
     next();
@@ -101,11 +101,11 @@ const multerFilter = (req, file, cb) => {
 };
 
 const upload = multer({
-  storage: multerStorage,
-  fileFilter: multerFilter,
-  limits: {
-    fileSize: 100 * 1024 * 1024 // 100MB
-  }
+    storage: multerStorage,
+    fileFilter: multerFilter,
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB
+    },
 });
 
 // Create uploads directory if it doesn't exist
@@ -118,107 +118,120 @@ const upload = multer({
 })();
 
 // Product routes
-router.post("/create-product", 
-  isAuthenticated,
-  isSeller,
-  upload.single('designImage'),
-  validateProductData,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      console.log('Request data:', {
-        body: req.body,
-        file: req.file,
-        seller: req.seller?._id
-      });
+router.post(
+    "/create-product",
+    isAuthenticated,
+    isSeller,
+    upload.single("designImage"),
+    validateProductData,
+    catchAsyncErrors(async (req, res, next) => {
+        try {
+            console.log("Request data:", {
+                body: req.body,
+                file: req.file,
+                seller: req.seller?._id,
+            });
 
-      // Parse design position and tags
-      let DesignPosition = { x: 50, y: 40 };
-      try {
-        if (req.body.DesignPosition) {
-          DesignPosition = JSON.parse(req.body.DesignPosition);
+            // Parse design position and tags
+            let DesignPosition = { x: 50, y: 40 };
+            try {
+                if (req.body.DesignPosition) {
+                    DesignPosition = JSON.parse(req.body.DesignPosition);
+                }
+            } catch (e) {
+                console.error("Error parsing DesignPosition:", e);
+            }
+
+            let designTags = [];
+            try {
+                if (req.body.Designtags) {
+                    designTags = JSON.parse(req.body.Designtags);
+                }
+            } catch (e) {
+                console.error("Error parsing Designtags:", e);
+            }
+
+            // Validate required data
+            if (!req.file) {
+                return next(new ErrorHandler("Design image is required", 400));
+            }
+
+            if (
+                !req.body.ProductColor ||
+                !VALID_COLORS.includes(req.body.ProductColor)
+            ) {
+                return next(
+                    new ErrorHandler(
+                        `Invalid color. Must be one of: ${VALID_COLORS.join(", ")}`,
+                        400,
+                    ),
+                );
+            }
+
+            // Upload to cloudinary
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: "products",
+                transformation: [
+                    { quality: "auto:best" },
+                    { fetch_format: "auto" },
+                ],
+            });
+
+            // Create product data object
+            const productData = {
+                DesignTitle: req.body.DesignTitle,
+                Description: req.body.Description,
+                Maintag: req.body.Maintag,
+                Designtags: designTags,
+                ProductType: req.body.ProductType,
+                ProductColor: req.body.ProductColor,
+                ProductView: req.body.ProductView || "front",
+                DesignScale: parseFloat(req.body.DesignScale) || 0.8,
+                DesignPosition,
+                shopId: req.seller._id,
+                shop: req.seller._id,
+                designImage: {
+                    public_id: result.public_id,
+                    url: result.secure_url,
+                },
+                availableColors: [req.body.ProductColor],
+                status: "pending",
+                createdBy: req.seller._id,
+            };
+
+            // Create product
+            const product = await Product.create(productData);
+
+            // Clean up uploaded file
+            if (req.file.path) {
+                await fs
+                    .unlink(req.file.path)
+                    .catch((err) => console.error("Error deleting file:", err));
+            }
+
+            res.status(201).json({
+                success: true,
+                message: "Product created successfully and awaiting approval",
+                product,
+            });
+        } catch (error) {
+            // Clean up on error
+            if (req.file?.path) {
+                await fs.unlink(req.file.path).catch(() => {});
+            }
+            console.error("Product creation error:", {
+                message: error.message,
+                stack: error.stack,
+                body: req.body,
+            });
+            return next(
+                new ErrorHandler(
+                    error.message || "Failed to create product",
+                    500,
+                ),
+            );
         }
-      } catch (e) {
-        console.error("Error parsing DesignPosition:", e);
-      }
-
-      let designTags = [];
-      try {
-        if (req.body.Designtags) {
-          designTags = JSON.parse(req.body.Designtags);
-        }
-      } catch (e) {
-        console.error('Error parsing Designtags:', e);
-      }
-
-      // Validate required data
-      if (!req.file) {
-        return next(new ErrorHandler("Design image is required", 400));
-      }
-
-      if (!req.body.ProductColor || !VALID_COLORS.includes(req.body.ProductColor)) {
-        return next(new ErrorHandler(`Invalid color. Must be one of: ${VALID_COLORS.join(', ')}`, 400));
-      }
-
-      // Upload to cloudinary
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "products",
-        transformation: [
-          { quality: "auto:best" },
-          { fetch_format: "auto" }
-        ]
-      });
-
-      // Create product data object
-      const productData = {
-        DesignTitle: req.body.DesignTitle,
-        Description: req.body.Description,
-        Maintag: req.body.Maintag,
-        Designtags: designTags,
-        ProductType: req.body.ProductType,
-        ProductColor: req.body.ProductColor,
-        ProductView: req.body.ProductView || "front",
-        DesignScale: parseFloat(req.body.DesignScale) || 0.8,
-        DesignPosition,
-        shopId: req.seller._id,
-        shop: req.seller._id,
-        designImage: {
-          public_id: result.public_id,
-          url: result.secure_url,
-        },
-        availableColors: [req.body.ProductColor],
-        status: "pending",
-        createdBy: req.seller._id,
-      };
-
-      // Create product
-      const product = await Product.create(productData);
-
-      // Clean up uploaded file
-      if (req.file.path) {
-        await fs.unlink(req.file.path).catch(err => 
-          console.error('Error deleting file:', err)
-        );
-      }
-
-      res.status(201).json({
-        success: true,
-        message: "Product created successfully and awaiting approval",
-        product
-      });
-
-    } catch (error) {
-      // Clean up on error
-      if (req.file?.path) {
-        await fs.unlink(req.file.path).catch(() => {});
-      }
-      console.error('Product creation error:', {
-        message: error.message,
-        stack: error.stack,
-        body: req.body
-      });
-      return next(new ErrorHandler(error.message || "Failed to create product", 500));
-    }
-  })
+    }),
 );
 
 // Get all products for admin
@@ -321,16 +334,16 @@ router.put(
 
       // Use findOneAndUpdate with validation
       const updatedProduct = await Product.findOneAndUpdate(
-        { _id: id },
-        { 
-          $set: updateData,
-          $push: { statusHistory: statusHistoryEntry }
-        },
-        { 
-          new: true, 
-          runValidators: true,
-          context: 'query'
-        }
+          { _id: id },
+          {
+              $set: updateData,
+              $push: { statusHistory: statusHistoryEntry },
+          },
+          {
+              new: true,
+              runValidators: true,
+              context: "query",
+          },
       );
 
       if (!updatedProduct) {
@@ -350,85 +363,98 @@ router.put(
   })
 );
 // Update product design
-router.put("/update-product-design/:id", 
-  isAuthenticated,
-  isSeller,
-  upload.single('designImage'),
-  validateProductData,
-  catchAsyncErrors(async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        return next(new ErrorHandler("Invalid product ID", 400));
-      }
-
-      const product = await Product.findById(id);
-      if (!product) {
-        return next(new ErrorHandler("Product not found", 404));
-      }
-
-      const shop = await Shop.findById(product.shopId);
-      if (!shop || shop.owner.toString() !== req.seller._id.toString()) {
-        return next(new ErrorHandler("Unauthorized access to this product", 403));
-      }
-
-      // Handle design image update
-      let designImage = product.designImage;
-      if (req.file) {
-        // Upload new image
-        const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: "products",
-          transformation: [
-            { quality: "auto:best" },
-            { fetch_format: "auto" }
-          ]
-        });
-        
-        designImage = result.secure_url;
-
-        // Delete old image if exists
-        if (product.designImage) {
-          try {
-            // Extract public_id from the old URL
-            const publicId = product.designImage.split('/').pop().split('.')[0];
-            await cloudinary.uploader.destroy(publicId);
-          } catch (error) {
-            console.error("Error deleting old image:", error);
-          }
-        }
-      }
-
-      const updateData = {
-        ...req.body,
-        designImage,
-        status: 'pending',
-        lastModified: new Date(),
-        lastModifiedBy: req.seller._id
-      };
-
-      const updatedProduct = await Product.findByIdAndUpdate(
-        id,
-        { $set: updateData },
-        { new: true, runValidators: true }
-      );
-
-      res.status(200).json({
-        success: true,
-        message: "Product design updated successfully and awaiting re-approval",
-        product: updatedProduct
-      });
-    } catch (error) {
-      if (req.file?.path) {
+router.put(
+    "/update-product-design/:id",
+    isAuthenticated,
+    isSeller,
+    upload.single("designImage"),
+    validateProductData,
+    catchAsyncErrors(async (req, res, next) => {
         try {
-          await cloudinary.uploader.destroy(req.file.filename);
-        } catch (cleanupError) {
-          console.error("Error cleaning up uploaded file:", cleanupError);
+            const { id } = req.params;
+
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return next(new ErrorHandler("Invalid product ID", 400));
+            }
+
+            const product = await Product.findById(id);
+            if (!product) {
+                return next(new ErrorHandler("Product not found", 404));
+            }
+
+            const shop = await Shop.findById(product.shopId);
+            if (!shop || shop.owner.toString() !== req.seller._id.toString()) {
+                return next(
+                    new ErrorHandler(
+                        "Unauthorized access to this product",
+                        403,
+                    ),
+                );
+            }
+
+            // Handle design image update
+            let designImage = product.designImage;
+            if (req.file) {
+                // Upload new image
+                const result = await cloudinary.uploader.upload(req.file.path, {
+                    folder: "products",
+                    transformation: [
+                        { quality: "auto:best" },
+                        { fetch_format: "auto" },
+                    ],
+                });
+
+                designImage = result.secure_url;
+
+                // Delete old image if exists
+                if (product.designImage) {
+                    try {
+                        // Extract public_id from the old URL
+                        const publicId = product.designImage
+                            .split("/")
+                            .pop()
+                            .split(".")[0];
+                        await cloudinary.uploader.destroy(publicId);
+                    } catch (error) {
+                        console.error("Error deleting old image:", error);
+                    }
+                }
+            }
+
+            const updateData = {
+                ...req.body,
+                designImage,
+                status: "pending",
+                lastModified: new Date(),
+                lastModifiedBy: req.seller._id,
+            };
+
+            const updatedProduct = await Product.findByIdAndUpdate(
+                id,
+                { $set: updateData },
+                { new: true, runValidators: true },
+            );
+
+            res.status(200).json({
+                success: true,
+                message:
+                    "Product design updated successfully and awaiting re-approval",
+                product: updatedProduct,
+            });
+        } catch (error) {
+            if (req.file?.path) {
+                try {
+                    await cloudinary.uploader.destroy(req.file.filename);
+                } catch (cleanupError) {
+                    console.error(
+                        "Error cleaning up uploaded file:",
+                        cleanupError,
+                    );
+                }
+            }
+            return next(new ErrorHandler(error.message, 500));
         }
-      }
-      return next(new ErrorHandler(error.message, 500));
-    }
-  })
+    }),
 );
 router.get("/get-all-products", catchAsyncErrors(async (req, res, next) => {
   try {
@@ -521,7 +547,7 @@ router.get(
   catchAsyncErrors(async (req, res, next) => {
     try {
       console.log('Fetching pending products for admin:', req.user.email);
-      
+
       const products = await Product.find({ status: 'pending' })
         .populate('shopId', 'name email avatar')
         .sort('-createdAt')
@@ -555,9 +581,9 @@ router.put(
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({ 
-          success: false, 
-          errors: errors.array() 
+        return res.status(400).json({
+            success: false,
+            errors: errors.array(),
         });
       }
 
@@ -603,8 +629,9 @@ router.put(
       }
 
       // Update product rating
-      product.ratings = product.reviews.reduce((acc, item) => item.rating + acc, 0) 
-        / product.reviews.length;
+      product.ratings =
+          product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+          product.reviews.length;
 
       // Save product with new review
       await product.save({ validateBeforeSave: false });
@@ -701,12 +728,14 @@ router.get(
       }
 
       // Check if product is public or user has permission
-      if (product.status !== 'public' && 
-        (!req.user || 
-         !(req.user.role === 'Admin' || req.user.role === 'admin') && 
-         (!product.shopId || product.shopId.owner !== req.user._id))) {
-      return next(new ErrorHandler("Product not available", 403));
-    }
+      if (
+          product.status !== "public" &&
+          (!req.user ||
+              (!(req.user.role === "Admin" || req.user.role === "admin") &&
+                  (!product.shopId || product.shopId.owner !== req.user._id)))
+      ) {
+          return next(new ErrorHandler("Product not available", 403));
+      }
       res.status(200).json({
         success: true,
         product
@@ -722,13 +751,13 @@ router.get(
   "/search",
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const { 
-        query, 
-        category, 
-        priceRange, 
-        sortBy, 
-        page = 1, 
-        limit = 20 
+      const {
+          query,
+          category,
+          priceRange,
+          sortBy,
+          page = 1,
+          limit = 20,
       } = req.query;
 
       const searchQuery = {
@@ -783,7 +812,7 @@ router.get(
             break;
         }
       }
-      
+
 
       // Get total count for pagination
       const total = await Product.countDocuments(searchQuery);

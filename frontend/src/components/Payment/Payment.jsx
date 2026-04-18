@@ -405,8 +405,7 @@ const [select, setSelect] = useState(3);
                   </div>
                     <PayPalScriptProvider
                       options={{
-                        "client-id":
-                          "REACT_APP_PAYPAL_CLIENT_ID",
+                       "client-id": process.env.REACT_APP_PAYPAL_CLIENT_ID,
                       }}
                     >
                       <PayPalButtons

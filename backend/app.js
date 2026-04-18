@@ -7,7 +7,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const ErrorHandler = require("./middleware/error");
 const app = express();
-
+const limiter = require("./middleware/rateLimiter");
 // --- CORS Configuration ---
 const allowedOrigins = (
   process.env.NODE_ENV === "production"
@@ -43,20 +43,20 @@ app.use(cors(corsOptions));
 
 // --- Security Middleware ---
 app.use(
-  helmet({
-    contentSecurityPolicy: false, // Consider configuring CSP properly later
-    crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: { policy: "cross-origin" }, // Allows loading resources (like Cloudinary images)
-  })
+    helmet({
+        contentSecurityPolicy: true, // Consider configuring CSP properly later
+        crossOriginEmbedderPolicy: true,
+        crossOriginResourcePolicy: { policy: "cross-origin" }, // Allows loading resources (like Cloudinary images)
+    }),
 );
 
 // --- Other Middleware ---
 app.use(morgan("dev"));
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 app.use(compression());
-
+app.use("/api/v2/", limiter);
 // --- API Routes ---
 const apiRoutes = {
   user: require("./controller/user"),
@@ -72,12 +72,12 @@ const apiRoutes = {
 };
 
 Object.entries(apiRoutes).forEach(([name, router]) => {
-  if (router && typeof router === "function") {
-    app.use(`/api/v2/${name}`, router);
-    console.log(`API route mounted: /api/v2/${name}`);
-  } else {
-    console.warn(`Invalid API route for '/api/v2/${name}'. Skipping.`);
-  }
+    if (router && typeof router === "function") {
+        app.use(`/api/v2/${name}`, router);
+        console.log(`API route mounted: /api/v2/${name}`);
+    } else {
+        console.warn(`Invalid API route for '/api/v2/${name}'. Skipping.`);
+    }
 });
 
 app.get("/api/v2", (req, res) =>
