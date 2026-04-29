@@ -110,7 +110,7 @@ Notable Mongoose models (see `backend/model/`):
 - **`Shop`**: seller account, balance, withdrawal metadata.
 - **`Product`**: `shopId` / `shop`, design fields, `designSpecs`, reviews, status (`pending` / `public` / `rejected`).
 - **`Order`**: embedded `cart` line items (price, design image, specs), shipping snapshot, `user` snapshot, `paymentInfo`, status.
-- **`Event`**, **`CoupounCode`**, **`Conversation`**, **`Message`**, **`Withdraw`**: supporting features (naming includes typo **Coupoun**).
+- **`Event`**, **`couponCode`**, **`Conversation`**, **`Message`**, **`Withdraw`**: supporting features (naming includes typo **coupon**).
 
 ---
 
@@ -349,7 +349,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 - **What is wrong:** Self-referential component causes **infinite recursion** if mounted. The outer payment UI may still run, but the file violates common **Rules of Hooks** layout expectations and contains dead hazardous code.
 - **Fix direction:** Delete or rename inner component; extract `PaymentOptions`; run `eslint-plugin-react-hooks`.
 
-#### AUDIT-H06 — Shipping country hardcoded to Egypt
+#### AUDIT-H06 — Shipping country hardcoded to Egypt `[FIXED]`
 
 - **Severity:** High (business rule / UX)
 - **Files:** `backend/controller/order.js` (`shippingAddress.country !== "Egypt"` rejects); compare with `frontend/src/pages/FAQPage.jsx` if marketing implies wider shipping.
@@ -413,7 +413,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 - **What is wrong:** Duplicate / obsolete package name.
 - **Fix direction:** Remove `redux-toolkit` if nothing imports it.
 
-#### AUDIT-M08 — Redux store exposes duplicate keys for the same reducer
+#### AUDIT-M08 — Redux store exposes duplicate keys for the same reducer `[FIXED]`
 
 - **Files:** `frontend/src/redux/store.js` (`products` and `product` both set to `productReducer`).
 - **What is wrong:** Two state branches mirror the same reducer output.
@@ -432,7 +432,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 - **What is wrong:** Very large per-file uploads to disk under `uploads/`.
 - **Fix direction:** Cap at a realistic image size; stream to Cloudinary if possible.
 
-#### AUDIT-M11 — `express.json` / `urlencoded` limit 50mb // fixed lowered to 10MB
+#### AUDIT-M11 — `express.json` / `urlencoded` limit 50mb // `[FIXED]` lowered to 2MB
 
 - **Files:** `backend/app.js`.
 - **What is wrong:** Huge JSON bodies accepted globally.
@@ -492,7 +492,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 - **What is wrong:** No `server.js` at package root (only `src/server.js` constants).
 - **Fix direction:** `react-scripts start` as `start`; rename PM2 script.
 
-#### AUDIT-M22 — Hardcoded API host in client
+#### AUDIT-M22 — Hardcoded API host in client `[FIXED]`
 
 - **Files:** `frontend/src/server.js`.
 - **What is wrong:** Production URL in source.
@@ -527,8 +527,8 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 
 #### AUDIT-L01 — Coupon naming typo propagated
 
-- **Files:** `backend/model/coupounCode.js`; `backend/controller/coupounCode.js`; `backend/app.js` (mounts `./controller/coupounCode` as `coupon`); `frontend/src/App.js` (route `/dashboard-coupouns`, component `ShopAllCoupouns`); `frontend/src/pages/Shop/ShopAllCoupouns.jsx`; `frontend/src/components/Shop/Layout/DashboardSideBar.jsx` (nav link).
-- **What is wrong:** Persistent **“coupoun”** spelling in filenames, models, and URLs.
+- **Files:** `backend/model/couponCode.js`; `backend/controller/couponCode.js`; `backend/app.js` (mounts `./controller/couponCode` as `coupon`); `frontend/src/App.js` (route `/dashboard-coupons`, component `ShopAllcoupons`); `frontend/src/pages/Shop/ShopAllcoupons.jsx`; `frontend/src/components/Shop/Layout/DashboardSideBar.jsx` (nav link).
+- **What is wrong:** Persistent **“coupon”** spelling in filenames, models, and URLs.
 - **Fix direction:** Alias routes during migration; rename in a breaking API version if needed.
 
 #### AUDIT-L02 — `addTocart` typo in public action name

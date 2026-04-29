@@ -39,20 +39,20 @@ import {
   UserInbox,
 } from "./routes/Routes.js";
 import {
-  ShopHomePage as SellerShopHomePage, // Renamed import for clarity
-  ShopDashboardPage,
-  ShopCreateProduct,
-  ShopAllProducts,
-  ShopCreateEvents,
-  ShopAllEvents,
-  ShopAllCoupouns,
-  ShopPreviewPage,
-  ShopAllOrders, // Component for /dashboard-orders
-  ShopOrderDetails, // Component for /order/:id (Seller)
-  ShopAllRefunds,
-  ShopSettingsPage,
-  ShopWithDrawMoneyPage,
-  ShopInboxPage,
+    ShopHomePage as SellerShopHomePage, // Renamed import for clarity
+    ShopDashboardPage,
+    ShopCreateProduct,
+    ShopAllProducts,
+    ShopCreateEvents,
+    ShopAllEvents,
+    ShopAllCoupons,
+    ShopPreviewPage,
+    ShopAllOrders, // Component for /dashboard-orders
+    ShopOrderDetails, // Component for /order/:id (Seller)
+    ShopAllRefunds,
+    ShopSettingsPage,
+    ShopWithDrawMoneyPage,
+    ShopInboxPage,
 } from "./routes/ShopRoutes";
 import {
   AdminDashboardPage,
@@ -202,284 +202,287 @@ const App = () => {
   }, []); // Empty dependency array ensures this runs only once
 
   return (
-    <BrowserRouter>
-      <Suspense fallback={<Loader />}>
-        {" "}
-        {/* For lazy loading routes */}
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/sign-up" element={<SignupPage />} />
-          <Route
-            path="/activation/:activation_token"
-            element={<ActivationPage />}
-          />
-          <Route
-            path="/seller/activation/:activation_token"
-            element={<SellerActivationPage />}
-          />
-          <Route path="/products" element={<ProductsPage />} />
-          <Route path="/product/:id" element={<ProductDetailsPage />} />
-          <Route path="/best-selling" element={<BestSellingPage />} />
-          <Route path="/events" element={<EventsPage />} />
-          <Route path="/faq" element={<FAQPage />} />
-          <Route path="/shop/preview/:id" element={<ShopPreviewPage />} />
-          <Route path="/shop-create" element={<ShopCreatePage />} />
-          <Route path="/shop-login" element={<ShopLoginPage />} />
+      <BrowserRouter>
+          <Suspense fallback={<Loader />}>
+              {" "}
+              {/* For lazy loading routes */}
+              <Routes>
+                  {/* Public Routes */}
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/sign-up" element={<SignupPage />} />
+                  <Route
+                      path="/activation/:activation_token"
+                      element={<ActivationPage />}
+                  />
+                  <Route
+                      path="/seller/activation/:activation_token"
+                      element={<SellerActivationPage />}
+                  />
+                  <Route path="/products" element={<ProductsPage />} />
+                  <Route path="/product/:id" element={<ProductDetailsPage />} />
+                  <Route path="/best-selling" element={<BestSellingPage />} />
+                  <Route path="/events" element={<EventsPage />} />
+                  <Route path="/faq" element={<FAQPage />} />
+                  <Route
+                      path="/shop/preview/:id"
+                      element={<ShopPreviewPage />}
+                  />
+                  <Route path="/shop-create" element={<ShopCreatePage />} />
+                  <Route path="/shop-login" element={<ShopLoginPage />} />
 
-          {/* User Protected Routes */}
-          <Route
-            path="/checkout"
-            element={
-              <ProtectedRoute>
-                <CheckoutPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/payment"
-            element={
-              <ProtectedRoute>
-                <PaymentPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/order/success"
-            element={
-              <ProtectedRoute>
-                <OrderSuccessPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/inbox"
-            element={
-              <ProtectedRoute>
-                <UserInbox />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/user/order/:id" // User specific order detail route
-            element={
-              <ProtectedRoute>
-                <UserOrderDetailsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/user/track/order/:id"
-            element={
-              <ProtectedRoute>
-                <TrackOrderPage />
-              </ProtectedRoute>
-            }
-          />
+                  {/* User Protected Routes */}
+                  <Route
+                      path="/checkout"
+                      element={
+                          <ProtectedRoute>
+                              <CheckoutPage />
+                          </ProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/payment"
+                      element={
+                          <ProtectedRoute>
+                              <PaymentPage />
+                          </ProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/order/success"
+                      element={
+                          <ProtectedRoute>
+                              <OrderSuccessPage />
+                          </ProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/profile"
+                      element={
+                          <ProtectedRoute>
+                              <ProfilePage />
+                          </ProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/inbox"
+                      element={
+                          <ProtectedRoute>
+                              <UserInbox />
+                          </ProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/user/order/:id" // User specific order detail route
+                      element={
+                          <ProtectedRoute>
+                              <UserOrderDetailsPage />
+                          </ProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/user/track/order/:id"
+                      element={
+                          <ProtectedRoute>
+                              <TrackOrderPage />
+                          </ProtectedRoute>
+                      }
+                  />
 
-          {/* Seller Protected Routes */}
-          <Route
-            path="/shop/:id" // Public shop view? Or Seller Home? Assuming Seller Home
-            element={
-              <SellerProtectedRoute>
-                <SellerShopHomePage />
-              </SellerProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <SellerProtectedRoute>
-                <ShopSettingsPage />
-              </SellerProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <SellerProtectedRoute>
-                <ShopDashboardPage />
-              </SellerProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard-create-product"
-            element={
-              <SellerProtectedRoute>
-                <ShopCreateProduct />
-              </SellerProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard-orders" // Seller All Orders page
-            element={
-              <SellerProtectedRoute>
-                <ShopAllOrders />
-              </SellerProtectedRoute>
-            }
-          />
-          <Route
-            path="/order/:id" // Seller specific order detail route
-            element={
-              <SellerProtectedRoute>
-                <ShopOrderDetails />
-              </SellerProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard-refunds"
-            element={
-              <SellerProtectedRoute>
-                <ShopAllRefunds />
-              </SellerProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard-products"
-            element={
-              <SellerProtectedRoute>
-                <ShopAllProducts />
-              </SellerProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard-create-event"
-            element={
-              <SellerProtectedRoute>
-                <ShopCreateEvents />
-              </SellerProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard-events"
-            element={
-              <SellerProtectedRoute>
-                <ShopAllEvents />
-              </SellerProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard-coupouns"
-            element={
-              <SellerProtectedRoute>
-                <ShopAllCoupouns />
-              </SellerProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard-withdraw-money"
-            element={
-              <SellerProtectedRoute>
-                <ShopWithDrawMoneyPage />
-              </SellerProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard-messages"
-            element={
-              <SellerProtectedRoute>
-                <ShopInboxPage />
-              </SellerProtectedRoute>
-            }
-          />
+                  {/* Seller Protected Routes */}
+                  <Route
+                      path="/shop/:id" // Public shop view? Or Seller Home? Assuming Seller Home
+                      element={
+                          <SellerProtectedRoute>
+                              <SellerShopHomePage />
+                          </SellerProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/settings"
+                      element={
+                          <SellerProtectedRoute>
+                              <ShopSettingsPage />
+                          </SellerProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/dashboard"
+                      element={
+                          <SellerProtectedRoute>
+                              <ShopDashboardPage />
+                          </SellerProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/dashboard-create-product"
+                      element={
+                          <SellerProtectedRoute>
+                              <ShopCreateProduct />
+                          </SellerProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/dashboard-orders" // Seller All Orders page
+                      element={
+                          <SellerProtectedRoute>
+                              <ShopAllOrders />
+                          </SellerProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/order/:id" // Seller specific order detail route
+                      element={
+                          <SellerProtectedRoute>
+                              <ShopOrderDetails />
+                          </SellerProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/dashboard-refunds"
+                      element={
+                          <SellerProtectedRoute>
+                              <ShopAllRefunds />
+                          </SellerProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/dashboard-products"
+                      element={
+                          <SellerProtectedRoute>
+                              <ShopAllProducts />
+                          </SellerProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/dashboard-create-event"
+                      element={
+                          <SellerProtectedRoute>
+                              <ShopCreateEvents />
+                          </SellerProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/dashboard-events"
+                      element={
+                          <SellerProtectedRoute>
+                              <ShopAllEvents />
+                          </SellerProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/dashboard-coupons"
+                      element={
+                          <SellerProtectedRoute>
+                              <ShopAllCoupons />
+                          </SellerProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/dashboard-withdraw-money"
+                      element={
+                          <SellerProtectedRoute>
+                              <ShopWithDrawMoneyPage />
+                          </SellerProtectedRoute>
+                      }
+                  />
+                  <Route
+                      path="/dashboard-messages"
+                      element={
+                          <SellerProtectedRoute>
+                              <ShopInboxPage />
+                          </SellerProtectedRoute>
+                      }
+                  />
 
-          {/* Admin Protected Routes */}
-          <Route
-            path="/admin/dashboard"
-            element={
-              <ProtectedAdminRoute>
-                <AdminDashboardPage />
-              </ProtectedAdminRoute>
-            }
+                  {/* Admin Protected Routes */}
+                  <Route
+                      path="/admin/dashboard"
+                      element={
+                          <ProtectedAdminRoute>
+                              <AdminDashboardPage />
+                          </ProtectedAdminRoute>
+                      }
+                  />
+                  <Route
+                      path="/admin-users"
+                      element={
+                          <ProtectedAdminRoute>
+                              <AdminDashboardUsers />
+                          </ProtectedAdminRoute>
+                      }
+                  />
+                  <Route
+                      path="/admin-sellers"
+                      element={
+                          <ProtectedAdminRoute>
+                              <AdminDashboardSellers />
+                          </ProtectedAdminRoute>
+                      }
+                  />
+                  <Route
+                      path="/admin-orders" // Admin All Orders page
+                      element={
+                          <ProtectedAdminRoute>
+                              <AdminDashboardOrders />
+                          </ProtectedAdminRoute>
+                      }
+                  />
+                  <Route
+                      path="/admin/order/:id" // Admin specific order detail route
+                      element={
+                          <ProtectedAdminRoute>
+                              <AdminOrderDetails />
+                          </ProtectedAdminRoute>
+                      }
+                  />
+                  <Route
+                      path="/admin-products"
+                      element={
+                          <ProtectedAdminRoute>
+                              <AdminDashboardProducts />
+                          </ProtectedAdminRoute>
+                      }
+                  />
+                  <Route
+                      path="/admin-events"
+                      element={
+                          <ProtectedAdminRoute>
+                              <AdminDashboardEvents />
+                          </ProtectedAdminRoute>
+                      }
+                  />
+                  <Route
+                      path="/admin-withdraw-request"
+                      element={
+                          <ProtectedAdminRoute>
+                              <AdminDashboardWithdraw />
+                          </ProtectedAdminRoute>
+                      }
+                  />
+                  <Route
+                      path="/admin-approval"
+                      element={
+                          <ProtectedAdminRoute>
+                              <AdminApprovalProducts />
+                          </ProtectedAdminRoute>
+                      }
+                  />
+              </Routes>
+          </Suspense>
+          <ToastContainer
+              position="bottom-center"
+              autoClose={4000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="colored"
           />
-          <Route
-            path="/admin-users"
-            element={
-              <ProtectedAdminRoute>
-                <AdminDashboardUsers />
-              </ProtectedAdminRoute>
-            }
-          />
-          <Route
-            path="/admin-sellers"
-            element={
-              <ProtectedAdminRoute>
-                <AdminDashboardSellers />
-              </ProtectedAdminRoute>
-            }
-          />
-          <Route
-            path="/admin-orders" // Admin All Orders page
-            element={
-              <ProtectedAdminRoute>
-                <AdminDashboardOrders />
-              </ProtectedAdminRoute>
-            }
-          />
-          <Route
-            path="/admin/order/:id" // Admin specific order detail route
-            element={
-              <ProtectedAdminRoute>
-                <AdminOrderDetails />
-              </ProtectedAdminRoute>
-            }
-          />
-          <Route
-            path="/admin-products"
-            element={
-              <ProtectedAdminRoute>
-                <AdminDashboardProducts />
-              </ProtectedAdminRoute>
-            }
-          />
-          <Route
-            path="/admin-events"
-            element={
-              <ProtectedAdminRoute>
-                <AdminDashboardEvents />
-              </ProtectedAdminRoute>
-            }
-          />
-          <Route
-            path="/admin-withdraw-request"
-            element={
-              <ProtectedAdminRoute>
-                <AdminDashboardWithdraw />
-              </ProtectedAdminRoute>
-            }
-          />
-          <Route
-            path="/admin-approval"
-            element={
-              <ProtectedAdminRoute>
-                <AdminApprovalProducts />
-              </ProtectedAdminRoute>
-            }
-          />
-        </Routes>
-      </Suspense>
-      <ToastContainer
-        position="bottom-center"
-        autoClose={4000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
-    </BrowserRouter>
+      </BrowserRouter>
   );
 };
 

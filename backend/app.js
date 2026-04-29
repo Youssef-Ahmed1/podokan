@@ -52,23 +52,23 @@ app.use(
 
 // --- Other Middleware ---
 app.use(morgan("dev"));
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.json({ limit: "2mb" }));
+app.use(express.urlencoded({ extended: true, limit: "2mb" }));
 app.use(cookieParser());
 app.use(compression());
 app.use("/api/v2/", limiter);
 // --- API Routes ---
 const apiRoutes = {
-  user: require("./controller/user"),
-  shop: require("./controller/shop"),
-  product: require("./controller/product"),
-  event: require("./controller/event"),
-  coupon: require("./controller/coupounCode"),
-  payment: require("./controller/payment"),
-  order: require("./controller/order"),
-  conversation: require("./controller/conversation"),
-  message: require("./controller/message"),
-  withdraw: require("./controller/withdraw"),
+    user: require("./controller/user"),
+    shop: require("./controller/shop"),
+    product: require("./controller/product"),
+    event: require("./controller/event"),
+    coupon: require("./controller/couponCode"),
+    payment: require("./controller/payment"),
+    order: require("./controller/order"),
+    conversation: require("./controller/conversation"),
+    message: require("./controller/message"),
+    withdraw: require("./controller/withdraw"),
 };
 
 Object.entries(apiRoutes).forEach(([name, router]) => {

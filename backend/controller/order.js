@@ -96,72 +96,58 @@ router.post(
       );
     }
 
-    try {
-      for (const item of cart) {
-        const missing = [];
-        if (!item.shopId || !isValidObjectId(item.shopId))
-          missing.push("Shop ID");
-        if (item.price == null || item.price < 0) missing.push("Price");
-        if (!item.qty || item.qty < 1) missing.push("Quantity");
-        if (!item.designImage?.url) missing.push("Design Image URL");
-        if (!item.DesignTitle) missing.push("Design Title");
-        if (!item.ProductType) missing.push("Product Type");
-        if (!item.ProductColor) missing.push("Product Color");
-        if (!item.size) missing.push("Size");
 
-        if (missing.length > 0) {
-          throw new ErrorHandler(
-            `Cart item "${
-              item.DesignTitle || "Unknown"
-            }" is invalid. Missing: ${missing.join(", ")}.`,
-            400
-          );
-        }
-      }
-    } catch (validationError) {
-      console.error("ERROR in validation loop:", validationError);
-      return next(validationError);
-    }
+const shopItemsMap = new Map();
 
-    const shopItemsMap = new Map();
-    cart.forEach((item) => {
-      const shopIdStr = item.shopId.toString();
-      if (!shopItemsMap.has(shopIdStr)) shopItemsMap.set(shopIdStr, []);
-
-      const designImageObject = {
-        public_id: item.designImage?.public_id || null,
-        url: item.designImage?.url || null,
-      };
-      if (!designImageObject.url) {
+for (const item of cart) {
+    const missing = [];
+    if (!item.shopId || !isValidObjectId(item.shopId)) missing.push("Shop ID");
+    if (item.price == null || item.price < 0) missing.push("Price");
+    if (!item.qty || item.qty < 1) missing.push("Quantity");
+    if (!item.designImage?.url) missing.push("Design Image URL");
+    if (!item.DesignTitle) missing.push("Design Title");
+    if (!item.ProductType) missing.push("Product Type");
+    if (!item.ProductColor) missing.push("Product Color");
+    if (!item.size) missing.push("Size");
+    if (missing.length > 0) {
         return next(
-          new ErrorHandler(
-            `Item "${item.DesignTitle}" is missing required design image URL.`,
-            400
-          )
+            new ErrorHandler(
+                `Cart item is invalid. Missing: ${missing.join(", ")}.`,
+                400,
+            ),
         );
-      }
+    }
+    const designIamgeObject = {
+        public_id: item.designImage.public_id || null,
+        url: item.designImage.url,
+    };
+    const shopIdStr = item.shopId.toString();
 
-      shopItemsMap.get(shopIdStr).push({
+    if (!shopItemsMap.has(shopIdStr)) {
+        shopItemsMap.set(shopIdStr, []);
+    }
+    shopItemsMap.get(shopIdStr).push({
         productId:
-          item.productId && isValidObjectId(item.productId)
-            ? item.productId
-            : null,
-        qty: item.qty || 1,
+            item.productId && isValidObjectId(item.productId)
+                ? item.productId
+                : null,
+
+        qty: item.qty,
         shopId: item.shopId,
-        price: item.price || 0,
+        price: item.price,
         designImage: designImageObject,
-        DesignTitle: item.DesignTitle || "Untitled Design",
-        ProductType: item.ProductType || "Unknown Type",
-        ProductColor: item.ProductColor || "White",
-        size: item.size || "One Size",
+        DesignTitle: item.DesignTitle,
+        ProductType: item.ProductType,
+        ProductColor: item.ProductColor,
+        size: item.size,
         designSpecs: item.designSpecs || {
-          positionX: 50,
-          positionY: 50,
-          scale: 1,
-          rotation: 0,
+            positionX: 50,
+            positionY: 50,
+            scale: 1,
+            rotation: 0,
         },
-      });
     });
+}
 
     const shippingCostPerSellerOrder =
       typeof shippingAddress.shippingPrice === "number" &&

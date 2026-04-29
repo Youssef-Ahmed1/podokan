@@ -9,18 +9,17 @@ import { orderReducer } from "./reducers/order";
 
 
 const Store = configureStore({
-  reducer: {
-    user: userReducer,
-    seller: sellerReducer, // Add seller reducer
-    products: productReducer, // Add product reducer
-    product: productReducer,
-    events: eventReducer,
-    cart: cartReducer,
-    wishlist: wishlistReducer,
-    order: orderReducer,
-  },
+    reducer: {
+        user: userReducer,
+        seller: sellerReducer, // Add seller reducer
+        products: productReducer, // Add product reducer
+        events: eventReducer,
+        cart: cartReducer,
+        wishlist: wishlistReducer,
+        order: orderReducer,
+    },
 
-  devTools: process.env.NODE_ENV !== "production",
+    devTools: process.env.NODE_ENV !== "production",
 });
 
 export default Store;

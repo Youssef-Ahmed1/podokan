@@ -37,7 +37,7 @@ export const productReducer = createReducer(initialState, (builder) => {builder
     })
     .addCase("productCreateSuccess", (state, action) => {
       state.isLoading = false;
-      state.product = action.payload;
+      state.products = action.payload;
       state.success = true;
       state.error = null;
       state.lastUpdated = new Date().toISOString();
@@ -46,15 +46,15 @@ export const productReducer = createReducer(initialState, (builder) => {builder
       state.isLoading = false;
       state.error = action.payload;
       state.success = false;
-      state.product = null;
+      state.products = null;
     }).addCase("clearSellerData", (state) => {
       // Reset relevant state when seller data is cleared
       state.isLoading = false;
-      state.product = null;
+      state.products = null;
       state.error = null;
       state.success = false;
     })
-    
+
 
     // Get Shop Products
     .addCase("getAllProductsShopRequest", (state) => {
@@ -102,8 +102,9 @@ export const productReducer = createReducer(initialState, (builder) => {builder
     })
     .addCase("getAllProductsSuccess", (state, action) => {
       state.isLoading = false;
-      state.allProducts = Array.isArray(action.payload.products) ? 
-        action.payload.products : [];
+      state.allProducts = Array.isArray(action.payload.products)
+          ? action.payload.products
+          : [];
       state.error = null;
       state.lastUpdated = new Date().toISOString();
       state.pagination = {
@@ -209,13 +210,13 @@ export const productReducer = createReducer(initialState, (builder) => {builder
       state.message = action.payload;
       state.success = true;
       state.error = null;
-    
+
       // Remove the product from pending list
       if (state.selectedProduct) {
         state.pendingProducts = state.pendingProducts.filter(
           p => p._id !== state.selectedProduct._id
         );
-    
+
         // If product was approved, add it to allProducts with public status
         if (state.selectedProduct.status === 'public') {
           state.allProducts = state.allProducts.filter(p => p._id !== state.selectedProduct._id);
@@ -225,10 +226,10 @@ export const productReducer = createReducer(initialState, (builder) => {builder
             visibility: 'public'
           });
         }
-    
+
         state.selectedProduct = null;
       }
-    
+
       state.lastUpdated = new Date().toISOString();
     })
     .addCase("approveRejectProductFail", (state, action) => {
