@@ -250,7 +250,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 
 ### Critical — security, payments, or financial integrity
 
-#### AUDIT-C01 — Order totals trust client-supplied line-item prices
+#### AUDIT-C01 — Order totals trust client-supplied line-item prices [RESOLVED]
 
 - **Severity:** Critical
 - **Files:** `backend/controller/order.js` (throughout the `POST /create-order` handler: validation loop over `cart`, construction of `shopItemsMap`, and computation of `subtotal`, `totalPrice`, and fields passed to `Order.create`). Related client assembly: `frontend/src/components/Payment/Payment.jsx` (`cashOnDeliveryHandler` maps cart items with `price: Number(item.discountPrice ?? item.originalPrice)`), `frontend/src/redux/actions/cart.js` (`price` / `discountPrice` / `originalPrice` on cart items).
@@ -310,7 +310,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 
 ### High — correctness, availability, fragile patterns
 
-#### AUDIT-H01 — `return next()` inside `cart.forEach` callback
+#### AUDIT-H01 — `return next()` inside `cart.forEach` callback  // fixed
 
 - **Severity:** High
 - **Files:** `backend/controller/order.js` (inside `POST /create-order`, the `cart.forEach` that builds `shopItemsMap`; the branch `if (!designImageObject.url) { return next(new ErrorHandler(...)); }`).
@@ -342,14 +342,14 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 - **Why it matters:** New endpoints may **forget** seller headers → 401s or accidental use of buyer token on seller routes.
 - **Fix direction:** Compare URL **pathname**, or use `baseURL` + relative paths everywhere, or centralize `getSellerAxiosConfig()`.
 
-#### AUDIT-H05 — `Payment.jsx`: recursive inner `PaymentInfo` and hook ordering smell
+#### AUDIT-H05 — `Payment.jsx`: recursive inner `PaymentInfo` and hook ordering smell  [RESOLVED]
 
 - **Severity:** High (runtime / maintainability)
 - **Files:** `frontend/src/components/Payment/Payment.jsx` (inner `const PaymentInfo = …` rendering `<PaymentInfo … />`; `useState` for payment method `select` appears after large handler blocks inside `Payment`).
 - **What is wrong:** Self-referential component causes **infinite recursion** if mounted. The outer payment UI may still run, but the file violates common **Rules of Hooks** layout expectations and contains dead hazardous code.
 - **Fix direction:** Delete or rename inner component; extract `PaymentOptions`; run `eslint-plugin-react-hooks`.
 
-#### AUDIT-H06 — Shipping country hardcoded to Egypt `[FIXED]`
+#### AUDIT-H06 — Shipping country hardcoded to Egypt [FIXED]
 
 - **Severity:** High (business rule / UX)
 - **Files:** `backend/controller/order.js` (`shippingAddress.country !== "Egypt"` rejects); compare with `frontend/src/pages/FAQPage.jsx` if marketing implies wider shipping.

@@ -10,16 +10,16 @@ const app = express();
 const limiter = require("./middleware/rateLimiter");
 // --- CORS Configuration ---
 const allowedOrigins = (
-  process.env.NODE_ENV === "production"
-    ? (
-        process.env.CORS_ORIGIN || // Use env variable first
-        "https://testpodokan.store,https://www.testpodokan.store"
-      ) // Default includes both www and non-www
-        .split(",")
-        .map((origin) => origin.trim().replace(/\/$/, "")) // Normalize and remove trailing slash
-    : ["http://localhost:3000"]
+    process.env.NODE_ENV === "development"
+        ? (
+              process.env.CORS_ORIGIN || // Use env variable first
+              "http://localhost:3000"
+          ) // Default includes both www and non-www
+              .split(",")
+              .map((origin) => origin.trim().replace(/\/$/, "")) // Normalize and remove trailing slash
+        : ["http://localhost:3000"]
 ) // Development origins
-  .filter(Boolean); // Remove empty entries if any
+    .filter(Boolean); // Remove empty entries if any
 
 console.log("Allowed CORS Origins:", allowedOrigins); // Log allowed origins for verification
 

@@ -58,7 +58,7 @@ router.post(
 
       const activationToken = createActivationToken(seller);
       const activationUrl = `${
-        process.env.FRONTEND_URL || "https://testpodokan.store"
+          process.env.FRONTEND_URL || "http://localhost:3000"
       }/seller/activation/${activationToken}`;
 
       try {

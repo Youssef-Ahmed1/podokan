@@ -48,7 +48,7 @@ router.post("/create-user", async (req, res, next) => {
     };
     const activationToken = createActivationToken(userData);
     const activationUrl = `${
-      process.env.FRONTEND_URL || "https://testpodokan.store"
+        process.env.FRONTEND_URL || "http://localhost:3000"
     }/activation/${activationToken}`;
 
     try {

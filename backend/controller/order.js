@@ -65,174 +65,195 @@ router.post(
   "/create-order",
   isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
-    const { cart, shippingAddress, paymentInfo } = req.body;
-    const currentUser = req.user;
+      const { cart, shippingAddress, paymentInfo } = req.body;
+      const currentUser = req.user;
 
-    if (!currentUser?._id || !isValidObjectId(currentUser._id)) {
-      return next(new ErrorHandler("User authentication is invalid.", 401));
-    }
-    if (!Array.isArray(cart) || cart.length === 0) {
-      return next(new ErrorHandler("Cart cannot be empty.", 400));
-    }
-    if (
-      !shippingAddress?.address1 ||
-      !shippingAddress.city ||
-      !shippingAddress.country ||
-      !shippingAddress.phoneNumber
-    ) {
-      return next(
-        new ErrorHandler(
-          "Shipping address incomplete. Required fields: Address Line 1, City, Country, Phone Number.",
-          400
-        )
-      );
-    }
-    if (shippingAddress.country !== "Egypt") {
-      return next(
-        new ErrorHandler(
-          "Shipping is currently only available within Egypt.",
-          400
-        )
-      );
-    }
+      if (!currentUser?._id || !isValidObjectId(currentUser._id)) {
+          return next(new ErrorHandler("User authentication is invalid.", 401));
+      }
+      if (!Array.isArray(cart) || cart.length === 0) {
+          return next(new ErrorHandler("Cart cannot be empty.", 400));
+      }
+      if (
+          !shippingAddress?.address1 ||
+          !shippingAddress.city ||
+          !shippingAddress.country ||
+          !shippingAddress.phoneNumber
+      ) {
+          return next(
+              new ErrorHandler(
+                  "Shipping address incomplete. Required fields: Address Line 1, City, Country, Phone Number.",
+                  400,
+              ),
+          );
+      }
+
+      if (shippingAddress.country !== "Egypt") {
+          return next(
+              new ErrorHandler(
+                  "Shipping is currently only available within Egypt.",
+                  400,
+              ),
+          );
+      }
 
 
-const shopItemsMap = new Map();
+      const shopItemsMap = new Map();
 
-for (const item of cart) {
-    const missing = [];
-    if (!item.shopId || !isValidObjectId(item.shopId)) missing.push("Shop ID");
-    if (item.price == null || item.price < 0) missing.push("Price");
-    if (!item.qty || item.qty < 1) missing.push("Quantity");
-    if (!item.designImage?.url) missing.push("Design Image URL");
-    if (!item.DesignTitle) missing.push("Design Title");
-    if (!item.ProductType) missing.push("Product Type");
-    if (!item.ProductColor) missing.push("Product Color");
-    if (!item.size) missing.push("Size");
-    if (missing.length > 0) {
-        return next(
-            new ErrorHandler(
-                `Cart item is invalid. Missing: ${missing.join(", ")}.`,
-                400,
-            ),
-        );
-    }
-    const designIamgeObject = {
-        public_id: item.designImage.public_id || null,
-        url: item.designImage.url,
-    };
-    const shopIdStr = item.shopId.toString();
+      for (const item of cart) {
+          const missing = [];
+          if (!item.shopId || !isValidObjectId(item.shopId))
+              missing.push("Shop ID");
+          if (item.price == null || item.price < 0) missing.push("Price");
+          if (!item.qty || item.qty < 1) missing.push("Quantity");
+          if (!item.designImage?.url) missing.push("Design Image URL");
+          if (!item.DesignTitle) missing.push("Design Title");
+          if (!item.ProductType) missing.push("Product Type");
+          if (!item.ProductColor) missing.push("Product Color");
+          if (!item.size) missing.push("Size");
+          if (missing.length > 0) {
+              return next(
+                  new ErrorHandler(
+                      `Cart item is invalid. Missing: ${missing.join(", ")}.`,
+                      400,
+                  ),
+              );
+          }
 
-    if (!shopItemsMap.has(shopIdStr)) {
-        shopItemsMap.set(shopIdStr, []);
-    }
-    shopItemsMap.get(shopIdStr).push({
-        productId:
-            item.productId && isValidObjectId(item.productId)
-                ? item.productId
-                : null,
+          const realProduct = await Product.findById(item.productId);
 
-        qty: item.qty,
-        shopId: item.shopId,
-        price: item.price,
-        designImage: designImageObject,
-        DesignTitle: item.DesignTitle,
-        ProductType: item.ProductType,
-        ProductColor: item.ProductColor,
-        size: item.size,
-        designSpecs: item.designSpecs || {
-            positionX: 50,
-            positionY: 50,
-            scale: 1,
-            rotation: 0,
-        },
-    });
-}
+          if (!realProduct) {
+              return next(
+                  new ErrorHandler(`Product not found in database.`, 404),
+              );
+          }
 
-    const shippingCostPerSellerOrder =
-      typeof shippingAddress.shippingPrice === "number" &&
-      shippingAddress.shippingPrice >= 0
-        ? shippingAddress.shippingPrice
-        : 50;
+          if (Number(item.price) !== Number(realProduct.price)) {
+              return next(
+                  new ErrorHandler(
+                      `the price for "${item.DesignTitle}"
+    has changed. please check the new price`,
+                      400,
+                  ),
+              );
+          }
 
-    const createdOrders = [];
-    const orderPromises = [];
-    const involvedSellerIds = Array.from(shopItemsMap.keys());
+          const designIamgeObject = {
+              public_id: item.designImage.public_id || null,
+              url: item.designImage.url,
+          };
+          const shopIdStr = item.shopId.toString();
 
-    for (const [shopIdStr, shopItems] of shopItemsMap.entries()) {
-      const subtotal = shopItems.reduce(
-        (acc, item) => acc + (item.price || 0) * (item.qty || 1),
-        0
-      );
-      const total = subtotal + shippingCostPerSellerOrder;
+          if (!shopItemsMap.has(shopIdStr)) {
+              shopItemsMap.set(shopIdStr, []);
+          }
+          shopItemsMap.get(shopIdStr).push({
+              productId:
+                  item.productId && isValidObjectId(item.productId)
+                      ? item.productId
+                      : null,
 
-      const orderData = {
-        cart: shopItems,
-        shippingAddress: {
-          address1: shippingAddress.address1,
-          address2: shippingAddress.address2 || "",
-          city: shippingAddress.city,
-          country: shippingAddress.country,
-          postalCode: shippingAddress.postalCode || "",
-          phoneNumber: shippingAddress.phoneNumber,
-          shippingPrice: shippingCostPerSellerOrder,
-        },
-        shippingCost: shippingCostPerSellerOrder,
-        user: {
-          _id: currentUser._id,
-          name: currentUser.name,
-          email: currentUser.email,
-        },
-        subtotal: subtotal,
-        totalPrice: total,
-        paymentInfo: paymentInfo || {
-          type: "Cash On Delivery",
-          status: "Processing",
-          id: null,
-        },
-        status: ORDER_STATUSES.PROCESSING,
-      };
+              qty: item.qty,
+              shopId: item.shopId,
+              price: realProduct.price,
+              designImage: designImageObject,
+              DesignTitle: item.DesignTitle,
+              ProductType: item.ProductType,
+              ProductColor: item.ProductColor,
+              size: item.size,
+              designSpecs: item.designSpecs || {
+                  positionX: 50,
+                  positionY: 50,
+                  scale: 1,
+                  rotation: 0,
+              },
+          });
+      }
 
-      orderPromises.push(
-        Order.create(orderData)
-          .then(async (order) => {
-            createdOrders.push(order);
-          })
-          .catch((creationError) => {
-            console.error(
-              `Failed to create order part for shop ${shopIdStr}:`,
-              creationError.message,
-              creationError.stack
-            );
-            throw new ErrorHandler(
-              `Order creation failed for one or more shops: ${creationError.message}`,
-              500
-            );
-          })
-      );
-    }
+      const shippingCostPerSellerOrder =
+          typeof shippingAddress.shippingPrice === "number" &&
+          shippingAddress.shippingPrice >= 0
+              ? shippingAddress.shippingPrice
+              : 50;
 
-    try {
-      await Promise.all(orderPromises);
-      clearRelevantOrderCaches(
-        null,
-        currentUser._id.toString(),
-        involvedSellerIds
-      );
+      const createdOrders = [];
+      const orderPromises = [];
+      const involvedSellerIds = Array.from(shopItemsMap.keys());
 
-      res.status(201).json({
-        success: true,
-        message: "Order created successfully.",
-        orders: createdOrders,
-      });
-    } catch (error) {
-      console.error("Error processing order creation batch:", error);
-      return next(
-        error instanceof ErrorHandler
-          ? error
-          : new ErrorHandler("Failed to complete order creation.", 500)
-      );
-    }
+      for (const [shopIdStr, shopItems] of shopItemsMap.entries()) {
+          const subtotal = shopItems.reduce(
+              (acc, item) => acc + (item.price || 0) * (item.qty || 1),
+              0,
+          );
+          const total = subtotal + shippingCostPerSellerOrder;
+
+          const orderData = {
+              cart: shopItems,
+              shippingAddress: {
+                  address1: shippingAddress.address1,
+                  address2: shippingAddress.address2 || "",
+                  city: shippingAddress.city,
+                  country: shippingAddress.country,
+                  postalCode: shippingAddress.postalCode || "",
+                  phoneNumber: shippingAddress.phoneNumber,
+                  shippingPrice: shippingCostPerSellerOrder,
+              },
+              shippingCost: shippingCostPerSellerOrder,
+              user: {
+                  _id: currentUser._id,
+                  name: currentUser.name,
+                  email: currentUser.email,
+              },
+              subtotal: subtotal,
+              totalPrice: total,
+              paymentInfo: paymentInfo || {
+                  type: "Cash On Delivery",
+                  status: "Processing",
+                  id: null,
+              },
+              status: ORDER_STATUSES.PROCESSING,
+          };
+
+          orderPromises.push(
+              Order.create(orderData)
+                  .then(async (order) => {
+                      createdOrders.push(order);
+                  })
+                  .catch((creationError) => {
+                      console.error(
+                          `Failed to create order part for shop ${shopIdStr}:`,
+                          creationError.message,
+                          creationError.stack,
+                      );
+                      throw new ErrorHandler(
+                          `Order creation failed for one or more shops: ${creationError.message}`,
+                          500,
+                      );
+                  }),
+          );
+      }
+
+      try {
+          await Promise.all(orderPromises);
+          clearRelevantOrderCaches(
+              null,
+              currentUser._id.toString(),
+              involvedSellerIds,
+          );
+
+          res.status(201).json({
+              success: true,
+              message: "Order created successfully.",
+              orders: createdOrders,
+          });
+      } catch (error) {
+          console.error("Error processing order creation batch:", error);
+          return next(
+              error instanceof ErrorHandler
+                  ? error
+                  : new ErrorHandler("Failed to complete order creation.", 500),
+          );
+      }
   })
 );
 
