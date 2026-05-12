@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
-const NodeCache = require("node-cache");
 const Order = require("../model/order");
 const Shop = require("../model/shop");
 const { Product } = require("../model/product");
@@ -10,56 +9,12 @@ const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
 const { ORDER_STATUSES } = require("../constants/orderStatuses");
 
-const orderCache = new NodeCache({
-  stdTTL: 300,
-  checkperiod: 120,
-  useClones: false,
-});
 
-const CACHE_KEYS = {
-  ADMIN_ORDERS_PAGE: (page, limit) => `admin_orders_p${page}_l${limit}`,
-  USER_ORDERS: (userId) => `user_orders_${userId}`,
-  SELLER_ORDERS: (sellerId) => `seller_orders_${sellerId}`,
-  ORDER_DETAIL: (orderId) => `order_detail_${orderId}`,
-};
+
+
 
 const isValidObjectId = (id) => id && mongoose.Types.ObjectId.isValid(id);
 
-const clearAdminOrderPageCaches = () => {
-  const adminKeys = orderCache
-    .keys()
-    .filter((k) => k.startsWith("admin_orders_p"));
-  if (adminKeys.length > 0) {
-    orderCache.del(adminKeys);
-  }
-};
-
-const clearRelevantOrderCaches = (orderId, userId, involvedSellerIds = []) => {
-  const keysToDelete = new Set();
-  clearAdminOrderPageCaches();
-
-  if (orderId && isValidObjectId(orderId))
-    keysToDelete.add(CACHE_KEYS.ORDER_DETAIL(orderId.toString()));
-  if (userId && isValidObjectId(userId))
-    keysToDelete.add(CACHE_KEYS.USER_ORDERS(userId.toString()));
-
-  involvedSellerIds.forEach((id) => {
-    const sellerIdString = id?._id
-      ? id._id.toString()
-      : typeof id === "string" && isValidObjectId(id)
-      ? id
-      : null;
-    if (sellerIdString) {
-      keysToDelete.add(CACHE_KEYS.SELLER_ORDERS(sellerIdString));
-    }
-  });
-
-  const keysArray = Array.from(keysToDelete);
-  if (keysArray.length > 0) {
-    orderCache.del(keysArray);
-    console.log("[Cache] Cleared relevant caches:", keysArray);
-  }
-};
 
 router.post(
   "/create-order",
@@ -235,11 +190,6 @@ router.post(
 
       try {
           await Promise.all(orderPromises);
-          clearRelevantOrderCaches(
-              null,
-              currentUser._id.toString(),
-              involvedSellerIds,
-          );
 
           res.status(201).json({
               success: true,
@@ -270,8 +220,6 @@ router.get(
 
     const userId = req.user._id;
     const userIdString = userId.toString();
-    const cacheKey = CACHE_KEYS.USER_ORDERS(userIdString);
-    const cachedOrders = orderCache.get(cacheKey);
 
     res.setHeader(
       "Cache-Control",
@@ -280,14 +228,6 @@ router.get(
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
 
-    if (cachedOrders) {
-      return res.json({
-        success: true,
-        orders: cachedOrders,
-        count: cachedOrders.length,
-        fromCache: true,
-      });
-    }
 
     try {
       const orders = await Order.find({ "user._id": userId })
@@ -297,7 +237,6 @@ router.get(
         `Database query returned ${orders.length} orders for user ${userIdString}`
       );
 
-      orderCache.set(cacheKey, orders);
 
       res.json({
         success: true,
@@ -324,8 +263,6 @@ router.get(
       return next(new ErrorHandler("Invalid Order ID format.", 400));
     }
 
-    const cacheKey = CACHE_KEYS.ORDER_DETAIL(id);
-    const cachedOrder = orderCache.get(cacheKey);
 
     res.setHeader(
       "Cache-Control",
@@ -351,11 +288,9 @@ router.get(
       res.json({ success: true, order: orderData, fromCache });
     };
 
-    if (cachedOrder) return checkAuthAndRespond(cachedOrder, true);
 
     try {
       const order = await Order.findById(id).lean();
-      if (order) orderCache.set(cacheKey, order);
       checkAuthAndRespond(order, false);
     } catch (dbError) {
       console.error(`Database error fetching order ${id}:`, dbError);
@@ -373,8 +308,6 @@ router.get(
     }
     const sellerId = req.seller._id;
     const sellerIdString = sellerId.toString();
-    const cacheKey = CACHE_KEYS.SELLER_ORDERS(sellerIdString);
-    const cachedData = orderCache.get(cacheKey);
 
     res.setHeader(
       "Cache-Control",
@@ -383,20 +316,11 @@ router.get(
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
 
-    if (cachedData) {
-      return res.json({
-        success: true,
-        orders: cachedData.orders || [],
-        count: (cachedData.orders || []).length,
-        fromCache: true,
-      });
-    }
 
     try {
       const dbOrders = await Order.find({ "cart.shopId": sellerId })
-        .sort({ createdAt: -1 })
-        .lean();
-      orderCache.set(cacheKey, { orders: dbOrders });
+          .sort({ createdAt: -1 })
+          .lean();
       res.json({
         success: true,
         orders: dbOrders,
@@ -483,7 +407,6 @@ router.put(
       }
 
       const updatedOrder = await order.save();
-      clearRelevantOrderCaches(id, order.user?._id, [sellerId]);
 
       res.json({
         success: true,
@@ -517,8 +440,6 @@ router.get(
     const limit = parseInt(req.query.limit) || 15;
     const skip = (page - 1) * limit;
 
-    const cacheKey = CACHE_KEYS.ADMIN_ORDERS_PAGE(page, limit);
-    const cachedData = orderCache.get(cacheKey);
 
     res.setHeader(
       "Cache-Control",
@@ -544,13 +465,12 @@ router.get(
 
       const totalPages = Math.ceil(totalOrders / limit);
       const responseData = {
-        orders,
-        totalOrders,
-        currentPage: page,
-        totalPages,
-        limit,
+          orders,
+          totalOrders,
+          currentPage: page,
+          totalPages,
+          limit,
       };
-      orderCache.set(cacheKey, responseData);
 
       res.json({ ...responseData, success: true, fromCache: false });
     } catch (dbError) {
@@ -648,11 +568,7 @@ router.put(
             .filter(Boolean)
         ),
       ];
-      clearRelevantOrderCaches(
-        id,
-        updatedOrderResult.user?._id,
-        involvedSellers
-      );
+
 
       res.json({
         success: true,
@@ -803,7 +719,6 @@ router.delete(
         );
       }
 
-      clearRelevantOrderCaches(id, userId, involvedSellers);
       console.log(`Admin deleted order ${id} successfully.`);
 
       res
