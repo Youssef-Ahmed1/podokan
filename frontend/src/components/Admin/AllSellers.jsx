@@ -17,7 +17,7 @@ import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
 import { getAllSellers } from "../../redux/actions/sellers";
-import { clearErrors } from "../../redux/actions/order"; 
+import { clearErrors } from "../../redux/actions/order";
 
 import { Link } from "react-router-dom";
 import Loader from "../Layout/Loader"; // Assuming Loader exists
@@ -57,51 +57,51 @@ const AllSellers = () => {
   }, [selectedSellerId, dispatch]);
 
   const columns = [
-    { field: "id", headerName: "Seller ID", width: 220 },
-    { field: "name", headerName: "Name", minWidth: 150, flex: 1 },
-    { field: "email", headerName: "Email", minWidth: 180, flex: 1 },
-    { field: "address", headerName: "Address", minWidth: 200, flex: 1.2 },
-    {
-      field: "joinedAt",
-      headerName: "Joined",
-      width: 120,
-      valueFormatter: (v) => (v ? new Date(v).toLocaleDateString() : ""),
-    },
-    {
-      field: "preview",
-      headerName: "Preview",
-      width: 100,
-      sortable: false,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <IconButton
-          component={Link}
-          to={`/shop/preview/${params.id}`}
-          Size="small"
-          title="Preview Shop"
-        >
-          <AiOutlineEye className="text-blue-600" />
-        </IconButton>
-      ),
-    },
-    {
-      field: "delete",
-      headerName: "Delete",
-      width: 100,
-      sortable: false,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <IconButton
-          onClick={() => handleDeleteClick(params.id)}
-          Size="small"
-          title="Delete Seller"
-        >
-          <AiOutlineDelete className="text-red-600" />
-        </IconButton>
-      ),
-    },
+      { field: "id", headerName: "Seller ID", width: 220 },
+      { field: "name", headerName: "Name", minWidth: 150, flex: 1 },
+      { field: "email", headerName: "Email", minWidth: 180, flex: 1 },
+      { field: "address", headerName: "Address", minWidth: 200, flex: 1.2 },
+      {
+          field: "joinedAt",
+          headerName: "Joined",
+          width: 120,
+          valueFormatter: (v) => (v ? new Date(v).toLocaleDateString() : ""),
+      },
+      {
+          field: "preview",
+          headerName: "Preview",
+          width: 100,
+          sortable: false,
+          align: "center",
+          headerAlign: "center",
+          renderCell: (params) => (
+              <IconButton
+                  component={Link}
+                  to={`/shop/preview/${params.id}`}
+                  size="small"
+                  title="Preview Shop"
+              >
+                  <AiOutlineEye className="text-blue-600" />
+              </IconButton>
+          ),
+      },
+      {
+          field: "delete",
+          headerName: "Delete",
+          width: 100,
+          sortable: false,
+          align: "center",
+          headerAlign: "center",
+          renderCell: (params) => (
+              <IconButton
+                  onClick={() => handleDeleteClick(params.id)}
+                  size="small"
+                  title="Delete Seller"
+              >
+                  <AiOutlineDelete className="text-red-600" />
+              </IconButton>
+          ),
+      },
   ];
 
   const rows =

@@ -2,70 +2,70 @@ const mongoose = require("mongoose");
 const { ORDER_STATUSES } = require("../constants/orderStatuses"); // Assuming this file exists
 
 const orderItemSchema = new mongoose.Schema(
-  {
-    productId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Product",
-      default: null,
+    {
+        productId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Product",
+            default: null,
+        },
+        qty: {
+            type: Number,
+            required: [true, "Item quantity (qty) is required."],
+            min: [1, "Minimum quantity must be 1."],
+            default: 1,
+        },
+        shopId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Shop",
+            required: [true, "Item must belong to a specific Shop (shopId)."],
+            index: true,
+        },
+        price: {
+            type: Number,
+            required: [true, "Item price is required."],
+            min: [0, "Price cannot be negative."],
+            default: 0,
+        },
+        designImage: {
+            public_id: { type: String, trim: true, default: null },
+            url: {
+                type: String,
+                required: [true, "Item design image URL is required."],
+                trim: true,
+            },
+        },
+        DesignTitle: {
+            type: String,
+            required: [true, "Item design title is required."],
+            trim: true,
+            default: "Untitled Design",
+        },
+        ProductType: {
+            type: String,
+            required: [true, "Item product type is required."],
+            trim: true,
+            default: "Unknown Type",
+        },
+        ProductColor: {
+            type: String,
+            required: [true, "Item product color is required."],
+            default: "White",
+            trim: true,
+        },
+        size: {
+            type: String,
+            required: [true, "Item size is required."],
+            default: "One size",
+            trim: true,
+        },
+        designSpecs: {
+            positionX: { type: Number, default: 50, min: 0, max: 100 },
+            positionY: { type: Number, default: 50, min: 0, max: 100 },
+            scale: { type: Number, default: 1, min: 0.1, max: 5 },
+            rotation: { type: Number, default: 0, min: -360, max: 360 },
+        },
     },
-    qty: {
-      type: Number,
-      required: [true, "Item quantity (qty) is required."],
-      min: [1, "Minimum quantity must be 1."],
-      default: 1,
-    },
-    shopId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Shop",
-      required: [true, "Item must belong to a specific Shop (shopId)."],
-      index: true,
-    },
-    price: {
-      type: Number,
-      required: [true, "Item price is required."],
-      min: [0, "Price cannot be negative."],
-      default: 0,
-    },
-    designImage: {
-      public_id: { type: String, trim: true, default: null },
-      url: {
-        type: String,
-        required: [true, "Item design image URL is required."],
-        trim: true,
-      },
-    },
-    DesignTitle: {
-      type: String,
-      required: [true, "Item design title is required."],
-      trim: true,
-      default: "Untitled Design",
-    },
-    ProductType: {
-      type: String,
-      required: [true, "Item product type is required."],
-      trim: true,
-      default: "Unknown Type",
-    },
-    ProductColor: {
-      type: String,
-      required: [true, "Item product color is required."],
-      default: "White",
-      trim: true,
-    },
-    size: {
-      type: String,
-      required: [true, "Item size is required."],
-      default: "One Size",
-      trim: true,
-    },
-    designSpecs: {
-      positionX: { type: Number, default: 50, min: 0, max: 100 },
-      positionY: { type: Number, default: 50, min: 0, max: 100 },
-      scale: { type: Number, default: 1, min: 0.1, max: 5 },
-      rotation: { type: Number, default: 0, min: -360, max: 360 },
-    },
-  },
-  { _id: true }
+    { _id: true },
 );
 
 const orderSchema = new mongoose.Schema(

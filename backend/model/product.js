@@ -127,7 +127,7 @@ const productSchema = new mongoose.Schema(
       ],
       validate: {
         validator: function (colors) {
-          return colors.length > 0 && new Set(colors).Size === colors.length;
+          return colors.length > 0 && new Set(colors).size === colors.length;
         },
         message: "At least one unique color must be selected",
       },

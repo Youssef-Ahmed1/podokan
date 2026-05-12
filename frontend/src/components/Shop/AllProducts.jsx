@@ -24,14 +24,14 @@ const AllProducts = () => {
 
   const loadProducts = useCallback(() => {
     if (seller?._id) {
-      // Pass page number (1-based for API) and page Size
-      dispatch(
-        getAllProductsShop(
-          seller._id,
-          paginationModel.page + 1,
-          paginationModel.pageSize
-        )
-      );
+        // Pass page number (1-based for API) and page size
+        dispatch(
+            getAllProductsShop(
+                seller._id,
+                paginationModel.page + 1,
+                paginationModel.pageSize,
+            ),
+        );
     }
   }, [dispatch, seller?._id, paginationModel]);
 
@@ -63,75 +63,75 @@ const AllProducts = () => {
   );
 
   const columns = useMemo(
-    () => [
-      {
-        field: "designImage",
-        headerName: "Image",
-        width: 80,
-        sortable: false,
-        renderCell: (p) => (
-          <img
-            src={p.value}
-            alt=""
-            className="w-12 h-12 object-contain rounded"
-          />
-        ),
-      },
-      { field: "name", headerName: "Name", minWidth: 180, flex: 1 },
-      {
-        field: "price",
-        headerName: "Price",
-        width: 100,
-        type: "number",
-        valueFormatter: (v) => `EGP ${Number(v ?? 0).toFixed(2)}`,
-      },
-      { field: "stock", headerName: "Stock", type: "number", width: 80 },
-      { field: "sold", headerName: "Sold", type: "number", width: 80 },
-      {
-        field: "status",
-        headerName: "Status",
-        width: 100,
-        renderCell: (p) => (
-          <span
-            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-              p.value === "pending"
-                ? "bg-yellow-100 text-yellow-800"
-                : p.value === "public"
-                ? "bg-green-100 text-green-800"
-                : "bg-red-100 text-red-800"
-            }`}
-          >
-            {p.value || "N/A"}
-          </span>
-        ),
-      },
-      {
-        field: "actions",
-        headerName: "Actions",
-        width: 120,
-        sortable: false,
-        renderCell: (p) => (
-          <div className="flex gap-1">
-            <IconButton
-              component={Link}
-              to={`/product/${p.id}`}
-              Size="small"
-              title="Preview"
-            >
-              <AiOutlineEye className="text-blue-600" />
-            </IconButton>
-            <IconButton
-              onClick={() => handleDelete(p.id)}
-              Size="small"
-              title="Delete"
-            >
-              <AiOutlineDelete className="text-red-600" />
-            </IconButton>
-          </div>
-        ),
-      },
-    ],
-    [handleDelete]
+      () => [
+          {
+              field: "designImage",
+              headerName: "Image",
+              width: 80,
+              sortable: false,
+              renderCell: (p) => (
+                  <img
+                      src={p.value}
+                      alt=""
+                      className="w-12 h-12 object-contain rounded"
+                  />
+              ),
+          },
+          { field: "name", headerName: "Name", minWidth: 180, flex: 1 },
+          {
+              field: "price",
+              headerName: "Price",
+              width: 100,
+              type: "number",
+              valueFormatter: (v) => `EGP ${Number(v ?? 0).toFixed(2)}`,
+          },
+          { field: "stock", headerName: "Stock", type: "number", width: 80 },
+          { field: "sold", headerName: "Sold", type: "number", width: 80 },
+          {
+              field: "status",
+              headerName: "Status",
+              width: 100,
+              renderCell: (p) => (
+                  <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          p.value === "pending"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : p.value === "public"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                      }`}
+                  >
+                      {p.value || "N/A"}
+                  </span>
+              ),
+          },
+          {
+              field: "actions",
+              headerName: "Actions",
+              width: 120,
+              sortable: false,
+              renderCell: (p) => (
+                  <div className="flex gap-1">
+                      <IconButton
+                          component={Link}
+                          to={`/product/${p.id}`}
+                          size="small"
+                          title="Preview"
+                      >
+                          <AiOutlineEye className="text-blue-600" />
+                      </IconButton>
+                      <IconButton
+                          onClick={() => handleDelete(p.id)}
+                          size="small"
+                          title="Delete"
+                      >
+                          <AiOutlineDelete className="text-red-600" />
+                      </IconButton>
+                  </div>
+              ),
+          },
+      ],
+      [handleDelete],
   );
 
   const rows = useMemo(

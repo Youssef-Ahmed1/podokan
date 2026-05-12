@@ -138,7 +138,7 @@ input[type=number] {
 
 .category-swiper .swiper-button-next:after,
 .category-swiper .swiper-button-prev:after {
-  font-Size: 12px;
+  font-size: 12px;
   font-weight: bold;
 }
 
@@ -168,7 +168,7 @@ input[type=number] {
     #3D3D56 50%,
     #2A2A3C 75%
   );
-  background-Size: 200% 100%;
+  background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 /* Add to your app.css */

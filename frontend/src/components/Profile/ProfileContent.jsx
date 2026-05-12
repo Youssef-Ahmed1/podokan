@@ -100,116 +100,120 @@ const ProfileInfo = () => {
   };
 
   return (
-    <Box
-      sx={{
-        width: "100%",
-        px: 3,
-        py: 4,
-        display: "flex",
-        justifyContent: "center",
-      }}
-    >
       <Box
-        sx={{
-          maxWidth: "sm",
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        <Box sx={{ position: "relative", mb: 2 }}>
-          <img
-            src={
-              avatar
-                ? URL.createObjectURL(avatar)
-                : user?.avatar?.url || "/default-avatar.png"
-            }
-            className="w-[150px] h-[150px] rounded-full object-cover border-4 border-green-500"
-            alt="avatar"
-          />
-          <IconButton
-            component="label"
-            htmlFor="avatar-input"
-            Size="small"
-            sx={{
-              position: "absolute",
-              bottom: 5,
-              right: 5,
-              bgcolor: "background.paper",
-              "&:hover": { bgcolor: "grey.200" },
-              border: "1px solid grey.300",
-            }}
-            disabled={avatarLoading}
-          >
-            {avatarLoading ? <Loader Size={20} /> : <AiOutlineCamera />}{" "}
-            <input
-              type="file"
-              id="avatar-input"
-              hidden
-              accept=".jpg,.jpeg,.png"
-              onChange={handleImage}
-            />
-          </IconButton>
-        </Box>
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
           sx={{
-            width: "100%",
-            mt: 3,
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
+              width: "100%",
+              px: 3,
+              py: 4,
+              display: "flex",
+              justifyContent: "center",
           }}
-        >
-          <TextField
-            label="Full Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            fullWidth
-            Size="small"
-          />
-          <TextField
-            label="Email Address"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            fullWidth
-            Size="small"
-          />
-          <TextField
-            label="Phone Number"
-            type="tel"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            fullWidth
-            Size="small"
-          />
-          <TextField
-            label="Current Password to Update"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            fullWidth
-            Size="small"
-            helperText="Required to save changes"
-          />
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
-            disabled={loading}
-            sx={{ mt: 1, py: 1.2 }}
+      >
+          <Box
+              sx={{
+                  maxWidth: "sm",
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+              }}
           >
-            {loading ? "Updating..." : "Update Profile"}
-          </Button>
-        </Box>
+              <Box sx={{ position: "relative", mb: 2 }}>
+                  <img
+                      src={
+                          avatar
+                              ? URL.createObjectURL(avatar)
+                              : user?.avatar?.url || "/default-avatar.png"
+                      }
+                      className="w-[150px] h-[150px] rounded-full object-cover border-4 border-green-500"
+                      alt="avatar"
+                  />
+                  <IconButton
+                      component="label"
+                      htmlFor="avatar-input"
+                      size="small"
+                      sx={{
+                          position: "absolute",
+                          bottom: 5,
+                          right: 5,
+                          bgcolor: "background.paper",
+                          "&:hover": { bgcolor: "grey.200" },
+                          border: "1px solid grey.300",
+                      }}
+                      disabled={avatarLoading}
+                  >
+                      {avatarLoading ? (
+                          <Loader size={20} />
+                      ) : (
+                          <AiOutlineCamera />
+                      )}{" "}
+                      <input
+                          type="file"
+                          id="avatar-input"
+                          hidden
+                          accept=".jpg,.jpeg,.png"
+                          onChange={handleImage}
+                      />
+                  </IconButton>
+              </Box>
+              <Box
+                  component="form"
+                  onSubmit={handleSubmit}
+                  sx={{
+                      width: "100%",
+                      mt: 3,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                  }}
+              >
+                  <TextField
+                      label="Full Name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      fullWidth
+                      size="small"
+                  />
+                  <TextField
+                      label="Email Address"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      fullWidth
+                      size="small"
+                  />
+                  <TextField
+                      label="Phone Number"
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      fullWidth
+                      size="small"
+                  />
+                  <TextField
+                      label="Current Password to Update"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      fullWidth
+                      size="small"
+                      helperText="Required to save changes"
+                  />
+                  <Button
+                      type="submit"
+                      variant="contained"
+                      fullWidth
+                      disabled={loading}
+                      sx={{ mt: 1, py: 1.2 }}
+                  >
+                      {loading ? "Updating..." : "Update Profile"}
+                  </Button>
+              </Box>
+          </Box>
       </Box>
-    </Box>
   );
 };
 
@@ -228,74 +232,74 @@ const AllOrders = () => {
   }, [dispatch, user?._id, error]);
 
   const columns = useMemo(
-    () => [
-      {
-        field: "id",
-        headerName: "Order ID",
-        width: 220,
-        renderCell: (p) => `#${p.value}`,
-      },
-      {
-        field: "status",
-        headerName: "Status",
-        width: 130,
-        renderCell: (p) => (
-          <span
-            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-              p.value === "Delivered"
-                ? "bg-green-100 text-green-800"
-                : p.value === "Cancelled"
-                ? "bg-red-100 text-red-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {p.value}
-          </span>
-        ),
-      },
-      {
-        field: "itemsQty",
-        headerName: "Items",
-        type: "number",
-        width: 80,
-        align: "center",
-        headerAlign: "center",
-      },
-      {
-        field: "total",
-        headerName: "Total",
-        type: "number",
-        width: 130,
-        valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
-      },
-      {
-        field: "orderDate",
-        headerName: "Date",
-        width: 120,
-        type: "date",
-        valueGetter: (value) => (value ? new Date(value) : null),
-        valueFormatter: (v) => (v ? format(v, "PP") : ""),
-      },
-      {
-        field: "actions",
-        headerName: "Actions",
-        width: 100,
-        sortable: false,
-        align: "center",
-        headerAlign: "center",
-        renderCell: (p) => (
-          <IconButton
-            component={Link}
-            to={`/user/order/${p.id}`}
-            Size="small"
-            title="View"
-          >
-            <AiOutlineEye className="text-blue-600" />
-          </IconButton>
-        ),
-      },
-    ],
-    []
+      () => [
+          {
+              field: "id",
+              headerName: "Order ID",
+              width: 220,
+              renderCell: (p) => `#${p.value}`,
+          },
+          {
+              field: "status",
+              headerName: "Status",
+              width: 130,
+              renderCell: (p) => (
+                  <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          p.value === "Delivered"
+                              ? "bg-green-100 text-green-800"
+                              : p.value === "Cancelled"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-gray-100 text-gray-800"
+                      }`}
+                  >
+                      {p.value}
+                  </span>
+              ),
+          },
+          {
+              field: "itemsQty",
+              headerName: "Items",
+              type: "number",
+              width: 80,
+              align: "center",
+              headerAlign: "center",
+          },
+          {
+              field: "total",
+              headerName: "Total",
+              type: "number",
+              width: 130,
+              valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
+          },
+          {
+              field: "orderDate",
+              headerName: "Date",
+              width: 120,
+              type: "date",
+              valueGetter: (value) => (value ? new Date(value) : null),
+              valueFormatter: (v) => (v ? format(v, "PP") : ""),
+          },
+          {
+              field: "actions",
+              headerName: "Actions",
+              width: 100,
+              sortable: false,
+              align: "center",
+              headerAlign: "center",
+              renderCell: (p) => (
+                  <IconButton
+                      component={Link}
+                      to={`/user/order/${p.id}`}
+                      size="small"
+                      title="View"
+                  >
+                      <AiOutlineEye className="text-blue-600" />
+                  </IconButton>
+              ),
+          },
+      ],
+      [],
   );
 
   const rows = useMemo(
@@ -352,74 +356,74 @@ const AllRefundOrders = () => {
   );
 
   const columns = useMemo(
-    () => [
-      {
-        field: "id",
-        headerName: "Order ID",
-        width: 220,
-        renderCell: (p) => `#${p.value}`,
-      },
-      {
-        field: "status",
-        headerName: "Status",
-        width: 150,
-        renderCell: (p) => (
-          <span
-            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-              p.value === "Refund Success"
-                ? "bg-green-100 text-green-800"
-                : p.value === "Refund Rejected"
-                ? "bg-red-100 text-red-800"
-                : "bg-yellow-100 text-yellow-800"
-            }`}
-          >
-            {p.value}
-          </span>
-        ),
-      },
-      {
-        field: "itemsQty",
-        headerName: "Items",
-        type: "number",
-        width: 80,
-        align: "center",
-        headerAlign: "center",
-      },
-      {
-        field: "total",
-        headerName: "Total",
-        type: "number",
-        width: 130,
-        valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
-      },
-      {
-        field: "orderDate",
-        headerName: "Date",
-        width: 120,
-        type: "date",
-        valueGetter: (v) => (v ? new Date(v) : null),
-        valueFormatter: (v) => (v ? format(v, "PP") : ""),
-      },
-      {
-        field: "actions",
-        headerName: "Actions",
-        width: 100,
-        sortable: false,
-        align: "center",
-        headerAlign: "center",
-        renderCell: (p) => (
-          <IconButton
-            component={Link}
-            to={`/user/order/${p.id}`}
-            Size="small"
-            title="View"
-          >
-            <AiOutlineEye className="text-blue-600" />
-          </IconButton>
-        ),
-      },
-    ],
-    []
+      () => [
+          {
+              field: "id",
+              headerName: "Order ID",
+              width: 220,
+              renderCell: (p) => `#${p.value}`,
+          },
+          {
+              field: "status",
+              headerName: "Status",
+              width: 150,
+              renderCell: (p) => (
+                  <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          p.value === "Refund Success"
+                              ? "bg-green-100 text-green-800"
+                              : p.value === "Refund Rejected"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-yellow-100 text-yellow-800"
+                      }`}
+                  >
+                      {p.value}
+                  </span>
+              ),
+          },
+          {
+              field: "itemsQty",
+              headerName: "Items",
+              type: "number",
+              width: 80,
+              align: "center",
+              headerAlign: "center",
+          },
+          {
+              field: "total",
+              headerName: "Total",
+              type: "number",
+              width: 130,
+              valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
+          },
+          {
+              field: "orderDate",
+              headerName: "Date",
+              width: 120,
+              type: "date",
+              valueGetter: (v) => (v ? new Date(v) : null),
+              valueFormatter: (v) => (v ? format(v, "PP") : ""),
+          },
+          {
+              field: "actions",
+              headerName: "Actions",
+              width: 100,
+              sortable: false,
+              align: "center",
+              headerAlign: "center",
+              renderCell: (p) => (
+                  <IconButton
+                      component={Link}
+                      to={`/user/order/${p.id}`}
+                      size="small"
+                      title="View"
+                  >
+                      <AiOutlineEye className="text-blue-600" />
+                  </IconButton>
+              ),
+          },
+      ],
+      [],
   );
 
   const rows = useMemo(
@@ -471,72 +475,72 @@ const TrackOrder = () => {
   }, [dispatch, user?._id, error]);
 
   const columns = useMemo(
-    () => [
-      {
-        field: "id",
-        headerName: "Order ID",
-        width: 220,
-        renderCell: (p) => `#${p.value}`,
-      },
-      {
-        field: "status",
-        headerName: "Status",
-        width: 150,
-        renderCell: (p) => (
-          <span
-            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-              p.value === "Delivered"
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {p.value}
-          </span>
-        ),
-      },
-      {
-        field: "itemsQty",
-        headerName: "Items",
-        type: "number",
-        width: 80,
-        align: "center",
-        headerAlign: "center",
-      },
-      {
-        field: "total",
-        headerName: "Total",
-        type: "number",
-        width: 130,
-        valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
-      },
-      {
-        field: "orderDate",
-        headerName: "Date",
-        width: 120,
-        type: "date",
-        valueGetter: (v) => (v ? new Date(v) : null),
-        valueFormatter: (v) => (v ? format(v, "PP") : ""),
-      },
-      {
-        field: "actions",
-        headerName: "Track",
-        width: 100,
-        sortable: false,
-        align: "center",
-        headerAlign: "center",
-        renderCell: (p) => (
-          <IconButton
-            component={Link}
-            to={`/user/track/order/${p.id}`}
-            Size="small"
-            title="Track"
-          >
-            <MdTrackChanges className="text-blue-600" />
-          </IconButton>
-        ),
-      },
-    ],
-    []
+      () => [
+          {
+              field: "id",
+              headerName: "Order ID",
+              width: 220,
+              renderCell: (p) => `#${p.value}`,
+          },
+          {
+              field: "status",
+              headerName: "Status",
+              width: 150,
+              renderCell: (p) => (
+                  <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          p.value === "Delivered"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                      }`}
+                  >
+                      {p.value}
+                  </span>
+              ),
+          },
+          {
+              field: "itemsQty",
+              headerName: "Items",
+              type: "number",
+              width: 80,
+              align: "center",
+              headerAlign: "center",
+          },
+          {
+              field: "total",
+              headerName: "Total",
+              type: "number",
+              width: 130,
+              valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
+          },
+          {
+              field: "orderDate",
+              headerName: "Date",
+              width: 120,
+              type: "date",
+              valueGetter: (v) => (v ? new Date(v) : null),
+              valueFormatter: (v) => (v ? format(v, "PP") : ""),
+          },
+          {
+              field: "actions",
+              headerName: "Track",
+              width: 100,
+              sortable: false,
+              align: "center",
+              headerAlign: "center",
+              renderCell: (p) => (
+                  <IconButton
+                      component={Link}
+                      to={`/user/track/order/${p.id}`}
+                      size="small"
+                      title="Track"
+                  >
+                      <MdTrackChanges className="text-blue-600" />
+                  </IconButton>
+              ),
+          },
+      ],
+      [],
   );
 
   const rows = useMemo(
@@ -601,59 +605,59 @@ const ChangePassword = () => {
   };
 
   return (
-    <div className="w-full px-5 py-5">
-      <h1 className="text-xl text-center font-semibold mb-6">
-        Change Password
-      </h1>
-      <Box
-        component="form"
-        onSubmit={passwordChangeHandler}
-        sx={{
-          maxWidth: "sm",
-          mx: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-        }}
-      >
-        <TextField
-          label="Old Password"
-          type="password"
-          value={oldPassword}
-          onChange={(e) => setOldPassword(e.target.value)}
-          required
-          fullWidth
-          Size="small"
-        />
-        <TextField
-          label="New Password"
-          type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          required
-          fullWidth
-          Size="small"
-        />
-        <TextField
-          label="Confirm New Password"
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-          fullWidth
-          Size="small"
-        />
-        <Button
-          type="submit"
-          variant="contained"
-          fullWidth
-          disabled={loading}
-          sx={{ mt: 1, py: 1.2 }}
-        >
-          {loading ? "Updating..." : "Update Password"}
-        </Button>
-      </Box>
-    </div>
+      <div className="w-full px-5 py-5">
+          <h1 className="text-xl text-center font-semibold mb-6">
+              Change Password
+          </h1>
+          <Box
+              component="form"
+              onSubmit={passwordChangeHandler}
+              sx={{
+                  maxWidth: "sm",
+                  mx: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+              }}
+          >
+              <TextField
+                  label="Old Password"
+                  type="password"
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  required
+                  fullWidth
+                  size="small"
+              />
+              <TextField
+                  label="New Password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  fullWidth
+                  size="small"
+              />
+              <TextField
+                  label="Confirm New Password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  fullWidth
+                  size="small"
+              />
+              <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  disabled={loading}
+                  sx={{ mt: 1, py: 1.2 }}
+              >
+                  {loading ? "Updating..." : "Update Password"}
+              </Button>
+          </Box>
+      </div>
   );
 };
 
@@ -710,146 +714,151 @@ const Address = () => {
   };
 
   return (
-    <div className="w-full px-5 py-5">
-      <div className="flex w-full items-center justify-between mb-4">
-        <h1 className="text-xl font-semibold">My Addresses</h1>
-        <Button
-          variant="contained"
-          onClick={() => {
-            resetForm();
-            setOpen(true);
-          }}
-        >
-          Add New
-        </Button>
-      </div>
-      {user?.addresses?.length > 0 ? (
-        user.addresses.map((item) => (
-          <div
-            className="w-full bg-white rounded-md shadow-sm flex items-center justify-between p-3 pr-6 mb-3"
-            key={item._id}
-          >
-            <div className="flex items-center">
-              <h5 className="font-semibold text-sm md:text-base">
-                {item.addressType}
-              </h5>
-            </div>
-            <div className="pl-4 text-sm md:text-base text-gray-700 flex-grow">
-              {item.address1}, {item.address2 ? `${item.address2}, ` : ""}{" "}
-              {item.city ? `${item.city}, ` : ""} {item.country || ""}{" "}
-              {item.zipCode || ""}
-            </div>
-            <div className="pl-4">
-              <IconButton
-                onClick={() => handleDelete(item)}
-                Size="small"
-                title="Delete"
+      <div className="w-full px-5 py-5">
+          <div className="flex w-full items-center justify-between mb-4">
+              <h1 className="text-xl font-semibold">My Addresses</h1>
+              <Button
+                  variant="contained"
+                  onClick={() => {
+                      resetForm();
+                      setOpen(true);
+                  }}
               >
-                <AiOutlineDelete className="cursor-pointer text-red-500" />
-              </IconButton>
-            </div>
+                  Add New
+              </Button>
           </div>
-        ))
-      ) : (
-        <Typography textAlign="center" pt={4} color="text.secondary">
-          No saved addresses.
-        </Typography>
-      )}
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          Add New Address
-          <IconButton
-            aria-label="close"
-            onClick={() => setOpen(false)}
-            sx={{ position: "absolute", right: 8, top: 8 }}
+          {user?.addresses?.length > 0 ? (
+              user.addresses.map((item) => (
+                  <div
+                      className="w-full bg-white rounded-md shadow-sm flex items-center justify-between p-3 pr-6 mb-3"
+                      key={item._id}
+                  >
+                      <div className="flex items-center">
+                          <h5 className="font-semibold text-sm md:text-base">
+                              {item.addressType}
+                          </h5>
+                      </div>
+                      <div className="pl-4 text-sm md:text-base text-gray-700 flex-grow">
+                          {item.address1},{" "}
+                          {item.address2 ? `${item.address2}, ` : ""}{" "}
+                          {item.city ? `${item.city}, ` : ""}{" "}
+                          {item.country || ""} {item.zipCode || ""}
+                      </div>
+                      <div className="pl-4">
+                          <IconButton
+                              onClick={() => handleDelete(item)}
+                              size="small"
+                              title="Delete"
+                          >
+                              <AiOutlineDelete className="cursor-pointer text-red-500" />
+                          </IconButton>
+                      </div>
+                  </div>
+              ))
+          ) : (
+              <Typography textAlign="center" pt={4} color="text.secondary">
+                  No saved addresses.
+              </Typography>
+          )}
+          <Dialog
+              open={open}
+              onClose={() => setOpen(false)}
+              maxWidth="sm"
+              fullWidth
           >
-            <RxCross1 />
-          </IconButton>
-        </DialogTitle>
-        <Box component="form" onSubmit={handleSubmit}>
-          <DialogContent
-            dividers
-            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-          >
-            <FormControl fullWidth Size="small" required>
-              <InputLabel>Country</InputLabel>
-              <Select
-                value={country}
-                label="Country"
-                onChange={(e) => setCountry(e.target.value)}
-              >
-                {Country?.getAllCountries().map((c) => (
-                  <MenuItem key={c.isoCode} value={c.isoCode}>
-                    {c.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth Size="small" disabled={!country}>
-              <InputLabel>City/State</InputLabel>
-              <Select
-                value={city}
-                label="City/State"
-                onChange={(e) => setCity(e.target.value)}
-              >
-                {State?.getStatesOfCountry(country).map((s) => (
-                  <MenuItem key={s.isoCode} value={s.isoCode}>
-                    {s.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              label="Address Line 1"
-              value={address1}
-              onChange={(e) => setAddress1(e.target.value)}
-              required
-              fullWidth
-              Size="small"
-            />
-            <TextField
-              label="Address Line 2 (Optional)"
-              value={address2}
-              onChange={(e) => setAddress2(e.target.value)}
-              fullWidth
-              Size="small"
-            />
-            <TextField
-              label="Zip/Postal Code (Optional)"
-              value={zipCode}
-              onChange={(e) => setZipCode(e.target.value)}
-              fullWidth
-              Size="small"
-            />
-            <FormControl fullWidth Size="small" required>
-              <InputLabel>Address Type</InputLabel>
-              <Select
-                value={addressType}
-                label="Address Type"
-                onChange={(e) => setAddressType(e.target.value)}
-              >
-                {addressTypes.map((t) => (
-                  <MenuItem key={t} value={t}>
-                    {t}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
-            <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="contained" disabled={addressLoading}>
-              {addressLoading ? "Saving..." : "Save Address"}
-            </Button>
-          </DialogActions>
-        </Box>
-      </Dialog>
-    </div>
+              <DialogTitle>
+                  Add New Address
+                  <IconButton
+                      aria-label="close"
+                      onClick={() => setOpen(false)}
+                      sx={{ position: "absolute", right: 8, top: 8 }}
+                  >
+                      <RxCross1 />
+                  </IconButton>
+              </DialogTitle>
+              <Box component="form" onSubmit={handleSubmit}>
+                  <DialogContent
+                      dividers
+                      sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+                  >
+                      <FormControl fullWidth size="small" required>
+                          <InputLabel>Country</InputLabel>
+                          <Select
+                              value={country}
+                              label="Country"
+                              onChange={(e) => setCountry(e.target.value)}
+                          >
+                              {Country?.getAllCountries().map((c) => (
+                                  <MenuItem key={c.isoCode} value={c.isoCode}>
+                                      {c.name}
+                                  </MenuItem>
+                              ))}
+                          </Select>
+                      </FormControl>
+                      <FormControl fullWidth size="small" disabled={!country}>
+                          <InputLabel>City/State</InputLabel>
+                          <Select
+                              value={city}
+                              label="City/State"
+                              onChange={(e) => setCity(e.target.value)}
+                          >
+                              {State?.getStatesOfCountry(country).map((s) => (
+                                  <MenuItem key={s.isoCode} value={s.isoCode}>
+                                      {s.name}
+                                  </MenuItem>
+                              ))}
+                          </Select>
+                      </FormControl>
+                      <TextField
+                          label="Address Line 1"
+                          value={address1}
+                          onChange={(e) => setAddress1(e.target.value)}
+                          required
+                          fullWidth
+                          size="small"
+                      />
+                      <TextField
+                          label="Address Line 2 (Optional)"
+                          value={address2}
+                          onChange={(e) => setAddress2(e.target.value)}
+                          fullWidth
+                          size="small"
+                      />
+                      <TextField
+                          label="Zip/Postal Code (Optional)"
+                          value={zipCode}
+                          onChange={(e) => setZipCode(e.target.value)}
+                          fullWidth
+                          size="small"
+                      />
+                      <FormControl fullWidth size="small" required>
+                          <InputLabel>Address Type</InputLabel>
+                          <Select
+                              value={addressType}
+                              label="Address Type"
+                              onChange={(e) => setAddressType(e.target.value)}
+                          >
+                              {addressTypes.map((t) => (
+                                  <MenuItem key={t} value={t}>
+                                      {t}
+                                  </MenuItem>
+                              ))}
+                          </Select>
+                      </FormControl>
+                  </DialogContent>
+                  <DialogActions sx={{ p: 2 }}>
+                      <Button onClick={() => setOpen(false)}>Cancel</Button>
+                      <Button
+                          type="submit"
+                          variant="contained"
+                          disabled={addressLoading}
+                      >
+                          {addressLoading ? "Saving..." : "Save Address"}
+                      </Button>
+                  </DialogActions>
+              </Box>
+          </Dialog>
+      </div>
   );
 };
 

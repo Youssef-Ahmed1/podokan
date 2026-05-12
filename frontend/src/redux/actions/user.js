@@ -112,20 +112,16 @@ export const loadUser = () => async (dispatch) => {
 
 export const loadSeller = () => async (dispatch) => {
   try {
-    dispatch({ type: "LoadSellerRequest" });
+      dispatch({ type: "LoadSellerRequest" });
 
-    const config = {
-      headers: {
-        'Seller-Authorization': sellerToken ? `Bearer ${sellerToken}` : '',
-      }
-    };
+      const { data } = await axios.get(`${server}/shop/getSeller`, {
+          withCredentials: true,
+      });
 
-    const { data } = await axios.get(`${server}/shop/getSeller`, config);
-
-    dispatch({
-        type: "LoadSellerSuccess",
-        payload: data.seller,
-    });
+      dispatch({
+          type: "LoadSellerSuccess",
+          payload: data.seller,
+      });
   } catch (error) {
     dispatch({
       type: "LoadSellerFail",

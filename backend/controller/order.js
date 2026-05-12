@@ -110,7 +110,7 @@ router.post(
           if (!item.DesignTitle) missing.push("Design Title");
           if (!item.ProductType) missing.push("Product Type");
           if (!item.ProductColor) missing.push("Product Color");
-          if (!item.size) missing.push("Size");
+          if (!item.size) missing.push("size");
           if (missing.length > 0) {
               return next(
                   new ErrorHandler(

@@ -3,20 +3,15 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { createProduct } from "../../redux/actions/product";
-import { 
-  AiOutlineCloudUpload, 
-  AiOutlineDelete, 
-  AiOutlineInfoCircle,
-  AiOutlineMinusCircle,
-  AiOutlinePlusCircle,
-  
+import {
+    AiOutlineCloudUpload,
+    AiOutlineDelete,
+    AiOutlineInfoCircle,
+    AiOutlineMinusCircle,
+    AiOutlinePlusCircle,
 } from "react-icons/ai";
 import { BiRuler, BiMove, BiTag } from "react-icons/bi";
-import { 
-
-  MdTitle,
-  MdDescription
-} from "react-icons/md";
+import { MdTitle, MdDescription } from "react-icons/md";
 import { DESIGN_CONFIG, DesignScalingManager } from '../../utils/designScaling';
 import { useDesignPosition } from '../../hooks/useDesignPosition';
 
@@ -115,11 +110,11 @@ const compressDesign = async (file) => {
         let blob;
 
         do {
-          blob = await new Promise((resolve) =>
-            canvas.toBlob(resolve, "image/png", quality)
-          );
-          quality -= 0.1;
-        } while (blob.Size > TARGET_Size && quality > 0.3);
+            blob = await new Promise((resolve) =>
+                canvas.toBlob(resolve, "image/png", quality),
+            );
+            quality -= 0.1;
+        } while (blob.size > TARGET_Size && quality > 0.3);
 
         const dpi = calculateDPI(width, height);
 
@@ -129,12 +124,12 @@ const compressDesign = async (file) => {
         });
 
         resolve({
-          file: compressedFile,
-          compressedSize: blob.Size,
-          width,
-          height,
-          quality: quality * 100,
-          dpi,
+            file: compressedFile,
+            compressedSize: blob.size,
+            width,
+            height,
+            quality: quality * 100,
+            dpi,
         });
       } catch (error) {
         reject(error);
@@ -190,10 +185,10 @@ const checkTransparency = async (file) => {
       canvas.width = img.width;
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
-      
+
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
-      
+
       for (let i = 3; i < data.length; i += 4) {
         if (data[i] < 255) {
           resolve(true);
@@ -252,57 +247,57 @@ const calculateDesignQualityScore = (imageInfo) => {
   }
 
   return {
-    score: Math.max(0, Math.round(score)),
-    feedback,
-    details: {
-      dpi: imageInfo.dpi,
-      Size: imageInfo.compressedSize,
-      dimensions: `${imageInfo.width}x${imageInfo.height}`,
-      transparency: imageInfo.hasTransparency,
-    },
+      score: Math.max(0, Math.round(score)),
+      feedback,
+      details: {
+          dpi: imageInfo.dpi,
+          size: imageInfo.compressedSize,
+          dimensions: `${imageInfo.width}x${imageInfo.height}`,
+          transparency: imageInfo.hasTransparency,
+      },
   };
 };
 
 
 
 const ScaleControl = ({ scale, onChange, disabled }) => (
-  <div className="w-full max-w-xs mx-auto">
-    <div className="flex items-center justify-between mb-2">
-      <span className="text-sm font-medium text-gray-700">
-        Design Size: {scale.toFixed(1)}x
-      </span>
-      <div className="flex items-center space-x-2">
-        <button
-          type="button"
-          onClick={() => onChange(Math.max(0.5, scale - 0.1))}
-          disabled={disabled || scale <= 0.5}
-          className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50
+    <div className="w-full max-w-xs mx-auto">
+        <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">
+                Design size: {scale.toFixed(1)}x
+            </span>
+            <div className="flex items-center space-x-2">
+                <button
+                    type="button"
+                    onClick={() => onChange(Math.max(0.5, scale - 0.1))}
+                    disabled={disabled || scale <= 0.5}
+                    className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50
             transition-colors duration-200"
-        >
-          <AiOutlineMinusCircle Size={20} />
-        </button>
-        <button
-          type="button"
-          onClick={() => onChange(Math.min(1.2, scale + 0.1))}
-          disabled={disabled || scale >= 1.2}
-          className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50
+                >
+                    <AiOutlineMinusCircle size={20} />
+                </button>
+                <button
+                    type="button"
+                    onClick={() => onChange(Math.min(1.2, scale + 0.1))}
+                    disabled={disabled || scale >= 1.2}
+                    className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50
             transition-colors duration-200"
-        >
-          <AiOutlinePlusCircle Size={20} />
-        </button>
-      </div>
+                >
+                    <AiOutlinePlusCircle size={20} />
+                </button>
+            </div>
+        </div>
+        <input
+            type="range"
+            min="0.5"
+            max="1.2"
+            step="0.1"
+            value={scale}
+            onChange={(e) => onChange(parseFloat(e.target.value))}
+            disabled={disabled}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+        />
     </div>
-    <input
-      type="range"
-      min="0.5"
-      max="1.2"
-      step="0.1"
-      value={scale}
-      onChange={(e) => onChange(parseFloat(e.target.value))}
-      disabled={disabled}
-      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-    />
-  </div>
 );
 
 const CreateProduct = () => {
@@ -556,9 +551,9 @@ const CreateProduct = () => {
       try {
         if (!file) return;
 
-        if (file.Size > 20 * 1024 * 1024) {
-          toast.error("File Size exceeds 20MB limit");
-          return;
+        if (file.size > 20 * 1024 * 1024) {
+            toast.error("File size exceeds 20MB limit");
+            return;
         }
 
         if (file.type !== "image/png") {
@@ -619,8 +614,8 @@ const CreateProduct = () => {
         });
 
         toast.success(
-          `Design optimized: ${(file.Size / (1024 * 1024)).toFixed(2)}MB → ` +
-            `${(compressionResult.compressedSize / 1024).toFixed(2)}KB`
+            `Design optimized: ${(file.size / (1024 * 1024)).toFixed(2)}MB → ` +
+                `${(compressionResult.compressedSize / 1024).toFixed(2)}KB`,
         );
 
         if (qualityScore.score < 80) {
@@ -683,15 +678,7 @@ const CreateProduct = () => {
     try {
       setIsSubmitting(true);
 
-      // Verify tokens exist
-      const token = localStorage.getItem("token");
-      const sellerToken = localStorage.getItem("seller_token");
 
-      if (!token || !sellerToken) {
-        toast.error("Please login again to continue");
-        navigate("/login");
-        return;
-      }
 
       const formData = new FormData();
 
@@ -752,33 +739,26 @@ const CreateProduct = () => {
   };
 
   useEffect(() => {
-    if (seller && seller._id) {
-      setFormState((prev) => ({ ...prev, shopId: seller._id }));
-      setIsLoading(false);
-    } else if (seller === null) {
-      toast.error("Please log in as a seller to create products");
-      navigate("/login");
-    }
+      if (seller && seller._id) {
+          setFormState((prev) => ({ ...prev, shopId: seller._id }));
+          setIsLoading(false);
+      } else if (seller === null) {
+          toast.error("Please log in as a seller to create products");
+          navigate("/login");
+      }
   }, [seller, navigate]);
-  useEffect(() => {
-    const sellerToken = localStorage.getItem("seller_token");
 
-    if (!sellerToken) {
-      toast.error("Seller login required to create products.");
-      navigate("/shop-login");
-    }
-  }, [navigate]);
 
   // Return/Render JSX
   return (
-    <div className="w-[90%] 800px:w-[90%] bg-white shadow h-[80vh] rounded-[4px] p-3 overflow-y-scroll">
-      <style>
-        {`
+      <div className="w-[90%] 800px:w-[90%] bg-white shadow h-[80vh] rounded-[4px] p-3 overflow-y-scroll">
+          <style>
+              {`
   .design-preview {
     transition: transform 0.2s ease-out, opacity 0.2s ease-out;
     mix-blend-mode: multiply;  /* Add this */
   }
-  
+
   .design-preview img {
     transition: opacity 0.2s ease-out;
     background: transparent !important;  /* Add this */
@@ -789,504 +769,615 @@ const CreateProduct = () => {
     mix-blend-mode: screen;
   }
 `}
-      </style>
+          </style>
 
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold mb-4 text-center text-gray-800">
-          Create New Design
-        </h2>
+          <div className="max-w-4xl mx-auto">
+              <h2 className="text-3xl font-bold mb-4 text-center text-gray-800">
+                  Create New Design
+              </h2>
 
-        {isLoading ? (
-          <div className="flex justify-center items-center h-96">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
-          </div>
-        ) : (
-          <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Information Section */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Basic Information
-              </h3>
-              <div className="space-y-4">
-                {/* Design Title */}
-                <FormField
-                  name="DesignTitle"
-                  value={formState.DesignTitle}
-                  onChange={handleFieldChange}
-                  error={validationErrors.DesignTitle}
-                />
-
-                {/* Description */}
-                <FormField
-                  name="Description"
-                  value={formState.Description}
-                  onChange={handleFieldChange}
-                  error={validationErrors.Description}
-                />
-
-                {/* Tags */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    name="Maintag"
-                    value={formState.Maintag}
-                    onChange={handleFieldChange}
-                    error={validationErrors.Maintag}
-                  />
-                  <FormField
-                    name="Designtags"
-                    value={formState.Designtags}
-                    onChange={handleFieldChange}
-                    error={validationErrors.Designtags}
-                  />
-                </div>
-
-                {/* Pricing */}
-              </div>
-            </div>
-
-            {/* Product Type and Color Selection */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Product Options
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Product Type Selection */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Product Type
-                  </label>
-                  <select
-                    name="ProductType"
-                    value={formState.ProductType}
-                    onChange={(e) =>
-                      handleFieldChange("ProductType", e.target.value)
-                    }
-                    className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3
-                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    disabled={isSubmitting}
-                  >
-                    {Object.entries(PRODUCT_TYPES).map(([value, { label }]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Product Color Selection */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Product Color
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(COLOR_OPTIONS).map(([value, option]) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => handleFieldChange("ProductColor", value)}
-                        className={`w-8 h-8 rounded-full border-2 transition-all
-                          ${
-                            formState.ProductColor === value
-                              ? "border-blue-500 scale-110"
-                              : "border-gray-300 hover:border-blue-300"
-                          }`}
-                        style={{ backgroundColor: option.hex }}
-                        disabled={isSubmitting}
-                      >
-                        <span className="sr-only">{option.label}</span>
-                      </button>
-                    ))}
+              {isLoading ? (
+                  <div className="flex justify-center items-center h-96">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
                   </div>
-                </div>
-              </div>
-            </div>
+              ) : (
+                  <form
+                      ref={formRef}
+                      onSubmit={handleSubmit}
+                      className="space-y-6"
+                  >
+                      {/* Basic Information Section */}
+                      <div className="bg-white p-6 rounded-lg shadow-md">
+                          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                              Basic Information
+                          </h3>
+                          <div className="space-y-4">
+                              {/* Design Title */}
+                              <FormField
+                                  name="DesignTitle"
+                                  value={formState.DesignTitle}
+                                  onChange={handleFieldChange}
+                                  error={validationErrors.DesignTitle}
+                              />
 
-            {/* Design Upload and Preview Section */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Design Upload
-              </h3>
+                              {/* Description */}
+                              <FormField
+                                  name="Description"
+                                  value={formState.Description}
+                                  onChange={handleFieldChange}
+                                  error={validationErrors.Description}
+                              />
 
-              {!designFile.preview ? (
-                <>
-                  {/* Design Requirements */}
-                  {showRequirements && (
-                    <div className="mb-6 space-y-4">
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <h4 className="font-semibold text-blue-800 mb-2">
-                          File Specifications
-                        </h4>
-                        <ul className="list-disc list-inside text-blue-700 space-y-2">
-                          <li>File format: PNG with transparent background</li>
-                          <li>Maximum file Size: 20MB (will be optimized)</li>
-                          <li>Recommended dimensions: 1000px to 4000px</li>
-                          <li>Recommended DPI: 300 or higher</li>
-                        </ul>
+                              {/* Tags */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <FormField
+                                      name="Maintag"
+                                      value={formState.Maintag}
+                                      onChange={handleFieldChange}
+                                      error={validationErrors.Maintag}
+                                  />
+                                  <FormField
+                                      name="Designtags"
+                                      value={formState.Designtags}
+                                      onChange={handleFieldChange}
+                                      error={validationErrors.Designtags}
+                                  />
+                              </div>
+
+                              {/* Pricing */}
+                          </div>
                       </div>
 
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <h4 className="font-semibold text-green-800 mb-2">
-                          Design Guidelines
-                        </h4>
-                        <ul className="list-disc list-inside text-green-700 space-y-2">
-                          <li>Keep important elements within safe area</li>
-                          <li>
-                            Use high contrast colors for better visibility
-                          </li>
-                          <li>Avoid very thin lines (minimum 1px width)</li>
-                          <li>Test your design on different backgrounds</li>
-                        </ul>
-                      </div>
-                    </div>
-                  )}
+                      {/* Product Type and Color Selection */}
+                      <div className="bg-white p-6 rounded-lg shadow-md">
+                          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                              Product Options
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              {/* Product Type Selection */}
+                              <div className="space-y-2">
+                                  <label className="block text-sm font-medium text-gray-700">
+                                      Product Type
+                                  </label>
+                                  <select
+                                      name="ProductType"
+                                      value={formState.ProductType}
+                                      onChange={(e) =>
+                                          handleFieldChange(
+                                              "ProductType",
+                                              e.target.value,
+                                          )
+                                      }
+                                      className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      disabled={isSubmitting}
+                                  >
+                                      {Object.entries(PRODUCT_TYPES).map(
+                                          ([value, { label }]) => (
+                                              <option key={value} value={value}>
+                                                  {label}
+                                              </option>
+                                          ),
+                                      )}
+                                  </select>
+                              </div>
 
-                  {/* Upload Area */}
-                  <div
-                    className={`
+                              {/* Product Color Selection */}
+                              <div className="space-y-2">
+                                  <label className="block text-sm font-medium text-gray-700">
+                                      Product Color
+                                  </label>
+                                  <div className="flex flex-wrap gap-2">
+                                      {Object.entries(COLOR_OPTIONS).map(
+                                          ([value, option]) => (
+                                              <button
+                                                  key={value}
+                                                  type="button"
+                                                  onClick={() =>
+                                                      handleFieldChange(
+                                                          "ProductColor",
+                                                          value,
+                                                      )
+                                                  }
+                                                  className={`w-8 h-8 rounded-full border-2 transition-all
+                          ${
+                              formState.ProductColor === value
+                                  ? "border-blue-500 scale-110"
+                                  : "border-gray-300 hover:border-blue-300"
+                          }`}
+                                                  style={{
+                                                      backgroundColor:
+                                                          option.hex,
+                                                  }}
+                                                  disabled={isSubmitting}
+                                              >
+                                                  <span className="sr-only">
+                                                      {option.label}
+                                                  </span>
+                                              </button>
+                                          ),
+                                      )}
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+
+                      {/* Design Upload and Preview Section */}
+                      <div className="bg-white p-6 rounded-lg shadow-md">
+                          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                              Design Upload
+                          </h3>
+
+                          {!designFile.preview ? (
+                              <>
+                                  {/* Design Requirements */}
+                                  {showRequirements && (
+                                      <div className="mb-6 space-y-4">
+                                          <div className="bg-blue-50 p-4 rounded-lg">
+                                              <h4 className="font-semibold text-blue-800 mb-2">
+                                                  File Specifications
+                                              </h4>
+                                              <ul className="list-disc list-inside text-blue-700 space-y-2">
+                                                  <li>
+                                                      File format: PNG with
+                                                      transparent background
+                                                  </li>
+                                                  <li>
+                                                      Maximum file size: 20MB
+                                                      (will be optimized)
+                                                  </li>
+                                                  <li>
+                                                      Recommended dimensions:
+                                                      1000px to 4000px
+                                                  </li>
+                                                  <li>
+                                                      Recommended DPI: 300 or
+                                                      higher
+                                                  </li>
+                                              </ul>
+                                          </div>
+
+                                          <div className="bg-green-50 p-4 rounded-lg">
+                                              <h4 className="font-semibold text-green-800 mb-2">
+                                                  Design Guidelines
+                                              </h4>
+                                              <ul className="list-disc list-inside text-green-700 space-y-2">
+                                                  <li>
+                                                      Keep important elements
+                                                      within safe area
+                                                  </li>
+                                                  <li>
+                                                      Use high contrast colors
+                                                      for better visibility
+                                                  </li>
+                                                  <li>
+                                                      Avoid very thin lines
+                                                      (minimum 1px width)
+                                                  </li>
+                                                  <li>
+                                                      Test your design on
+                                                      different backgrounds
+                                                  </li>
+                                              </ul>
+                                          </div>
+                                      </div>
+                                  )}
+
+                                  {/* Upload Area */}
+                                  <div
+                                      className={`
                       relative border-2 border-dashed rounded-lg p-8 transition-all
                       ${
-                        dragActive
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-300"
+                          dragActive
+                              ? "border-blue-500 bg-blue-50"
+                              : "border-gray-300"
                       }
                       hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer
                       group
                     `}
-                    onDragEnter={handleDrag}
-                    onDragLeave={handleDrag}
-                    onDragOver={handleDrag}
-                    onDrop={handleDrop}
-                    onClick={() =>
-                      document.getElementById("design-upload").click()
-                    }
-                  >
-                    {/* Upload Content */}
-                    <div className="text-center space-y-4">
-                      <div className="relative inline-block">
-                        <AiOutlineCloudUpload
-                          className="mx-auto h-16 w-16 text-blue-400 
+                                      onDragEnter={handleDrag}
+                                      onDragLeave={handleDrag}
+                                      onDragOver={handleDrag}
+                                      onDrop={handleDrop}
+                                      onClick={() =>
+                                          document
+                                              .getElementById("design-upload")
+                                              .click()
+                                      }
+                                  >
+                                      {/* Upload Content */}
+                                      <div className="text-center space-y-4">
+                                          <div className="relative inline-block">
+                                              <AiOutlineCloudUpload
+                                                  className="mx-auto h-16 w-16 text-blue-400
                           group-hover:text-blue-500 transition-colors"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div
-                            className="w-20 h-20 border-4 border-blue-500 border-dashed 
-                            rounded-full animate-spin opacity-0 group-hover:opacity-100 
+                                              />
+                                              <div className="absolute inset-0 flex items-center justify-center">
+                                                  <div
+                                                      className="w-20 h-20 border-4 border-blue-500 border-dashed
+                            rounded-full animate-spin opacity-0 group-hover:opacity-100
                             transition-opacity"
-                          />
-                        </div>
-                      </div>
+                                                  />
+                                              </div>
+                                          </div>
 
-                      <div>
-                        <p className="text-lg font-medium text-gray-700 group-hover:text-gray-900">
-                          Drop your design here or click to browse
-                        </p>
-                        <p className="mt-2 text-sm text-gray-500 group-hover:text-gray-700">
-                          PNG files only, max 20MB
-                        </p>
-                      </div>
-                    </div>
+                                          <div>
+                                              <p className="text-lg font-medium text-gray-700 group-hover:text-gray-900">
+                                                  Drop your design here or click
+                                                  to browse
+                                              </p>
+                                              <p className="mt-2 text-sm text-gray-500 group-hover:text-gray-700">
+                                                  PNG files only, max 20MB
+                                              </p>
+                                          </div>
+                                      </div>
 
-                    <input
-                      id="design-upload"
-                      type="file"
-                      accept="image/png"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleDesignUpload(file);
-                      }}
-                      className="hidden"
-                    />
+                                      <input
+                                          id="design-upload"
+                                          type="file"
+                                          accept="image/png"
+                                          onChange={(e) => {
+                                              const file = e.target.files?.[0];
+                                              if (file)
+                                                  handleDesignUpload(file);
+                                          }}
+                                          className="hidden"
+                                      />
 
-                    {/* Compression Progress Overlay */}
-                    {designFile.isCompressing && (
-                      <div
-                        className="absolute inset-0 bg-white/90 flex items-center 
+                                      {/* Compression Progress Overlay */}
+                                      {designFile.isCompressing && (
+                                          <div
+                                              className="absolute inset-0 bg-white/90 flex items-center
                         justify-center flex-col space-y-4"
-                      >
-                        <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-blue-500 transition-all duration-300"
-                            style={{ width: `${compressionProgress}%` }}
-                          />
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          Optimizing design... {compressionProgress}%
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                                          >
+                                              <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                                  <div
+                                                      className="h-full bg-blue-500 transition-all duration-300"
+                                                      style={{
+                                                          width: `${compressionProgress}%`,
+                                                      }}
+                                                  />
+                                              </div>
+                                              <p className="text-sm text-gray-600">
+                                                  Optimizing design...{" "}
+                                                  {compressionProgress}%
+                                              </p>
+                                          </div>
+                                      )}
+                                  </div>
 
-                  {validationErrors.design && (
-                    <p className="mt-2 text-sm text-red-600">
-                      {validationErrors.design}
-                    </p>
-                  )}
-                </>
-              ) : (
-                // Design Preview and Controls
-                <div className="space-y-6">
-                  {/* Design Preview */}
-                  <div className="relative">
-                    <div
-                      ref={mockupContainerRef}
-                      className={`relative w-full aspect-square bg-gray-100 rounded-lg 
+                                  {validationErrors.design && (
+                                      <p className="mt-2 text-sm text-red-600">
+                                          {validationErrors.design}
+                                      </p>
+                                  )}
+                              </>
+                          ) : (
+                              // Design Preview and Controls
+                              <div className="space-y-6">
+                                  {/* Design Preview */}
+                                  <div className="relative">
+                                      <div
+                                          ref={mockupContainerRef}
+                                          className={`relative w-full aspect-square bg-gray-100 rounded-lg
                           overflow-hidden shadow-inner ${
-                            formState.ProductColor === "black"
-                              ? "dark-product"
-                              : ""
+                              formState.ProductColor === "black"
+                                  ? "dark-product"
+                                  : ""
                           }`}
-                      onMouseMove={handleDesignDrag}
-                      onMouseDown={() => setIsDragging(true)}
-                      onMouseUp={() => setIsDragging(false)}
-                      onMouseLeave={() => setIsDragging(false)}
-                    >
-                      {/* Product Mockup */}
-                      <img
-                        src={getMockupUrl(
-                          formState.ProductType,
-                          formState.ProductColor,
-                          formState.ProductView
-                        )}
-                        alt="Product Mockup"
-                        className="w-full h-full object-contain"
-                      />
+                                          onMouseMove={handleDesignDrag}
+                                          onMouseDown={() =>
+                                              setIsDragging(true)
+                                          }
+                                          onMouseUp={() => setIsDragging(false)}
+                                          onMouseLeave={() =>
+                                              setIsDragging(false)
+                                          }
+                                      >
+                                          {/* Product Mockup */}
+                                          <img
+                                              src={getMockupUrl(
+                                                  formState.ProductType,
+                                                  formState.ProductColor,
+                                                  formState.ProductView,
+                                              )}
+                                              alt="Product Mockup"
+                                              className="w-full h-full object-contain"
+                                          />
 
-                      {/* Design Overlay */}
-                      <div
-                        ref={designPreviewRef}
-                        className={`design-preview absolute ${
-                          isScaling ? "scaling" : ""
-                        } ${!isDesignVisible ? "outside" : ""}`}
-                        style={{
-                          ...DesignScalingManager.getConsistentContainerStyles(
-                            formState.DesignPosition,
-                            formState.DesignScale,
-                            formState.ProductColor,
-                            formState.ProductType,
-                            formState.ProductView
-                          ),
-                          cursor: isDragging ? "grabbing" : "grab",
-                        }}
-                      >
-                        <img
-                          src={designFile.preview}
-                          alt="Design Preview"
-                          className="w-full h-full object-contain"
-                          draggable="false"
-                        />
-                      </div>
+                                          {/* Design Overlay */}
+                                          <div
+                                              ref={designPreviewRef}
+                                              className={`design-preview absolute ${
+                                                  isScaling ? "scaling" : ""
+                                              } ${!isDesignVisible ? "outside" : ""}`}
+                                              style={{
+                                                  ...DesignScalingManager.getConsistentContainerStyles(
+                                                      formState.DesignPosition,
+                                                      formState.DesignScale,
+                                                      formState.ProductColor,
+                                                      formState.ProductType,
+                                                      formState.ProductView,
+                                                  ),
+                                                  cursor: isDragging
+                                                      ? "grabbing"
+                                                      : "grab",
+                                              }}
+                                          >
+                                              <img
+                                                  src={designFile.preview}
+                                                  alt="Design Preview"
+                                                  className="w-full h-full object-contain"
+                                                  draggable="false"
+                                              />
+                                          </div>
 
-                      {showGuides && (
-                        <BoundaryGuides productType={formState.ProductType} />
-                      )}
-                      {/* Design Guides */}
-                      {showGuides && (
-                        <div className="absolute inset-0 pointer-events-none">
-                          <div
-                            className="border-2 border-blue-500 border-dashed opacity-30"
-                            style={{
-                              position: "absolute",
-                              top: `${
-                                BOUNDARY_LIMITS[formState.ProductType].top
-                              }%`,
-                              left: `${
-                                BOUNDARY_LIMITS[formState.ProductType].left
-                              }%`,
-                              right: `${
-                                100 -
-                                BOUNDARY_LIMITS[formState.ProductType].right
-                              }%`,
-                              bottom: `${
-                                100 -
-                                BOUNDARY_LIMITS[formState.ProductType].bottom
-                              }%`,
-                            }}
-                          />
-                        </div>
-                      )}
-                    </div>
+                                          {showGuides && (
+                                              <BoundaryGuides
+                                                  productType={
+                                                      formState.ProductType
+                                                  }
+                                              />
+                                          )}
+                                          {/* Design Guides */}
+                                          {showGuides && (
+                                              <div className="absolute inset-0 pointer-events-none">
+                                                  <div
+                                                      className="border-2 border-blue-500 border-dashed opacity-30"
+                                                      style={{
+                                                          position: "absolute",
+                                                          top: `${
+                                                              BOUNDARY_LIMITS[
+                                                                  formState
+                                                                      .ProductType
+                                                              ].top
+                                                          }%`,
+                                                          left: `${
+                                                              BOUNDARY_LIMITS[
+                                                                  formState
+                                                                      .ProductType
+                                                              ].left
+                                                          }%`,
+                                                          right: `${
+                                                              100 -
+                                                              BOUNDARY_LIMITS[
+                                                                  formState
+                                                                      .ProductType
+                                                              ].right
+                                                          }%`,
+                                                          bottom: `${
+                                                              100 -
+                                                              BOUNDARY_LIMITS[
+                                                                  formState
+                                                                      .ProductType
+                                                              ].bottom
+                                                          }%`,
+                                                      }}
+                                                  />
+                                              </div>
+                                          )}
+                                      </div>
 
-                    {/* Design Controls */}
-                    <div className="mt-4 space-y-4">
-                      <ScaleControl
-                        scale={formState.DesignScale}
-                        onChange={handleScaleChange}
-                        disabled={isSubmitting}
-                      />
+                                      {/* Design Controls */}
+                                      <div className="mt-4 space-y-4">
+                                          <ScaleControl
+                                              scale={formState.DesignScale}
+                                              onChange={handleScaleChange}
+                                              disabled={isSubmitting}
+                                          />
 
-                      <div className="flex flex-wrap justify-center gap-4">
-                        <button
-                          type="button"
-                          onClick={() => setShowGuides(!showGuides)}
-                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white 
-                            border border-gray-300 rounded-md hover:bg-gray-50 
+                                          <div className="flex flex-wrap justify-center gap-4">
+                                              <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                      setShowGuides(!showGuides)
+                                                  }
+                                                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white
+                            border border-gray-300 rounded-md hover:bg-gray-50
                             transition-colors duration-200 flex items-center gap-2"
-                        >
-                          <BiRuler />
-                          {showGuides ? "Hide Guides" : "Show Guides"}
-                        </button>
+                                              >
+                                                  <BiRuler />
+                                                  {showGuides
+                                                      ? "Hide Guides"
+                                                      : "Show Guides"}
+                                              </button>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormState((prev) => ({
-                              ...prev,
-                              ProductView:
-                                prev.ProductView === "front" ? "back" : "front",
-                            }))
-                          }
-                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 
+                                              <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                      setFormState((prev) => ({
+                                                          ...prev,
+                                                          ProductView:
+                                                              prev.ProductView ===
+                                                              "front"
+                                                                  ? "back"
+                                                                  : "front",
+                                                      }))
+                                                  }
+                                                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600
                             rounded-md hover:bg-blue-700 transition-colors duration-200
                             flex items-center gap-2"
-                          disabled={isSubmitting}
-                        >
-                          <BiMove />
-                          Switch to{" "}
-                          {formState.ProductView === "front" ? "Back" : "Front"}
-                        </button>
+                                                  disabled={isSubmitting}
+                                              >
+                                                  <BiMove />
+                                                  Switch to{" "}
+                                                  {formState.ProductView ===
+                                                  "front"
+                                                      ? "Back"
+                                                      : "Front"}
+                                              </button>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setDesignFile({
-                              preview: null,
-                              file: null,
-                              originalFile: null,
-                              compressionStats: null,
-                              error: null,
-                            });
-                            setDesignQualityScore(null);
-                            setShowRequirements(true);
-                          }}
-                          className="px-4 py-2 text-sm font-medium text-red-600 bg-white 
-                            border border-red-300 rounded-md hover:bg-red-50 
+                                              <button
+                                                  type="button"
+                                                  onClick={() => {
+                                                      setDesignFile({
+                                                          preview: null,
+                                                          file: null,
+                                                          originalFile: null,
+                                                          compressionStats:
+                                                              null,
+                                                          error: null,
+                                                      });
+                                                      setDesignQualityScore(
+                                                          null,
+                                                      );
+                                                      setShowRequirements(true);
+                                                  }}
+                                                  className="px-4 py-2 text-sm font-medium text-red-600 bg-white
+                            border border-red-300 rounded-md hover:bg-red-50
                             transition-colors duration-200 flex items-center gap-2"
-                          disabled={isSubmitting}
-                        >
-                          <AiOutlineDelete />
-                          Remove Design
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                                                  disabled={isSubmitting}
+                                              >
+                                                  <AiOutlineDelete />
+                                                  Remove Design
+                                              </button>
+                                          </div>
+                                      </div>
+                                  </div>
 
-                  {/* Design Quality Score */}
-                  {designQualityScore && (
-                    <div className="space-y-4 bg-white p-4 rounded-lg shadow-md">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-800">
-                          Design Quality Score
-                        </h3>
-                        <span
-                          className={`text-lg font-bold ${
-                            designQualityScore.score > 80
-                              ? "text-green-500"
-                              : designQualityScore.score > 60
-                              ? "text-yellow-500"
-                              : "text-red-500"
-                          }`}
-                        >
-                          {designQualityScore.score}/100
-                        </span>
+                                  {/* Design Quality Score */}
+                                  {designQualityScore && (
+                                      <div className="space-y-4 bg-white p-4 rounded-lg shadow-md">
+                                          <div className="flex items-center justify-between">
+                                              <h3 className="font-semibold text-gray-800">
+                                                  Design Quality Score
+                                              </h3>
+                                              <span
+                                                  className={`text-lg font-bold ${
+                                                      designQualityScore.score >
+                                                      80
+                                                          ? "text-green-500"
+                                                          : designQualityScore.score >
+                                                              60
+                                                            ? "text-yellow-500"
+                                                            : "text-red-500"
+                                                  }`}
+                                              >
+                                                  {designQualityScore.score}/100
+                                              </span>
+                                          </div>
+
+                                          {/* Quality Feedback Messages */}
+                                          <div className="space-y-2">
+                                              {designQualityScore.feedback.map(
+                                                  (item, index) => (
+                                                      <div
+                                                          key={index}
+                                                          className={`text-sm p-2 rounded flex items-start ${
+                                                              item.type ===
+                                                              "error"
+                                                                  ? "bg-red-50 text-red-700"
+                                                                  : item.type ===
+                                                                      "warning"
+                                                                    ? "bg-yellow-50 text-yellow-700"
+                                                                    : "bg-blue-50 text-blue-700"
+                                                          }`}
+                                                      >
+                                                          <AiOutlineInfoCircle className="mt-0.5 mr-2 flex-shrink-0" />
+                                                          <span>
+                                                              {item.message}
+                                                          </span>
+                                                      </div>
+                                                  ),
+                                              )}
+                                          </div>
+
+                                          {/* Technical Details */}
+                                          <div className="grid grid-cols-2 gap-4 text-sm">
+                                              <div className="bg-gray-50 p-2 rounded">
+                                                  <span className="text-gray-600">
+                                                      DPI:{" "}
+                                                  </span>
+                                                  <span className="font-medium">
+                                                      {Math.round(
+                                                          designQualityScore
+                                                              .details.dpi,
+                                                      )}
+                                                  </span>
+                                              </div>
+                                              <div className="bg-gray-50 p-2 rounded">
+                                                  <span className="text-gray-600">
+                                                      size:{" "}
+                                                  </span>
+                                                  <span className="font-medium">
+                                                      {(
+                                                          designQualityScore
+                                                              .details.size /
+                                                          1024
+                                                      ).toFixed(2)}
+                                                      KB
+                                                  </span>
+                                              </div>
+                                              <div className="bg-gray-50 p-2 rounded">
+                                                  <span className="text-gray-600">
+                                                      Dimensions:{" "}
+                                                  </span>
+                                                  <span className="font-medium">
+                                                      {
+                                                          designQualityScore
+                                                              .details
+                                                              .dimensions
+                                                      }
+                                                  </span>
+                                              </div>
+                                              <div className="bg-gray-50 p-2 rounded">
+                                                  <span className="text-gray-600">
+                                                      Transparency:{" "}
+                                                  </span>
+                                                  <span className="font-medium">
+                                                      {designQualityScore
+                                                          .details.transparency
+                                                          ? "Yes"
+                                                          : "No"}
+                                                  </span>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  )}
+                              </div>
+                          )}
                       </div>
 
-                      {/* Quality Feedback Messages */}
-                      <div className="space-y-2">
-                        {designQualityScore.feedback.map((item, index) => (
-                          <div
-                            key={index}
-                            className={`text-sm p-2 rounded flex items-start ${
-                              item.type === "error"
-                                ? "bg-red-50 text-red-700"
-                                : item.type === "warning"
-                                ? "bg-yellow-50 text-yellow-700"
-                                : "bg-blue-50 text-blue-700"
-                            }`}
-                          >
-                            <AiOutlineInfoCircle className="mt-0.5 mr-2 flex-shrink-0" />
-                            <span>{item.message}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Technical Details */}
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="bg-gray-50 p-2 rounded">
-                          <span className="text-gray-600">DPI: </span>
-                          <span className="font-medium">
-                            {Math.round(designQualityScore.details.dpi)}
-                          </span>
-                        </div>
-                        <div className="bg-gray-50 p-2 rounded">
-                          <span className="text-gray-600">Size: </span>
-                          <span className="font-medium">
-                            {(designQualityScore.details.Size / 1024).toFixed(
-                              2
-                            )}
-                            KB
-                          </span>
-                        </div>
-                        <div className="bg-gray-50 p-2 rounded">
-                          <span className="text-gray-600">Dimensions: </span>
-                          <span className="font-medium">
-                            {designQualityScore.details.dimensions}
-                          </span>
-                        </div>
-                        <div className="bg-gray-50 p-2 rounded">
-                          <span className="text-gray-600">Transparency: </span>
-                          <span className="font-medium">
-                            {designQualityScore.details.transparency
-                              ? "Yes"
-                              : "No"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Submit Buttons */}
-            <div className="flex justify-end space-x-4 mt-6">
-              <button
-                type="button"
-                onClick={() => navigate("/dashboard")}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white 
-                  border border-gray-300 rounded-md hover:bg-gray-50 
+                      {/* Submit Buttons */}
+                      <div className="flex justify-end space-x-4 mt-6">
+                          <button
+                              type="button"
+                              onClick={() => navigate("/dashboard")}
+                              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white
+                  border border-gray-300 rounded-md hover:bg-gray-50
                   transition-colors duration-200"
-                disabled={isSubmitting}
-              >
-                Cancel
-              </button>
+                              disabled={isSubmitting}
+                          >
+                              Cancel
+                          </button>
 
-              <button
-                type="submit"
-                disabled={isSubmitting || !designFile.file}
-                className={`px-6 py-2 text-sm font-medium text-white rounded-md 
+                          <button
+                              type="submit"
+                              disabled={isSubmitting || !designFile.file}
+                              className={`px-6 py-2 text-sm font-medium text-white rounded-md
                   transition-all duration-200 ${
-                    isSubmitting || !designFile.file
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700"
+                      isSubmitting || !designFile.file
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-blue-600 hover:bg-blue-700"
                   }`}
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center">
-                    <div
-                      className="animate-spin mr-2 h-4 w-4 border-2 border-white 
+                          >
+                              {isSubmitting ? (
+                                  <div className="flex items-center">
+                                      <div
+                                          className="animate-spin mr-2 h-4 w-4 border-2 border-white
                       border-t-transparent rounded-full"
-                    />
-                    Creating Product...
-                  </div>
-                ) : (
-                  "Create Product"
-                )}
-              </button>
-            </div>
-          </form>
-        )}
+                                      />
+                                      Creating Product...
+                                  </div>
+                              ) : (
+                                  "Create Product"
+                              )}
+                          </button>
+                      </div>
+                  </form>
+              )}
+          </div>
       </div>
-    </div>
   );
 };
 

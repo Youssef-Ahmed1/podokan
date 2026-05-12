@@ -42,76 +42,76 @@ const AllEvents = () => {
   );
 
   const columns = [
-    { field: "id", headerName: "Event Id", width: 150, flex: 0.7 },
-    { field: "name", headerName: "Name", minWidth: 180, flex: 1.4 },
-    {
-      field: "price",
-      headerName: "Price",
-      width: 100,
-      flex: 0.6,
-      valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
-    },
-    {
-      field: "Stock",
-      headerName: "Stock",
-      type: "number",
-      width: 80,
-      flex: 0.5,
-    },
-    {
-      field: "sold",
-      headerName: "Sold",
-      type: "number",
-      width: 100,
-      flex: 0.6,
-    },
-    {
-      field: "startDate",
-      headerName: "Start Date",
-      width: 120,
-      flex: 0.6,
-      valueFormatter: (v) => (v ? format(new Date(v), "PP") : "N/A"),
-    },
-    {
-      field: "endDate",
-      headerName: "End Date",
-      width: 120,
-      flex: 0.6,
-      valueFormatter: (v) => (v ? format(new Date(v), "PP") : "N/A"),
-    },
-    {
-      field: "Preview",
-      headerName: "Preview",
-      width: 80,
-      sortable: false,
-      align: "center",
-      renderCell: (params) => (
-        <IconButton
-          component={Link}
-          to={`/product/${params.row.id}?isEvent=true`}
-          Size="small"
-          title="Preview"
-        >
-          <AiOutlineEye className="text-blue-600" />
-        </IconButton>
-      ),
-    },
-    {
-      field: "Delete",
-      headerName: "Delete",
-      width: 80,
-      sortable: false,
-      align: "center",
-      renderCell: (params) => (
-        <IconButton
-          onClick={() => handleDelete(params.id)}
-          Size="small"
-          title="Delete"
-        >
-          <AiOutlineDelete className="text-red-600" />
-        </IconButton>
-      ),
-    },
+      { field: "id", headerName: "Event Id", width: 150, flex: 0.7 },
+      { field: "name", headerName: "Name", minWidth: 180, flex: 1.4 },
+      {
+          field: "price",
+          headerName: "Price",
+          width: 100,
+          flex: 0.6,
+          valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
+      },
+      {
+          field: "Stock",
+          headerName: "Stock",
+          type: "number",
+          width: 80,
+          flex: 0.5,
+      },
+      {
+          field: "sold",
+          headerName: "Sold",
+          type: "number",
+          width: 100,
+          flex: 0.6,
+      },
+      {
+          field: "startDate",
+          headerName: "Start Date",
+          width: 120,
+          flex: 0.6,
+          valueFormatter: (v) => (v ? format(new Date(v), "PP") : "N/A"),
+      },
+      {
+          field: "endDate",
+          headerName: "End Date",
+          width: 120,
+          flex: 0.6,
+          valueFormatter: (v) => (v ? format(new Date(v), "PP") : "N/A"),
+      },
+      {
+          field: "Preview",
+          headerName: "Preview",
+          width: 80,
+          sortable: false,
+          align: "center",
+          renderCell: (params) => (
+              <IconButton
+                  component={Link}
+                  to={`/product/${params.row.id}?isEvent=true`}
+                  size="small"
+                  title="Preview"
+              >
+                  <AiOutlineEye className="text-blue-600" />
+              </IconButton>
+          ),
+      },
+      {
+          field: "Delete",
+          headerName: "Delete",
+          width: 80,
+          sortable: false,
+          align: "center",
+          renderCell: (params) => (
+              <IconButton
+                  onClick={() => handleDelete(params.id)}
+                  size="small"
+                  title="Delete"
+              >
+                  <AiOutlineDelete className="text-red-600" />
+              </IconButton>
+          ),
+      },
   ];
 
   const rows =

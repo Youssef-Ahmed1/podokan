@@ -5,22 +5,12 @@ import { server } from "../../server";
 
 axios.defaults.withCredentials = true;
 const getAuthHeaders = (isMultipart = false) => {
-  const token = localStorage.getItem('token');
-  const sellerToken = localStorage.getItem('seller_token');
-  
-  const headers = {
-    'Accept': 'application/json',
-    ...(isMultipart ? {} : {'Content-Type': 'application/json'})
-  };
+    const headers = {
+        Accept: "application/json",
+        ...(isMultipart ? {} : { "Content-Type": "application/json" }),
+    };
 
-  if (sellerToken) {
-    headers['Seller-Authorization'] = `Bearer ${sellerToken}`;
-  }
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  return headers;
+    return headers;
 };
 
 // Create product
@@ -48,9 +38,9 @@ export const createProduct = (formData) => async (dispatch) => {
       config
     );
 
-    dispatch({ 
-      type: "productCreateSuccess", 
-      payload: data.product 
+    dispatch({
+        type: "productCreateSuccess",
+        payload: data.product,
     });
 
     return data;
@@ -60,12 +50,12 @@ export const createProduct = (formData) => async (dispatch) => {
       // Clear tokens on authentication failure
       localStorage.removeItem('token');
       localStorage.removeItem('seller_token');
-      
+
       dispatch({
         type: "productCreateFail",
         payload: "Session expired. Please login again"
       });
-      
+
       // You might want to dispatch an action to clear user/seller state
       dispatch({ type: "clearSellerData" });
     } else {
@@ -99,9 +89,9 @@ export const fetchPendingProducts = () => async (dispatch) => {
 
     console.log('Pending products response:', data);
 
-    dispatch({ 
-      type: "fetchPendingProductsSuccess", 
-      payload: data.products 
+    dispatch({
+        type: "fetchPendingProductsSuccess",
+        payload: data.products,
     });
   } catch (error) {
     console.error('Fetch pending products error:', {
@@ -109,7 +99,7 @@ export const fetchPendingProducts = () => async (dispatch) => {
       message: error.response?.data?.message,
       error: error.message
     });
-    
+
     dispatch({
       type: "fetchPendingProductsFail",
       payload: error.response?.data?.message || "Failed to fetch pending products"
@@ -146,9 +136,9 @@ export const approveRejectProduct = (productId, status, reason, productData) => 
       config
     );
 
-    dispatch({ 
-      type: "approveRejectProductSuccess",
-      payload: data
+    dispatch({
+        type: "approveRejectProductSuccess",
+        payload: data,
     });
 
     return data;
@@ -181,14 +171,14 @@ export const getAllProducts = (page = 1, limit = 20) => async (dispatch) => {
     // Handle the response with proper pagination
     const products = Array.isArray(data.products) ? data.products : [];
 
-    dispatch({ 
-      type: "getAllProductsSuccess", 
-      payload: {
-        products,
-        currentPage: data.currentPage || 1,
-        totalPages: data.totalPages || 1,
-        totalProducts: data.totalProducts || 0,
-      }
+    dispatch({
+        type: "getAllProductsSuccess",
+        payload: {
+            products,
+            currentPage: data.currentPage || 1,
+            totalPages: data.totalPages || 1,
+            totalProducts: data.totalProducts || 0,
+        },
     });
     dispatch({
       type: "updatePagination",
@@ -211,7 +201,7 @@ export const getAllProductsShop = (id) => async (dispatch) => {
     dispatch({ type: "getAllProductsShopRequest" });
 
     const { data } = await axios.get(`${server}/product/get-all-products-shop/${id}`);
-    
+
     const products = data.products.map(product => ({
       ...product,
       availableColors: product.availableColors || ['white']

@@ -274,7 +274,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 - **Why it matters:** A modified client can **skip PayPal** and still create paid orders. This is fraud and accounting risk.
 - **Fix direction:** Implement PayPal server SDK: verify `orderID` / capture, amount, and currency; store PayPal transaction IDs only from verified responses; handle webhooks for disputes.
 
-#### AUDIT-C04 — Stripe `/payment/process` is dead; client still calls it
+#### AUDIT-C04 — Stripe `/payment/process` is dead; client still calls it [RESOLVED]
 
 - **Severity:** Critical (broken revenue path) / High (confusion)
 - **Files:** `backend/controller/payment.js` (exported `router` with all routes commented out); `backend/app.js` (mounts `payment` at `/api/v2/payment`); `frontend/src/components/Payment/Payment.jsx` (`paymentHandler` → `axios.post(\`${server}/payment/process\`, paymentData)` while Stripe Elements confirmation is commented).
@@ -285,7 +285,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 #### AUDIT-C05 — PayPal client ID hardcoded in the SPA bundle //fixed
 
 - **Severity:** Critical (operational / secret hygiene). *Note:* PayPal client IDs are always exposed to browsers; the issue is **source control and environments**, not “hidden secret.”
-- **Files:** `frontend/src/components/Payment/Payment.jsx` (`PayPalScriptProvider` `options["client-id"]` literal string).
+- **Files:** `frontend/src/components/Payment/Payment.jsx` (`PayPalScriptProvider` `options["client-id"]` literal string). [RESOLVED]
 - **What is wrong:** Environment-specific identifiers are baked into source and git history instead of `REACT_APP_*` or build-time injection.
 - **Why it matters:** Harder **rotation**, harder **multi-env** (dev/staging/prod), and audit findings. Old commits retain identifiers.
 - **Fix direction:** `process.env.REACT_APP_PAYPAL_CLIENT_ID`; document PayPal dashboard allowed origins per environment.
@@ -420,7 +420,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 - **Why it matters:** Components may read stale key after dispatch to the other.
 - **Fix direction:** Single key; grep `state.products` vs `state.product`.
 
-#### AUDIT-M09 — Root-level `package.json` clutter
+#### AUDIT-M09 — Root-level `package.json` clutter [RESOLVED]
 
 - **Files:** `/home/user/podokan/package.json` (dependencies without workspace scripts).
 - **What is wrong:** Unclear install story; duplicates frontend libraries.
@@ -438,7 +438,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 - **What is wrong:** Huge JSON bodies accepted globally.
 - **Fix direction:** Lower default; per-route override for rare bulk imports.
 
-#### AUDIT-M12 — CORS allows missing `Origin`
+#### AUDIT-M12 — CORS allows missing `Origin` [RESOLVED]
 
 - **Files:** `backend/app.js` (`origin` callback allows `!origin`).
 - **What is wrong:** Non-browser clients bypass origin checks; interacts with credentialed cookies.
@@ -470,7 +470,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 - **Files:** `backend/controller/product.js` (two IIFEs creating `uploads/`).
 - **Fix direction:** Single init.
 
-#### AUDIT-M18 — Stale `README copy.md`
+#### AUDIT-M18 — Stale `README copy.md` [RESOLVED]
 
 - **Files:** `README copy.md` at repository root.
 - **Fix direction:** Delete or redirect to `README.md`.
@@ -525,7 +525,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 
 ### Low — naming, UX copy, consistency
 
-#### AUDIT-L01 — Coupon naming typo propagated
+#### AUDIT-L01 — Coupon naming typo propagated [RESOLVED]
 
 - **Files:** `backend/model/couponCode.js`; `backend/controller/couponCode.js`; `backend/app.js` (mounts `./controller/couponCode` as `coupon`); `frontend/src/App.js` (route `/dashboard-coupons`, component `ShopAllcoupons`); `frontend/src/pages/Shop/ShopAllcoupons.jsx`; `frontend/src/components/Shop/Layout/DashboardSideBar.jsx` (nav link).
 - **What is wrong:** Persistent **“coupon”** spelling in filenames, models, and URLs.
@@ -536,12 +536,12 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 - **Files:** `frontend/src/redux/actions/cart.js` (`export const addTocart`); importers: `frontend/src/components/cart/Cart.jsx`, `frontend/src/components/Route/ProductDetailsCard/ProductDetailsCard.jsx`, `frontend/src/components/Wishlist/Wishlist.jsx`, `frontend/src/components/Events/EventCard.jsx`, `frontend/src/components/shared/ProductDisplay.jsx`.
 - **Fix direction:** Export `addToCart` and alias `addTocart` for compatibility during migration.
 
-#### AUDIT-L03 — PayPal `createOrder` hardcoded description
+#### AUDIT-L03 — PayPal `createOrder` hardcoded description [RESOLVED]
 
 - **Files:** `frontend/src/components/Payment/Payment.jsx` (`purchase_units` → `description: "Sunflower"`).
 - **Fix direction:** Use order title, shop name, or SKU-derived text.
 
-#### AUDIT-L04 — Currency labeling inconsistency (EGP vs USD)
+#### AUDIT-L04 — Currency labeling inconsistency (EGP vs USD) [RESOLVED]
 
 - **Files:** `frontend/src/components/Payment/Payment.jsx` (PayPal `currency_code: "USD"` vs `CartData` labels using `EGP`); `backend/controller/order.js` (Egypt-only shipping; currency not enforced in reviewed excerpt); `backend/model/order.js` (verify fields if currency stored).
 - **Fix direction:** Single currency on `Order`; align PayPal and UI.
@@ -551,7 +551,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 - **Files:** `backend/utils/authUtils.js` (opening comment: “Example Structure - Replace with your actual implementation”).
 - **Fix direction:** Accurate module description.
 
-#### AUDIT-L06 — `CartData` discount line formatting
+#### AUDIT-L06 — `CartData` discount line formatting [RESOLVED]
 
 - **Files:** `frontend/src/components/Payment/Payment.jsx` (`CartData` — discount row mixes `EGP` with conditional `"E£"`).
 - **Fix direction:** One money formatter.
@@ -571,7 +571,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 - **Risk:** Fields can **drift** if one update path omits the other.
 - **Fix direction:** Single canonical field or `pre('save')` sync.
 
-#### AUDIT-I03 — Default `paymentInfo` when body omits it
+#### AUDIT-I03 — Default `paymentInfo` when body omits it [RESOLVED]
 
 - **Files:** `backend/controller/order.js` (`paymentInfo: paymentInfo || { type: "Cash On Delivery", … }`).
 - **Note:** Acceptable if every caller is authenticated and COD is intentional; dangerous if any unauthenticated path ever reuses this shape (current route uses `isAuthenticated` in the audited handler).

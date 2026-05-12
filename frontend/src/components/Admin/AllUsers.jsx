@@ -55,33 +55,33 @@ const AllUsers = () => {
   }, [selectedUserId, dispatch]);
 
   const columns = [
-    { field: "id", headerName: "User ID", width: 220 },
-    { field: "name", headerName: "Name", minWidth: 150, flex: 1 },
-    { field: "email", headerName: "Email", minWidth: 180, flex: 1 },
-    { field: "role", headerName: "Role", width: 100 },
-    {
-      field: "joinedAt",
-      headerName: "Joined",
-      width: 120,
-      valueFormatter: (v) => (v ? format(new Date(v), "PP") : ""),
-    },
-    {
-      field: "delete",
-      headerName: "Delete",
-      width: 100,
-      sortable: false,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <IconButton
-          onClick={() => handleDeleteClick(params.id)}
-          Size="small"
-          title="Delete User"
-        >
-          <AiOutlineDelete className="text-red-600" />
-        </IconButton>
-      ),
-    },
+      { field: "id", headerName: "User ID", width: 220 },
+      { field: "name", headerName: "Name", minWidth: 150, flex: 1 },
+      { field: "email", headerName: "Email", minWidth: 180, flex: 1 },
+      { field: "role", headerName: "Role", width: 100 },
+      {
+          field: "joinedAt",
+          headerName: "Joined",
+          width: 120,
+          valueFormatter: (v) => (v ? format(new Date(v), "PP") : ""),
+      },
+      {
+          field: "delete",
+          headerName: "Delete",
+          width: 100,
+          sortable: false,
+          align: "center",
+          headerAlign: "center",
+          renderCell: (params) => (
+              <IconButton
+                  onClick={() => handleDeleteClick(params.id)}
+                  size="small"
+                  title="Delete User"
+              >
+                  <AiOutlineDelete className="text-red-600" />
+              </IconButton>
+          ),
+      },
   ];
 
   const rows =

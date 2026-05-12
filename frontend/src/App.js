@@ -100,19 +100,7 @@ axios.interceptors.request.use(
         delete config.headers["Seller-Authorization"];
 
         // Apply correct token based on route type priority (Seller > User)
-        // Admin routes use the standard User token (assuming admin logs in as a user)
-        if (isSellerRequest && sellerToken) {
-            config.headers["Seller-Authorization"] = `Bearer ${sellerToken}`;
-            // console.log(`[Axios Req] Using Seller Token for: ${config.url}`);
-        } else if (userToken && !isSellerRequest) {
-            // Apply user token if it's not a seller-specific request OR if it's an admin request
-            config.headers["Authorization"] = `Bearer ${userToken}`;
-            // console.log(`[Axios Req] Using User Token for: ${config.url}`);
-        } else if (!userToken && !isSellerRequest) {
-            // console.log(`[Axios Req] No token available for non-seller route: ${config.url}`);
-        } else if (!sellerToken && isSellerRequest) {
-            // console.warn(`[Axios Req] Seller token missing for seller route: ${config.url}`);
-        }
+
 
         return config;
     },

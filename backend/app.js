@@ -9,38 +9,24 @@ const ErrorHandler = require("./middleware/error");
 const app = express();
 const limiter = require("./middleware/rateLimiter");
 // --- CORS Configuration ---
-const allowedOrigins = (
-    process.env.NODE_ENV === "development"
-        ? (
-              process.env.CORS_ORIGIN || // Use env variable first
-              "http://localhost:3000"
-          ) // Default includes both www and non-www
-              .split(",")
-              .map((origin) => origin.trim().replace(/\/$/, "")) // Normalize and remove trailing slash
-        : ["http://localhost:3000"]
-) // Development origins
-    .filter(Boolean); // Remove empty entries if any
-
-console.log("Allowed CORS Origins:", allowedOrigins); // Log allowed origins for verification
+const allowedOrigins = [
+    "http://localhost:3000", // Your React Local Server
+    process.env.CORS_ORIGIN, // Your future production URL from .env
+].filter(Boolean);
 
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests) OR from whitelisted origins
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn(`CORS Error: Origin '${origin}' not allowed.`);
-      // Pass an error to the callback for disallowed origins
-      callback(new Error(`Origin '${origin}' not permitted by CORS policy.`));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Seller-Authorization"], // Ensure these match frontend requests
-  exposedHeaders: ["Authorization", "Seller-Authorization"], // Allow frontend to read these response headers
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(
+                new Error(`Origin '${origin}' not permitted by CORS policy.`),
+            );
+        }
+    },
+    credentials: true, // Crucial for our new HttpOnly Cookies!
 };
 app.use(cors(corsOptions));
-
 // --- Security Middleware ---
 app.use(
     helmet({

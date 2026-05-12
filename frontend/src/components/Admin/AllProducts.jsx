@@ -86,95 +86,99 @@ const AllProducts = () => {
   );
 
   const columns = [
-    { field: "id", headerName: "Product ID", width: 220 },
-    {
-      field: "name",
-      headerName: "Name",
-      minWidth: 180,
-      flex: 1,
-      renderCell: (p) => (
-        <div className="flex items-center gap-2">
-          <img
-            src={p.row.designImage}
-            alt={p.value}
-            className="w-10 h-10 object-contain rounded"
-          />
-          <span>{p.value}</span>
-        </div>
-      ),
-    },
-    {
-      field: "price",
-      headerName: "Price",
-      width: 100,
-      type: "number",
-      valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
-    },
-    { field: "stock", headerName: "Stock", type: "number", width: 80 }, // Assuming 'stock' field exists
-    { field: "sold", headerName: "Sold", type: "number", width: 80 },
-    {
-      field: "status",
-      headerName: "Status",
-      width: 100,
-      renderCell: (p) => (
-        <span
-          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-            p.value === "pending"
-              ? "bg-yellow-100 text-yellow-800"
-              : p.value === "public"
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
-          {p.value}
-        </span>
-      ),
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 150,
-      sortable: false,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <div className="flex gap-1 items-center">
-          <IconButton
-            component={Link}
-            to={`/product/${params.row.id}`}
-            Size="small"
-            title="Preview"
-          >
-            <AiOutlineEye className="text-blue-600" />
-          </IconButton>
-          {params.row.status === "pending" && (
-            <>
-              <IconButton
-                onClick={() => handleApproveReject(params.row.id, "public")}
-                Size="small"
-                title="Approve"
+      { field: "id", headerName: "Product ID", width: 220 },
+      {
+          field: "name",
+          headerName: "Name",
+          minWidth: 180,
+          flex: 1,
+          renderCell: (p) => (
+              <div className="flex items-center gap-2">
+                  <img
+                      src={p.row.designImage}
+                      alt={p.value}
+                      className="w-10 h-10 object-contain rounded"
+                  />
+                  <span>{p.value}</span>
+              </div>
+          ),
+      },
+      {
+          field: "price",
+          headerName: "Price",
+          width: 100,
+          type: "number",
+          valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
+      },
+      { field: "stock", headerName: "Stock", type: "number", width: 80 }, // Assuming 'stock' field exists
+      { field: "sold", headerName: "Sold", type: "number", width: 80 },
+      {
+          field: "status",
+          headerName: "Status",
+          width: 100,
+          renderCell: (p) => (
+              <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      p.value === "pending"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : p.value === "public"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                  }`}
               >
-                <CheckCircle className="text-green-600" />
-              </IconButton>
-              <IconButton
-                onClick={() => handleApproveReject(params.row.id, "rejected")}
-                Size="small"
-                title="Reject"
-              >
-                <XCircle className="text-orange-600" />
-              </IconButton>
-            </>
-          )}
-          <IconButton
-            onClick={() => handleDelete(params.row.id)}
-            Size="small"
-            title="Delete"
-          >
-            <AiOutlineDelete className="text-red-600" />
-          </IconButton>
-        </div>
-      ),
-    },
+                  {p.value}
+              </span>
+          ),
+      },
+      {
+          field: "actions",
+          headerName: "Actions",
+          width: 150,
+          sortable: false,
+          align: "center",
+          headerAlign: "center",
+          renderCell: (params) => (
+              <div className="flex gap-1 items-center">
+                  <IconButton
+                      component={Link}
+                      to={`/product/${params.row.id}`}
+                      size="small"
+                      title="Preview"
+                  >
+                      <AiOutlineEye className="text-blue-600" />
+                  </IconButton>
+                  {params.row.status === "pending" && (
+                      <>
+                          <IconButton
+                              onClick={() =>
+                                  handleApproveReject(params.row.id, "public")
+                              }
+                              size="small"
+                              title="Approve"
+                          >
+                              <CheckCircle className="text-green-600" />
+                          </IconButton>
+                          <IconButton
+                              onClick={() =>
+                                  handleApproveReject(params.row.id, "rejected")
+                              }
+                              size="small"
+                              title="Reject"
+                          >
+                              <XCircle className="text-orange-600" />
+                          </IconButton>
+                      </>
+                  )}
+                  <IconButton
+                      onClick={() => handleDelete(params.row.id)}
+                      size="small"
+                      title="Delete"
+                  >
+                      <AiOutlineDelete className="text-red-600" />
+                  </IconButton>
+              </div>
+          ),
+      },
   ];
 
   const rows =

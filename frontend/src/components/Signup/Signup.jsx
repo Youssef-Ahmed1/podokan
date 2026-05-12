@@ -19,43 +19,43 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
-  
+
     try {
       setLoading(true);
-  
+
       if (!name || !email || !password || !avatar) {
         toast.error("Please fill all fields");
         setLoading(false);
         return;
       }
-  
+
       const config = {
         headers: {
           'Content-Type': 'application/json',
         },
         withCredentials: true
       };
-  
+
       const userData = {
         name,
         email,
         password,
         avatar
       };
-  
+
       const { data } = await axios.post(
         `${server}/user/create-user`,
         userData,
         config
       );
-  
+
       if (data.success) {
         toast.success(data.message);
         setName("");
         setEmail("");
         setPassword("");
         setAvatar(null);
-        
+
         // Wait for 2 seconds before redirecting
         setTimeout(() => {
           navigate("/login");
@@ -71,12 +71,12 @@ const Signup = () => {
 const handleFileInput = (e) => {
   const file = e.target.files[0];
   if (file) {
-    if (file.Size > 10 * 1024 * 1024) {
-      // MB limit
-      toast.error("File Size should be less than 1MB");
-      return;
+    if (file.size > 10 * 1024 * 1024) {
+        // MB limit
+        toast.error("File size should be less than 1MB");
+        return;
     }
-    
+
     const reader = new FileReader();
     reader.onload = () => {
       if (reader.readyState === 2) {

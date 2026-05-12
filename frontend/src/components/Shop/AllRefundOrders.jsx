@@ -31,21 +31,24 @@ function CustomLoadingOverlay() {
 }
 function CustomNoRowsOverlay({ message = "No data available." }) {
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100%",
-        p: 2,
-      }}
-    >
-      <Package Size={48} style={{ color: "#9ca3af", marginBottom: "1rem" }} />
-      <Typography variant="body1" color="textSecondary">
-        {message}
-      </Typography>
-    </Box>
+      <Box
+          sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              p: 2,
+          }}
+      >
+          <Package
+              size={48}
+              style={{ color: "#9ca3af", marginBottom: "1rem" }}
+          />
+          <Typography variant="body1" color="textSecondary">
+              {message}
+          </Typography>
+      </Box>
   );
 }
 // --- End Custom Overlays ---
@@ -93,81 +96,81 @@ const AllRefundOrders = () => {
   );
 
   const columns = useMemo(
-    () => [
-      {
-        field: "id",
-        headerName: "Order ID",
-        width: 180,
-        renderCell: (p) => `#${p.value.slice(-8)}`, // Show last 8 chars
-      },
-      {
-        field: "status",
-        headerName: "Status",
-        width: 180,
-        renderCell: (
-          p // Styling for refund statuses
-        ) => (
-          <span
-            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-              p.value === "Refund Approved"
-                ? "bg-green-100 text-green-800"
-                : p.value === "Refund Rejected"
-                ? "bg-red-100 text-red-800"
-                : p.value === "Processing Refund"
-                ? "bg-yellow-100 text-yellow-800"
-                : "bg-gray-100 text-gray-800" // Fallback
-            }`}
-          >
-            {p.value}
-          </span>
-        ),
-      },
-      {
-        field: "itemsQty",
-        headerName: "Items",
-        type: "number",
-        width: 80,
-        align: "center",
-        headerAlign: "center",
-        valueGetter: (value, row) => row.cart?.length || 0, // Calculate items from cart
-      },
-      {
-        field: "total",
-        headerName: "Total",
-        type: "number",
-        width: 130,
-        align: "right",
-        headerAlign: "right",
-        valueFormatter: (value) => `EGP ${Number(value || 0).toFixed(2)}`,
-      },
-      {
-        field: "orderDate",
-        headerName: "Date",
-        width: 120,
-        type: "date",
-        valueGetter: (value) => (value ? new Date(value) : null),
-        renderCell: (p) => (p.value ? format(p.value, "PP") : "N/A"),
-      },
-      {
-        field: "actions",
-        headerName: "Details",
-        width: 100,
-        sortable: false,
-        align: "center",
-        headerAlign: "center",
-        renderCell: (params) => (
-          <IconButton
-            component={Link}
-            to={`/order/${params.id}`}
-            Size="small"
-            title="View Order Details"
-          >
-            <Eye className="text-blue-600 hover:text-blue-800" />
-          </IconButton>
-        ),
-      },
-    ],
-    []
+      () => [
+          {
+              field: "id",
+              headerName: "Order ID",
+              width: 180,
+              renderCell: (p) => `#${p.value.slice(-8)}`, // Show last 8 chars
+          },
+          {
+              field: "status",
+              headerName: "Status",
+              width: 180,
+              renderCell: (
+                  p, // Styling for refund statuses
+              ) => (
+                  <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          p.value === "Refund Approved"
+                              ? "bg-green-100 text-green-800"
+                              : p.value === "Refund Rejected"
+                                ? "bg-red-100 text-red-800"
+                                : p.value === "Processing Refund"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-gray-100 text-gray-800" // Fallback
+                      }`}
+                  >
+                      {p.value}
+                  </span>
+              ),
+          },
+          {
+              field: "itemsQty",
+              headerName: "Items",
+              type: "number",
+              width: 80,
+              align: "center",
+              headerAlign: "center",
+              valueGetter: (value, row) => row.cart?.length || 0, // Calculate items from cart
+          },
+          {
+              field: "total",
+              headerName: "Total",
+              type: "number",
+              width: 130,
+              align: "right",
+              headerAlign: "right",
+              valueFormatter: (value) => `EGP ${Number(value || 0).toFixed(2)}`,
+          },
+          {
+              field: "orderDate",
+              headerName: "Date",
+              width: 120,
+              type: "date",
+              valueGetter: (value) => (value ? new Date(value) : null),
+              renderCell: (p) => (p.value ? format(p.value, "PP") : "N/A"),
+          },
+          {
+              field: "actions",
+              headerName: "Details",
+              width: 100,
+              sortable: false,
+              align: "center",
+              headerAlign: "center",
+              renderCell: (params) => (
+                  <IconButton
+                      component={Link}
+                      to={`/order/${params.id}`}
+                      size="small"
+                      title="View Order Details"
+                  >
+                      <Eye className="text-blue-600 hover:text-blue-800" />
+                  </IconButton>
+              ),
+          },
+      ],
+      [],
   ); // Empty dependency array, columns are static
 
   const rows = useMemo(
@@ -189,47 +192,52 @@ const AllRefundOrders = () => {
   }
 
   return (
-    <div className="w-full mx-auto px-4 pt-1 mt-10">
-      <div className="bg-white shadow rounded-lg overflow-hidden border border-gray-200">
-        <div className="p-4 flex justify-between items-center border-b border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-800">
-            Refund Requests ({refundOrders.length})
-          </h2>
-          <button
-            onClick={fetchShopOrders}
-            disabled={isLoading}
-            className="p-1.5 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50 transition-colors"
-            title="Refresh Refunds"
-          >
-            <RefreshCw Size={16} className={isLoading ? "animate-spin" : ""} />
-          </button>
-        </div>
-        <Box sx={{ height: 600, width: "100%" }}>
-          <DataGrid
-            rows={rows}
-            columns={columns}
-            initialState={{
-              pagination: { paginationModel: { pageSize: 10 } },
-            }}
-            pageSizeOptions={[10, 25, 50]}
-            disableRowSelectionOnClick
-            autoHeight={false} // Use the Box height
-            loading={isLoading} // Show loading indicator on grid
-            slots={{
-              loadingOverlay: CustomLoadingOverlay,
-              noRowsOverlay: () => (
-                <CustomNoRowsOverlay message="No refund requests found." />
-              ),
-            }}
-            sx={{
-              border: "none", // Remove default border
-              "--DataGrid-overlayHeight": "300px", // Adjust overlay height if needed
-              "& .MuiDataGrid-columnHeaders": { bgcolor: "#f9fafb" },
-            }}
-          />
-        </Box>
+      <div className="w-full mx-auto px-4 pt-1 mt-10">
+          <div className="bg-white shadow rounded-lg overflow-hidden border border-gray-200">
+              <div className="p-4 flex justify-between items-center border-b border-gray-100">
+                  <h2 className="text-xl font-semibold text-gray-800">
+                      Refund Requests ({refundOrders.length})
+                  </h2>
+                  <button
+                      onClick={fetchShopOrders}
+                      disabled={isLoading}
+                      className="p-1.5 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50 transition-colors"
+                      title="Refresh Refunds"
+                  >
+                      <RefreshCw
+                          size={16}
+                          className={isLoading ? "animate-spin" : ""}
+                      />
+                  </button>
+              </div>
+              <Box sx={{ height: 600, width: "100%" }}>
+                  <DataGrid
+                      rows={rows}
+                      columns={columns}
+                      initialState={{
+                          pagination: { paginationModel: { pageSize: 10 } },
+                      }}
+                      pageSizeOptions={[10, 25, 50]}
+                      disableRowSelectionOnClick
+                      autoHeight={false} // Use the Box height
+                      loading={isLoading} // Show loading indicator on grid
+                      slots={{
+                          loadingOverlay: CustomLoadingOverlay,
+                          noRowsOverlay: () => (
+                              <CustomNoRowsOverlay message="No refund requests found." />
+                          ),
+                      }}
+                      sx={{
+                          border: "none", // Remove default border
+                          "--DataGrid-overlayHeight": "300px", // Adjust overlay height if needed
+                          "& .MuiDataGrid-columnHeaders": {
+                              bgcolor: "#f9fafb",
+                          },
+                      }}
+                  />
+              </Box>
+          </div>
       </div>
-    </div>
   );
 };
 

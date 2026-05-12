@@ -21,23 +21,11 @@ class AuthUtils {
   }
 
   static getTokenFromRequest(req, type = "user") {
-    const headerKey =
-      type === "seller" ? "seller-authorization" : "authorization";
-    const cookieKey = type === "seller" ? "seller_token" : "token";
-    let token = null;
 
-    const authHeader = req.headers[headerKey];
-    if (
-      authHeader &&
-      typeof authHeader === "string" &&
-      authHeader.startsWith("Bearer ")
-    ) {
-      token = authHeader.split(" ")[1];
-      if (token && token !== "null" && token !== "undefined") return token;
-    }
+    const cookieKey = type === "seller" ? "seller_token" : "token";
 
     if (req.cookies && req.cookies[cookieKey]) {
-      token = req.cookies[cookieKey];
+      let token = req.cookies[cookieKey];
       if (token && token !== "null" && token !== "undefined") return token;
     }
     return null;

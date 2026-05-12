@@ -52,33 +52,35 @@ export const addTocart = (data) => async (dispatch, getState) => {
     if (quantityToAdd <= 0) throw new Error("Quantity must be positive.");
 
     const cartItem = {
-      _id: data._id,
-      DesignTitle: data.DesignTitle || "Untitled Design",
-      designImage: {
-        public_id: data.designImage?.public_id || null,
-        url: data.designImage.url,
-      },
-      ProductType: data.ProductType || "Unknown Type",
-      ProductColor: data.selectedColor || data.ProductColor || "White",
-      size: data.selectedSize || data.size || "One Size",
-      quantity: quantityToAdd,
-      qty: quantityToAdd,
-      shopId: shopIdValue,
-      shop: shopInfoForCart,
-      price: parseFloat(
-        data.discountPrice != null
-          ? data.discountPrice
-          : data.originalPrice || 0
-      ),
-      discountPrice: parseFloat(data.discountPrice || 0),
-      originalPrice: parseFloat(data.originalPrice || 0),
-      productId: data.productId || data._id,
-      designSpecs: {
-        positionX: data.designSpecs?.positionX ?? data.DesignPosition?.x ?? 50,
-        positionY: data.designSpecs?.positionY ?? data.DesignPosition?.y ?? 50,
-        scale: data.designSpecs?.scale ?? data.DesignScale ?? 1,
-        rotation: data.designSpecs?.rotation ?? data.DesignRotation ?? 0,
-      },
+        _id: data._id,
+        DesignTitle: data.DesignTitle || "Untitled Design",
+        designImage: {
+            public_id: data.designImage?.public_id || null,
+            url: data.designImage.url,
+        },
+        ProductType: data.ProductType || "Unknown Type",
+        ProductColor: data.selectedColor || data.ProductColor || "White",
+        size: data.selectedSize || data.size || "One size",
+        quantity: quantityToAdd,
+        qty: quantityToAdd,
+        shopId: shopIdValue,
+        shop: shopInfoForCart,
+        price: parseFloat(
+            data.discountPrice != null
+                ? data.discountPrice
+                : data.originalPrice || 0,
+        ),
+        discountPrice: parseFloat(data.discountPrice || 0),
+        originalPrice: parseFloat(data.originalPrice || 0),
+        productId: data.productId || data._id,
+        designSpecs: {
+            positionX:
+                data.designSpecs?.positionX ?? data.DesignPosition?.x ?? 50,
+            positionY:
+                data.designSpecs?.positionY ?? data.DesignPosition?.y ?? 50,
+            scale: data.designSpecs?.scale ?? data.DesignScale ?? 1,
+            rotation: data.designSpecs?.rotation ?? data.DesignRotation ?? 0,
+        },
     };
 
     const { cart } = getState().cart;
@@ -124,7 +126,7 @@ export const removeFromCart = (itemToRemove) => async (dispatch, getState) => {
       !itemToRemove.size ||
       !itemToRemove.ProductColor
     ) {
-      throw new Error("Item data (ID, Size, Color) required for removal.");
+      throw new Error("Item data (ID, size, Color) required for removal.");
     }
     const { cart } = getState().cart;
     const updatedCart = cart.filter(

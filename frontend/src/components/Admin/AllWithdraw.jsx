@@ -82,56 +82,56 @@ const AllWithdraw = () => {
   };
 
   const columns = [
-    { field: "id", headerName: "Withdraw ID", width: 220 },
-    { field: "name", headerName: "Shop Name", minWidth: 150, flex: 1 },
-    { field: "shopId", headerName: "Shop ID", width: 220 },
-    {
-      field: "amount",
-      headerName: "Amount",
-      width: 100,
-      type: "number",
-      valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
-    },
-    {
-      field: "status",
-      headerName: "Status",
-      width: 100,
-      renderCell: (p) => (
-        <span
-          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-            p.value === "Processing"
-              ? "bg-yellow-100 text-yellow-800"
-              : "bg-green-100 text-green-800"
-          }`}
-        >
-          {p.value}
-        </span>
-      ),
-    },
-    {
-      field: "createdAt",
-      headerName: "Requested At",
-      width: 150,
-      valueFormatter: (v) => (v ? format(new Date(v), "PPp") : ""),
-    },
-    {
-      field: "actions",
-      headerName: "Update",
-      width: 100,
-      sortable: false,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) =>
-        params.row.status === "Processing" ? (
-          <IconButton
-            onClick={() => handleOpen(params.row)}
-            Size="small"
-            title="Update Status"
-          >
-            <BsPencil className="text-blue-600" />
-          </IconButton>
-        ) : null, // Only show update for 'Processing' status
-    },
+      { field: "id", headerName: "Withdraw ID", width: 220 },
+      { field: "name", headerName: "Shop Name", minWidth: 150, flex: 1 },
+      { field: "shopId", headerName: "Shop ID", width: 220 },
+      {
+          field: "amount",
+          headerName: "Amount",
+          width: 100,
+          type: "number",
+          valueFormatter: (v) => `EGP ${Number(v || 0).toFixed(2)}`,
+      },
+      {
+          field: "status",
+          headerName: "Status",
+          width: 100,
+          renderCell: (p) => (
+              <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      p.value === "Processing"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-green-100 text-green-800"
+                  }`}
+              >
+                  {p.value}
+              </span>
+          ),
+      },
+      {
+          field: "createdAt",
+          headerName: "Requested At",
+          width: 150,
+          valueFormatter: (v) => (v ? format(new Date(v), "PPp") : ""),
+      },
+      {
+          field: "actions",
+          headerName: "Update",
+          width: 100,
+          sortable: false,
+          align: "center",
+          headerAlign: "center",
+          renderCell: (params) =>
+              params.row.status === "Processing" ? (
+                  <IconButton
+                      onClick={() => handleOpen(params.row)}
+                      size="small"
+                      title="Update Status"
+                  >
+                      <BsPencil className="text-blue-600" />
+                  </IconButton>
+              ) : null, // Only show update for 'Processing' status
+      },
   ];
 
   const rows =
@@ -145,74 +145,79 @@ const AllWithdraw = () => {
     })) || [];
 
   return (
-    <div className="w-full flex items-center pt-5 justify-center">
-      <div className="w-[97%]">
-        <h3 className="text-[22px] font-Poppins pb-2">
-          All Withdrawal Requests
-        </h3>
-        <div className="w-full bg-white rounded shadow">
-          <div style={{ height: 650, width: "100%" }}>
-            <DataGrid
-              rows={rows}
-              columns={columns}
-              initialState={{
-                pagination: { paginationModel: { pageSize: 10 } },
-              }}
-              pageSizeOptions={[10, 25]}
-              disableRowSelectionOnClick
-              autoHeight={false}
-              loading={isLoading}
-              sx={{ "--DataGrid-overlayHeight": "300px", border: "none" }}
-            />
-          </div>
-        </div>
+      <div className="w-full flex items-center pt-5 justify-center">
+          <div className="w-[97%]">
+              <h3 className="text-[22px] font-Poppins pb-2">
+                  All Withdrawal Requests
+              </h3>
+              <div className="w-full bg-white rounded shadow">
+                  <div style={{ height: 650, width: "100%" }}>
+                      <DataGrid
+                          rows={rows}
+                          columns={columns}
+                          initialState={{
+                              pagination: { paginationModel: { pageSize: 10 } },
+                          }}
+                          pageSizeOptions={[10, 25]}
+                          disableRowSelectionOnClick
+                          autoHeight={false}
+                          loading={isLoading}
+                          sx={{
+                              "--DataGrid-overlayHeight": "300px",
+                              border: "none",
+                          }}
+                      />
+                  </div>
+              </div>
 
-        {/* Update Status Dialog */}
-        <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
-          <DialogTitle>
-            Update Withdraw Status
-            <IconButton
-              aria-label="close"
-              onClick={handleClose}
-              sx={{ position: "absolute", right: 8, top: 8 }}
-            >
-              <RxCross1 />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent dividers>
-            <p className="text-sm mb-2">
-              Withdraw ID: #{withdrawData?.id?.slice(-8)}
-            </p>
-            <p className="text-sm mb-4">
-              Amount: EGP {withdrawData?.amount?.toFixed(2)}
-            </p>
-            <FormControl fullWidth Size="small">
-              <InputLabel>Status</InputLabel>
-              <Select
-                value={withdrawStatus}
-                label="Status"
-                onChange={(e) => setWithdrawStatus(e.target.value)}
-              >
-                <MenuItem value="Processing">Processing</MenuItem>
-                <MenuItem value="Succeed">Succeed</MenuItem>{" "}
-                {/* Assuming 'Succeed' is the status */}
-              </Select>
-            </FormControl>
-          </DialogContent>
-          <DialogActions sx={{ padding: "16px 24px" }}>
-            <Button onClick={handleClose}>Cancel</Button>
-            <Button
-              onClick={handleSubmit}
-              variant="contained"
-              color="primary"
-              disabled={withdrawStatus === withdrawData?.status}
-            >
-              Update
-            </Button>
-          </DialogActions>
-        </Dialog>
+              {/* Update Status Dialog */}
+              <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
+                  <DialogTitle>
+                      Update Withdraw Status
+                      <IconButton
+                          aria-label="close"
+                          onClick={handleClose}
+                          sx={{ position: "absolute", right: 8, top: 8 }}
+                      >
+                          <RxCross1 />
+                      </IconButton>
+                  </DialogTitle>
+                  <DialogContent dividers>
+                      <p className="text-sm mb-2">
+                          Withdraw ID: #{withdrawData?.id?.slice(-8)}
+                      </p>
+                      <p className="text-sm mb-4">
+                          Amount: EGP {withdrawData?.amount?.toFixed(2)}
+                      </p>
+                      <FormControl fullWidth size="small">
+                          <InputLabel>Status</InputLabel>
+                          <Select
+                              value={withdrawStatus}
+                              label="Status"
+                              onChange={(e) =>
+                                  setWithdrawStatus(e.target.value)
+                              }
+                          >
+                              <MenuItem value="Processing">Processing</MenuItem>
+                              <MenuItem value="Succeed">Succeed</MenuItem>{" "}
+                              {/* Assuming 'Succeed' is the status */}
+                          </Select>
+                      </FormControl>
+                  </DialogContent>
+                  <DialogActions sx={{ padding: "16px 24px" }}>
+                      <Button onClick={handleClose}>Cancel</Button>
+                      <Button
+                          onClick={handleSubmit}
+                          variant="contained"
+                          color="primary"
+                          disabled={withdrawStatus === withdrawData?.status}
+                      >
+                          Update
+                      </Button>
+                  </DialogActions>
+              </Dialog>
+          </div>
       </div>
-    </div>
   );
 };
 

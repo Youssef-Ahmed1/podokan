@@ -47,91 +47,91 @@ const AllEvents = () => {
   );
 
   const columns = useMemo(
-    () => [
-      // Use product._id for linking if event is tied to a product
-      // If event has its own ID different from product, adjust field/link
-      { field: "id", headerName: "Event/Product ID", width: 200 },
-      { field: "name", headerName: "Name", minWidth: 180, flex: 1 },
-      {
-        field: "price",
-        headerName: "Price",
-        width: 100,
-        type: "number",
-        valueFormatter: (value) => `EGP ${Number(value || 0).toFixed(2)}`, // Format as currency
-      },
-      {
-        field: "Stock",
-        headerName: "Stock",
-        type: "number",
-        width: 80,
-        align: "center",
-        headerAlign: "center",
-      },
-      {
-        field: "sold",
-        headerName: "Sold",
-        type: "number",
-        width: 100,
-        align: "center",
-        headerAlign: "center",
-      },
-      {
-        field: "startDate",
-        headerName: "Start Date",
-        width: 120,
-        type: "date",
-        valueGetter: (value) => (value ? new Date(value) : null), // Ensure it's a Date object for sorting/filtering
-        valueFormatter: (value) => (value ? format(value, "PP") : "N/A"), // Format date nicely
-      },
-      {
-        field: "endDate",
-        headerName: "End Date",
-        width: 120,
-        type: "date",
-        valueGetter: (value) => (value ? new Date(value) : null),
-        valueFormatter: (value) => (value ? format(value, "PP") : "N/A"),
-      },
-      {
-        field: "Preview",
-        headerName: "Preview",
-        width: 80,
-        sortable: false,
-        align: "center",
-        headerAlign: "center",
-        renderCell: (params) => {
-          // Link to the product page, marking it as an event view
-          // Ensure the product route can handle the `isEvent` query param if needed
-          return (
-            <IconButton
-              component={Link}
-              to={`/product/${params.id}?isEvent=true`}
-              Size="small"
-              title="Preview Event Product"
-            >
-              <AiOutlineEye className="text-blue-600" />
-            </IconButton>
-          );
-        },
-      },
-      {
-        field: "Delete",
-        headerName: "Delete",
-        width: 80,
-        sortable: false,
-        align: "center",
-        headerAlign: "center",
-        renderCell: (params) => (
-          <IconButton
-            onClick={() => handleDelete(params.id)}
-            Size="small"
-            title="Delete Event"
-          >
-            <AiOutlineDelete className="text-red-600" />
-          </IconButton>
-        ),
-      },
-    ],
-    [handleDelete]
+      () => [
+          // Use product._id for linking if event is tied to a product
+          // If event has its own ID different from product, adjust field/link
+          { field: "id", headerName: "Event/Product ID", width: 200 },
+          { field: "name", headerName: "Name", minWidth: 180, flex: 1 },
+          {
+              field: "price",
+              headerName: "Price",
+              width: 100,
+              type: "number",
+              valueFormatter: (value) => `EGP ${Number(value || 0).toFixed(2)}`, // Format as currency
+          },
+          {
+              field: "Stock",
+              headerName: "Stock",
+              type: "number",
+              width: 80,
+              align: "center",
+              headerAlign: "center",
+          },
+          {
+              field: "sold",
+              headerName: "Sold",
+              type: "number",
+              width: 100,
+              align: "center",
+              headerAlign: "center",
+          },
+          {
+              field: "startDate",
+              headerName: "Start Date",
+              width: 120,
+              type: "date",
+              valueGetter: (value) => (value ? new Date(value) : null), // Ensure it's a Date object for sorting/filtering
+              valueFormatter: (value) => (value ? format(value, "PP") : "N/A"), // Format date nicely
+          },
+          {
+              field: "endDate",
+              headerName: "End Date",
+              width: 120,
+              type: "date",
+              valueGetter: (value) => (value ? new Date(value) : null),
+              valueFormatter: (value) => (value ? format(value, "PP") : "N/A"),
+          },
+          {
+              field: "Preview",
+              headerName: "Preview",
+              width: 80,
+              sortable: false,
+              align: "center",
+              headerAlign: "center",
+              renderCell: (params) => {
+                  // Link to the product page, marking it as an event view
+                  // Ensure the product route can handle the `isEvent` query param if needed
+                  return (
+                      <IconButton
+                          component={Link}
+                          to={`/product/${params.id}?isEvent=true`}
+                          size="small"
+                          title="Preview Event Product"
+                      >
+                          <AiOutlineEye className="text-blue-600" />
+                      </IconButton>
+                  );
+              },
+          },
+          {
+              field: "Delete",
+              headerName: "Delete",
+              width: 80,
+              sortable: false,
+              align: "center",
+              headerAlign: "center",
+              renderCell: (params) => (
+                  <IconButton
+                      onClick={() => handleDelete(params.id)}
+                      size="small"
+                      title="Delete Event"
+                  >
+                      <AiOutlineDelete className="text-red-600" />
+                  </IconButton>
+              ),
+          },
+      ],
+      [handleDelete],
   ); // Include handleDelete in dependency array
 
   const rows = useMemo(

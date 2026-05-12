@@ -5,20 +5,16 @@ import { addTocart } from "../../redux/actions/cart";
 import { addToWishlist, removeFromWishlist } from "../../redux/actions/wishlist";
 import { toast } from "react-toastify";
 import styles from "../../styles/styles";
-import { 
-  AiFillHeart, 
-  AiOutlineHeart, 
-  AiOutlineShareAlt 
-} from "react-icons/ai";
-import { 
-  FaFacebook, 
-  FaTwitter, 
-  FaPinterest, 
-  FaLinkedin, 
-  FaInstagram, 
-  FaTelegram, 
-  FaSnapchat,
-  FaWhatsapp
+import { AiFillHeart, AiOutlineHeart, AiOutlineShareAlt } from "react-icons/ai";
+import {
+    FaFacebook,
+    FaTwitter,
+    FaPinterest,
+    FaLinkedin,
+    FaInstagram,
+    FaTelegram,
+    FaSnapchat,
+    FaWhatsapp,
 } from "react-icons/fa";
 import { IoCopy } from "react-icons/io5";
 import { DesignScalingManager } from '../../utils/designScaling';
@@ -27,7 +23,7 @@ import { DesignScalingManager } from '../../utils/designScaling';
 const ProductDetails = ({ data }) => {
   const dispatch = useDispatch();
   const { wishlist } = useSelector((state) => state.wishlist);
-  
+
   const [count, setCount] = useState(1);
   const [click, setClick] = useState(false);
   const [selectedSize, setSelectedSize] = useState("");
@@ -90,7 +86,7 @@ const ProductDetails = ({ data }) => {
   const handleShare = (platform) => {
     const text = encodeURIComponent(`Check out ${data.DesignTitle}!`);
     const url = encodeURIComponent(window.location.href);
-    
+
     let shareUrl = '';
     switch (platform) {
       case 'facebook':
@@ -129,10 +125,10 @@ const ProductDetails = ({ data }) => {
 
   const addToCartHandler = () => {
     if (!selectedSize) {
-      toast.error("Please select a Size!");
+      toast.error("Please select a size!");
       return;
     }
-    
+
     const cartItem = {
       _id: data._id,
       DesignTitle: data.DesignTitle,
@@ -154,7 +150,7 @@ const ProductDetails = ({ data }) => {
     };
 
     const result = dispatch(addTocart(cartItem));
-    
+
     if (result.success) {
       toast.success("Added to cart successfully!");
     } else {
@@ -164,299 +160,332 @@ const ProductDetails = ({ data }) => {
 
 
   return (
-    <div className="bg-white">
-      {data ? (
-        <div className={`${styles.section} w-[90%] 800px:w-[80%]`}>
-          <div className="w-full py-5">
-            <div className="block w-full 800px:flex">
-              {/* Left side - Product Images */}
-              <div className="w-full 800px:w-[50%]">
-                <div
-                  className="w-[80%] mx-auto relative"
-                  style={{ aspectRatio: "3/4" }}
-                >
-                  {/* Product Mockup */}
-                  <img
-                    src={getProductImage()}
-                    alt={data.DesignTitle}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      console.error("Error loading product image");
-                      e.target.src = "";
-                    }}
-                  />
+      <div className="bg-white">
+          {data ? (
+              <div className={`${styles.section} w-[90%] 800px:w-[80%]`}>
+                  <div className="w-full py-5">
+                      <div className="block w-full 800px:flex">
+                          {/* Left side - Product Images */}
+                          <div className="w-full 800px:w-[50%]">
+                              <div
+                                  className="w-[80%] mx-auto relative"
+                                  style={{ aspectRatio: "3/4" }}
+                              >
+                                  {/* Product Mockup */}
+                                  <img
+                                      src={getProductImage()}
+                                      alt={data.DesignTitle}
+                                      className="w-full h-full object-contain"
+                                      onError={(e) => {
+                                          console.error(
+                                              "Error loading product image",
+                                          );
+                                          e.target.src = "";
+                                      }}
+                                  />
 
-                  {/* Design Overlay */}
-                  {!showBack && data?.designImage && (
-                    <div
-                      className="absolute design-preview pointer-events-none"
-                      style={DesignScalingManager.getConsistentContainerStyles(
-                        data?.DesignPosition || { x: 50, y: 40 },
-                        data?.DesignScale || 0.8,
-                        selectedColor,
-                        data?.ProductType || "hoodie",
-                        showBack ? "back" : "front"
-                      )}
-                    >
-                      <img
-                        src={
-                          typeof data.designImage === "string"
-                            ? data.designImage
-                            : data.designImage?.url
-                        }
-                        alt="Design"
-                        className="w-full h-full object-contain"
-                        draggable="false"
-                      />
-                    </div>
-                  )}
-                </div>
+                                  {/* Design Overlay */}
+                                  {!showBack && data?.designImage && (
+                                      <div
+                                          className="absolute design-preview pointer-events-none"
+                                          style={DesignScalingManager.getConsistentContainerStyles(
+                                              data?.DesignPosition || {
+                                                  x: 50,
+                                                  y: 40,
+                                              },
+                                              data?.DesignScale || 0.8,
+                                              selectedColor,
+                                              data?.ProductType || "hoodie",
+                                              showBack ? "back" : "front",
+                                          )}
+                                      >
+                                          <img
+                                              src={
+                                                  typeof data.designImage ===
+                                                  "string"
+                                                      ? data.designImage
+                                                      : data.designImage?.url
+                                              }
+                                              alt="Design"
+                                              className="w-full h-full object-contain"
+                                              draggable="false"
+                                          />
+                                      </div>
+                                  )}
+                              </div>
 
-                {/* View Toggle */}
-                <div className="w-[80%] mx-auto flex mt-4">
-                  <button
-                    className={`
+                              {/* View Toggle */}
+                              <div className="w-[80%] mx-auto flex mt-4">
+                                  <button
+                                      className={`
                       flex-1 py-3 border-2 transition-colors
                       ${
-                        !showBack
-                          ? "border-[#4e64df] text-[#4e64df]"
-                          : "border-gray-300 text-gray-600"
+                          !showBack
+                              ? "border-[#4e64df] text-[#4e64df]"
+                              : "border-gray-300 text-gray-600"
                       }
                     `}
-                    onClick={() => setShowBack(false)}
-                  >
-                    Front View
-                  </button>
-                  <button
-                    className={`
+                                      onClick={() => setShowBack(false)}
+                                  >
+                                      Front View
+                                  </button>
+                                  <button
+                                      className={`
                       flex-1 py-3 border-2 transition-colors
                       ${
-                        showBack
-                          ? "border-[#4e64df] text-[#4e64df]"
-                          : "border-gray-300 text-gray-600"
+                          showBack
+                              ? "border-[#4e64df] text-[#4e64df]"
+                              : "border-gray-300 text-gray-600"
                       }
                     `}
-                    onClick={() => setShowBack(true)}
-                  >
-                    Back View
-                  </button>
-                </div>
-              </div>
+                                      onClick={() => setShowBack(true)}
+                                  >
+                                      Back View
+                                  </button>
+                              </div>
+                          </div>
 
-              {/* Right side - Product Details */}
-              <div className="w-full 800px:w-[50%] pt-5 pl-[30px]">
-                <h1 className="text-[25px] font-[600] font-Roboto text-gray-800">
-                  {data.DesignTitle}
-                </h1>
+                          {/* Right side - Product Details */}
+                          <div className="w-full 800px:w-[50%] pt-5 pl-[30px]">
+                              <h1 className="text-[25px] font-[600] font-Roboto text-gray-800">
+                                  {data.DesignTitle}
+                              </h1>
 
-                <div className="flex items-center mt-2">
-                  <span className="text-[16px] text-gray-500 mr-2">Tag:</span>
-                  <span className="text-[16px] text-[#4e64df]">
-                    {data.Maintag}
-                  </span>
-                </div>
+                              <div className="flex items-center mt-2">
+                                  <span className="text-[16px] text-gray-500 mr-2">
+                                      Tag:
+                                  </span>
+                                  <span className="text-[16px] text-[#4e64df]">
+                                      {data.Maintag}
+                                  </span>
+                              </div>
 
-                {/* Price */}
-                <div className="flex items-center mt-6">
-                  <h3 className="text-[28px] font-bold text-gray-800">
-                    ${data.discountPrice || data.originalPrice}
-                  </h3>
-                  {data.discountPrice && (
-                    <>
-                      <h4 className="text-[20px] text-gray-400 line-through ml-3">
-                        ${data.originalPrice}
-                      </h4>
-                      <span className="ml-2 text-[#4e64df] text-[18px]">
-                        {data.discountPercentage}% OFF
-                      </span>
-                    </>
-                  )}
-                </div>
+                              {/* Price */}
+                              <div className="flex items-center mt-6">
+                                  <h3 className="text-[28px] font-bold text-gray-800">
+                                      $
+                                      {data.discountPrice || data.originalPrice}
+                                  </h3>
+                                  {data.discountPrice && (
+                                      <>
+                                          <h4 className="text-[20px] text-gray-400 line-through ml-3">
+                                              ${data.originalPrice}
+                                          </h4>
+                                          <span className="ml-2 text-[#4e64df] text-[18px]">
+                                              {data.discountPercentage}% OFF
+                                          </span>
+                                      </>
+                                  )}
+                              </div>
 
-                {/* Color Selection */}
-                <div className="mt-6">
-                  <h4 className="text-[16px] font-[600] text-gray-800 mb-3">
-                    Select Color:
-                  </h4>
-                  <div className="flex gap-3">
-                    {COLORS.map((color) => (
-                      <button
-                        key={color}
-                        onClick={() => setSelectedColor(color)}
-                        className={`
+                              {/* Color Selection */}
+                              <div className="mt-6">
+                                  <h4 className="text-[16px] font-[600] text-gray-800 mb-3">
+                                      Select Color:
+                                  </h4>
+                                  <div className="flex gap-3">
+                                      {COLORS.map((color) => (
+                                          <button
+                                              key={color}
+                                              onClick={() =>
+                                                  setSelectedColor(color)
+                                              }
+                                              className={`
                           w-8 h-8 rounded-full border-2 transition-all
                           ${color === "white" ? "bg-white" : "bg-black"}
                           ${
-                            selectedColor === color
-                              ? "border-[#4e64df] scale-110"
-                              : "border-gray-300"
+                              selectedColor === color
+                                  ? "border-[#4e64df] scale-110"
+                                  : "border-gray-300"
                           }
                         `}
-                        aria-label={color}
-                      />
-                    ))}
-                  </div>
-                </div>
+                                              aria-label={color}
+                                          />
+                                      ))}
+                                  </div>
+                              </div>
 
-                {/* Size Selection */}
-                <div className="mt-6">
-                  <h4 className="text-[16px] font-[600] text-gray-800 mb-3">
-                    Select Size:
-                  </h4>
-                  <div className="flex gap-3">
-                    {SizeS.map((Size) => (
-                      <button
-                        key={Size}
-                        onClick={() => setSelectedSize(Size)}
-                        className={`
+                              {/* size Selection */}
+                              <div className="mt-6">
+                                  <h4 className="text-[16px] font-[600] text-gray-800 mb-3">
+                                      Select size:
+                                  </h4>
+                                  <div className="flex gap-3">
+                                      {SizeS.map((size) => (
+                                          <button
+                                              key={size}
+                                              onClick={() =>
+                                                  setSelectedSize(size)
+                                              }
+                                              className={`
                           w-14 h-10 border-2 rounded transition-colors
                           ${
-                            selectedSize === Size
-                              ? "border-[#4e64df] text-[#4e64df]"
-                              : "border-gray-300 text-gray-600"
+                              selectedSize === size
+                                  ? "border-[#4e64df] text-[#4e64df]"
+                                  : "border-gray-300 text-gray-600"
                           }
                         `}
-                      >
-                        {Size}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                                          >
+                                              {size}
+                                          </button>
+                                      ))}
+                                  </div>
+                              </div>
 
-                {/* Quantity */}
-                <div className="mt-6">
-                  <h4 className="text-[16px] font-[600] text-gray-800 mb-3">
-                    Quantity:
-                  </h4>
-                  <div className="flex items-center">
-                    <button
-                      onClick={() => setCount((prev) => Math.max(1, prev - 1))}
-                      className="w-8 h-8 border rounded-l flex items-center justify-center text-gray-600"
-                    >
-                      -
-                    </button>
-                    <span className="w-12 h-8 border-t border-b flex items-center justify-center">
-                      {count}
-                    </span>
-                    <button
-                      onClick={() => setCount((prev) => prev + 1)}
-                      className="w-8 h-8 border rounded-r flex items-center justify-center text-gray-600"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
+                              {/* Quantity */}
+                              <div className="mt-6">
+                                  <h4 className="text-[16px] font-[600] text-gray-800 mb-3">
+                                      Quantity:
+                                  </h4>
+                                  <div className="flex items-center">
+                                      <button
+                                          onClick={() =>
+                                              setCount((prev) =>
+                                                  Math.max(1, prev - 1),
+                                              )
+                                          }
+                                          className="w-8 h-8 border rounded-l flex items-center justify-center text-gray-600"
+                                      >
+                                          -
+                                      </button>
+                                      <span className="w-12 h-8 border-t border-b flex items-center justify-center">
+                                          {count}
+                                      </span>
+                                      <button
+                                          onClick={() =>
+                                              setCount((prev) => prev + 1)
+                                          }
+                                          className="w-8 h-8 border rounded-r flex items-center justify-center text-gray-600"
+                                      >
+                                          +
+                                      </button>
+                                  </div>
+                              </div>
 
-                {/* Actions */}
-                <div className="flex items-center mt-8 gap-4">
-                  <button
-                    className="flex-1 py-4 bg-[#4e64df] text-white rounded-full hover:bg-[#5d71e7] transition-colors font-medium"
-                    onClick={addToCartHandler}
-                  >
-                    Add to Cart
-                  </button>
+                              {/* Actions */}
+                              <div className="flex items-center mt-8 gap-4">
+                                  <button
+                                      className="flex-1 py-4 bg-[#4e64df] text-white rounded-full hover:bg-[#5d71e7] transition-colors font-medium"
+                                      onClick={addToCartHandler}
+                                  >
+                                      Add to Cart
+                                  </button>
 
-                  <button
-                    onClick={handleWishlist}
-                    className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                  >
-                    {click ? (
-                      <AiFillHeart className="text-[#4e64df] text-2xl" />
-                    ) : (
-                      <AiOutlineHeart className="text-gray-600 text-2xl" />
-                    )}
-                  </button>
+                                  <button
+                                      onClick={handleWishlist}
+                                      className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                                  >
+                                      {click ? (
+                                          <AiFillHeart className="text-[#4e64df] text-2xl" />
+                                      ) : (
+                                          <AiOutlineHeart className="text-gray-600 text-2xl" />
+                                      )}
+                                  </button>
 
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowShare(!showShare)}
-                      className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                    >
-                      <AiOutlineShareAlt className="text-gray-600 text-2xl" />
-                    </button>
+                                  <div className="relative">
+                                      <button
+                                          onClick={() =>
+                                              setShowShare(!showShare)
+                                          }
+                                          className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                                      >
+                                          <AiOutlineShareAlt className="text-gray-600 text-2xl" />
+                                      </button>
 
-                    {showShare && (
-                      <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg shadow-xl z-10 border border-gray-200">
-                        {[
-                          {
-                            platform: "whatsapp",
-                            icon: FaWhatsapp,
-                            color: "text-green-500",
-                          },
-                          {
-                            platform: "facebook",
-                            icon: FaFacebook,
-                            color: "text-blue-600",
-                          },
-                          {
-                            platform: "twitter",
-                            icon: FaTwitter,
-                            color: "text-blue-400",
-                          },
-                          {
-                            platform: "instagram",
-                            icon: FaInstagram,
-                            color: "text-pink-600",
-                          },
-                          {
-                            platform: "telegram",
-                            icon: FaTelegram,
-                            color: "text-blue-500",
-                          },
-                          {
-                            platform: "snapchat",
-                            icon: FaSnapchat,
-                            color: "text-yellow-400",
-                          },
-                          {
-                            platform: "pinterest",
-                            icon: FaPinterest,
-                            color: "text-red-600",
-                          },
-                          {
-                            platform: "linkedin",
-                            icon: FaLinkedin,
-                            color: "text-blue-800",
-                          },
-                          {
-                            platform: "copy",
-                            icon: IoCopy,
-                            color: "text-gray-600",
-                          },
-                        ].map(({ platform, icon: Icon, color }) => (
-                          <button
-                            key={platform}
-                            onClick={() => handleShare(platform)}
-                            className="flex items-center px-4 py-2 hover:bg-gray-50 w-full"
-                          >
-                            <Icon className={`mr-3 ${color}`} />
-                            <span className="capitalize text-gray-700">
-                              {platform}
-                            </span>
-                          </button>
-                        ))}
+                                      {showShare && (
+                                          <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg shadow-xl z-10 border border-gray-200">
+                                              {[
+                                                  {
+                                                      platform: "whatsapp",
+                                                      icon: FaWhatsapp,
+                                                      color: "text-green-500",
+                                                  },
+                                                  {
+                                                      platform: "facebook",
+                                                      icon: FaFacebook,
+                                                      color: "text-blue-600",
+                                                  },
+                                                  {
+                                                      platform: "twitter",
+                                                      icon: FaTwitter,
+                                                      color: "text-blue-400",
+                                                  },
+                                                  {
+                                                      platform: "instagram",
+                                                      icon: FaInstagram,
+                                                      color: "text-pink-600",
+                                                  },
+                                                  {
+                                                      platform: "telegram",
+                                                      icon: FaTelegram,
+                                                      color: "text-blue-500",
+                                                  },
+                                                  {
+                                                      platform: "snapchat",
+                                                      icon: FaSnapchat,
+                                                      color: "text-yellow-400",
+                                                  },
+                                                  {
+                                                      platform: "pinterest",
+                                                      icon: FaPinterest,
+                                                      color: "text-red-600",
+                                                  },
+                                                  {
+                                                      platform: "linkedin",
+                                                      icon: FaLinkedin,
+                                                      color: "text-blue-800",
+                                                  },
+                                                  {
+                                                      platform: "copy",
+                                                      icon: IoCopy,
+                                                      color: "text-gray-600",
+                                                  },
+                                              ].map(
+                                                  ({
+                                                      platform,
+                                                      icon: Icon,
+                                                      color,
+                                                  }) => (
+                                                      <button
+                                                          key={platform}
+                                                          onClick={() =>
+                                                              handleShare(
+                                                                  platform,
+                                                              )
+                                                          }
+                                                          className="flex items-center px-4 py-2 hover:bg-gray-50 w-full"
+                                                      >
+                                                          <Icon
+                                                              className={`mr-3 ${color}`}
+                                                          />
+                                                          <span className="capitalize text-gray-700">
+                                                              {platform}
+                                                          </span>
+                                                      </button>
+                                                  ),
+                                              )}
+                                          </div>
+                                      )}
+                                  </div>
+                              </div>
+
+                              {/* Description */}
+                              {data.Description && (
+                                  <div className="mt-8">
+                                      <h4 className="text-[16px] font-[600] text-gray-800 mb-2">
+                                          Description:
+                                      </h4>
+                                      <p className="text-gray-600 leading-relaxed">
+                                          {data.Description}
+                                      </p>
+                                  </div>
+                              )}
+                          </div>
                       </div>
-                    )}
                   </div>
-                </div>
-
-                {/* Description */}
-                {data.Description && (
-                  <div className="mt-8">
-                    <h4 className="text-[16px] font-[600] text-gray-800 mb-2">
-                      Description:
-                    </h4>
-                    <p className="text-gray-600 leading-relaxed">
-                      {data.Description}
-                    </p>
-                  </div>
-                )}
               </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
+          ) : null}
+      </div>
   );
 };
 

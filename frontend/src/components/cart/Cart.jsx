@@ -34,37 +34,37 @@ const Cart = ({ setOpenCart }) => {
   };
 
   return (
-    <AnimatePresence>
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 z-50"
-        onClick={() => setOpenCart(false)}
-      >
-        <motion.div
-          variants={slideVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={{ type: "tween", duration: 0.3 }}
-          className="fixed top-0 right-0 h-full w-[80%] 800px:w-[25%] bg-white shadow-xl"
-          onClick={e => e.stopPropagation()}
-        >
-          {cart.length === 0 ? (
-            <EmptyCart setOpenCart={setOpenCart} />
-          ) : (
-            <FilledCart
-              cart={cart}
-              setOpenCart={setOpenCart}
-              totalPrice={totalPrice}
-              quantityChangeHandler={quantityChangeHandler}
-              removeFromCartHandler={removeFromCartHandler}
-            />
-          )}
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+      <AnimatePresence>
+          <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-50"
+              onClick={() => setOpenCart(false)}
+          >
+              <motion.div
+                  variants={slideVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  transition={{ type: "tween", duration: 0.3 }}
+                  className="fixed top-0 right-0 h-full w-[80%] 800px:w-[25%] bg-white shadow-xl"
+                  onClick={(e) => e.stopPropagation()}
+              >
+                  {cart.length === 0 ? (
+                      <EmptyCart setOpenCart={setOpenCart} />
+                  ) : (
+                      <FilledCart
+                          cart={cart}
+                          setOpenCart={setOpenCart}
+                          totalPrice={totalPrice}
+                          quantityChangeHandler={quantityChangeHandler}
+                          removeFromCartHandler={removeFromCartHandler}
+                      />
+                  )}
+              </motion.div>
+          </motion.div>
+      </AnimatePresence>
   );
 };
 
@@ -168,64 +168,71 @@ const CartItem = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="p-4 border-b"
-    >
-      <div className="flex items-start space-x-4">
-        <div className="relative flex-shrink-0">
-          <img
-            src={data.designImage?.url || data.designImage}
-            alt={data.DesignTitle}
-            className="w-20 h-20 object-cover rounded-lg bg-gray-100"
-          />
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={() => removeFromCartHandler(data)}
-            className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full
+      <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="p-4 border-b"
+      >
+          <div className="flex items-start space-x-4">
+              <div className="relative flex-shrink-0">
+                  <img
+                      src={data.designImage?.url || data.designImage}
+                      alt={data.DesignTitle}
+                      className="w-20 h-20 object-cover rounded-lg bg-gray-100"
+                  />
+                  <motion.button
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => removeFromCartHandler(data)}
+                      className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full
               hover:bg-red-600 transition-colors"
-          >
-            <RxCross1 className="w-3 h-3" />
-          </motion.button>
-        </div>
+                  >
+                      <RxCross1 className="w-3 h-3" />
+                  </motion.button>
+              </div>
 
-        <div className="flex-1">
-          <h3 className="font-medium text-gray-800 mb-1">{data.DesignTitle}</h3>
-          
-          <div className="flex items-center text-sm text-gray-500 mb-2 space-x-2">
-            <span>Size: {data.selectedSize}</span>
-            <span>•</span>
-            <span>Color: {data.selectedColor}</span>
+              <div className="flex-1">
+                  <h3 className="font-medium text-gray-800 mb-1">
+                      {data.DesignTitle}
+                  </h3>
+
+                  <div className="flex items-center text-sm text-gray-500 mb-2 space-x-2">
+                      <span>size: {data.selectedSize}</span>
+                      <span>•</span>
+                      <span>Color: {data.selectedColor}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                      <div className="flex items-center border rounded-lg bg-white">
+                          <motion.button
+                              whileTap={{ scale: 0.9 }}
+                              onClick={handleDecrement}
+                              className="p-1 hover:bg-gray-100 text-gray-600"
+                          >
+                              <HiOutlineMinus className="w-4 h-4" />
+                          </motion.button>
+                          <span className="px-3 py-1 border-x text-gray-800">
+                              {value}
+                          </span>
+                          <motion.button
+                              whileTap={{ scale: 0.9 }}
+                              onClick={handleIncrement}
+                              className="p-1 hover:bg-gray-100 text-gray-600"
+                          >
+                              <HiPlus className="w-4 h-4" />
+                          </motion.button>
+                      </div>
+
+                      <div className="text-[#4e64df] font-medium">
+                          $
+                          {(
+                              (data.discountPrice || data.originalPrice) * value
+                          ).toFixed(2)}
+                      </div>
+                  </div>
+              </div>
           </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center border rounded-lg bg-white">
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={handleDecrement}
-                className="p-1 hover:bg-gray-100 text-gray-600"
-              >
-                <HiOutlineMinus className="w-4 h-4" />
-              </motion.button>
-              <span className="px-3 py-1 border-x text-gray-800">{value}</span>
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={handleIncrement}
-                className="p-1 hover:bg-gray-100 text-gray-600"
-              >
-                <HiPlus className="w-4 h-4" />
-              </motion.button>
-            </div>
-
-            <div className="text-[#4e64df] font-medium">
-              ${((data.discountPrice || data.originalPrice) * value).toFixed(2)}
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
+      </motion.div>
   );
 };
 

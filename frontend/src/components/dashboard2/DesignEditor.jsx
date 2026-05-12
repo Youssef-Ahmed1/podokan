@@ -16,26 +16,26 @@ const DesignEditor = () => {
   };
 
   return (
-    <div className="design_div" style={{ position: "relative" }}>
-      <Rnd
-        ref={designRef}
-        Size={designSize}
-        position={DesignPosition}
-        onDragStop={handleDragStop}
-        onReSizeStop={handleReSizeStop}
-        bounds="parent"
-        enableResizing={true}
-      >
-        <img
-          id="design"
-          className="design"
-          src={`https://res.cloudinary.com/dkot9tyjm/image/upload/v1714163748/shirts/mockupshirt-/${this.state.tshirtColor}.png`}
-          data-id="845"
-          alt="design"
-          style={{ width: "100%", height: "100%" }}
-        />
-      </Rnd>
-    </div>
+      <div className="design_div" style={{ position: "relative" }}>
+          <Rnd
+              ref={designRef}
+              size={designSize}
+              position={DesignPosition}
+              onDragStop={handleDragStop}
+              onReSizeStop={handleReSizeStop}
+              bounds="parent"
+              enableResizing={true}
+          >
+              <img
+                  id="design"
+                  className="design"
+                  src={`https://res.cloudinary.com/dkot9tyjm/image/upload/v1714163748/shirts/mockupshirt-/${this.state.tshirtColor}.png`}
+                  data-id="845"
+                  alt="design"
+                  style={{ width: "100%", height: "100%" }}
+              />
+          </Rnd>
+      </div>
   );
 };
 
