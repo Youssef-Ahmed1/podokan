@@ -349,7 +349,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 - **What is wrong:** Self-referential component causes **infinite recursion** if mounted. The outer payment UI may still run, but the file violates common **Rules of Hooks** layout expectations and contains dead hazardous code.
 - **Fix direction:** Delete or rename inner component; extract `PaymentOptions`; run `eslint-plugin-react-hooks`.
 
-#### AUDIT-H06 — Shipping country hardcoded to Egypt [FIXED]
+#### AUDIT-H06 — Shipping country hardcoded to Egypt [RESOLVED]
 
 - **Severity:** High (business rule / UX)
 - **Files:** `backend/controller/order.js` (`shippingAddress.country !== "Egypt"` rejects); compare with `frontend/src/pages/FAQPage.jsx` if marketing implies wider shipping.
