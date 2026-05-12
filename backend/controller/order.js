@@ -8,11 +8,7 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
 const { ORDER_STATUSES } = require("../constants/orderStatuses");
-
-
-
-
-
+const ALLOWED_SHIPPING_COUNTRIES = ["Egypt"];
 const isValidObjectId = (id) => id && mongoose.Types.ObjectId.isValid(id);
 
 
@@ -43,10 +39,10 @@ router.post(
           );
       }
 
-      if (shippingAddress.country !== "Egypt") {
+      if (!ALLOWED_SHIPPING_COUNTRIES.includes(shippingAddress.country)) {
           return next(
               new ErrorHandler(
-                  "Shipping is currently only available within Egypt.",
+                  `Shipping is currently not available to ${shippingAddress.country}. Allowed countries: ${ALLOWED_SHIPPING_COUNTRIES.join(", ")}.`,
                   400,
               ),
           );
