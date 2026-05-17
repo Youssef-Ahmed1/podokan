@@ -8,24 +8,10 @@ This document describes **what the system does**, **how the repositories connect
 
 ## Table of contents
 
-1. [Product overview](#product-overview)
-2. [User roles](#user-roles)
-3. [Repository map](#repository-map)
-4. [Architecture](#architecture)
-5. [Data & domain model](#data--domain-model)
-6. [HTTP API](#http-api)
-7. [Authentication & sessions](#authentication--sessions)
-8. [Payments & orders](#payments--orders)
-9. [Design compositing](#design-compositing)
-10. [Realtime (`socket/`)](#realtime-socket)
-11. [Configuration & secrets](#configuration--secrets)
-12. [Local setup](#local-setup)
-13. [Production deployment](#production-deployment)
-14. [Scripts reference](#scripts-reference)
-15. [Code audit: issues & risks](#code-audit-issues--risks)
-16. [License](#license)
-
----
+> **CURRENT STATUS: ACTIVE REFACTORING (Q2 2026)**
+> *This repository contains a legacy MVP codebase. I am currently executing a full-stack refactor.* 
+> *Recent patches include: Migrating from `localStorage` to `HttpOnly` cookies, enforcing server-side price validation via MongoDB, and resolving React hook/state violations.*
+> *Please follow the commit history to review the ongoing security and performance upgrades.*
 
 ## Product overview
 
