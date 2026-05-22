@@ -369,7 +369,7 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 - **Why it matters:** False sense of security; NoSQL injection and reflected XSS scrubbing are not automatic.
 - **Fix direction:** Register per library documentation after body parsers.
 
-#### AUDIT-M03 — Duplicate async route wrappers // fixed by deleting catchAsync.js file
+#### AUDIT-M03 — Duplicate async route wrappers // fixed by deleting catchAsync.js file  [RESOLVED]
 
 - **Files:** `backend/middleware/catchAsyncErrors.js`; `backend/utils/catchAsync.js`.
 - **What is wrong:** Same Promise wrapper duplicated.
