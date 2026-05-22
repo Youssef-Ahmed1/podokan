@@ -16,7 +16,7 @@ const allowedOrigins = [
 
 const corsOptions = {
     origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
             callback(
@@ -24,7 +24,9 @@ const corsOptions = {
             );
         }
     },
-    credentials: true, // Crucial for our new HttpOnly Cookies!
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type"], // Crucial for our new HttpOnly Cookies!
 };
 app.use(cors(corsOptions));
 // --- Security Middleware ---
@@ -50,7 +52,6 @@ const apiRoutes = {
     product: require("./controller/product"),
     event: require("./controller/event"),
     coupon: require("./controller/couponCode"),
-    payment: require("./controller/payment"),
     order: require("./controller/order"),
     conversation: require("./controller/conversation"),
     message: require("./controller/message"),

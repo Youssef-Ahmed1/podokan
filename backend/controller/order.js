@@ -55,9 +55,7 @@ router.post(
           const missing = [];
           if (!item.shopId || !isValidObjectId(item.shopId))
               missing.push("Shop ID");
-          if (item.price == null || item.price < 0) missing.push("Price");
           if (!item.qty || item.qty < 1) missing.push("Quantity");
-          if (!item.designImage?.url) missing.push("Design Image URL");
           if (!item.DesignTitle) missing.push("Design Title");
           if (!item.ProductType) missing.push("Product Type");
           if (!item.ProductColor) missing.push("Product Color");
@@ -79,20 +77,10 @@ router.post(
               );
           }
 
-          if (Number(item.price) !== Number(realProduct.price)) {
-              return next(
-                  new ErrorHandler(
-                      `the price for "${item.DesignTitle}"
-    has changed. please check the new price`,
-                      400,
-                  ),
-              );
-          }
-
-          const designIamgeObject = {
-              public_id: item.designImage.public_id || null,
-              url: item.designImage.url,
-          };
+const designImageObject = {
+    public_id: null,
+    url: item.designImage,
+};
           const shopIdStr = item.shopId.toString();
 
           if (!shopItemsMap.has(shopIdStr)) {
@@ -444,9 +432,6 @@ router.get(
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
 
-    if (cachedData) {
-      return res.json({ ...cachedData, success: true, fromCache: true });
-    }
 
     try {
       const [totalOrders, orders] = await Promise.all([

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import styles from "../../styles/styles";
 import CountDown from "./CountDown";
 import { Link } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";   
-import { addTocart } from "../../redux/actions/cart";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart } from "../../redux/actions/cart";
 import { toast } from "react-toastify";
 
 
@@ -29,7 +29,7 @@ const newForm = new FormData();
         toast.error("Product stock limited!");
       } else {
         const cartData = { ...data, qty: 1 };
-        dispatch(addTocart(cartData));
+        dispatch(addToCart(cartData));
         toast.success("Item added to cart successfully!");
       }
     }

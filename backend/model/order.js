@@ -29,7 +29,7 @@ const orderItemSchema = new mongoose.Schema(
         designImage: {
             public_id: { type: String, trim: true, default: null },
             url: {
-                type: String,
+                type: String || Object,
                 required: [true, "Item design image URL is required."],
                 trim: true,
             },

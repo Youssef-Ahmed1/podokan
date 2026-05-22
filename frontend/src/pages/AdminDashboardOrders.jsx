@@ -166,117 +166,133 @@ const AdminDashboardOrders = () => {
   }, [filteredOrdersForCurrentPage]);
 
   const columns = useMemo(
-    () => [
-      {
-        field: "orderIdShort",
-        headerName: "Order ID",
-        width: 100,
-        renderCell: (params) => `#${params.value}`,
-      },
-      {
-        field: "date",
-        headerName: "Date",
-        width: 110,
-        type: "date",
-        valueGetter: (value) => (value ? new Date(value) : null),
-        renderCell: (params) =>
-          params.value ? format(params.value, "PP") : "N/A",
-      },
-      {
-        field: "customer",
-        headerName: "Customer",
-        width: 180,
-        flex: 1,
-        renderCell: (params) => (
-          <Tooltip
-            title={`ID: ${params.row.user?._id || "N/A"}\nEmail: ${
-              params.row.user?.email || "N/A"
-            }`}
-            arrow
-            placement="top-start"
-          >
-            <span>{params.value}</span>
-          </Tooltip>
-        ),
-      },
-      {
-        field: "itemsQty",
-        headerName: "Items",
-        type: "number",
-        width: 70,
-        align: "center",
-        headerAlign: "center",
-      },
-      {
-        field: "total",
-        headerName: "Total",
-        width: 120,
-        type: "number",
-        align: "right",
-        headerAlign: "right",
-        valueFormatter: (value) => `EGP ${Number(value || 0).toFixed(2)}`,
-      },
-      {
-        field: "status",
-        headerName: "Status",
-        minWidth: 200,
-        flex: 0.8,
-        sortable: false,
-        renderCell: (params) => (
-          <Select
-            value={params.value || ""}
-            onChange={(e) =>
-              handleStatusUpdate(params.id, e.target.value, params.value)
-            }
-            size="small"
-            variant="outlined"
-            disabled={isUpdating}
-            fullWidth
-            sx={{
-              fontSize: "0.8rem",
-              height: "35px",
-              bgcolor: isUpdating ? "#f0f0f0" : "background.paper",
-              ".MuiSelect-select": { py: 0.8, px: 1 },
-              ".MuiOutlinedInput-notchedOutline": {
-                border: "1px solid #e0e0e0",
+      () => [
+          {
+              field: "date",
+              headerName: "Date",
+              width: 110,
+              type: "date",
+              valueGetter: (value) => (value ? new Date(value) : null),
+              renderCell: (params) => {
+                  // 1. Check if the value exists
+                  if (!params.value) return "N/A";
+
+                  // 2. Check if the Date object is actually valid!
+                  if (isNaN(params.value.getTime())) return "Invalid Date";
+
+                  // 3. Safe to format
+                  return format(params.value, "PP");
               },
-              "&:hover .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#bdbdbd",
-              },
-              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                borderColor: "primary.main",
-              },
-              "&.Mui-disabled": { bgcolor: "#f5f5f5", opacity: 0.7 },
-            }}
-            MenuProps={{ PaperProps: { sx: { maxHeight: 300 } } }}
-          >
-            {Object.values(ORDER_STATUSES).map((stat) => (
-              <MenuItem key={stat} value={stat} sx={{ fontSize: "0.8rem" }}>
-                {stat}
-              </MenuItem>
-            ))}
-          </Select>
-        ),
-      },
-      {
-        field: "actions",
-        headerName: "View",
-        width: 70,
-        sortable: false,
-        align: "center",
-        headerAlign: "center",
-        renderCell: (params) => (
-          <Tooltip title="View Order Details">
-            <Link to={`/admin/order/${params.id}`}>
-              <IconButton size="small">
-                <Eye size={18} className="text-blue-600 hover:text-blue-800" />
-              </IconButton>
-            </Link>
-          </Tooltip>
-        ),
-      },
-    ],
-    [isUpdating, handleStatusUpdate]
+          },
+          {
+              field: "customer",
+              headerName: "Customer",
+              width: 180,
+              flex: 1,
+              renderCell: (params) => (
+                  <Tooltip
+                      title={`ID: ${params.row.user?._id || "N/A"}\nEmail: ${
+                          params.row.user?.email || "N/A"
+                      }`}
+                      arrow
+                      placement="top-start"
+                  >
+                      <span>{params.value}</span>
+                  </Tooltip>
+              ),
+          },
+          {
+              field: "itemsQty",
+              headerName: "Items",
+              type: "number",
+              width: 70,
+              align: "center",
+              headerAlign: "center",
+          },
+          {
+              field: "total",
+              headerName: "Total",
+              width: 120,
+              type: "number",
+              align: "right",
+              headerAlign: "right",
+              valueFormatter: (value) => `EGP ${Number(value || 0).toFixed(2)}`,
+          },
+          {
+              field: "status",
+              headerName: "Status",
+              minWidth: 200,
+              flex: 0.8,
+              sortable: false,
+              renderCell: (params) => (
+                  <Select
+                      value={params.value || ""}
+                      onChange={(e) =>
+                          handleStatusUpdate(
+                              params.id,
+                              e.target.value,
+                              params.value,
+                          )
+                      }
+                      size="small"
+                      variant="outlined"
+                      disabled={isUpdating}
+                      fullWidth
+                      sx={{
+                          fontSize: "0.8rem",
+                          height: "35px",
+                          bgcolor: isUpdating ? "#f0f0f0" : "background.paper",
+                          ".MuiSelect-select": { py: 0.8, px: 1 },
+                          ".MuiOutlinedInput-notchedOutline": {
+                              border: "1px solid #e0e0e0",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "#bdbdbd",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "primary.main",
+                          },
+                          "&.Mui-disabled": {
+                              bgcolor: "#f5f5f5",
+                              opacity: 0.7,
+                          },
+                      }}
+                      MenuProps={{ PaperProps: { sx: { maxHeight: 300 } } }}
+                  >
+                      {Object.values(ORDER_STATUSES).map((stat) => (
+                          <MenuItem
+                              key={stat}
+                              value={stat}
+                              sx={{ fontSize: "0.8rem" }}
+                          >
+                              {stat}
+                          </MenuItem>
+                      ))}
+                  </Select>
+              ),
+          },
+          {
+              field: "actions",
+              headerName: "View",
+              width: 70,
+              sortable: false,
+              align: "center",
+              headerAlign: "center",
+              renderCell: (params) => (
+                  <Tooltip title="View Order Details">
+                      <Link to={`/admin/order/${params.id}`}>
+                          <IconButton size="small">
+                              <Eye
+                                  size={18}
+                                  className="text-blue-600 hover:text-blue-800"
+                              />
+                          </IconButton>
+                      </Link>
+                  </Tooltip>
+              ),
+          },
+      ],
+      [isUpdating, handleStatusUpdate],
   ); // Removed handleStatusUpdate from deps as it's stable now
 
   if (isLoading && adminOrders.length === 0 && adminTotalOrders === 0)

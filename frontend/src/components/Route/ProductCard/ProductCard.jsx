@@ -5,7 +5,7 @@ import { AiOutlineHeart, AiFillHeart, AiOutlineShoppingCart } from 'react-icons/
 import { IoMdShare } from 'react-icons/io';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToWishlist, removeFromWishlist } from '../../../redux/actions/wishlist';
-import { addTocart } from '../../../redux/actions/cart';
+import { addToCart } from "../../../redux/actions/cart";
 import { toast } from 'react-toastify';
 
 const ProductCard = ({ data }) => {
@@ -46,28 +46,28 @@ const ProductCard = ({ data }) => {
     }
   };
 
-  const handleAddToCart = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleaddToCart = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    if (!isAuthenticated) {
-      toast.error("Please login to add items to cart");
-      return;
-    }
+      if (!isAuthenticated) {
+          toast.error("Please login to add items to cart");
+          return;
+      }
 
-    try {
-      const cartData = {
-        ...data,
-        selectedColor: 'white',
-        selectedSize: 'M',
-        quantity: 1,
-      };
+      try {
+          const cartData = {
+              ...data,
+              selectedColor: "white",
+              selectedSize: "M",
+              quantity: 1,
+          };
 
-      await dispatch(addTocart(cartData));
-      toast.success("Added to cart!");
-    } catch (error) {
-      toast.error("Failed to add to cart");
-    }
+          await dispatch(addToCart(cartData));
+          toast.success("Added to cart!");
+      } catch (error) {
+          toast.error("Failed to add to cart");
+      }
   };
 
   const handleShare = async (e) => {
@@ -122,6 +122,7 @@ const ProductCard = ({ data }) => {
                                       alt={data.name}
                                       onLoad={() => setIsLoading(false)}
                                   />
+
                                   <motion.img
                                       src={data.designImage?.url}
                                       className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/3"
@@ -195,7 +196,7 @@ const ProductCard = ({ data }) => {
                               <motion.button
                                   whileHover={{ scale: 1.1 }}
                                   whileTap={{ scale: 0.9 }}
-                                  onClick={handleAddToCart}
+                                  onClick={handleaddToCart}
                                   className="p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30"
                               >
                                   <AiOutlineShoppingCart

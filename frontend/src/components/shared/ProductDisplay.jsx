@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import ShareButton from './ShareButton';
 import { useDispatch } from 'react-redux';
-import { addTocart } from '../../redux/actions/cart';
+import { addToCart } from "../../redux/actions/cart";
 import { addToWishlist, removeFromWishlist } from '../../redux/actions/wishlist';
 import { toast } from 'react-toastify';
 
@@ -39,25 +39,25 @@ const ProductDisplay = ({ data }) => {
     }.png`;
   };
 
-  const handleAddToCart = async () => {
-    if (stock < quantity) {
-      toast.error("Not enough stock available");
-      return;
-    }
+  const handleaddToCart = async () => {
+      if (stock < quantity) {
+          toast.error("Not enough stock available");
+          return;
+      }
 
-    const cartData = {
-      ...data,
-      selectedColor,
-      selectedSize,
-      quantity,
-    };
+      const cartData = {
+          ...data,
+          selectedColor,
+          selectedSize,
+          quantity,
+      };
 
-    const result = await dispatch(addTocart(cartData));
-    if (result.success) {
-      toast.success("Added to cart successfully!");
-    } else {
-      toast.error(result.message || "Failed to add to cart");
-    }
+      const result = await dispatch(addToCart(cartData));
+      if (result.success) {
+          toast.success("Added to cart successfully!");
+      } else {
+          toast.error(result.message || "Failed to add to cart");
+      }
   };
 
   const toggleWishlist = () => {
@@ -220,7 +220,7 @@ const ProductDisplay = ({ data }) => {
               {/* Action Buttons */}
               <div className="flex gap-4">
                   <button
-                      onClick={handleAddToCart}
+                      onClick={handleaddToCart}
                       disabled={stock === 0}
                       className={`flex-1 py-3 px-4 rounded-lg font-medium text-white
               ${

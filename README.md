@@ -9,7 +9,7 @@ This document describes **what the system does**, **how the repositories connect
 ## Table of contents
 
 > **CURRENT STATUS: ACTIVE REFACTORING (Q2 2026)**
-> *This repository contains a legacy MVP codebase. I am currently executing a full-stack refactor.* 
+> *This repository contains a legacy MVP codebase. I am currently executing a full-stack refactor.*
 > *Recent patches include: Migrating from `localStorage` to `HttpOnly` cookies, enforcing server-side price validation via MongoDB, and resolving React hook/state violations.*
 > *Please follow the commit history to review the ongoing security and performance upgrades.*
 
@@ -517,10 +517,10 @@ This audit is from **static review** of the repository tree. It is **not** a pen
 - **What is wrong:** Persistent **“coupon”** spelling in filenames, models, and URLs.
 - **Fix direction:** Alias routes during migration; rename in a breaking API version if needed.
 
-#### AUDIT-L02 — `addTocart` typo in public action name
+#### AUDIT-L02 — `addToCart` typo in public action name
 
-- **Files:** `frontend/src/redux/actions/cart.js` (`export const addTocart`); importers: `frontend/src/components/cart/Cart.jsx`, `frontend/src/components/Route/ProductDetailsCard/ProductDetailsCard.jsx`, `frontend/src/components/Wishlist/Wishlist.jsx`, `frontend/src/components/Events/EventCard.jsx`, `frontend/src/components/shared/ProductDisplay.jsx`.
-- **Fix direction:** Export `addToCart` and alias `addTocart` for compatibility during migration.
+- **Files:** `frontend/src/redux/actions/cart.js` (`export const addToCart`); importers: `frontend/src/components/cart/Cart.jsx`, `frontend/src/components/Route/ProductDetailsCard/ProductDetailsCard.jsx`, `frontend/src/components/Wishlist/Wishlist.jsx`, `frontend/src/components/Events/EventCard.jsx`, `frontend/src/components/shared/ProductDisplay.jsx`.
+- **Fix direction:** Export `addToCart` and alias `addToCart` for compatibility during migration.
 
 #### AUDIT-L03 — PayPal `createOrder` hardcoded description [RESOLVED]
 

@@ -17,7 +17,7 @@ import { format } from "date-fns";
 import { toast } from "react-toastify";
 import { Box, CircularProgress, Typography, IconButton } from "@mui/material";
 import { Eye, RefreshCw, Package } from "lucide-react"; // Added Package icon
-
+import { safeFormatDate } from "../../utils/dateFormatter";
 // --- Custom DataGrid Overlays ---
 function CustomLoadingOverlay() {
   return (
@@ -149,12 +149,12 @@ const AdminDashboardMain = () => {
     if (!Array.isArray(adminOrders)) return [];
     // Map the currently loaded adminOrders (first page)
     return adminOrders.map((o) => ({
-      id: o._id,
-      customer: o.user?.name || "N/A",
-      itemsQty: o.cart?.length || 0,
-      total: `EGP ${Number(o.totalPrice || 0).toFixed(2)}`,
-      status: o.status || "N/A",
-      date: o.createdAt ? format(new Date(o.createdAt), "PP") : "-", // Format date
+        id: o._id,
+        customer: o.user?.name || "N/A",
+        itemsQty: o.cart?.length || 0,
+        total: `EGP ${Number(o.totalPrice || 0).toFixed(2)}`,
+        status: o.status || "N/A",
+        date: safeFormatDate(o.createdAt),
     }));
   }, [adminOrders]); // Depends only on the fetched first page orders
 

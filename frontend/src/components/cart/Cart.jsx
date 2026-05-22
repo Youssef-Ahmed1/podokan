@@ -6,7 +6,7 @@ import { HiOutlineMinus, HiPlus } from "react-icons/hi";
 import styles from "../../styles/styles";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { addTocart, removeFromCart } from "../../redux/actions/cart";
+import { addToCart, removeFromCart } from "../../redux/actions/cart";
 import { toast } from "react-toastify";
 
 const Cart = ({ setOpenCart }) => {
@@ -24,7 +24,7 @@ const Cart = ({ setOpenCart }) => {
   );
 
   const quantityChangeHandler = (data) => {
-    dispatch(addTocart(data));
+    dispatch(addToCart(data));
   };
 
   const slideVariants = {

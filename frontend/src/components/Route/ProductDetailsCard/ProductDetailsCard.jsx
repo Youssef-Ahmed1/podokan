@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
-import { addTocart } from "../../../redux/actions/cart";
+import { addToCart } from "../../../redux/actions/cart";
 import Ratings from "../../../components/Products/Ratings";
 import { motion } from "framer-motion";
 import styles from "../../styles/styles";
@@ -33,46 +33,46 @@ const ProductDetailsCard = ({ data }) => {
     setQuantity(validQuantity);
   };
 
-  const handleAddToCart = async () => {
-    if (!canPurchase) {
-      toast.error("This product is not available for purchase");
-      return;
-    }
-
-    if (!selectedSize) {
-      toast.error("Please select a size!");
-      return;
-    }
-
-    if (!isInStock) {
-      toast.error("Product is out of stock!");
-      return;
-    }
-
-    const cartData = {
-      _id: data._id,
-      DesignTitle: data.DesignTitle,
-      designImage: data.designImage,
-      ProductType: data.ProductType,
-      ProductColor: selectedColor,
-      selectedSize,
-      quantity,
-      shopId: data.shopId,
-      shop: data.shop,
-      discountPrice: data.discountPrice || data.originalPrice,
-      originalPrice: data.originalPrice
-    };
-
-    try {
-      const result = await dispatch(addTocart(cartData));
-      if (result.success) {
-        toast.success("Added to cart successfully!");
-      } else {
-        toast.error(result.message || "Failed to add to cart");
+  const handleaddToCart = async () => {
+      if (!canPurchase) {
+          toast.error("This product is not available for purchase");
+          return;
       }
-    } catch (error) {
-      toast.error("Something went wrong. Please try again.");
-    }
+
+      if (!selectedSize) {
+          toast.error("Please select a size!");
+          return;
+      }
+
+      if (!isInStock) {
+          toast.error("Product is out of stock!");
+          return;
+      }
+
+      const cartData = {
+          _id: data._id,
+          DesignTitle: data.DesignTitle,
+          designImage: data.designImage,
+          ProductType: data.ProductType,
+          ProductColor: selectedColor,
+          selectedSize,
+          quantity,
+          shopId: data.shopId,
+          shop: data.shop,
+          discountPrice: data.discountPrice || data.originalPrice,
+          originalPrice: data.originalPrice,
+      };
+
+      try {
+          const result = await dispatch(addToCart(cartData));
+          if (result.success) {
+              toast.success("Added to cart successfully!");
+          } else {
+              toast.error(result.message || "Failed to add to cart");
+          }
+      } catch (error) {
+          toast.error("Something went wrong. Please try again.");
+      }
   };
 
   return (
@@ -270,7 +270,7 @@ const ProductDetailsCard = ({ data }) => {
                       <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={handleAddToCart}
+                          onClick={handleaddToCart}
                           disabled={!canPurchase || !isInStock}
                           className={`w-full py-3 mt-6 rounded-lg font-medium ${
                               !canPurchase || !isInStock
