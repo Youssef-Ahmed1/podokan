@@ -58,8 +58,8 @@ router.post(
           if (!item.qty || item.qty < 1) missing.push("Quantity");
           if (!item.DesignTitle) missing.push("Design Title");
           if (!item.ProductType) missing.push("Product Type");
-          if (!item.ProductColor) missing.push("Product Color");
-          if (!item.size) missing.push("size");
+  if (!item.ProductColor) missing.push("Product Color");
+  if (!item.size) missing.push("size");
           if (missing.length > 0) {
               return next(
                   new ErrorHandler(
@@ -76,10 +76,16 @@ router.post(
                   new ErrorHandler(`Product not found in database.`, 404),
               );
           }
-
+console.log("WHAT IS DESIGN IMAGE:", item.designImage);
 const designImageObject = {
-    public_id: null,
-    url: item.designImage,
+    public_id:
+        typeof item.designImage === "object"
+            ? item.designImage.public_id
+            : null,
+    url:
+        typeof item.designImage === "object"
+            ? item.designImage.url
+            : item.designImage,
 };
           const shopIdStr = item.shopId.toString();
 
@@ -98,7 +104,7 @@ const designImageObject = {
               designImage: designImageObject,
               DesignTitle: item.DesignTitle,
               ProductType: item.ProductType,
-              ProductColor: item.ProductColor,
+              ProductColor: item.ProductColor || item.selectedColor,
               size: item.size,
               designSpecs: item.designSpecs || {
                   positionX: 50,

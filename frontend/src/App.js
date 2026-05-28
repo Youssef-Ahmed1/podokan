@@ -18,25 +18,24 @@ import Loader from "./components/Layout/Loader";
 
 // Route Components (assuming lazy loading isn't fully implemented yet based on Suspense usage)
 import {
-  LoginPage,
-  SignupPage,
-  ActivationPage,
-  HomePage,
-  ProductsPage,
-  BestSellingPage,
-  EventsPage,
-  FAQPage,
-  CheckoutPage,
-  PaymentPage,
-  OrderSuccessPage,
-  ProductDetailsPage,
-  ProfilePage,
-  ShopCreatePage,
-  SellerActivationPage,
-  ShopLoginPage,
-  OrderDetailsPage as UserOrderDetailsPage, // Renamed import for clarity
-  TrackOrderPage,
-  UserInbox,
+    LoginPage,
+    SignupPage,
+    ActivationPage,
+    HomePage,
+    ProductsPage,
+    BestSellingPage,
+    EventsPage,
+    FAQPage,
+    CheckoutPage,
+    PaymentPage,
+    OrderSuccessPage,
+    ProductDetailsPage,
+    ProfilePage,
+    ShopCreatePage,
+    SellerActivationPage,
+    ShopLoginPage,
+    OrderDetailsPage as UserOrderDetailsPage, // Renamed import for clarity
+    TrackOrderPage,
 } from "./routes/Routes.js";
 import {
     ShopHomePage as SellerShopHomePage, // Renamed import for clarity
@@ -52,7 +51,6 @@ import {
     ShopAllRefunds,
     ShopSettingsPage,
     ShopWithDrawMoneyPage,
-    ShopInboxPage,
 } from "./routes/ShopRoutes";
 import {
   AdminDashboardPage,
@@ -78,29 +76,12 @@ axios.defaults.withCredentials = true; // Send cookies globally
 axios.interceptors.request.use(
     (config) => {
         // Define API paths that require the Seller token more precisely
-        const sellerApiPrefixes = [
-            "/api/v2/shop/", // Covers shop creation, login, activation, loading seller data
-            "/api/v2/product/", // Covers seller product actions
-            "/api/v2/event/", // Covers seller event actions
-            "/api/v2/coupon/", // Covers seller coupon actions
-            "/api/v2/order/get-seller", // Covers getting seller orders/details
-            "/api/v2/order/accept-refund", // Seller refund action
-            "/api/v2/withdraw/", // Seller withdrawal actions
-            "/api/v2/message/", // Seller message actions (if applicable)
-            // Add other seller-specific base paths if needed
-        ];
-
-        const isAdminRequest = config.url?.startsWith("/api/v2/order/admin/"); // Specific admin order routes
-        const isSellerRequest =
-            config.url &&
-            sellerApiPrefixes.some((prefix) => config.url.startsWith(prefix));
 
         // Clear existing auth headers first
         delete config.headers["Authorization"];
         delete config.headers["Seller-Authorization"];
 
         // Apply correct token based on route type priority (Seller > User)
-
 
         return config;
     },
@@ -123,9 +104,8 @@ axios.interceptors.response.use(
         !!originalRequest.headers["Seller-Authorization"];
       const toastId = wasSellerRequest ? "seller-401" : "user-401";
       const message = wasSellerRequest
-        ? "Seller session expired or invalid. Please login again."
-        : "Session expired or invalid. Please login again.";
-      const tokenKey = wasSellerRequest ? "seller_token" : "token";
+          ? "Seller session expired or invalid. Please login again."
+          : "Session expired or invalid. Please login again.";
       const loginPath = wasSellerRequest ? "/shop-login" : "/login";
 
       console.warn(
@@ -140,14 +120,13 @@ axios.interceptors.response.use(
         // Check if still on a protected page before redirecting
         const currentPath = window.location.pathname;
         const isProtectedRoute =
-          currentPath.startsWith("/dashboard") ||
-          currentPath.startsWith("/profile") ||
-          currentPath.startsWith("/admin") ||
-          currentPath.startsWith("/settings") ||
-          currentPath.startsWith("/checkout") ||
-          currentPath.startsWith("/payment") ||
-          currentPath.startsWith("/inbox") ||
-          currentPath.includes("/order/");
+            currentPath.startsWith("/dashboard") ||
+            currentPath.startsWith("/profile") ||
+            currentPath.startsWith("/admin") ||
+            currentPath.startsWith("/settings") ||
+            currentPath.startsWith("/checkout") ||
+            currentPath.startsWith("/payment") ||
+            currentPath.includes("/order/");
 
         if (isProtectedRoute) {
           // Check user/seller state before redirecting forcefully
@@ -252,14 +231,7 @@ const App = () => {
                           </ProtectedRoute>
                       }
                   />
-                  <Route
-                      path="/inbox"
-                      element={
-                          <ProtectedRoute>
-                              <UserInbox />
-                          </ProtectedRoute>
-                      }
-                  />
+
                   <Route
                       path="/user/order/:id" // User specific order detail route
                       element={
@@ -371,14 +343,6 @@ const App = () => {
                       element={
                           <SellerProtectedRoute>
                               <ShopWithDrawMoneyPage />
-                          </SellerProtectedRoute>
-                      }
-                  />
-                  <Route
-                      path="/dashboard-messages"
-                      element={
-                          <SellerProtectedRoute>
-                              <ShopInboxPage />
                           </SellerProtectedRoute>
                       }
                   />

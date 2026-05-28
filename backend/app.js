@@ -53,8 +53,6 @@ const apiRoutes = {
     event: require("./controller/event"),
     coupon: require("./controller/couponCode"),
     order: require("./controller/order"),
-    conversation: require("./controller/conversation"),
-    message: require("./controller/message"),
     withdraw: require("./controller/withdraw"),
 };
 

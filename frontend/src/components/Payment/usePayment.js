@@ -1,17 +1,15 @@
 import  { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
-import { removeFromCart } from "../../redux/actions/cart";
 
 export const usePayment = () => {
     const [orderData, setOrderData] = useState(null);
     const { user } = useSelector((state) => state.user);
     const navigate = useNavigate();
     const [select, setSelect] = useState(3);
-    const dispatch = useDispatch();
 
     useEffect(() => {
         const orderData = JSON.parse(localStorage.getItem("latestOrder"));
@@ -25,9 +23,6 @@ export const usePayment = () => {
         }
     }, [navigate]);
 
-    const clearCart = (data) => {
-        dispatch(removeFromCart(data));
-    };
 
     const cashOnDeliveryHandler = async (e) => {
         e.preventDefault();
@@ -42,13 +37,13 @@ export const usePayment = () => {
                 console.log("Mapping item for payload:", item);
                 return {
                     qty: item.qty,
-                    shopId: item.shopId,
+                    shopId: item.shopId._id || item.shopId,
                     designImage: item.designImage,
                     DesignTitle: item.DesignTitle,
                     ProductType: item.ProductType,
-                    ProductColor: item.ProductColor,
-                    size: item.size,
-                    productId: item.productId,
+                    ProductColor: item.ProductColor || item.selectedColor,
+                    size: item.selectedSize || item.size,
+                    productId: item.productId || item._id,
                     designSpecs: item.designSpecs,
                 };
             }),

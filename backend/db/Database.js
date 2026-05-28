@@ -15,15 +15,14 @@ const connectDatabase = async (retryCount = 0) => {
     });
 
     const connectionParams = {
-      maxPoolSize: 10,
-      minPoolSize: 2,
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 30000,
-      serverSelectionTimeoutMS: 30000,
-      family: 4,
-      retryWrites: true,
-      maxIdleTimeMS: 60000,
-      compressors: 'zlib'
+        maxPoolSize: 10,
+        minPoolSize: 2,
+        connectTimeoutMS: 30000,
+        serverSelectionTimeoutMS: 30000,
+        family: 4,
+        retryWrites: true,
+        maxIdleTimeMS: 60000,
+        compressors: "zlib",
     };
 
     // Remove any existing listeners to prevent duplicates

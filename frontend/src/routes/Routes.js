@@ -17,26 +17,24 @@ import SellerActivationPage from "../pages/SellerActivationPage";
 import ShopLoginPage from "../pages/ShopLoginPage";
 import OrderDetailsPage from "../components/UserOrderDetails"; // Use the correct component for user order details
 import TrackOrderPage from "../pages/TrackOrderPage";
-import UserInbox from "../pages/UserInbox"; // Ensure this component exists
 
 export {
-  LoginPage,
-  SignupPage,
-  ActivationPage,
-  HomePage,
-  ProductsPage,
-  BestSellingPage,
-  EventsPage,
-  FAQPage,
-  CheckoutPage,
-  PaymentPage,
-  OrderSuccessPage,
-  ProductDetailsPage,
-  ProfilePage,
-  ShopCreatePage,
-  SellerActivationPage,
-  ShopLoginPage,
-  OrderDetailsPage, // Exporting UserOrderDetails as OrderDetailsPage
-  TrackOrderPage,
-  UserInbox,
+    LoginPage,
+    SignupPage,
+    ActivationPage,
+    HomePage,
+    ProductsPage,
+    BestSellingPage,
+    EventsPage,
+    FAQPage,
+    CheckoutPage,
+    PaymentPage,
+    OrderSuccessPage,
+    ProductDetailsPage,
+    ProfilePage,
+    ShopCreatePage,
+    SellerActivationPage,
+    ShopLoginPage,
+    OrderDetailsPage, // Exporting UserOrderDetails as OrderDetailsPage
+    TrackOrderPage,
 };

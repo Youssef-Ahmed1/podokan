@@ -19,8 +19,9 @@ const Cart = ({ setOpenCart }) => {
   };
 
   const totalPrice = cart.reduce(
-    (acc, item) => acc + item.qty * (item.discountPrice || item.originalPrice),
-    0
+      (acc, item) =>
+          acc + item.qty * Number(item.discountPrice || item.originalPrice),
+      0,
   );
 
   const quantityChangeHandler = (data) => {
